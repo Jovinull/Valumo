@@ -115,12 +115,13 @@ class VoxelMesherTest {
     }
 
     @Test
-    void mergedQuadsOverlapNeighboursToHideTJunctionCracks() {
-        // com margem, um quad fundido ultrapassa a aresta do volume em exatamente crackMargin
+    void mergedQuadsNeverExtendBeyondTheirFaces() {
+        // rodada 08.1: malha conforme, sem margem — nenhum vértice sai da caixa do volume (a margem antiga
+        // sobrepunha faces coplanares e causava z-fighting; ver MeshSeamTest e ADR 0014)
         VoxelSource src = grid(4, 1, 1, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0);
         float[] d = VoxelMesher.buildDataMerged(src, 1f, 0, 0, 0);
-        float minX = Float.MAX_VALUE;
-        for (int i = 0; i < d.length; i += Mesh.SCENE_STRIDE) minX = Math.min(minX, d[i]);
-        assertEquals(-VoxelMesher.crackMargin, minX, 1e-6);
+        for (int i = 0; i < d.length; i += Mesh.SCENE_STRIDE) {
+            assertTrue(d[i] >= 0 && d[i] <= 4 && d[i + 1] >= 0 && d[i + 1] <= 1 && d[i + 2] >= 0 && d[i + 2] <= 1, "vértice fora do volume");
+        }
     }
 }

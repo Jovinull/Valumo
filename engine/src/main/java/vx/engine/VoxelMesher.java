@@ -16,9 +16,18 @@ package vx.engine;
 public final class VoxelMesher {
     private VoxelMesher() { }
 
-    /** Margem (em voxels) com que cada quad fundido avança sobre os vizinhos para cobrir frestas de
-     *  T-junction. 0,06 voxel ≈ 1 pixel no terreno a 7 u na câmera de exploração (rodada 03). */
-    public static float crackMargin = 0.06f;
+    /**
+     * Rodada 08.1 — malha CONFORME: cada quad fundido recebe, nas arestas, os vértices da malha que estão sobre
+     * elas (fim das T-junctions), e as arestas compartilhadas ficam com exatamente os mesmos vértices. Pela regra
+     * de rasterização do OpenGL isso é estanque: nem fresta (pixel sem cobertura) nem sobreposição (z-fighting).
+     * {@code -Dvx.mesh=legado} volta ao comportamento da rodada 03 (sem conformidade + margem de 0,06 voxel), só
+     * para comparação e para o teste de regressão. Ver ADR 0014.
+     */
+    public static boolean conforming = !"legado".equals(System.getProperty("vx.mesh"));
+
+    /** Margem (em voxels) com que cada quad fundido avançava sobre os vizinhos para cobrir frestas de T-junction
+     *  (rodada 03). Com a malha conforme é 0: a sobreposição coplanar era a causa do tremor. */
+    public static float crackMargin = conforming ? 0f : 0.06f;
 
     /** Liga a fusão exata de faces em {@link #build}. */
     public static boolean merge = !"false".equals(System.getProperty("vx.merge"));
@@ -80,6 +89,7 @@ public final class VoxelMesher {
         int[] size = {src.sizeX(), src.sizeY(), src.sizeZ()};
         float[] ao = new float[4];
         int[] p = new int[3];
+        java.util.List<int[]> quads = new java.util.ArrayList<>();
         for (int f = 0; f < 6; f++) {
             int[] n = NORMALS[f];
             int d = n[0] != 0 ? 0 : (n[1] != 0 ? 1 : 2);
@@ -132,31 +142,113 @@ public final class VoxelMesher {
                         }
                         for (int b = 0; b < h; b++) for (int a = 0; a < w; a++) done[idx + a + b * su] = true;
                         p[d] = s; p[u] = i; p[v] = j;
-                        emitQuad(buf, src, f, d, u, v, p, w, h, rgbMat[idx], voxelSize, ox, oy, oz, ao);
+                        quads.add(new int[]{f, p[0], p[1], p[2], w, h, rgbMat[idx]});
                     }
             }
         }
+        // vértices de todos os quads (coordenadas inteiras da grade): a conformidade insere nas arestas os que caem nelas
+        java.util.HashSet<Long> verts = new java.util.HashSet<>();
+        if (conforming) for (int[] q : quads) for (int[] c : corners(q)) verts.add(key(c[0], c[1], c[2]));
+        for (int[] q : quads) emitQuad(buf, src, q, voxelSize, ox, oy, oz, ao, conforming ? verts : null);
         return java.util.Arrays.copyOf(buf.d, buf.n);
     }
 
-    private static void emitQuad(Buf buf, VoxelSource src, int f, int d, int u, int v, int[] p, int w, int h, int val,
-                                 float vs, float ox, float oy, float oz, float[] ao) {
+    static long key(int x, int y, int z) {
+        return ((long) (x + 0x100000) << 42) | ((long) (y + 0x100000) << 21) | (z + 0x100000);
+    }
+
+    /** Os 4 cantos (inteiros) de um quad {f, x, y, z, w, h, cor}, na ordem anti-horária vista de fora. */
+    static int[][] corners(int[] q) {
+        int f = q[0], w = q[4], h = q[5];
         int[] n = NORMALS[f];
+        int d = n[0] != 0 ? 0 : (n[1] != 0 ? 1 : 2), u = (d + 1) % 3, v = (d + 2) % 3;
+        int[][] c = CORNERS[f], out = new int[4][3];
+        for (int k = 0; k < 4; k++) {
+            out[k][d] = q[1 + d] + c[k][d];
+            out[k][u] = q[1 + u] + (c[k][u] == 1 ? w : 0);
+            out[k][v] = q[1 + v] + (c[k][v] == 1 ? h : 0);
+        }
+        return out;
+    }
+
+    private static void emitQuad(Buf buf, VoxelSource src, int[] q, float vs, float ox, float oy, float oz, float[] ao,
+                                 java.util.Set<Long> verts) {
+        int f = q[0], w = q[4], h = q[5], val = q[6];
+        int[] n = NORMALS[f];
+        int d = n[0] != 0 ? 0 : (n[1] != 0 ? 1 : 2), u = (d + 1) % 3, v = (d + 2) % 3;
         int[][] c = CORNERS[f];
         float r = ((val >> 16) & 0xFF) / 255f, g = ((val >> 8) & 0xFF) / 255f, b = (val & 0xFF) / 255f;
         float mat = ((val >>> 24) & 0xFF) - 1;
-        for (int k = 0; k < 4; k++) ao[k] = vertexAo(src, p[0], p[1], p[2], n, c[k]);
-        int[] order = (ao[0] + ao[2] >= ao[1] + ao[3]) ? new int[]{0, 1, 2, 0, 2, 3} : new int[]{1, 2, 3, 1, 3, 0};
-        float[] q = new float[3];
-        // Quads fundidos ganham uma margem de 0,01 voxel: cobre as frestas de T-junction (vértice de um
-        // quad pequeno no meio da aresta de um grande), vistas como pontos claros no gramado (rodada 03).
-        float e = (w > 1 || h > 1) ? crackMargin : 0f;
-        for (int k : order) {
-            q[d] = p[d] + c[k][d];
-            q[u] = p[u] + (c[k][u] == 1 ? w + e : -e);
-            q[v] = p[v] + (c[k][v] == 1 ? h + e : -e);
-            buf.put((q[0] + ox) * vs, (q[1] + oy) * vs, (q[2] + oz) * vs, n[0], n[1], n[2], r, g, b, ao[k], mat, 0f, 0f);
+        for (int k = 0; k < 4; k++) ao[k] = vertexAo(src, q[1], q[2], q[3], n, c[k]);
+        int[][] cs = corners(q);
+        // contorno: cantos + vértices da malha que caem no meio das arestas (T-junctions), em ordem anti-horária
+        java.util.List<int[]> ring = new java.util.ArrayList<>();
+        java.util.List<Float> ringAo = new java.util.ArrayList<>();
+        boolean extra = false;
+        for (int k = 0; k < 4; k++) {
+            int[] a0 = cs[k], a1 = cs[(k + 1) % 4];
+            ring.add(a0);
+            ringAo.add(ao[k]);
+            if (verts == null) continue;
+            int axis = a0[u] != a1[u] ? u : v, len = Math.abs(a1[axis] - a0[axis]), step = Integer.signum(a1[axis] - a0[axis]);
+            for (int t = 1; t < len; t++) {
+                int[] pt = a0.clone();
+                pt[axis] += step * t;
+                if (verts.contains(key(pt[0], pt[1], pt[2]))) {
+                    ring.add(pt);
+                    ringAo.add(ao[k]);                 // quad fundido tem AO uniforme: o vértice novo herda o mesmo valor
+                    extra = true;
+                }
+            }
         }
+        if (!extra) {                                  // sem T-junction: os mesmos 2 triângulos de sempre
+            float e = (w > 1 || h > 1) ? crackMargin : 0f;
+            int[] order = (ao[0] + ao[2] >= ao[1] + ao[3]) ? new int[]{0, 1, 2, 0, 2, 3} : new int[]{1, 2, 3, 1, 3, 0};
+            float[] p = new float[3];
+            for (int k : order) {
+                p[d] = cs[k][d];
+                p[u] = cs[k][u] + (c[k][u] == 1 ? e : -e);
+                p[v] = cs[k][v] + (c[k][v] == 1 ? e : -e);
+                buf.put((p[0] + ox) * vs, (p[1] + oy) * vs, (p[2] + oz) * vs, n[0], n[1], n[2], r, g, b, ao[k], mat, 0f, 0f);
+            }
+            return;
+        }
+        // polígono convexo com pontos colineares nas arestas: leque a partir de um canto cujas duas arestas não
+        // receberam vértice (sem triângulo degenerado); se não houver, leque a partir do centro
+        int m = ring.size(), apex = -1;
+        for (int k = 0; k < m && apex < 0; k++) {
+            if (!isCorner(ring.get(k), cs)) continue;
+            boolean nextCorner = isCorner(ring.get((k + 1) % m), cs), prevCorner = isCorner(ring.get((k - 1 + m) % m), cs);
+            if (nextCorner && prevCorner) apex = k;
+        }
+        if (apex >= 0) {
+            for (int t = 1; t < m - 1; t++) {
+                int i1 = (apex + t) % m, i2 = (apex + t + 1) % m;
+                put(buf, ring.get(apex), ringAo.get(apex), n, r, g, b, mat, vs, ox, oy, oz);
+                put(buf, ring.get(i1), ringAo.get(i1), n, r, g, b, mat, vs, ox, oy, oz);
+                put(buf, ring.get(i2), ringAo.get(i2), n, r, g, b, mat, vs, ox, oy, oz);
+            }
+        } else {
+            float[] cen = new float[3];
+            cen[d] = cs[0][d];
+            cen[u] = (cs[0][u] + cs[2][u]) / 2f;
+            cen[v] = (cs[0][v] + cs[2][v]) / 2f;
+            for (int t = 0; t < m; t++) {
+                int[] a0 = ring.get(t), a1 = ring.get((t + 1) % m);
+                buf.put((cen[0] + ox) * vs, (cen[1] + oy) * vs, (cen[2] + oz) * vs, n[0], n[1], n[2], r, g, b, ao[0], mat, 0f, 0f);
+                put(buf, a0, ringAo.get(t), n, r, g, b, mat, vs, ox, oy, oz);
+                put(buf, a1, ringAo.get((t + 1) % m), n, r, g, b, mat, vs, ox, oy, oz);
+            }
+        }
+    }
+
+    private static boolean isCorner(int[] p, int[][] cs) {
+        for (int[] c : cs) if (c[0] == p[0] && c[1] == p[1] && c[2] == p[2]) return true;
+        return false;
+    }
+
+    private static void put(Buf buf, int[] p, float ao, int[] n, float r, float g, float b, float mat, float vs, float ox, float oy, float oz) {
+        buf.put((p[0] + ox) * vs, (p[1] + oy) * vs, (p[2] + oz) * vs, n[0], n[1], n[2], r, g, b, ao, mat, 0f, 0f);
     }
 
     /** Só a geometria (sem OpenGL): vértices no layout {@link Mesh#SCENE_LAYOUT}. Testável sem contexto gráfico. */
