@@ -46,6 +46,19 @@ Animações de referência (vídeos, fora da documentação por tamanho):
 Versões anteriores: as quatro alteradas em [anteriores/r05/](anteriores/r05/); o conjunto completo da
 rodada 05 em `output/visual-review/round-05-1/referencias-r05/`.
 
+### Rodada 08.1 — malha conforme e dentes
+
+As 22 imagens foram refeitas com a **malha conforme** ([ADR 0014](../../decisions/0014-malha-conforme-sem-t-junctions.md)):
+- **O que saiu:** a faixa onde faces coplanares se sobrepunham e as pontas de 0,06 voxel da margem
+  anti-fresta.
+- **Onde muda:** só as bordas entre cores e as silhuetas. De 0,2% a 2,3% dos pixels mudam mais que 25/255.
+- **Rostos 06–08:** ficaram sem o serrilhado pontilhado nos olhos.
+- **Referência 10:** também ganhou os dentes em marfim (cor `TEETH`, aprovada pelo proprietário).
+- **Pontos claros isolados nas 22:** 165 → 61. O que sobra existe igual na malha exata sem fusão.
+
+Comparação, diferenças e pranchas: `output/visual-review/round-08-1/referencias/`. As anteriores (conjunto
+completo + manifesto) ficam em [anteriores/r08/](anteriores/r08/).
+
 ## Reprovados (o que NÃO fazer)
 
 Não são a direção oficial: são defeitos reais, corrigidos, guardados para ensinar o que evitar.
