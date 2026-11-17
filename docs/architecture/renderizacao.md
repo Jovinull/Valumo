@@ -81,6 +81,24 @@ Os valores exatos estão em `StyleProfile`; a tabela descreve o código no fecha
 - **Terreno** é uma malha única por estilo, gerada na carga a partir do relevo analítico.
 - Não há LOD, oclusão, nem streaming: fora do escopo de uma cena fechada de 48 × 48 u.
 
+## Malha: fusão conforme (rodada 08.1)
+
+`VoxelMesher.buildDataMerged` funde faces iguais (ADR 0007) e, desde a 08.1, gera **malha conforme** (ADR 0014):
+- **Arestas:** cada quad fundido recebe nas arestas os vértices da malha que caem nelas (fim das T-junctions).
+- **Margem:** zero, então nenhuma face sobrepõe a vizinha. Fim do z-fighting e das frestas.
+- **Invariantes** (cobertura exata, estanque, área, contenção) em `MeshSeamTest`.
+
+Diagnóstico:
+- **Modo antigo:** `-Dvx.mesh=legado`.
+- **Controle sem fusão:** `-Dvx.merge=false`, malha exata de referência.
+- **Sem vento:** `-Dvx.wind=0`, para isolar defeito de malha de movimento de folhagem.
+- **Métrica temporal:** `tools/temporal/alternancia.py` conta pixels que vão e voltam (A→B→A) em câmera lenta. É
+  o sintoma de z-fighting e separa tremor de deslocamento normal.
+
+Para investigar um defeito parecido, compare as três malhas na mesma câmera:
+- se a **conforme** se comporta como a **sem fusão**, o defeito não é do mesher (é modelo, aliasing ou shader);
+- se ela se comporta como a **legada**, é.
+
 ## Depuração
 
 - `F5`–`F10` isolam sombra, AO, névoa, pós, texturas e luz.

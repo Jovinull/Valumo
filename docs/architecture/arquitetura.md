@@ -33,7 +33,16 @@ viewer  (vx.viewer)   aplicativo desta rodada
   Appearance / ComponentCatalog / Composer   personalização em tempo de execução (07)
   AsyncComposer composição em thread de trabalho, envio na thread do GL, descarte, LRU (07.2)
   Creator*      criador de personagens: estado, layout, controle, câmera, desenho, miniaturas (07.2)
+  Terrain       colunas do relevo sem OpenGL (o World desenha e o jogo colide na mesma grade; 08)
+  UiKit         peças de interface do estilo Valumo, compartilhadas pelo criador e pelo jogo (08)
+
+game  (vx.game)   o jogo (rodada 08): depende de engine e viewer, sem duplicar renderer nem assets
+  GameMain / Game   janela, laço, desenho, interface, roteiros, ida e volta ao criador
+  GameLogic         estados (escolha, exploração, conversa, pausa), NPCs, aparências — sem OpenGL
+  Player / Collision / FollowCamera / SceneDef / Input   movimento, colisão, câmera, cena, entrada — sem OpenGL
 ```
+
+Dependências: `game → viewer → engine`. O jogo: [jogo.md](jogo.md); a decisão: [ADR 0013](../decisions/0013-modulo-game.md).
 
 Interfaces de jogo: [criador de personagens](criador-de-personagens.md) (estrutura e procedimento reutilizáveis).
 

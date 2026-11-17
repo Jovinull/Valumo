@@ -1,0 +1,261 @@
+# Jogo — protótipo de exploração (rodada 08)
+
+Primeira experiência jogável:
+1. escolher a aparência (preset, salva pelo criador ou feita na hora);
+2. entrar na vila;
+3. andar e correr com câmera em terceira pessoa, colidindo com o cenário e subindo pequenos degraus;
+4. conversar com a Kelyra.
+
+Não há combate, inventário, missões nem progressão.
+
+```bash
+./gradlew jogo                                       # janela do jogo
+game/build/install/game/bin/game --demo 400          # fumaça: abre, 400 quadros, FPS médio
+game/build/install/game/bin/game --roteiro ROTEIRO SAIDA [FPS]   # entrada por roteiro (janela oculta)
+tools/review8.sh [capturas|videos|desempenho|testes|zip|tudo]   # pacote em output/visual-review/round-08/
+```
+
+## 1. Módulos
+
+```
+engine   infraestrutura: janela + fila de eventos, shaders, malhas, texturas, FBO, câmera, lote 2D, fonte própria
+viewer   runtime compartilhado (Renderer, World, Terrain, Assets, Actor/Animator, Composer/AsyncComposer, UiKit,
+         Creator) + o aplicativo de inspeção (App, Main, bench, capturas, QA)
+game     regras do jogo: jogador, colisão, câmera de exploração, NPCs interativos, diálogo, estados, interface do jogo
+```
+
+Dependências: `game → viewer → engine` (e `game → engine`). O jogo **não duplica** renderer, mundo, carregamento
+de assets, animação nem compositor; usa os do módulo viewer.
+
+O nome "viewer" ficou maior que o papel: hoje ele é runtime e ferramenta ao mesmo tempo. Separar um módulo
+`runtime` seria mexer em quase todo o código. A decisão está no [ADR 0013](../decisions/0013-modulo-game.md),
+com o critério para fazer essa separação depois.
+
+| Classe (`vx.game`) | Papel | OpenGL? |
+|---|---|---|
+| `GameMain` | linha de comando | — |
+| `Game` | janela, laço, desenho da cena e da interface, roteiros, ida e volta ao criador | sim |
+| `GameLogic` | estados (escolha → exploração → conversa → pausa), ações, NPCs, aparências | não |
+| `Player` | corpo do herói: velocidade, colisão, chão, degraus, gravidade, rumo, animação pela velocidade | não |
+| `FollowCamera` | câmera de terceira pessoa: órbita, zoom, suavização, linha de visão, desvio, enquadramento | não |
+| `Collision` | relevo + formas (círculos e caixas) por perfil de prop, água, limite, linha de visão | não |
+| `SceneDef` | seção `jogo` da cena (início, limite, interativos, falas) e props à mão para testes | não |
+| `Input` | entrada de um quadro a partir da fila de eventos | não |
+
+No viewer e na engine, a rodada só acrescentou ganchos:
+- `Terrain` (colunas do relevo sem GL, usadas também pelo `World`);
+- `World.placements()` e `World.bodies()`;
+- `UiKit` (extraído do criador, desenho idêntico);
+- `Creator.start()` e o botão "Levar para a vila";
+- os eventos `KEY_UP` e `Window.captureCursor`;
+- setas na `PixelFont`.
+
+## 2. Inicialização e estados
+
+`Game` monta, nesta ordem:
+1. o `World` com a cena `jogo_vila_e`;
+2. o `Terrain`;
+3. a `Collision` (perfis + props colocados + NPCs);
+4. o `GameLogic`;
+5. o `AsyncComposer` (aparência do herói);
+6. os atores das NPCs interativas.
+
+| Estado | Entrada | Câmera | Cursor |
+|---|---|---|---|
+| `SELECT` | clique ou ↑↓ escolhe a aparência; Enter ou **Entrar na vila** começa; **Criar no editor** abre o criador | herói de frente (3/4), à esquerda do painel | livre |
+| `EXPLORE` | `WASD`/setas, `Shift`, mouse, roda, `E`, `Esc`, `F1` | terceira pessoa | preso (clique recaptura se a janela perder o foco) |
+| `DIALOG` | `E`/`Enter`/`Espaço` ou **Continuar**; `Esc` ou **Sair** | enquadra herói e NPC de lado | livre |
+| `PAUSE` | **Continuar**, **Trocar aparência**, **Abrir o criador**, sensibilidade, inverter vertical, **Sair do jogo** | parada | livre |
+
+Pausar e conversar preservam posição, rumo e câmera; o tempo do herói não corre na pausa (testes).
+
+## 3. Controle do herói (`Player`)
+
+| Parâmetro | Valor | Motivo |
+|---|---|---|
+| Andar / correr | 1,14 / 2,33 u/s | as velocidades da passada do `Animator` (pé de apoio parado) |
+| Aceleração / frenagem | 9 / 11 u/s² | anda em 0,13 s, corre em 0,26 s e para em 0,2 s: responde sem ser instantâneo |
+| Giro | até 11 rad/s | vira suave para a direção do movimento |
+| Raio / altura | 0,26 / 1,2 u | herói de 1,2 u |
+| Degrau | 0,30 u | sobe até 2 voxels do T1 (0,25); 3 ou mais (0,375) bloqueiam |
+| Grudar no chão ao descer | até 0,40 u | mais que isso cai com gravidade (18 u/s²) |
+
+- **Independência de FPS:** subpassos fixos de no máximo 1/120 s, então o percurso é o mesmo a 17, 30, 60, 144 e
+  240 FPS (teste).
+- **Movimento relativo à câmera:** `W` anda para onde a câmera olha.
+- **Animação pela velocidade real:**
+  - o clipe (parado/andar/correr, com histerese) sai da velocidade medida;
+  - a **fase avança pela distância percorrida** (`fase += dt · v / v_clipe`): a cadência escala com a velocidade
+    e a passada fica igual, então o pé de apoio não patina nem na aceleração (teste);
+  - a troca de clipe faz mistura de 0,2 s e mantém a fase do passo.
+- **Chão visual × lógico:**
+  - o herói lógico pisa no topo do voxel (`Terrain.groundAt`);
+  - a altura desenhada suaviza o degrau de 1 voxel (taxa 22/s);
+  - o IK dos pés (visual) recebe o mesmo `Terrain` como chão. A colisão é do jogo, o IK é do desenho, e os dois
+    usam o mesmo relevo.
+
+## 4. Colisão (`Collision`)
+
+Não é um motor físico. São três coisas simples e testáveis:
+
+1. **Relevo:**
+   - as colunas de voxel do T1 (`Terrain`, a mesma grade que o `World` desenha);
+   - a altura vem do topo do voxel;
+   - a água não é pisável, nem a margem rente a ela (`chão ≥ água + 0,06`);
+   - há um limite circular por cena.
+2. **Formas em XZ com faixa de altura:**
+   - círculos para troncos, pedras e pessoas; caixas orientadas para casa, cerca e caixotes;
+   - o corpo é um círculo empurrado para fora delas (4 iterações) e perde só a componente da velocidade contra a
+     parede, ou seja, desliza;
+   - forma cujo topo fica até 0,30 u acima dos pés é pisável e não bloqueia.
+3. **Perfis por tipo de prop**, escritos à mão em [`assets/scenes/colisao_e.json`](../../assets/scenes/colisao_e.json):
+   - `caixa` usa a pegada da malha × escala, girada com o prop;
+   - `circulo` usa um raio fixo;
+   - `tronco` é um círculo do tronco para o corpo mais a **copa só para a câmera**, porque o herói passa por
+     baixo dela;
+   - `nenhum` vale para flores, capim, samambaia e juncos;
+   - `camera: false` deixa a câmera atravessar postes finos e arbustos.
+
+   A malha visual nunca é usada para colidir. As caixas saem da matriz e da caixa da malha que o `World` colocou;
+   nos testes, da origem e do tamanho do `props.json`, que dão o mesmo resultado.
+4. **Desnível:** o passo é bloqueado se o chão novo subir mais que o degrau ou não for pisável. Antes de parar,
+   tenta deslizar por um eixo.
+
+Para acrescentar um prop novo à colisão, dê a ele uma linha em `colisao_e.json` (ou deixe o `padrao`: caixa
+× 0,9) e confira com `GameplayTest` e um vídeo de obstáculos.
+
+## 5. Câmera (`FollowCamera`)
+
+- **Órbita:**
+  - gira em volta de um ponto 0,95 u acima dos pés;
+  - o mouse gira (0,0032 rad/px, ajustável na pausa, vertical invertível);
+  - a roda vai de 2,2 a 8 u;
+  - a inclinação vai de −0,10 a 1,05 rad.
+- **Distância padrão 4,6 u**, comparada com 3,1 e 5,9 u (capturas `08–10`):
+  - a 3,1 u o herói esconde a vila;
+  - a 5,9 u a câmera passa colada em placas e pedras do primeiro plano;
+  - a 4,6 u o herói fica no terço inferior com a vila, as NPCs e o posto à vista.
+- **Suavização:** o ponto segue rápido no plano (16/s) e devagar na altura (6/s). A câmera sobe a escada de
+  degraus sem quicar (teste: nunca desce subindo).
+- **Linha de visão** contra o relevo e as formas de câmera (paredes, troncos, copas):
+  - quando bloqueia, a câmera **encosta na hora**: suavizar a entrada fazia ela atravessar a parede por alguns
+    quadros (pego no teste);
+  - quando libera, volta devagar (3/s).
+- **Desvio junto a paredes:**
+  - se a vista livre fica menor que 1,7 u, procura o menor desvio de rumo (até 80°) e de inclinação que dê vista
+    livre;
+  - aplica o desvio suavemente e volta a 0 quando libera;
+  - o rumo escolhido pelo jogador não muda;
+  - sem desvio possível (corredor fechado), encosta, com mínimo de 0,9 u.
+- **Enquadramento de conversa:** alvo entre os dois, de lado e um pouco atrás do herói, do lado em que a câmera
+  já estava; transição suave.
+
+## 6. Cena jogável
+
+[`assets/scenes/jogo_vila_e.json`](../../assets/scenes/jogo_vila_e.json) é uma cópia controlada da vila; `vila_e`
+e `clearing_e` não mudaram.
+
+- **Mesmo de antes:** relevo, luz, floresta, casa, posto de trilha, salgueiro, cartógrafa, Índira, Súvia,
+  mariposa e pompom.
+- **Acréscimos:**
+  - poço;
+  - cerca;
+  - caixotes e barril da estalagem;
+  - dois postes de lanterna;
+  - tronco, toco, pedras, placa e moitas;
+  - juncos e nenúfar no lago.
+- **A Kelyra** sai das NPCs decorativas e vira interativa.
+- **Seção `jogo`:**
+  - início `[x, z, rumo°]`;
+  - limite (círculo de raio 11,5);
+  - `interativos` (rig, nome, título, posição, rumo, alcance e falas com expressão).
+
+Percursos usados nos vídeos e testes:
+
+| Percurso | Trajeto |
+|---|---|
+| Plano | o caminho entre o início e o posto |
+| Encosta | pelo leste do posto, entre o poço e a casa, até o patamar da estalagem (0,88 u, degraus de 1 voxel) |
+| Obstáculos | pedras, caixotes e poço |
+| Água | a margem do lago (bloqueia) |
+
+## 7. Interação e diálogo
+
+- **Quem pode conversar:** a NPC mais perto dentro do alcance (1,8 u) e a até 80° da frente do herói (testes:
+  de costas não, longe não).
+- **Indicação:** uma placa discreta sobre a cabeça, **E Conversar com Kelyra**, projetada na tela.
+- **Ao conversar:**
+  - o herói freia e vira para ela;
+  - a Kelyra vira para o herói, acena no começo (o gesto `EMOTE` existente) e muda de expressão por fala;
+  - a câmera enquadra os dois.
+- **Painel:**
+  - mostra a plaqueta "Kelyra · Estalajadeira", a fala com quebra de linha e o progresso;
+  - tem os botões **Continuar (E)**, que vira **Até logo** na última fala, e **Sair (Esc)**.
+- **Falas:** quatro, originais, na seção `jogo` da cena. Sem árvore, missões nem serviço externo.
+- **Repetição automática do teclado** não reabre a conversa (teste).
+
+## 8. Aparência personalizada no mundo
+
+- **Escolhas:** os três presets e as aparências salvas em `output/aparencias/` (formato `valumo.aparencia` v1;
+  arquivo inválido aparece com o motivo e não é escolhível).
+- **Mesmo pipeline do criador:** o herói é composto pelo `AsyncComposer`/`Composer` da rodada 07, com o mesmo
+  rig e as mesmas animações.
+- **Criador dentro do jogo:**
+  - **Criar no editor** (ou **Abrir o criador** na pausa) abre o criador da 07.2 na mesma janela, com a aparência
+    atual;
+  - **Pronto → Levar para a vila** volta com a aparência nova (em memória; **Salvar** no criador grava em
+    arquivo).
+- **A aparência não define classe** nem equipamento (dito na tela de escolha).
+
+## 9. Interface do jogo
+
+- **Componentes:** `UiKit` (as mesmas peças do criador: madeira, pergaminho, fonte de pixel própria, P1 só na
+  escolha ativa).
+- **HUD mínima:**
+  - linha de controles no começo (some em 40 s; `F1` alterna);
+  - indicação de interação;
+  - balão de mensagem;
+  - "Preparando…" se a composição demorar.
+- **Sem barras** de vida nem de mana.
+- **Saída limpa:**
+  - **Sair do jogo** ou o X da janela fecham;
+  - `close()` libera o compositor, o renderer, o FBO de captura e o `UiKit`;
+  - abrir e fechar o criador libera o `App` e o `Creator` dele.
+
+## 10. Testes
+
+`GameplayTest` (sem OpenGL, 21 testes):
+
+| Assunto | O que verifica |
+|---|---|
+| FPS | percurso igual de 17 a 240 FPS (tempo simulado exato) |
+| Aceleração e frenagem | curtas, mas não instantâneas |
+| Giro | limitado por quadro |
+| Animação | clipe pela velocidade e fase pela distância (pé plantado) |
+| Obstáculos e paredes | parada no obstáculo e deslize ao longo da parede |
+| Degraus | o baixo sobe e o alto bloqueia, com os pés no chão |
+| Desnível | queda com gravidade, sem salto |
+| Câmera | estável parada e na escada; não atravessa parede; desvia; volta devagar; corredor; morro; limites; sensibilidade |
+| Cena | carrega com colisores e Kelyra; vila e clareira não têm a seção de jogo |
+| Relevo | o chão do jogo é o voxel desenhado |
+| Passeio | percurso pela vila sem entrar em prop, sem sair do chão e sem ficar preso de verdade (fuga em 8 direções) |
+| Água | não é pisável |
+| Kelyra | alcançável desde o início |
+| Interação | distância e ângulo |
+| Diálogo | entrar, avançar, sair, Esc, sem repetição do teclado, posição preservada |
+| Pausa | preserva tudo |
+| Mouse | gira a câmera e o movimento é relativo a ela |
+| Aparência | presets, salvas, inválida, criada; vai para o compositor |
+
+Regressão das peças compartilhadas:
+- as 33 capturas do criador saem idênticas às da 07.2 pixel a pixel (depois do `UiKit` e do `Terrain`);
+- as referências canônicas e o gate dos presets continuam a 0 de diferença (`tools/review7.sh gate`,
+  `tools/reference.sh`).
+
+## 11. Validação e limites
+
+- **Roteiros:** `tools/jogo/*.txt` (comandos documentados em `Game.script`). A entrada passa pela fila da janela,
+  não pelo sistema operacional. O roteiro de teste com teclado e mouse físicos para o proprietário está em
+  [roteiro-de-teste-fisico.md](../validation/roteiro-de-teste-fisico.md).
+- **Problemas abertos:** [problemas-conhecidos.md](../validation/problemas-conhecidos.md). As interrupções por
+  HIT da espada e da lâmina longa continuam abertas, e o combate não existe.
