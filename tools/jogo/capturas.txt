@@ -1,0 +1,63 @@
+# Rodada 08 — capturas determinísticas do protótipo jogável (entrada pela fila da janela).
+size 1920 1080
+shot 01-escolha-aparencia
+click escolha:1
+wait 1.0
+shot 02-escolha-exploradora
+click escolha:0
+wait 1.0
+click comecar
+wait 2.0
+shot 03-exploracao-inicio
+ir -2.2 1.9
+ir -2.6 1.3
+wait 0.5
+shot 04-indicacao-kelyra
+key E
+wait 1.4
+shot 05-dialogo-fala-1
+key E
+key E
+key E
+wait 1.0
+shot 06-dialogo-ultima-fala
+key E
+wait 1.2
+key ESC
+wait 0.4
+shot 07-pausa
+key ESC
+wait 0.6
+look -500 0 1.0
+wheel 3
+wait 2.0
+shot 08-camera-3.1u
+wheel -3
+wait 2.0
+shot 09-camera-4.6u-padrao
+wheel -2
+wait 2.0
+shot 10-camera-5.9u
+wheel 2
+ir 2.0 6.4 correndo
+mirar 6.6 4.8 0.6
+hold W+SHIFT 2.5
+hold W 1.0
+look -300 0 0.8
+wait 1.0
+shot 11-beira-do-lago
+ir 4.5 -1.0 correndo
+ir 0.0 -5.2 correndo
+ir -0.6 -8.0
+ir -3.0 -9.6
+look 700 0 1.6
+wait 1.0
+shot 12-patamar-da-estalagem
+ir -3.0 -7.6
+mirar 4.0 -7.6 1.2
+wait 2.0
+shot 13-camera-junto-a-parede
+size 1280 720
+wait 0.5
+shot 14-exploracao-720p
+size 1920 1080

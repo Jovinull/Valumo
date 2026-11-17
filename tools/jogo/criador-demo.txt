@@ -1,0 +1,25 @@
+# Sub-roteiro do criador aberto pelo jogo (06-aparencia): muda penteado, cor, chapéu e nome e volta para a vila.
+record on
+wait 0.8
+click cat:CABELO
+click hair:cabelo.topete
+wait 0.4
+click hairColor:ruivo
+wait 0.5
+click cat:CHAPEU
+click cover:chapeu.maga
+wait 0.6
+click cat:MODELO
+click name
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+type Brisa da vila
+key ENTER
+wait 0.4
+click done
+wait 0.8
+click finish

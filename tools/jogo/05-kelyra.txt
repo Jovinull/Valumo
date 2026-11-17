@@ -1,0 +1,24 @@
+# Rodada 08 — aproximar da Kelyra, ver a indicação, conversar até o fim e voltar a explorar.
+size 1920 1080
+click comecar
+wait 1.5
+record on
+ir -2.2 1.9
+ir -2.6 1.3
+estado
+wait 1.0
+key E
+wait 2.4
+key E
+wait 2.6
+key E
+wait 2.8
+key E
+wait 2.4
+key E
+wait 1.2
+estado
+look -500 0 1.0
+hold W 1.6
+wait 0.8
+record off

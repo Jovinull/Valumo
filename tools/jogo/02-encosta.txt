@@ -1,0 +1,18 @@
+# Rodada 08 — encosta até o patamar da estalagem (degraus de 1 voxel do T1): leste do posto de trilha, entre o
+# poço e a casa, até o alto (0,88 u), e descida correndo.
+size 1920 1080
+click comecar
+wait 1.5
+record on
+ir 0.6 -1.6
+ir 0.0 -5.2
+estado
+ir -0.6 -8.0
+ir -3.0 -9.6
+estado
+look 700 0 1.6
+wait 0.5
+ir 1.0 -6.0 correndo
+estado
+wait 1.0
+record off

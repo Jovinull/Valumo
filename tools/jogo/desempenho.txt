@@ -1,0 +1,18 @@
+# Rodada 08 — medição: percurso de ~25 s pela vila (andar, correr, encosta, giro de câmera, lago), 60 quadros/s
+# de simulação, cada quadro medido com glFinish (lógica + desenho + interface).
+size 1920 1080
+click comecar
+wait 1.0
+# como o bench do viewer: aquecimento (≈ 400 quadros) fora da medição
+aquecer 7
+perf on
+ir 0.6 -1.6 correndo
+ir 0.0 -5.2 correndo
+ir -0.6 -8.0
+ir -3.0 -9.6
+look 900 0 3.0
+ir 1.0 -6.0 correndo
+ir 4.5 -1.0 correndo
+ir 2.0 6.4 correndo
+ir -2.2 1.9
+perf off desempenho.txt

@@ -1,0 +1,20 @@
+# Rodada 08 — movimentação em terreno plano: andar, parar, virar a câmera, correr, mudar de direção.
+size 1920 1080
+click comecar
+wait 1.5
+record on
+wait 0.8
+hold W 2.4
+wait 0.7
+look 420 0 1.2
+hold W+SHIFT 2.0
+estado
+wait 0.7
+hold A 1.6
+hold S 1.4
+estado
+hold W 1.0
+hold W+SHIFT 1.4
+wait 1.0
+estado
+record off

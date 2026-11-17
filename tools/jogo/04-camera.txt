@@ -1,0 +1,27 @@
+# Rodada 08 — câmera: giro completo com o mouse, inclinação, zoom; depois junto à parede da estalagem a câmera
+# desvia e encurta em vez de atravessar (ou entrar na cabeça do herói), e volta devagar.
+size 1920 1080
+click comecar
+wait 1.5
+record on
+look 1960 0 5.0
+look 0 -160 1.0
+look 0 260 1.2
+look 0 -100 0.8
+wheel 4
+wait 1.2
+wheel -6
+wait 1.6
+wheel 2
+ir 0.6 -1.6 correndo
+ir 0.0 -5.2 correndo
+ir -0.6 -8.0
+ir -3.0 -7.6
+estado
+mirar 4.0 -7.6 1.2
+wait 1.0
+estado
+look -700 0 3.0
+look 700 0 3.0
+wait 0.8
+record off

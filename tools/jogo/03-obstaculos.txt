@@ -1,0 +1,18 @@
+# Rodada 08 — obstáculos: pedra (bloqueia e desliza), caixotes e barril, poço, beira do lago (água não é pisável).
+size 1920 1080
+click comecar
+wait 1.5
+record on
+mirar -5.8 4.4 0.6
+hold W 4.5
+estado
+hold W+D 1.6
+ir 2.0 6.4 correndo
+mirar 6.6 4.8 0.6
+hold W+SHIFT 2.5
+hold W 1.2
+estado
+look -400 0 1.0
+hold A 1.4
+wait 0.8
+record off

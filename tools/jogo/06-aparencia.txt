@@ -1,0 +1,23 @@
+# Rodada 08 — aparência no mundo: presets na escolha, uma aparência salva pelo criador, o criador aberto de dentro do
+# jogo (mesmo compositor) e o herói personalizado andando na vila. Rode com -Dvx.saves=<pasta com a aparência salva>.
+size 1920 1080
+record on
+wait 1.0
+click escolha:1
+wait 1.4
+click escolha:2
+wait 1.4
+click escolha:3
+wait 1.8
+click criador
+criador tools/jogo/criador-demo.txt
+wait 1.4
+click comecar
+wait 1.4
+hold W 2.2
+look 600 0 1.5
+hold W+SHIFT 2.0
+wait 0.6
+look -900 0 2.4
+wait 1.0
+record off
