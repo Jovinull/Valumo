@@ -1,0 +1,444 @@
+{
+ "_doc": "Clareira da direção E (rodada 02), escrita à mão a partir de clearing.json. Diferenças: menos objetos espalhados, plantas pequenas em touceiras ('cluster'), quatro silhuetas de carvalho, áreas de descanso visual ao redor do caminho e da casa. Mesmo relevo e mesmos pontos de interesse das outras direções, para comparação. Fonte editada à mão (não é gerada).",
+ "hero": [
+  0.6,
+  4.2,
+  25
+ ],
+ "props": [
+  {
+   "n": "house",
+   "x": -6.5,
+   "z": -8.0,
+   "r": 0
+  },
+  {
+   "n": "well",
+   "x": -1.6,
+   "z": -6.6
+  },
+  {
+   "n": "fence",
+   "x": -10.6,
+   "z": -4.4,
+   "r": 0
+  },
+  {
+   "n": "fence",
+   "x": -12.6,
+   "z": -4.4,
+   "r": 0
+  },
+  {
+   "n": "fence",
+   "x": -3.2,
+   "z": -3.9,
+   "r": 0
+  },
+  {
+   "n": "lantern_post",
+   "x": -4.9,
+   "z": -4.3
+  },
+  {
+   "n": "lantern_post",
+   "x": 3.9,
+   "z": 6.3
+  },
+  {
+   "n": "crate",
+   "x": -3.3,
+   "z": -7.4
+  },
+  {
+   "n": "crate",
+   "x": -3.5,
+   "z": -8.3,
+   "r": 90
+  },
+  {
+   "n": "barrel",
+   "x": -2.7,
+   "z": -8.1
+  },
+  {
+   "n": "barrel",
+   "x": -9.9,
+   "z": -6.6
+  },
+  {
+   "n": "signpost",
+   "x": 2.3,
+   "z": 9.2,
+   "r": 0
+  },
+  {
+   "n": "tree_big",
+   "x": -11.5,
+   "z": 2.5
+  },
+  {
+   "n": "mushroom_big",
+   "x": -9.2,
+   "z": 0.6
+  },
+  {
+   "n": "mushroom_big",
+   "x": -12.6,
+   "z": 5.6,
+   "r": 90
+  },
+  {
+   "n": "mushroom_red",
+   "x": -8.4,
+   "z": 2.1
+  },
+  {
+   "n": "mushroom_red",
+   "x": -10.2,
+   "z": 5.4
+  },
+  {
+   "n": "shrine",
+   "x": 6.8,
+   "z": -6.8,
+   "r": 0
+  },
+  {
+   "n": "rock_l",
+   "x": 9.6,
+   "z": -5.6
+  },
+  {
+   "n": "rock_m",
+   "x": 4.2,
+   "z": -8.6,
+   "r": 90
+  },
+  {
+   "n": "rock_m",
+   "x": 9.0,
+   "z": -8.4
+  },
+  {
+   "n": "rock_s",
+   "x": 8.4,
+   "z": -4.2
+  },
+  {
+   "n": "rock_s",
+   "x": 5.3,
+   "z": -5.2,
+   "r": 180
+  },
+  {
+   "n": "campfire",
+   "x": 1.6,
+   "z": -2.6
+  },
+  {
+   "n": "log",
+   "x": 3.1,
+   "z": -2.0,
+   "r": 90
+  },
+  {
+   "n": "stump",
+   "x": 0.4,
+   "z": -3.9
+  },
+  {
+   "n": "dock",
+   "x": 4.9,
+   "z": 4.6,
+   "dy": -0.17,
+   "abs": true
+  },
+  {
+   "n": "reeds",
+   "x": 10.9,
+   "z": 6.4
+  },
+  {
+   "n": "reeds",
+   "x": 6.0,
+   "z": 7.9
+  },
+  {
+   "n": "reeds",
+   "x": 10.2,
+   "z": 2.4
+  },
+  {
+   "n": "lily",
+   "x": 8.9,
+   "z": 5.6,
+   "dy": -0.42,
+   "abs": true
+  },
+  {
+   "n": "lily",
+   "x": 7.2,
+   "z": 3.4,
+   "dy": -0.42,
+   "abs": true,
+   "r": 90
+  },
+  {
+   "n": "lily",
+   "x": 9.3,
+   "z": 3.6,
+   "dy": -0.42,
+   "abs": true,
+   "r": 180
+  },
+  {
+   "n": "rock_m",
+   "x": 11.2,
+   "z": 4.2
+  },
+  {
+   "n": "rock_s",
+   "x": 5.2,
+   "z": 2.0
+  },
+  {
+   "n": "bush_berry",
+   "x": -9.6,
+   "z": -3.4
+  },
+  {
+   "n": "bush",
+   "x": -3.6,
+   "z": -9.6
+  },
+  {
+   "n": "bush",
+   "x": 3.4,
+   "z": 1.0
+  },
+  {
+   "n": "flower_red",
+   "x": -5.3,
+   "z": -4.9
+  },
+  {
+   "n": "flower_yellow",
+   "x": -7.6,
+   "z": -5.0
+  },
+  {
+   "n": "flower_red",
+   "x": -8.3,
+   "z": -5.2
+  },
+  {
+   "n": "tree_oak",
+   "x": -12.2,
+   "z": -9.4
+  },
+  {
+   "n": "tree_pine",
+   "x": -1.0,
+   "z": -12.5
+  },
+  {
+   "n": "tree_oak2",
+   "x": 12.4,
+   "z": -1.6
+  },
+  {
+   "n": "tree_birch",
+   "x": 12.2,
+   "z": 8.6
+  },
+  {
+   "n": "tree_birch",
+   "x": -7.8,
+   "z": 9.4
+  }
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4",
+    "tree_oak3"
+   ],
+   "count": 84,
+   "ring": [
+    13.5,
+    24
+   ],
+   "seed": 7,
+   "minDist": 2.7,
+   "frontGap": 4.5
+  },
+  {
+   "props": [
+    "sapling",
+    "bush",
+    "bush",
+    "bush_berry"
+   ],
+   "count": 34,
+   "ring": [
+    10.5,
+    23
+   ],
+   "seed": 11,
+   "minDist": 1.6,
+   "frontGap": 3.0,
+   "cluster": 2,
+   "clusterR": 1.1
+  },
+  {
+   "props": [
+    "rock_s",
+    "rock_s",
+    "rock_m",
+    "stump",
+    "log"
+   ],
+   "count": 14,
+   "ring": [
+    6,
+    22
+   ],
+   "seed": 13,
+   "minDist": 2.6
+  },
+  {
+   "props": [
+    "mushroom_red",
+    "fern",
+    "fern"
+   ],
+   "count": 14,
+   "ring": [
+    11,
+    21
+   ],
+   "seed": 17,
+   "minDist": 1.4,
+   "cluster": 3,
+   "clusterR": 0.9
+  },
+  {
+   "props": [
+    "flower_red",
+    "flower_yellow",
+    "flower_white",
+    "flower_blue",
+    "flower_yellow"
+   ],
+   "count": 16,
+   "ring": [
+    2.5,
+    13
+   ],
+   "seed": 19,
+   "minDist": 1.6,
+   "cluster": 4,
+   "clusterR": 0.75
+  },
+  {
+   "props": [
+    "grass_tuft",
+    "grass_tuft",
+    "grass_tall"
+   ],
+   "count": 34,
+   "ring": [
+    1.5,
+    15
+   ],
+   "seed": 23,
+   "minDist": 1.1,
+   "cluster": 4,
+   "clusterR": 0.7
+  }
+ ],
+ "creatures": [
+  {
+   "n": "pompom",
+   "x": -2.6,
+   "z": 3.4,
+   "r": 60,
+   "clip": "idle"
+  },
+  {
+   "n": "pompom",
+   "x": -4.1,
+   "z": 5.2,
+   "r": -130,
+   "clip": "idle"
+  },
+  {
+   "n": "lumi",
+   "x": 5.6,
+   "z": -5.4,
+   "r": -30,
+   "clip": "idle",
+   "lift": 1.0
+  },
+  {
+   "n": "fungo",
+   "x": 6.2,
+   "z": -3.0,
+   "r": -50,
+   "clip": "idle"
+  },
+  {
+   "n": "tortuga",
+   "x": 6.4,
+   "z": 10.9,
+   "r": -70,
+   "clip": "idle",
+   "clear": 3.0
+  }
+ ],
+ "clouds": [
+  [
+   -26,
+   15,
+   -30
+  ],
+  [
+   -6,
+   17,
+   -36
+  ],
+  [
+   14,
+   14,
+   -28
+  ],
+  [
+   30,
+   16,
+   -34
+  ],
+  [
+   -18,
+   18,
+   -14
+  ],
+  [
+   22,
+   19,
+   -10
+  ],
+  [
+   2,
+   20,
+   4
+  ]
+ ]
+}
