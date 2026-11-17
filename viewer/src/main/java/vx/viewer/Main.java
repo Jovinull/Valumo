@@ -30,6 +30,11 @@ import static org.lwjgl.opengl.GL11.*;
  *   --occlusion [rig golpe]      rosto coberto e arma escondida em projeção de câmera (rodada 05.1)
  *   --grip rig golpe [passo]     torção/flexão/giro do item na mão ao longo do golpe (rodada 05.1)
  *   --info                       imprime dados do contexto OpenGL e sai
+ *   --custom-demo PASTA          roteiro do modo PERSONALIZACAO (teclas reais) com capturas por passo (rodada 07)
+ *   --custom-bench ARQUIVO.md    custo de compor/malhar/enviar, cache, memória e vazamento (rodada 07)
+ *   --editor                     criador de personagens do jogador (rodada 07.2: interface clicável)
+ *   --editor-debug               editor de depuração da rodada 07 (modo PERSONALIZACAO, só teclado)
+ *   --editor-script ROTEIRO SAIDA [FPS]  roteiro de entrada no criador (capturas/vídeo; janela oculta)
  *   --layout NOME                abre a composição assets/scenes/NOME.json (ex.: vila_e, vitrine_e) no modo interativo
  * </pre>
  */
@@ -50,10 +55,11 @@ public final class Main {
         for (int i = 0; i + 1 < args.length; i++) if (args[i].equals("--layout")) World.layout = args[i + 1];   // 06.1
         boolean interactive = true;
         for (String a : args)
-            if (a.equals("--snap") || a.equals("--info") || a.equals("--review") || a.equals("--review2") || a.equals("--review3") || a.equals("--bench"))
+            if (a.equals("--snap") || a.equals("--info") || a.equals("--review") || a.equals("--review2") || a.equals("--review3") || a.equals("--bench")
+                    || a.equals("--custom-demo") || a.equals("--custom-bench") || a.equals("--editor-script"))
                 interactive = false;
 
-        try (Window window = new Window("Valumo - prototipo visual", 1600, 900, interactive)) {
+        try (Window window = new Window(hasArg(args, "--editor") ? "Valumo - criar aventureiro" : "Valumo - prototipo visual", 1600, 900, interactive)) {
             if (hasArg(args, "--info")) {
                 System.out.println("GL_VENDOR   = " + glGetString(GL_VENDOR));
                 System.out.println("GL_RENDERER = " + glGetString(GL_RENDERER));
@@ -68,6 +74,16 @@ public final class Main {
                     App.State st = new App.State();
                     st.style = 4;                        // abre na direção consolidada E
                     st.quality = App.Quality.ALTA;       // inspeção; P alterna
+                    if (hasArg(args, "--editor")) {      // rodada 07.2: criador do jogador
+                        try (Creator c = new Creator(app, window, Path.of(System.getProperty("vx.assets", "assets")))) {
+                            c.run(demo);
+                        }
+                        return;
+                    }
+                    if (hasArg(args, "--editor-debug")) {   // rodada 07: editor de depuração (texto, teclado)
+                        st.mode = App.Mode.CUSTOMIZE;
+                        st.appearance = Appearance.preset("aventureiro");
+                    }
                     app.runInteractive(st, demo);
                     return;
                 }
@@ -79,6 +95,20 @@ public final class Main {
                     if (args[i].equals("--review3")) new Review3(app, Path.of("output/visual-review/round-03"),
                             i + 1 < args.length && !args[i + 1].startsWith("--") ? args[i + 1] : "all").run();
                     if (args[i].equals("--bench")) app.bench(i + 1 < args.length ? args[i + 1] : "");
+                    if (args[i].equals("--editor-script")) {                                   // rodada 07.2
+                        try (Creator c = new Creator(app, window, Path.of(System.getProperty("vx.assets", "assets")))) {
+                            c.script(Path.of(args[i + 1]), Path.of(args[i + 2]), i + 3 < args.length && !args[i + 3].startsWith("--")
+                                    ? Integer.parseInt(args[i + 3]) : 30);
+                        } catch (java.io.IOException e) {
+                            throw new java.io.UncheckedIOException(e);
+                        }
+                    }
+                    try {                                                                      // rodada 07
+                        if (args[i].equals("--custom-demo")) app.customDemo(Path.of(args[i + 1]));
+                        if (args[i].equals("--custom-bench")) app.customBench(Path.of(args[i + 1]));
+                    } catch (java.io.IOException e) {
+                        throw new java.io.UncheckedIOException(e);
+                    }
                 }
             }
         }
@@ -128,7 +158,16 @@ public final class Main {
                 case "hold" -> st.actHold = Float.parseFloat(v);
                 case "dbg" -> Actor.debug = v.equals("1");
                 case "legacy" -> Animator.legacy = v.equals("1");
-                case "layout" -> World.layout = v;           // rodada 06: composição alternativa (vitrine)
+                case "layout" -> World.layout = v;
+                // rodada 07: personagem composto em tempo de execução (preset + escolhas; null = do preset)
+                case "custom" -> { st.appearance = Appearance.preset(v); if (st.mode == App.Mode.CHARACTER) st.mode = App.Mode.CUSTOMIZE; }
+                case "rosto" -> st.appearance.face = v;
+                case "cabelo" -> st.appearance.hair = v;
+                case "corCabelo" -> st.appearance.hairColor = "#" + v;
+                case "pele" -> st.appearance.skin = "#" + v;
+                case "iris" -> st.appearance.iris = "#" + v;
+                case "cobertura" -> st.appearance.cover = v;
+                case "aparencia" -> st.appearance = app.loadAppearance(v);           // rodada 06: composição alternativa (vitrine)
                 case "quality" -> st.quality = App.Quality.valueOf(v.toUpperCase());
                 case "tt" -> st.turntable = v.equals("1");
                 case "move" -> move = v.equals("1");

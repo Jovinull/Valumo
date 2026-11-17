@@ -27,7 +27,7 @@ import static org.lwjgl.opengl.GL11.glFinish;
 public final class App implements AutoCloseable {
     public enum Mode {
         SCENE("CENA COMPLETA"), CHARACTER("PERSONAGEM ISOLADO"), SIDE_BY_SIDE("LADO A LADO (5 DIRECOES)"),
-        PROPORTIONS("ESTUDO DE PROPORCOES"), LINEUP("COMPARACAO EM LINHA");
+        PROPORTIONS("ESTUDO DE PROPORCOES"), LINEUP("COMPARACAO EM LINHA"), CUSTOMIZE("PERSONALIZACAO");
         final String label;
         Mode(String label) { this.label = label; }
     }
@@ -118,6 +118,11 @@ public final class App implements AutoCloseable {
         public boolean metrics = false;
         /** Rig específico (ex.: "characters/variants/v2") no lugar do personagem do estilo. */
         public String heroDir = null;
+        /** Rodada 07: aparência composta em tempo de execução (modo PERSONALIZACAO, cena e capturas). */
+        public Appearance appearance = null;
+        public int customRow = 0;
+        public String customMsg = null;
+        public float customMsgUntil = 0f;
         /** Tratamento de relevo da E (0–3; ver World.quantize). */
         public int terrain = World.E_TERRAIN;
         /** SSAA das capturas offscreen (2 = padrão de revisão; 1 = como o jogo em qualidade PADRÃO). */
@@ -132,6 +137,9 @@ public final class App implements AutoCloseable {
         public String lab;
         public boolean terrainFar = true;
         public float timeScale = 1f, actHold = 0.45f;
+        /** Rodada 07.2: deslocamento lateral do alvo da câmera na CENA (u, no eixo direito da câmera) — põe o
+         *  herói no centro da área livre entre os painéis do criador. 0 = como sempre. */
+        public float camSide = 0f;
     }
 
     private static final String[] STUDY = {"p22", "p25", "p30", "p35", "p40"};
@@ -155,8 +163,310 @@ public final class App implements AutoCloseable {
     }
 
     // ------------------------------------------------------------------ conteúdo
+    private Composer composer;
+    private final Map<String, Appearance> customs = new HashMap<>();
+
+    /** Compositor de personagens (rodada 07), criado na primeira aparência pedida. */
+    public Composer composer() {
+        if (composer == null) composer = new Composer(assets.root(), 12);
+        return composer;
+    }
+
+    // ------------------------------------------------------------------ personalização (rodada 07)
+
+    static final String[] CUSTOM_ROWS = {"PRESET", "ROSTO", "CABELO", "COR DO CABELO", "PELE", "IRIS", "COBERTURA", "EXPRESSAO", "CLIPE"};
+
+    /** Valores possíveis de uma linha do painel (null = "do preset"). */
+    private List<String> customValues(int row) {
+        ComponentCatalog c = composer().catalog;
+        List<String> v = new ArrayList<>();
+        switch (row) {
+            case 0 -> v.addAll(c.presets.keySet());
+            case 1 -> { v.add(null); v.addAll(c.ids("rosto")); }
+            case 2 -> { v.add(null); v.addAll(c.ids("cabelo")); }
+            case 3, 4, 5 -> {
+                v.add(null);
+                for (String[] col : c.colors.get(row == 3 ? "cabelo" : row == 4 ? "pele" : "iris")) v.add(col[1]);
+            }
+            case 6 -> { v.add(null); v.add(Appearance.NO_COVER); v.addAll(c.ids("cabeca")); }
+            default -> { }
+        }
+        return v;
+    }
+
+    private String customGet(Appearance a, int row) {
+        return switch (row) {
+            case 0 -> a.preset;
+            case 1 -> a.face;
+            case 2 -> a.hair;
+            case 3 -> a.hairColor;
+            case 4 -> a.skin;
+            case 5 -> a.iris;
+            case 6 -> a.cover;
+            default -> null;
+        };
+    }
+
+    private void customSet(Appearance a, int row, String v) {
+        switch (row) {
+            case 0 -> { a.preset = v; a.reset(); }
+            case 1 -> a.face = v;
+            case 2 -> a.hair = v;
+            case 3 -> a.hairColor = v;
+            case 4 -> a.skin = v;
+            case 5 -> a.iris = v;
+            case 6 -> a.cover = v;
+            default -> { }
+        }
+    }
+
+    /** Muda o valor da linha; combinações incompatíveis são PULADAS e informadas (nunca silenciadas). */
+    void customStep(State st, int delta) {
+        Appearance a = st.appearance;
+        if (st.customRow == 7) {
+            String[] ex = {null, "neutral", "joy", "determined", "surprise"};
+            int i = java.util.Arrays.asList(ex).indexOf(st.expr);
+            st.expr = ex[Math.floorMod(i + delta, ex.length)];
+            return;
+        }
+        if (st.customRow == 8) {
+            Animator.Clip[] cl = {Animator.Clip.IDLE, Animator.Clip.WALK, Animator.Clip.RUN, Animator.Clip.ATTACK, Animator.Clip.EMOTE, Animator.Clip.HIT};
+            int i = java.util.Arrays.asList(cl).indexOf(st.clip);
+            st.clip = cl[Math.floorMod(i + delta, cl.length)];
+            st.clipStart = st.time;
+            return;
+        }
+        List<String> vals = customValues(st.customRow);
+        int i = vals.indexOf(customGet(a, st.customRow));
+        StringBuilder skipped = new StringBuilder();
+        for (int n = 1; n <= vals.size(); n++) {
+            Appearance t = a.copy();
+            String v = vals.get(Math.floorMod(i + delta * n, vals.size()));
+            customSet(t, st.customRow, v);
+            try {
+                t.validate(composer().catalog);
+                st.appearance = t;
+                customMsg(st, skipped.length() > 0 ? "PULEI (INCOMPATIVEL): " + skipped : null);
+                return;
+            } catch (Appearance.InvalidAppearance e) {
+                skipped.append(ascii(e.getMessage())).append("  ");
+            }
+        }
+        customMsg(st, "NENHUMA OPCAO COMPATIVEL: " + skipped);
+    }
+
+    /**
+     * Rodada 07: roteiro do modo PERSONALIZACAO pelas MESMAS funções das teclas (setas, BACKSPACE, F2, F3),
+     * capturando a tela com o painel a cada passo — prova de interface sem simular imagem.
+     */
+    public void customDemo(Path out) throws IOException {
+        Files.createDirectories(out);
+        State st = new State();
+        st.style = 4;
+        st.mode = Mode.CUSTOMIZE;
+        st.appearance = Appearance.preset("aventureiro");
+        st.quality = Quality.PADRAO;
+        st.time = 1.3f;
+        defaultCamera(st);
+        st.cam.target.y = 0.75f;
+        st.cam.distance = 2.6f;
+        st.cam.yaw = 0.35f;
+        st.cam.update(16f / 9f);
+        st.camSet = true;
+        Path bad = Path.of("output/aparencias/zz-arquivo-invalido.json");
+        Object[][] steps = {
+                {"preset-aventureiro", null},
+                {"cabelo-curto", (Runnable) () -> { st.customRow = 2; customStep(st, 2); }},
+                {"cor-castanho", (Runnable) () -> { st.customRow = 3; customStep(st, 4); }},
+                {"pele-morena", (Runnable) () -> { st.customRow = 4; customStep(st, 4); }},
+                {"iris-ambar", (Runnable) () -> { st.customRow = 5; customStep(st, 4); }},
+                {"rosto-da-maga", (Runnable) () -> { st.customRow = 1; customStep(st, 3); }},
+                {"cobertura-capuz-c3", (Runnable) () -> { st.customRow = 6; customStep(st, 2); }},
+                {"expressao-determinada", (Runnable) () -> { st.customRow = 7; customStep(st, 3); }},
+                {"salvar-F2", (Runnable) () -> customSave(st)},
+                {"restaurar-BACKSPACE", (Runnable) () -> { st.appearance.reset(); st.expr = null; customMsg(st, "PRESET ORIGINAL RESTAURADO: " + st.appearance.preset); }},
+                {"carregar-F3", (Runnable) () -> customLoad(st)},
+                {"cobertura-chapeu-maga", (Runnable) () -> { st.customRow = 6; customStep(st, 1); }},
+                {"preset-exploradora", (Runnable) () -> { st.customRow = 0; customStep(st, 1); }},
+                {"arquivo-invalido-F3", (Runnable) () -> {
+                    try {
+                        Files.writeString(bad, Appearance.preset("maga").toJson().replace("\"maga\"", "\"paladino\""));
+                        bad.toFile().setLastModified(System.currentTimeMillis() + 60_000);
+                    } catch (IOException e) { throw new java.io.UncheckedIOException(e); }
+                    customLoad(st);
+                }},
+        };
+        int i = 1;
+        for (Object[] step : steps) {
+            if (step[1] != null) ((Runnable) step[1]).run();
+            Screenshot.save(capture(st, 1280, 720), out.resolve(String.format("%02d-%s.png", i++, step[0])));
+            System.out.println("custom-demo: " + step[0] + (st.customMsg != null ? "  [" + st.customMsg + "]" : ""));
+            st.customMsg = null;
+        }
+        Files.deleteIfExists(bad);
+    }
+
+    /** Rodada 07: custo de compor, malhar e enviar; cache; memória; vazamento em trocas repetidas. */
+    public void customBench(Path out) throws IOException {
+        Composer c = new Composer(assets.root(), 12);
+        StringBuilder md = new StringBuilder("# Benchmark da personalização (rodada 07)\n\n");
+        md.append("| Aparência | compor ms | malha ms | GPU ms | faces | MB de vértices |\n|---|---|---|---|---|---|\n");
+        List<Appearance> all = new ArrayList<>();
+        for (String p : c.catalog.presets.keySet()) all.add(Appearance.preset(p));
+        String[] covers = {Appearance.NO_COVER, "chapeu.maga", "capuz.c3"};
+        int n = 0;
+        for (String p : c.catalog.presets.keySet())
+            for (String h : c.catalog.ids("cabelo"))
+                for (String cv : covers) {
+                    Appearance a = Appearance.preset(p);
+                    a.hair = h;
+                    a.cover = cv;
+                    a.hairColor = c.catalog.colors.get("cabelo").get(n % 10)[1];
+                    a.skin = c.catalog.colors.get("pele").get(n % 5)[1];
+                    n++;
+                    all.add(a);
+                }
+        // aquecimento (JIT) fora da medida
+        for (int k = 0; k < 3; k++) Composer.release(c.build(c.compose(all.get(k)), true));
+        double[] tc = new double[all.size()], tm = new double[all.size()], tu = new double[all.size()];
+        for (int k = 0; k < all.size(); k++) {
+            long b0 = Mesh.liveBytes;
+            CharacterModel m = c.build(c.compose(all.get(k)), true);
+            tc[k] = c.lastComposeMs; tm[k] = c.lastMeshMs; tu[k] = c.lastUploadMs;
+            if (k < 6 || k % 9 == 0)
+                md.append(String.format(java.util.Locale.ROOT, "| %s | %.2f | %.2f | %.2f | %d | %.2f |%n", all.get(k).signature(), tc[k], tm[k], tu[k],
+                        c.lastFaces, (Mesh.liveBytes - b0) / 1048576.0));
+            Composer.release(m);
+        }
+        md.append(String.format(java.util.Locale.ROOT, "%n%d aparências: compor média %.2f ms (máx %.2f), malha média %.2f ms (máx %.2f), GPU média %.2f ms (máx %.2f)%n",
+                all.size(), avg(tc), max(tc), avg(tm), max(tm), avg(tu), max(tu)));
+        // trocas repetidas com cache LRU de 12: memória de GPU limitada, sem vazamento
+        long meshes0 = Mesh.liveMeshes, bytes0 = Mesh.liveBytes;
+        java.util.Random rnd = new java.util.Random(7);
+        long t0 = System.nanoTime();
+        int swaps = 400;
+        for (int k = 0; k < swaps; k++) c.model(all.get(rnd.nextInt(all.size())));
+        double swapMs = (System.nanoTime() - t0) / 1e6 / swaps;
+        long meshesPeak = Mesh.liveMeshes - meshes0, bytesPeak = Mesh.liveBytes - bytes0;
+        c.clear();
+        md.append(String.format(java.util.Locale.ROOT, "%n%d trocas aleatórias entre %d aparências (cache 12): %.2f ms por troca em média (%d acertos, %d composições); "
+                        + "malhas vivas no fim: %d (%.1f MB); depois de limpar o cache: %d malhas e %d bytes a mais que no início%n",
+                swaps, all.size(), swapMs, c.cacheHits, c.cacheMisses, meshesPeak, bytesPeak / 1048576.0, Mesh.liveMeshes - meshes0, Mesh.liveBytes - bytes0));
+        // restaurar preset: composição nova × cache
+        Appearance pre = Appearance.preset("aventureiro");
+        long r0 = System.nanoTime();
+        c.model(pre);
+        double cold = (System.nanoTime() - r0) / 1e6;
+        r0 = System.nanoTime();
+        c.model(pre);
+        double warm = (System.nanoTime() - r0) / 1e6;
+        CharacterModel canon = assets.rig("characters/e/adventurer");
+        md.append(String.format(java.util.Locale.ROOT, "%nRestaurar o preset: %.2f ms compondo do zero, %.4f ms do cache. Partes (= draws por personagem): composto %d × canônico %d.%n",
+                cold, warm, c.model(pre).parts.size(), canon.parts.size()));
+        c.clear();
+        Files.createDirectories(out.getParent());
+        Files.writeString(out, md.toString());
+        System.out.print(md);
+    }
+
+    private static double avg(double[] a) { double s = 0; for (double v : a) s += v; return s / a.length; }
+    private static double max(double[] a) { double m = 0; for (double v : a) m = Math.max(m, v); return m; }
+
+    /** Carrega uma aparência salva (capturas: chave aparencia=arquivo). */
+    public Appearance loadAppearance(String file) {
+        try {
+            return Appearance.load(Path.of(file), composer().catalog);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("aparência ilegível: " + file, e);
+        }
+    }
+
+    void customMsg(State st, String m) {
+        st.customMsg = m;
+        st.customMsgUntil = st.time + 4f;
+    }
+
+    /** Grava em output/aparencias/ sem sobrescrever (número novo a cada gravação). */
+    void customSave(State st) {
+        try {
+            Path dir = Path.of("output/aparencias");
+            int n = 1;
+            Path f;
+            do f = dir.resolve(String.format("%s-%03d.json", st.appearance.preset, n++)); while (Files.exists(f));
+            st.appearance.save(f, false);
+            customMsg(st, "SALVO EM " + f);
+        } catch (IOException e) {
+            customMsg(st, "ERRO AO SALVAR: " + ascii(e.getMessage()));
+        }
+    }
+
+    /** Carrega o arquivo mais recente de output/aparencias/ (validado contra o catálogo). */
+    void customLoad(State st) {
+        try (var fs = Files.list(Path.of("output/aparencias"))) {
+            Path f = fs.filter(p -> p.toString().endsWith(".json")).max(java.util.Comparator.comparing(p -> p.toFile().lastModified())).orElse(null);
+            if (f == null) { customMsg(st, "NENHUMA APARENCIA SALVA"); return; }
+            st.appearance = Appearance.load(f, composer().catalog);
+            customMsg(st, "CARREGADO " + f);
+        } catch (IOException | Appearance.InvalidAppearance e) {
+            customMsg(st, "ERRO AO CARREGAR: " + ascii(String.valueOf(e.getMessage())));
+        }
+    }
+
+    private String customLabel(int row, String v) {
+        if (row == 0) return v;
+        if (v == null) return "(DO PRESET)";
+        if (v.startsWith("#")) {
+            for (var e : composer().catalog.colors.entrySet())
+                for (String[] c : e.getValue()) if (c[1].equals(v)) return c[0] + " " + v;
+            return v;
+        }
+        return v;
+    }
+
+    private void drawCustomPanel(State st, int w, int h, float s, float pad, float line, int white, int soft, int accent) {
+        Appearance a = st.appearance;
+        if (a == null) return;
+        float y = pad + line * 2.2f, cs = s * 0.7f;
+        hud.text(pad, y, cs, "SETAS: LINHA / VALOR   BACKSPACE: PRESET ORIGINAL   F2 SALVAR   F3 CARREGAR", soft);
+        y += line * 1.3f;
+        for (int r = 0; r < CUSTOM_ROWS.length; r++) {
+            String v = r == 7 ? (st.expr == null ? "(AUTO)" : st.expr) : r == 8 ? String.valueOf(st.clip) : customLabel(r, customGet(a, r));
+            String txt = (r == st.customRow ? "> " : "  ") + CUSTOM_ROWS[r] + ": " + ascii(String.valueOf(v));
+            hud.text(pad, y, cs, txt, r == st.customRow ? accent : white);
+            y += line * 0.95f;
+        }
+        CharacterModel m = rig(currentDir(st, "e"));
+        Composer c = composer();
+        y += line * 0.4f;
+        hud.text(pad, y, s * 0.55f, String.format("COMPOR %.1f MS  MALHA %.1f MS  GPU %.1f MS  CACHE %d (ACERTOS %d)",
+                c.lastComposeMs, c.lastMeshMs, c.lastUploadMs, c.cachedModels(), c.cacheHits), soft);
+        y += line * 0.8f;
+        hud.text(pad, y, s * 0.55f, (m.meta.has("headsTall") ? m.meta.get("headsTall").getAsString() + " CABECAS  " : "") +
+                String.format("%.2f U", m.height), soft);
+        if (st.customMsg != null && st.time < st.customMsgUntil)
+            hud.text(pad, h - pad - line * 4.2f, s * 0.6f, ascii(st.customMsg), accent);
+    }
+
+    /** Rig de um diretório de assets ou de uma aparência composta ("custom:<assinatura>"). */
+    /** Rodada 07.2: modelos já compostos e enviados pelo editor (a cena nunca compõe de forma síncrona). */
+    final Map<String, CharacterModel> injected = new HashMap<>();
+
+    CharacterModel rig(String dir) {
+        CharacterModel inj = injected.get(dir);
+        if (inj != null) return inj;
+        if (dir.startsWith("custom:")) return composer().model(customs.get(dir));
+        return assets.rig(dir);
+    }
+
     private Actor actor(String dir, StyleProfile style) {
-        return actors.computeIfAbsent(dir + "@" + style.key, k -> new Actor(assets.rig(dir), style.animExaggeration));
+        String key = dir + "@" + style.key;
+        Actor a = actors.get(key);
+        CharacterModel m = rig(dir);
+        if (a == null || a.animator().model() != m) {                // aparência recomposta: ator novo
+            a = new Actor(m, style.animExaggeration);
+            actors.put(key, a);
+        }
+        return a;
     }
 
     /** Personagens + criaturas inspecionáveis do estilo. */
@@ -168,6 +478,11 @@ public final class App implements AutoCloseable {
     }
 
     private String currentDir(State st, String styleKey) {
+        if (st.appearance != null && (st.mode == Mode.CUSTOMIZE || st.mode == Mode.SCENE || st.mode == Mode.CHARACTER)) {
+            String key = "custom:" + st.appearance.signature();
+            customs.putIfAbsent(key, st.appearance.copy());
+            return key;
+        }
         if (st.heroDir != null && assets.exists(st.heroDir + "/rig.json")) return st.heroDir;
         List<String> r = roster(styleKey);
         if (r.isEmpty()) return null;
@@ -208,7 +523,7 @@ public final class App implements AutoCloseable {
 
     private World world(StyleProfile style) {
         int tm = curTerrain;
-        return worlds.computeIfAbsent(style.key + "#" + tm, k -> new World(assets, style, tm));
+        return worlds.computeIfAbsent(style.key + "#" + tm + "#" + World.layout, k -> new World(assets, style, tm));
     }
 
     /** Motion do herói no tempo atual: roteiro (seq), golpe em laço (act) ou só o clipe. */
@@ -248,7 +563,7 @@ public final class App implements AutoCloseable {
     private void defaultCamera(State st) {
         Camera c = st.cam;
         switch (st.mode) {
-            case CHARACTER, SIDE_BY_SIDE -> {
+            case CHARACTER, SIDE_BY_SIDE, CUSTOMIZE -> {
                 c.target.set(0, 0.62f, 0);
                 c.yaw = 0.45f;
                 c.pitch = 0.22f;
@@ -286,7 +601,7 @@ public final class App implements AutoCloseable {
         float[] xs = new float[dirs.size() + 1];
         float acc = 0;
         for (int i = 0; i < dirs.size(); i++) {
-            CharacterModel m = assets.rig(dirs.get(i));
+            CharacterModel m = rig(dirs.get(i));
             float w = Math.max(0.62f, Math.min(m.width, 2.6f));
             xs[i] = acc + w / 2;
             acc += w + gap;
@@ -361,23 +676,25 @@ public final class App implements AutoCloseable {
                     gy = w.groundSmooth(cx, cz);
                 }
                 st.cam.target.set(cx, gy + st.camLift, cz);
+                if (st.camSide != 0f)                              // rodada 07.2: pan lateral (eixo direito da câmera)
+                    st.cam.target.add((float) Math.cos(st.cam.yaw) * st.camSide, 0, -(float) Math.sin(st.cam.yaw) * st.camSide);
                 st.cam.update(st.cam.aspect);
                 f.shadowFocus.set(cx, gy, cz);
                 f.shadowRadius = Math.clamp(st.cam.distance * 1.5f, 6f, 26f);
             }
-            case CHARACTER, SIDE_BY_SIDE -> {
+            case CHARACTER, SIDE_BY_SIDE, CUSTOMIZE -> {
                 String dir = currentDir(st, style.key);
                 float extent = 1f;
                 if (dir != null) {
-                    CharacterModel cm = assets.rig(dir);
+                    CharacterModel cm = rig(dir);
                     extent = Math.max(cm.height, Math.max(cm.width, cm.depth));
                 }
                 // silhueta: sem chão (fundo uniforme, pés visíveis) — a rodada 02 pintava o chão de preto
                 GroundLab lab = st.lab != null ? new GroundLab(st.lab) : null;
                 if (lab == null && !st.toggles.silhouette) f.add(pedestal(style.key, Math.max(1.25f, extent * 0.8f)), new Matrix4f());
                 if (dir != null) {
-                    if (st.camAuto && st.mode == Mode.CHARACTER) {
-                        st.cam.target.y = assets.rig(dir).height * 0.55f;
+                    if (st.camAuto && (st.mode == Mode.CHARACTER || st.mode == Mode.CUSTOMIZE)) {
+                        st.cam.target.y = rig(dir).height * 0.55f;
                         st.cam.distance = 2.0f + extent * 1.5f;
                         st.cam.update(st.cam.aspect);
                     }
@@ -401,7 +718,7 @@ public final class App implements AutoCloseable {
                 List<String> dirs = lineup(st);
                 float[] xs = lineupLayout(dirs);
                 float total = xs[dirs.size()], maxH = 0.5f;
-                for (String d : dirs) maxH = Math.max(maxH, assets.rig(d).height);
+                for (String d : dirs) maxH = Math.max(maxH, rig(d).height);
                 if (!st.toggles.silhouette) f.add(pedestal(style.key, Math.max(1.6f, total / 2 + 0.9f)), new Matrix4f());
                 if (st.camAuto) {
                     float tv = (float) Math.tan(Math.toRadians(st.cam.fovDeg) / 2);
@@ -470,6 +787,64 @@ public final class App implements AutoCloseable {
         else Framebuffer.bindDefault(w, h);
         if (st.hud) drawHud(st, w, h, target == null);
         hud.flush(w, h);
+        if (overlay != null) overlay.draw(w, h);
+    }
+
+    // ------------------------------------------------------------------ rodada 07.2: apoio ao criador
+
+    /** Desenho 2D por cima da cena (interface do criador), no alvo já ligado, em pixels do alvo. */
+    public interface Overlay { void draw(int w, int h); }
+    public Overlay overlay;
+    private Renderer thumbRenderer;
+
+    public void renderFrame(State st, Framebuffer target, int w, int h, float ssaa, float blend) {
+        renderState(st, target, w, h, ssaa, blend);
+    }
+
+    /** Tira da cena um modelo composto que saiu do cache (as malhas já foram fechadas). */
+    public void forget(String dir) {
+        injected.remove(dir);
+        customs.remove(dir);
+        actors.keySet().removeIf(k -> k.startsWith(dir + "@"));
+    }
+
+    /**
+     * Miniatura REAL: o modelo composto, parado, em estúdio (sem pedestal), num FBO próprio — renderizador
+     * separado para não realocar os alvos da cena principal a cada miniatura.
+     */
+    /** Enquadramento: "corpo" (inteiro, 3/4), "cabeca" (close, 3/4), "cabelo" (cabeça inteira com o alto do
+     *  penteado) ou "cobertura" (cabeça com folga em cima, lateral). */
+    public void renderThumb(CharacterModel m, Framebuffer target, String framing) {
+        boolean head = !framing.equals("corpo"), cover = framing.equals("cobertura"), hair = framing.equals("cabelo");
+        float yaw = cover ? 1.05f : 0.38f;
+        if (thumbRenderer == null) thumbRenderer = new Renderer();
+        StyleProfile style = StyleProfile.of(4, 0);
+        style.zenith = StyleProfile.lin("#e9d7b4", 1f);            // fundo de pergaminho (combina com o painel)
+        style.horizon = StyleProfile.lin("#f7ecd6", 1f);
+        Renderer.Frame f = new Renderer.Frame();
+        Camera c = new Camera();
+        c.fovDeg = 22f;
+        c.yaw = yaw;
+        c.pitch = head ? 0.06f : 0.10f;
+        if (head) {
+            c.target.set(0, m.height * (cover ? 0.86f : hair ? 0.82f : 0.80f), 0);
+            c.distance = cover ? 1.9f : hair ? 1.8f : 1.55f;
+        } else {
+            c.target.set(0, m.height * 0.5f, 0);
+            c.distance = m.height * 2.55f + 0.7f;
+        }
+        c.update((float) target.width / target.height);
+        f.camera = c;
+        f.style = style;
+        f.time = 0f;
+        f.toggles = new Renderer.Toggles();
+        f.toggles.fxaa = true;
+        f.toggles.studio = true;
+        Actor a = new Actor(m, style.animExaggeration);
+        a.submit(f, new Matrix4f(), Animator.Clip.IDLE, 0f, 1f, "neutral");
+        f.shadowFocus.set(0, 0.5f, 0);
+        f.shadowRadius = 2.2f;
+        thumbRenderer.render(f, target, target.width, target.height, 2f);
     }
 
     private String charLabel(CharacterModel m) {
@@ -479,7 +854,7 @@ public final class App implements AutoCloseable {
 
     private String charLabel(State st, String styleKey) {
         String dir = currentDir(st, styleKey);
-        return dir == null ? "(SEM MODELO)" : charLabel(assets.rig(dir));
+        return dir == null ? "(SEM MODELO)" : charLabel(rig(dir));
     }
 
     private static String ascii(String s) {
@@ -527,7 +902,7 @@ public final class App implements AutoCloseable {
                 for (int i = 0; i < STUDY.length; i++) {
                     String dir = "characters/study/" + STUDY[i] + (st.normalized ? "n" : "");
                     if (!assets.exists(dir)) continue;
-                    CharacterModel m = assets.rig(dir);
+                    CharacterModel m = rig(dir);
                     Vector4f v = new Vector4f((i - 2) * 1.55f, -0.08f, 0.9f, 1).mul(st.cam.viewProj());
                     float sx = (v.x / v.w * 0.5f + 0.5f) * w, sy = (1 - (v.y / v.w * 0.5f + 0.5f)) * h;
                     hud.textCentered(sx, sy, s, m.meta.get("headsTall").getAsString() + " CABECAS", white);
@@ -541,7 +916,7 @@ public final class App implements AutoCloseable {
                 List<String> dirs = lineup(st);
                 float[] xs = lineupLayout(dirs);
                 for (int i = 0; i < dirs.size(); i++) {
-                    CharacterModel m = assets.rig(dirs.get(i));
+                    CharacterModel m = rig(dirs.get(i));
                     Vector4f v = new Vector4f(xs[i], 0f, 0.55f, 1).mul(st.cam.viewProj());
                     float sx = (v.x / v.w * 0.5f + 0.5f) * w, sy = (1 - (v.y / v.w * 0.5f + 0.5f)) * h + 4 * s;
                     hud.textCentered(sx, sy, s * 0.62f, ascii(m.name), white);
@@ -549,6 +924,9 @@ public final class App implements AutoCloseable {
                     String faces = m.meta.has("faces") ? "  " + m.meta.get("faces").getAsInt() + " FACES" : "";
                     hud.textCentered(sx, sy + line * 0.8f, s * 0.5f, heads + String.format("%.2f U", m.height) + faces, soft);
                 }
+            } else if (st.mode == Mode.CUSTOMIZE) {
+                hud.text(pad, y, s * 0.75f, "PERSONALIZACAO (COMPOSICAO EM TEMPO DE EXECUCAO)", soft);
+                drawCustomPanel(st, w, h, s, pad, line, white, soft, accent);
             } else {
                 hud.text(pad, y, s * 0.75f, ascii(p.tagline), soft);
                 y += line;
@@ -785,8 +1163,19 @@ public final class App implements AutoCloseable {
                         st.mode = Mode.values()[(st.mode.ordinal() + 1) % Mode.values().length];
                         st.camSet = false;
                         st.camAuto = true;
+                        if (st.mode == Mode.CUSTOMIZE && st.appearance == null) st.appearance = Appearance.preset("aventureiro");
                     }
+                    case GLFW_KEY_UP -> { if (st.mode == Mode.CUSTOMIZE) st.customRow = Math.floorMod(st.customRow - 1, CUSTOM_ROWS.length); }
+                    case GLFW_KEY_DOWN -> { if (st.mode == Mode.CUSTOMIZE) st.customRow = Math.floorMod(st.customRow + 1, CUSTOM_ROWS.length); }
+                    case GLFW_KEY_RIGHT -> { if (st.mode == Mode.CUSTOMIZE) customStep(st, 1); }
+                    case GLFW_KEY_LEFT -> { if (st.mode == Mode.CUSTOMIZE) customStep(st, -1); }
+                    case GLFW_KEY_BACKSPACE -> {
+                        if (st.mode == Mode.CUSTOMIZE) { st.appearance.reset(); customMsg(st, "PRESET ORIGINAL RESTAURADO: " + st.appearance.preset); }
+                    }
+                    case GLFW_KEY_F2 -> { if (st.mode == Mode.CUSTOMIZE) customSave(st); }
+                    case GLFW_KEY_F3 -> { if (st.mode == Mode.CUSTOMIZE) customLoad(st); }
                     case GLFW_KEY_C -> {
+                        if (st.mode == Mode.CHARACTER) st.appearance = null;     // volta ao catálogo de rigs
                         st.character++;
                         st.camAuto = true;
                     }
@@ -893,7 +1282,7 @@ public final class App implements AutoCloseable {
 
     boolean heroJointed(State st) {
         String dir = currentDir(st, StyleProfile.KEYS.substring(st.style, st.style + 1));
-        return dir != null && assets.rig(dir).index.containsKey("shin_l");
+        return dir != null && rig(dir).index.containsKey("shin_l");
     }
 
     /** Velocidade de deslocamento do herói (u/s) ao andar e ao correr; casada com a passada do clipe. */
@@ -901,6 +1290,7 @@ public final class App implements AutoCloseable {
 
     @Override
     public void close() {
+        if (thumbRenderer != null) thumbRenderer.close();
         renderer.close();
         hud.close();
         if (captureFbo != null) captureFbo.close();
