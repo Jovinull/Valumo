@@ -120,7 +120,7 @@ public final class CreatorController {
             if (k == GLFW_KEY_ESCAPE) st.dialog = CreatorState.Dialog.NONE;
             if (k == GLFW_KEY_ENTER) {
                 if (st.dialog == CreatorState.Dialog.CONFIRM_RESTORE) action("restore-confirm");
-                else if (st.dialog == CreatorState.Dialog.DONE) action("showcase");
+                else if (st.dialog == CreatorState.Dialog.DONE) action(st.finishLabel != null ? "finish" : "showcase");
                 else st.dialog = CreatorState.Dialog.NONE;
             }
             return;
@@ -216,6 +216,7 @@ public final class CreatorController {
             case "loadfile" -> { load(st.saves.get(Integer.parseInt(v))); return; }
             case "done" -> { st.dialog = CreatorState.Dialog.DONE; return; }
             case "showcase" -> { st.dialog = CreatorState.Dialog.NONE; st.showcase = true; st.pose = Animator.Clip.WALK; cam.focusFace(false); return; }
+            case "finish" -> { st.dialog = CreatorState.Dialog.NONE; st.finished = true; return; }
             case "showcase-exit" -> { st.showcase = false; st.pose = Animator.Clip.IDLE; return; }
             case "dialog-cancel" -> { st.dialog = CreatorState.Dialog.NONE; return; }
             default -> { return; }

@@ -30,6 +30,9 @@ public final class CreatorState {
     public float messageUntil;
     public float scroll, loadScroll;
     public java.util.List<java.nio.file.Path> saves = new java.util.ArrayList<>();
+    /** Rodada 08: aberto pelo jogo — "Pronto" oferece este botão e encerra o criador devolvendo a aparência. */
+    public String finishLabel;
+    public boolean finished;
 
     // ------------------------------------------------------------------ nomes para o jogador (nunca IDs técnicos)
 

@@ -377,7 +377,8 @@ public final class CreatorLayout {
                 add("d:text", Kind.LABEL, dx + 40 * s, dy + 96 * s, dw - 80 * s, 30 * s,
                         fit("A aparência de " + (st.name.isBlank() ? "seu aventureiro" : st.name.trim()) + " está pronta para a aventura.",
                                 dw - 80 * s, px(22), false, m)).size = 2;
-                add("showcase", Kind.BUTTON, dx + dw / 2 - bw - 12 * s, by, bw, bh, "Ver em movimento").selected = true;
+                if (st.finishLabel != null) add("finish", Kind.BUTTON, dx + dw / 2 - bw - 12 * s, by, bw, bh, st.finishLabel).selected = true;
+                else add("showcase", Kind.BUTTON, dx + dw / 2 - bw - 12 * s, by, bw, bh, "Ver em movimento").selected = true;
                 add("dialog-cancel", Kind.BUTTON, dx + dw / 2 + 12 * s, by, bw, bh, "Continuar editando");
             }
             case LOAD -> {

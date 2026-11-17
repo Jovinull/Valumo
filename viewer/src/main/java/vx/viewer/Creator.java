@@ -68,6 +68,14 @@ public final class Creator implements AutoCloseable {
         app.overlay = (w, h) -> { if (layout != null) view.draw(layout, ctl, thumbs, async, h); };
     }
 
+    /** Rodada 08: abre já com uma aparência (vinda do jogo). */
+    public void start(Appearance a, String name) {
+        cs.appearance = a.copy();
+        cs.name = name == null ? "" : name;
+        bySig.put(a.signature(), a.copy());
+        async.request(a);
+    }
+
     /** Um quadro de lógica: eventos, resultados prontos, layout e câmera para o tamanho (w, h). */
     public void frame(List<InputEvent> events, float dt, int w, int h) {
         ctl.time += dt;
@@ -121,7 +129,7 @@ public final class Creator implements AutoCloseable {
     public void run(int maxFrames) {
         double last = window.time(), start = last;
         int frames = 0;
-        while (!window.shouldClose() && (maxFrames <= 0 || frames < maxFrames)) {
+        while (!window.shouldClose() && !cs.finished && (maxFrames <= 0 || frames < maxFrames)) {
             frames++;
             window.poll();
             double now = window.time();
@@ -287,7 +295,8 @@ public final class Creator implements AutoCloseable {
         if (frameNo > 0 && record) System.out.println("criador: " + frameNo + " quadros");
     }
 
-    private int recorded;
+    /** Quadros gravados (público: o roteiro do jogo continua a mesma numeração ao abrir o criador). */
+    public int recorded;
     private List<Double> perf, latencies;
     private final List<String> slow = new ArrayList<>();
     private long pendingSince;
