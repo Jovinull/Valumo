@@ -1,0 +1,91 @@
+---
+name: gameplay
+description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade.
+---
+
+# Gameplay (rodada 08 em diante)
+
+Arquitetura, parâmetros e decisões: `docs/architecture/jogo.md` e `docs/decisions/0013-modulo-game.md`.
+Teste físico do proprietário: `docs/validation/roteiro-de-teste-fisico.md`.
+
+## Regras
+
+- **Regras de jogo ficam em `game/` e sem OpenGL** quando possível: `GameLogic`, `Player`, `Collision`,
+  `FollowCamera`, `SceneDef`, `Input`. No `viewer` entra só gancho genérico (nada de regra de jogo); no `engine`,
+  só infraestrutura.
+- **Nunca duplique** renderer, mundo, assets, animação ou compositor: use os do viewer.
+- **Colisão ≠ malha:**
+  - forma por perfil em `assets/scenes/colisao_e.json`;
+  - IK dos pés é visual, colisão é do jogo, e os dois pisam no mesmo `Terrain`.
+- **Velocidade, não posição:**
+  - movimento em subpassos fixos (≤ 1/120 s), sem depender do FPS;
+  - a animação sai da velocidade real, com a fase pela distância (pé plantado). Nada de clipe de andar com o
+    herói parado.
+- **Câmera:**
+  - encosta na hora quando algo bloqueia e volta devagar;
+  - desvia junto a paredes;
+  - nunca muda o rumo escolhido pelo jogador.
+- **Cenas jogáveis são cópias controladas** (`jogo_*.json`, com a seção `jogo`); a clareira canônica e a vila não
+  mudam para acomodar gameplay.
+- **Fora do escopo** até ser pedido: combate, dano, IA hostil, inventário, missões, progressão. As interrupções
+  por HIT da espada e da lâmina longa continuam abertas: não as declare corrigidas.
+
+## Procedimentos
+
+**Prop novo na cena jogável**
+1. Ponha o prop no `jogo_*.json`.
+2. Dê a ele um perfil em `colisao_e.json`:
+   - `caixa` (escala da pegada) para construções;
+   - `circulo` (raio do pé) para pedras e postes;
+   - `tronco` (tronco + copa só para a câmera) para árvores;
+   - `nenhum` para plantas baixas;
+   - `camera: false` para coisas finas que a câmera pode atravessar.
+3. Rode `GameplayTest` (passeio sem entrar em prop e sem ficar preso).
+4. Grave o vídeo de obstáculos.
+
+**NPC interativa:** entrada em `jogo.interativos` (rig, nome, título, x, z, r, alcance, falas com `expressao`
+opcional entre as do personagem). Ela vira corpo de colisão sozinha. Falas originais, curtas; sem árvore de
+diálogo até ser pedido.
+
+**Mexer em movimento ou câmera:**
+1. Escreva primeiro o teste da propriedade contra terreno sintético (`Collision` com chão lambda) e contra a vila
+   real (`GameplayTest.village()`).
+2. Meça com `estado` nos roteiros antes de mudar constantes.
+3. Nunca afrouxe um teste para passar. Se o teste estava errado, corrija o teste e diga o porquê. Exemplos:
+   tempo simulado diferente entre FPS; rota empurrando contra uma parede.
+
+**Roteiros** (`tools/jogo/*.txt`, executados por `game --roteiro ROTEIRO SAIDA [FPS]`):
+
+| Comando | Para que serve |
+|---|---|
+| `ir x z [correndo]` | segura W e corrige a mira com o mouse até chegar |
+| `mirar x z s` | aponta a câmera para um ponto |
+| `hold W+SHIFT s` | segura teclas pelo tempo dado |
+| `look dx dy s` | move o mouse |
+| `wheel n` | gira a roda |
+| `key E` | aperta uma tecla |
+| `click id` | clica num botão da interface |
+| `criador ROTEIRO` | abre o criador com um sub-roteiro dele |
+| `estado` | imprime posição, câmera e o que bloqueia a vista |
+| `shot nome` | captura (espera a composição) |
+| `record on\|off` | grava quadros para vídeo |
+| `perf on\|off` | mede o tempo por quadro |
+
+- Rode primeiro a seco (sem `record`) com `estado`.
+- O alvo de `ir` não pode estar dentro de um prop.
+- Sem gravar, os quadros passam quase sem tempo real: espere a composição com `settle` (o `shot` já espera).
+
+**Revisão:** `tools/review8.sh tudo` gera capturas, 6 vídeos com pranchas, medição do jogo e do viewer na mesma
+cena, testes e zip. Olhe os quadros em tamanho real: pés no chão em degraus, herói na água, câmera dentro de
+parede ou da cabeça, indicação de interação sobre a NPC certa.
+
+## Defeitos já vistos (não repita)
+
+| Defeito | Causa | Correção |
+|---|---|---|
+| Câmera dentro da parede por alguns quadros | entrada suavizada | encostar na hora; suavizar só a saída |
+| Câmera dentro da cabeça junto à estalagem | só encurtava a distância | desvio de rumo/inclinação (até 80°) antes de encostar; mínimo 0,9 u |
+| Herói "dentro" do lago | margem a −0,375 contava como chão (água a −0,42) | pisável só com chão ≥ água + 0,06 |
+| Câmera nunca voltava à distância pedida | folga descontada mesmo com vista livre | folga só quando bloqueia |
+| Escolha mostrava as costas do herói | primeiro quadro não nascia no enquadramento | `first` usa o enquadramento pedido |
+| Poste de lanterna tapando a escolha / a rota | prop na linha de visão do enquadramento fixo | conferir capturas da escolha e das rotas ao mexer na cena |

@@ -93,3 +93,29 @@ em vez de 5 × 5), contorno ~0,7 ms. Antes de otimizar outra coisa, meça com `-
 
 - Tipo de animação novo `flutter` (mariposa) e chave `layout=` (composições alternativas) — renderer, luz e
   presets inalterados. Benchmark da vitrine e custo por categoria: `output/visual-review/round-06/performance/`.
+
+## Rodada 08.1 — malha conforme (fim do z-fighting e das frestas)
+
+- **Nunca sobreponha faces coplanares** para tapar fresta: a margem da rodada 03 causava tremor de perto.
+- **Nunca recue faces** para desempatar: a tentativa da 08 reabriu frestas.
+- O mesher funde e insere nas arestas os vértices da malha que caem nelas, o que elimina as T-junctions
+  (ADR 0014). Invariantes em `engine/src/test/java/vx/engine/MeshSeamTest.java`: cobertura exata, estanque, área
+  e contenção. O modo legado precisa falhar.
+- **Defeito de cintilação ou fresta:** compare as três malhas na mesma câmera.
+
+  | Malha | Opção | Quando ela é o "certo" |
+  |---|---|---|
+  | conforme | padrão | — |
+  | legado | `-Dvx.mesh=legado` | — |
+  | sem fusão | `-Dvx.merge=false` | é a verdade geométrica |
+
+  - Conforme ≈ sem fusão: o problema é do modelo, do shader ou serrilhado, não do mesher.
+  - Use `-Dvx.wind=0` para tirar o vento.
+- **Medição temporal**, não captura estática:
+  - roteiros em `tools/temporal/*.txt`, câmera lenta;
+  - `tools/temporal/alternancia.py` conta pixels A→B→A por quadro e gera mapa de calor;
+  - em câmera rápida a métrica conta o próprio movimento: use vídeo lado a lado;
+  - pacote completo: `tools/review81.sh`.
+- **Mudou o mesher?** As referências canônicas mudam nas bordas. Siga o procedimento da skill `visual-qa`
+  (preservar, comparar, inspecionar, justificar). Nunca atualize em massa para "ficar verde".
+

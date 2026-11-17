@@ -119,3 +119,31 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
   custo real. Anote cada quadro > 25 ms com a causa (miniatura, envio, atlas novo…).
 - Prancha com o ffmpeg: imagens de tamanhos diferentes não entram em `-pattern_type glob` + `tile` (vira
   sequência); escale cada uma.
+
+## Rodada 08 — jogo
+
+- `tools/review8.sh` → `output/visual-review/round-08/`: capturas, vídeos de movimento, encosta, obstáculos,
+  câmera, Kelyra e aparência personalizada, com pranchas de 12 quadros, medição e zip.
+- O que olhar e os defeitos já vistos estão na skill `gameplay`.
+- Separe o que foi validado por roteiro (fila de eventos) do que só o teste físico do proprietário valida
+  (`docs/validation/roteiro-de-teste-fisico.md`).
+
+## Rodada 08.1 — defeitos temporais e atualização de referências
+
+**Cintilação, z-fighting e serrilhado rastejando não aparecem em captura parada.**
+- Grave a câmera andando devagar (`tools/temporal/*.txt`).
+- Meça a alternância (`alternancia.py`) e compare com a malha sem fusão (`-Dvx.merge=false`) antes de chamar algo
+  de defeito do mesher.
+- Diferencie o deslocamento normal (monótono) do pixel que vai e volta.
+
+**Atualizar referências canônicas**, só com causa conhecida:
+1. Gere as novas em pasta separada (`tools/reference.sh PASTA`).
+2. Rode `tools/temporal/comparar_referencias.py ANTIGA NOVA DIFERENCAS`: pixels alterados, mapa e pontos claros
+   isolados.
+3. Inspecione cada mudança ampliada:
+   - borda mais limpa ou cor esperada (dentes) → aceite;
+   - fresta, buraco ou perda de detalhe → corrija o renderer antes.
+4. Mova as antigas para `docs/art/reference/anteriores/rNN/`, copie as novas e anote no `manifesto.tsv`
+   (commit, data, motivo).
+5. Rode de novo o gate e a comparação (0/255).
+

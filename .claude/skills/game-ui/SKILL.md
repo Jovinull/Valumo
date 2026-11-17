@@ -11,7 +11,11 @@ Decisão: `docs/decisions/0012-interface-do-jogo.md`.
 ## Regras
 
 - **Sem biblioteca de UI e sem fonte de terceiros.** Desenho com `UiBatch` (quads coloridos/texturizados),
-  texto com `FontAtlas` sobre a `PixelFont` (letra nova = bitmap novo nela). Ícones de pixel no código.
+  texto com `FontAtlas` sobre a `PixelFont` (letra nova = bitmap novo nela; as setas e o "·" entraram na 08).
+  Ícones de pixel no código.
+- **Peças compartilhadas:** `UiKit` (viewer) tem painel de madeira, chanfro, texto, semente P1, marca, cursor e
+  recorte. O criador e o jogo usam as mesmas; mudou uma, confira as capturas dos dois (as do criador saíram
+  idênticas pixel a pixel na extração).
 - **Nada falso.** Todo controle visível funciona; opção que não existe não aparece; miniatura é o modelo real
   renderizado. Nada de métrica, ID técnico ou hex na tela do jogador (isso fica no modo de depuração).
 - **Separar as peças.**
