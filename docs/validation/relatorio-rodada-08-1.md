@@ -138,6 +138,12 @@ saíram.
 
 O teste de regressão exige que o modo legado **falhe** em sobreposição e T-junction.
 
+**Clone limpo** (antes do push): `build_assets.py`, `./gradlew test`, `--check` e `check_links.py` passam.
+- **Primeira execução:** 1 falha em `CreatorTest.rapidRequestsEndOnTheLastChoice`, que depende de tempo e rodou
+  junto com a gravação dos vídeos.
+- **Sem carga:** 3/3 com 124/124.
+- **Registro:** em problemas conhecidos.
+
 ## 8. Desempenho
 
 Medido em 1920×1080, qualidade padrão, Iris Xe, 7 s de aquecimento, mesmo percurso e mesma câmera nas duas malhas.
