@@ -1,0 +1,121 @@
+# Rodada 07.2 — fluxo completo do criador em vídeo, com a entrada passando pela fila da janela.
+# Abrir → preset → cabelo → cor → pele → rosto → chapéu → girar → aproximar → salvar → restaurar → carregar.
+size 1920 1080
+saves limpar
+record on
+wait 1.2
+move preset:exploradora 0.8
+wait 0.3
+click preset:exploradora 0.2
+wait 0.9
+move preset:maga 0.5
+click preset:maga 0.1
+wait 0.9
+move preset:aventureiro 0.5
+click preset:aventureiro 0.1
+wait 0.8
+move cat:CABELO 0.9
+click cat:CABELO 0.1
+wait 1.0
+move hair:cabelo.curto 0.7
+click hair:cabelo.curto 0.1
+wait 0.8
+move hair:cabelo.chanel 0.5
+click hair:cabelo.chanel 0.1
+wait 0.9
+move hairColor:castanho 0.7
+click hairColor:castanho 0.1
+wait 0.6
+move hairColor:loiro 0.5
+click hairColor:loiro 0.1
+wait 0.6
+move hairColor:castanho 0.4
+click hairColor:castanho 0.1
+wait 0.6
+move cat:PELE 0.9
+click cat:PELE 0.1
+wait 0.8
+move skin:morena 0.7
+click skin:morena 0.1
+wait 0.9
+move cat:ROSTO 0.8
+click cat:ROSTO 0.1
+wait 0.8
+move face:rosto.exploradora 0.7
+click face:rosto.exploradora 0.1
+wait 0.6
+move iris:violeta 0.6
+click iris:violeta 0.1
+wait 0.5
+move expr:joy 0.6
+click expr:joy 0.1
+wait 0.9
+move expr:neutral 0.4
+click expr:neutral 0.1
+wait 0.4
+move cat:CHAPEU 0.8
+click cat:CHAPEU 0.1
+wait 0.8
+move cover:chapeu.maga 0.7
+click cover:chapeu.maga 0.1
+wait 0.9
+move cover:capuz.c3 0.5
+click cover:capuz.c3 0.1
+wait 0.9
+move cam:body 0.8
+click cam:body 0.1
+wait 0.8
+move scene 0.6
+drag 260 0 1.4
+wait 0.4
+drag -380 0 1.6
+wait 0.4
+wheel 3
+wait 1.2
+wheel -2
+wait 0.6
+move pose:WALK 0.7
+click pose:WALK 0.1
+wait 1.4
+move pose:IDLE 0.4
+click pose:IDLE 0.1
+wait 0.4
+move cat:MODELO 0.9
+click cat:MODELO 0.1
+wait 0.5
+click name 0.6
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+type Brisa
+key ENTER
+wait 0.4
+move save 0.8
+click save 0.1
+wait 1.4
+move restore 0.6
+click restore 0.1
+wait 1.0
+move restore-confirm 0.5
+click restore-confirm 0.1
+wait 1.4
+move load 0.7
+click load 0.1
+wait 1.0
+move loadfile:0 0.6
+click loadfile:0 0.1
+wait 1.6
+move done 0.7
+click done 0.1
+wait 1.0
+move showcase 0.5
+click showcase 0.1
+wait 3.0

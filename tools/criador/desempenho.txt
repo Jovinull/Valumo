@@ -1,0 +1,52 @@
+# Rodada 07.2 — cliques rápidos (um a cada ~0,13 s) em cabelos, cores, chapéus e presets, medindo cada quadro.
+size 1920 1080
+settle
+perf on
+wait 1.0
+click cat:CABELO 0.1
+click hair:cabelo.curto 0.1
+click hair:cabelo.chanel 0.1
+click hair:cabelo.rabo 0.1
+click hair:cabelo.topete 0.1
+click hairColor:mel 0.1
+click hairColor:lilas 0.1
+click hairColor:preto 0.1
+click hairColor:musgo 0.1
+click hairColor:anil 0.1
+click cat:CHAPEU 0.1
+click cover:chapeu.maga 0.1
+click cover:capuz.c3 0.1
+click cover:nenhum 0.1
+click cover:chapeu.maga 0.1
+click cat:MODELO 0.1
+click preset:maga 0.1
+click preset:exploradora 0.1
+click preset:aventureiro 0.1
+click preset:maga 0.1
+wait 2.0
+click preset:aventureiro 0.6
+wait 1.0
+click cat:CABELO 0.6
+click hair:cabelo.curto 0.6
+wait 1.0
+click hair:cabelo.topete 0.6
+wait 1.0
+# rajada pelo teclado: uma troca por quadro (penteado e cor), o pior caso de pedidos obsoletos
+key RIGHT
+key RIGHT
+key RIGHT
+key RIGHT
+key RIGHT
+key RIGHT
+key RIGHT
+key RIGHT
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+wait 2.0
+perf off

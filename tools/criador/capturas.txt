@@ -1,0 +1,96 @@
+# Rodada 07.2 — roteiro das capturas determinísticas do criador (entrada pela fila da janela).
+# Uso: tools/review72.sh capturas   (ou: viewer --editor-script tools/criador/capturas.txt <pasta>)
+size 1920 1080
+saves limpar
+shot 01-tela-inicial
+move preset:exploradora
+shot 02a-presets-hover
+click preset:exploradora
+shot 02b-preset-exploradora
+click preset:maga
+shot 02c-preset-maga
+click preset:aventureiro
+click cat:CABELO
+shot 03-categoria-cabelo
+click hair:cabelo.chanel
+shot 04-penteado-medio
+click hairColor:castanho
+shot 05-paleta-cabelo
+click cat:PELE
+click skin:morena
+shot 06-paleta-pele
+click cat:ROSTO
+click face:rosto.exploradora
+shot 07-rosto
+click iris:violeta
+shot 08-iris
+click expr:joy
+shot 08b-expressao-previa
+click expr:neutral
+click cat:CHAPEU
+shot 09-coberturas
+click cover:chapeu.maga
+shot 10-com-chapeu
+click cover:capuz.c3
+shot 11-com-capuz
+click cover:nenhum
+shot 12-sem-cobertura
+click cam:face
+wheel 2 scene
+shot 13-close-facial
+click cam:body
+move scene
+drag 160 0
+shot 14-corpo-inteiro
+click cam:reset
+click cat:MODELO
+click name
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+key BACKSPACE
+type Brisa
+shot 15a-nome
+key ENTER
+click save
+shot 15-salvamento
+click restore
+shot 17a-confirmar-restauracao
+click restore-confirm
+shot 17-restaurado
+move restore
+wait 0.6
+shot 18-opcao-indisponivel
+click load
+shot 16a-lista-de-aparencias
+click loadfile:0
+shot 16-carregado
+click done
+shot 21-concluir
+click showcase
+wait 1.5
+shot 22-vitrine
+click showcase-exit
+size 1280 720
+shot 19-tela-720p
+click cat:CABELO
+shot 19b-cabelo-720p
+size 1920 1080
+shot 20-tela-1080p
+size 2560 1080
+shot 23-ultrawide-2560x1080
+size 3440 1440
+shot 23b-ultrawide-3440x1440
+size 1920 1080
+variant B
+click cat:MODELO
+shot 30-layout-b-modelo
+click cat:CABELO
+shot 31-layout-b-cabelo
