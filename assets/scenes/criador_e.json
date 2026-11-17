@@ -1,0 +1,48 @@
+{
+ "_doc": "Rodada 07.2 — cenário do criador de personagens (escrito à mão; NÃO substitui clearing_e.json). Mesmo relevo, luz e floresta da clareira. O herói fica num gramado plano a oeste do lago; a câmera olha para leste (camera.yaw), com o lago, o píer e o salgueiro ao fundo e um pequeno acampamento à esquerda. Arrastar gira o personagem, não a câmera, então o enquadramento é sempre este. Flores e pedras em touceiras soltas — nada de pedestal ou círculo. Abrir com ./gradlew editor (ou a chave de captura layout=criador_e).",
+ "hero": [-2.6, 5.0, -90],
+ "camera": {"yaw": -90},
+ "props": [
+  {"n": "dock", "x": 4.9, "z": 4.6, "dy": -0.17, "abs": true},
+  {"n": "lily", "x": 8.9, "z": 5.6, "dy": -0.42, "abs": true},
+  {"n": "lily", "x": 7.2, "z": 3.4, "dy": -0.42, "abs": true, "r": 90},
+  {"n": "lily", "x": 9.3, "z": 3.6, "dy": -0.42, "abs": true, "r": 180},
+  {"n": "reeds", "x": 10.9, "z": 6.4},
+  {"n": "reeds", "x": 6.0, "z": 7.9},
+  {"n": "reeds", "x": 10.2, "z": 2.4},
+  {"n": "tree_willow", "x": 13.2, "z": 3.2, "r": 0},
+  {"n": "tree_birch", "x": 12.0, "z": 8.8, "r": 0},
+  {"n": "tree_oak", "x": 11.5, "z": -2.6, "r": 90},
+  {"n": "campfire", "x": 0.9, "z": 1.9},
+  {"n": "log", "x": 2.0, "z": 1.2, "r": 60},
+  {"n": "stump", "x": -0.3, "z": 1.0},
+  {"n": "crate", "x": 1.4, "z": -0.6, "r": 15},
+  {"n": "barrel", "x": 2.3, "z": -0.9},
+  {"n": "lantern_post", "x": 0.6, "z": 0.2},
+  {"n": "signpost", "x": 1.2, "z": 8.6, "r": -70},
+  {"n": "rock_m", "x": 0.6, "z": 7.6, "r": 40},
+  {"n": "rock_s", "x": -0.4, "z": 6.6, "r": 10},
+  {"n": "flower_yellow", "x": -1.4, "z": 6.3},
+  {"n": "flower_white", "x": -1.0, "z": 6.9, "r": 90},
+  {"n": "flower_blue", "x": -1.2, "z": 3.4},
+  {"n": "flower_red", "x": -0.7, "z": 3.9, "r": 180},
+  {"n": "grass_tall", "x": -1.8, "z": 3.7},
+  {"n": "grass_tuft", "x": -1.6, "z": 6.0},
+  {"n": "fern", "x": 0.2, "z": 5.9, "r": 30},
+  {"n": "mushroom_red", "x": -0.2, "z": 3.2},
+  {"n": "bush_berry", "x": 2.6, "z": 9.6}
+ ],
+ "scatter": [
+  {"props": ["tree_oak", "tree_oak3", "tree_oak", "tree_oak2", "tree_pine", "tree_pine", "tree_birch", "tree_oak4", "tree_oak3"],
+   "count": 84, "ring": [13.5, 24], "seed": 7, "minDist": 2.7, "frontGap": 4.5},
+  {"props": ["sapling", "bush", "bush", "bush_berry"],
+   "count": 30, "ring": [11, 23], "seed": 11, "minDist": 1.6, "frontGap": 3.0, "cluster": 2, "clusterR": 1.1},
+  {"props": ["grass_tuft", "grass_tuft", "grass_tall", "flower_white"],
+   "count": 18, "ring": [3, 13], "seed": 23, "minDist": 1.4, "cluster": 3, "clusterR": 0.6}
+ ],
+ "creatures": [
+  {"n": "pompom", "x": 1.6, "z": 3.1, "r": -110, "clip": "idle"},
+  {"n": "lumi", "x": 6.4, "z": 2.0, "r": 40, "clip": "idle", "lift": 1.1}
+ ],
+ "clouds": [[30, 15, -20], [34, 17, 6], [28, 14, 22], [40, 18, -4]]
+}
