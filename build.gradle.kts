@@ -40,10 +40,20 @@ subprojects {
     }
 }
 
-// Regenera todos os assets (modelos .vox, rigs, texturas) a partir dos scripts-fonte em tools/.
-tasks.register<Exec>("assets") {
+// Regenera os assets GERADOS (.vox, rig.json, props.json, texturas, componentes) a partir dos scripts em tools/.
+// Eles não vão para o git: o viewer, os testes e o installDist dependem desta tarefa, então um clone novo gera
+// tudo sozinho. Entradas = scripts Python; saídas = pastas geradas — se nada em tools/ mudou e as saídas estão
+// intactas, o Gradle pula a tarefa (UP-TO-DATE). Requer python3 no PATH.
+val generatedAssets = listOf("characters", "creatures", "environment", "textures", "studies", "components")
+val assetsTask = tasks.register<Exec>("assets") {
     group = "assets"
     description = "Gera assets/ a partir dos scripts Python em tools/ (determinístico)."
     workingDir = rootDir
     commandLine("python3", "tools/build_assets.py")
+    inputs.files(fileTree("tools") { include("*.py") })
+    generatedAssets.forEach { outputs.dir("assets/$it") }
+}
+
+subprojects {
+    tasks.withType<Test>().configureEach { dependsOn(assetsTask) }   // os testes leem assets/ gerados
 }
