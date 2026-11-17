@@ -1,0 +1,13 @@
+# Rodada 08.1 — rosto em close no criador: olhos, sobrancelhas, boca, cabelo e bordas da placa, giro lento.
+size 1280 720
+click cat:ROSTO
+wheel 3 scene
+wait 1.5
+click expr:determined
+wait 1.0
+record on
+move scene 0.3
+drag 60 0 4.0
+drag -60 0 4.0
+drag 0 20 2.0
+record off

@@ -1,0 +1,12 @@
+# Rodada 08.1 — herói andando e correndo pela vila perto da estalagem, do poço e do posto (câmera de exploração).
+size 1280 720
+click comecar
+wait 1.0
+record on
+ir 0.6 -1.6
+ir 0.0 -5.2 correndo
+ir -0.6 -8.0
+ir -3.0 -9.6
+look 400 0 2.0
+ir 1.0 -6.0 correndo
+record off

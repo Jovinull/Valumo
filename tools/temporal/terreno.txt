@@ -1,0 +1,15 @@
+# Rodada 08.1 — degraus e encostas do T1 (subida para o patamar): câmera lenta perto do chão e de cima.
+size 1280 720
+click comecar
+wait 1.0
+ir 0.6 -1.6
+ir 0.0 -4.2
+mirar -0.6 -8.0 0.6
+wait 1.5
+record on
+look 140 0 4.0
+look 0 -70 2.5
+look 0 140 3.5
+wheel 2
+wait 2.0
+record off

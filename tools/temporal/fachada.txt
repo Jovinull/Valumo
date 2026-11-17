@@ -1,0 +1,19 @@
+# Rodada 08.1 — fachada da estalagem: câmera lenta horizontal, vertical, diagonal, aproximando e afastando.
+size 1280 720
+click comecar
+wait 1.0
+ir 0.6 -1.6
+ir -2.0 -4.4
+ir -6.0 -4.9
+mirar -6.0 -9.0 0.6
+look 0 120 1.0
+wait 2.0
+record on
+look 160 0 4.0
+look 0 60 3.0
+look -120 -50 3.0
+wheel 2
+wait 2.0
+wheel -3
+wait 2.5
+record off

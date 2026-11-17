@@ -1,0 +1,13 @@
+# Rodada 08.1 — outros assets: salgueiro, posto de trilha, NPCs, pompom, espada do herói.
+size 1280 720
+click comecar
+wait 1.0
+ir 4.5 -1.0
+mirar 6.8 -5.0 0.6
+wait 1.5
+record on
+look 200 0 5.0
+look -400 0 6.0
+wheel 2
+wait 2.0
+record off
