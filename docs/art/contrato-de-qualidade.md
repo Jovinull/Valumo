@@ -69,6 +69,17 @@ Valores congelados (aprovados H2/C3/M1). Mudar qualquer um exige decisão do pro
 | Fluidez | [B] | composição fora da thread do GL; nenhum quadro > 25 ms nos cliques rápidos; malhas vivas estáveis em 360 trocas |
 | Identidade | [B] | madeira, pergaminho, dourado e musgo da E; P1 só como acento da escolha ativa; nada copiado de outros jogos |
 
+## Jogabilidade (rodada 08)
+
+| Regra | Classe | Critério |
+|---|---|---|
+| Pé plantado | [O] | fase da locomoção avança pela distância percorrida (`GameplayTest`); nada de andar no lugar na exploração |
+| Contato com o chão | [O] | pés lógicos no topo do voxel; altura desenhada suaviza degraus de 1 voxel; IK dos pés no mesmo relevo |
+| Colisão separada da malha | [O] | formas por perfil (`colisao_e.json`), nunca a malha visual |
+| Câmera | [O] | não atravessa relevo nem parede, não entra no herói, não quica em degraus; padrão 4,6 u |
+| Interface | [O] | `UiKit` e fonte própria; sem barras de sistemas que não existem |
+| Fluidez | [B] | sem picos de composição na exploração (compositor assíncrono); medir com `tools/review8.sh desempenho` |
+
 ## Personagens — NPCs humanoides futuros
 
 **Regra de origem [O]:** um personagem pode ser inspirado em pessoa real, desde que a pessoa tenha autorizado

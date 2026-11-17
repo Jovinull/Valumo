@@ -67,3 +67,13 @@ névoa não vela o plano do herói; contorno discreto; ≥ 60 FPS em 1080p nativ
 - [ ] Vídeo do fluxo completo com entrada pelo roteiro (`tools/review72.sh video`) revisado quadro a quadro nos pontos de troca.
 - [ ] `CreatorTest` e os testes de identidade dos presets passam; gate pixel a pixel 0 diferenças.
 - [ ] Medição de cliques rápidos sem quadro > 25 ms e malhas vivas estáveis (`desempenho`, `vazamento`).
+
+## Gameplay
+
+- [ ] Movimento independente de FPS, com aceleração e frenagem curtas; animação pela velocidade real (pé plantado).
+- [ ] Colisão: não entra em prop, desliza em parede, sobe degrau ≤ 0,30 u, bloqueia desnível maior e água; nunca fica preso sem saída.
+- [ ] Câmera não atravessa relevo nem parede, não entra no herói, não quica em degraus; zoom e sensibilidade com limites.
+- [ ] Interação só perto e de frente; conversa entra, avança e sai; pausa e conversa preservam posição, rumo e câmera.
+- [ ] Prop novo tem perfil em `assets/scenes/colisao_e.json` (ou aceita o padrão conscientemente).
+- [ ] `GameplayTest` passa; vídeos por roteiro (`tools/review8.sh videos`) revisados; teste físico pedido ao proprietário.
+
