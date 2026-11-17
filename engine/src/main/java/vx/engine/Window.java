@@ -31,7 +31,8 @@ public final class Window implements AutoCloseable {
      * coordenadas de janela e é convertida pela razão framebuffer/janela). A interface do editor só lê esta fila.
      */
     public record InputEvent(Kind kind, float x, float y, int button, float scroll, int code) {
-        public enum Kind { MOVE, DOWN, UP, SCROLL, KEY, CHAR }
+        /** KEY = tecla apertada (button = 1 se for repetição automática); KEY_UP = solta (rodada 08: teclas seguradas). */
+        public enum Kind { MOVE, DOWN, UP, SCROLL, KEY, CHAR, KEY_UP }
     }
 
     private final java.util.List<InputEvent> events = new java.util.ArrayList<>();
@@ -92,7 +93,8 @@ public final class Window implements AutoCloseable {
         glfwSetKeyCallback(handle, (win, key, sc, action, mods) -> {
             if (key < 0 || key > GLFW_KEY_LAST) return;
             if (action == GLFW_PRESS || action == GLFW_REPEAT)
-                events.add(new InputEvent(InputEvent.Kind.KEY, cursorX(), cursorY(), 0, 0, key));
+                events.add(new InputEvent(InputEvent.Kind.KEY, cursorX(), cursorY(), action == GLFW_REPEAT ? 1 : 0, 0, key));
+            if (action == GLFW_RELEASE) events.add(new InputEvent(InputEvent.Kind.KEY_UP, cursorX(), cursorY(), 0, 0, key));
             if (action == GLFW_PRESS) {
                 keys[key] = true;
                 pressed.add(key);
@@ -135,6 +137,22 @@ public final class Window implements AutoCloseable {
 
     public void swap() { glfwSwapBuffers(handle); }
     public boolean shouldClose() { return glfwWindowShouldClose(handle); }
+
+    /**
+     * Rodada 08: prende o cursor (câmera de exploração: o mouse gira a câmera sem bater na borda) ou solta
+     * (menus, diálogo). Com o cursor preso, MOVE continua vindo com a posição virtual; use a diferença.
+     */
+    public void captureCursor(boolean on) {
+        glfwSetInputMode(handle, GLFW_CURSOR, on ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        if (on && glfwRawMouseMotionSupported()) glfwSetInputMode(handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        cursorCaptured = on;
+    }
+
+    private boolean cursorCaptured;
+
+    public boolean cursorCaptured() { return cursorCaptured; }
+
+    public boolean focused() { return glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE; }
     public void requestClose() { glfwSetWindowShouldClose(handle, true); }
     public void setTitle(String t) { glfwSetWindowTitle(handle, t); }
     public void setVsync(boolean on) { glfwSwapInterval(on ? 1 : 0); }
