@@ -1,0 +1,29 @@
+{
+ "_doc": "Rodada 06 — vitrine da primeira expansão controlada (escrita à mão; NÃO substitui clearing_e.json). Mesmo relevo, luz e floresta de fundo da clareira; em primeiro plano só o que precisa ser comparado: salgueiro novo entre carvalho O3 e pinheiro, mariposa perto da vegetação, cartógrafa junto ao posto de trilha, casa aprovada ao fundo para comparar arquitetura, aventureiro como escala. Abrir com a chave de captura layout=vitrine_e.",
+ "hero": [0.6, 3.0, 205],
+ "props": [
+  {"n": "house", "x": -6.5, "z": -8.0, "r": 0},
+  {"n": "trail_post", "x": -2.6, "z": -2.6, "r": 20},
+  {"n": "tree_willow", "x": 6.8, "z": -5.0, "r": 0},
+  {"n": "tree_oak", "x": 12.4, "z": -2.2, "r": 90},
+  {"n": "tree_pine", "x": 10.6, "z": -10.5, "r": 0},
+  {"n": "bush", "x": 3.6, "z": -6.6, "r": 0},
+  {"n": "flower_blue", "x": 4.2, "z": -2.0, "r": 0},
+  {"n": "flower_white", "x": 5.0, "z": -1.2, "r": 90},
+  {"n": "fern", "x": 8.8, "z": -1.6, "r": 0},
+  {"n": "grass_tall", "x": 2.4, "z": -3.4, "r": 0},
+  {"n": "rock_m", "x": -4.8, "z": 0.6, "r": 40}
+ ],
+ "npcs": [
+  {"rig": "characters/npc/cartografa", "x": -1.4, "z": -1.2, "r": 20, "clip": "emote"}
+ ],
+ "scatter": [
+  {"props": ["tree_oak", "tree_oak3", "tree_oak", "tree_oak2", "tree_pine", "tree_pine", "tree_birch", "tree_oak4", "tree_oak3"],
+   "count": 70, "ring": [15.0, 24], "seed": 7, "minDist": 2.7, "frontGap": 4.5}
+ ],
+ "creatures": [
+  {"n": "mariposa", "x": 4.6, "z": -3.0, "r": -40, "clip": "idle", "lift": 0.9},
+  {"n": "pompom", "x": 1.6, "z": -0.4, "r": 160, "clip": "idle"}
+ ],
+ "clouds": [[-20, 14, -30], [10, 16, -34], [26, 15, -20]]
+}
