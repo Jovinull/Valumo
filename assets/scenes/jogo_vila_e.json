@@ -1,0 +1,348 @@
+{
+ "_doc": "Rodada 08 — primeira cena JOGÁVEL: cópia controlada da vila (vila_e.json não muda) com obstáculos e o mobiliário da estalagem para testar movimentação, câmera e colisão. A Kelyra sai de 'npcs' (decorativas) e vira interativa em 'jogo.interativos'. A colisão de cada tipo de prop está em colisao_e.json (separada da malha). Abrir com ./gradlew jogo.",
+ "hero": [
+  0.6,
+  4.4,
+  200
+ ],
+ "props": [
+  {
+   "n": "house",
+   "x": -6.5,
+   "z": -8.0,
+   "r": 0
+  },
+  {
+   "n": "trail_post",
+   "x": -2.6,
+   "z": -2.6,
+   "r": 20
+  },
+  {
+   "n": "tree_willow",
+   "x": 6.8,
+   "z": -5.0,
+   "r": 0
+  },
+  {
+   "n": "tree_oak",
+   "x": 12.4,
+   "z": -2.2,
+   "r": 90
+  },
+  {
+   "n": "tree_pine",
+   "x": 10.6,
+   "z": -10.5,
+   "r": 0
+  },
+  {
+   "n": "bush",
+   "x": 3.6,
+   "z": -6.6,
+   "r": 0
+  },
+  {
+   "n": "flower_blue",
+   "x": 4.2,
+   "z": -2.0,
+   "r": 0
+  },
+  {
+   "n": "flower_white",
+   "x": 5.0,
+   "z": -1.2,
+   "r": 90
+  },
+  {
+   "n": "fern",
+   "x": 8.8,
+   "z": -1.6,
+   "r": 0
+  },
+  {
+   "n": "grass_tall",
+   "x": 2.4,
+   "z": -3.4,
+   "r": 0
+  },
+  {
+   "n": "rock_m",
+   "x": -4.8,
+   "z": 0.6,
+   "r": 40
+  },
+  {
+   "n": "well",
+   "x": -1.8,
+   "z": -6.4
+  },
+  {
+   "n": "fence",
+   "x": -10.4,
+   "z": -4.4,
+   "r": 0
+  },
+  {
+   "n": "fence",
+   "x": -12.5,
+   "z": -4.4,
+   "r": 0
+  },
+  {
+   "n": "fence",
+   "x": -13.6,
+   "z": -2.4,
+   "r": 90
+  },
+  {
+   "n": "crate",
+   "x": -3.6,
+   "z": -5.5,
+   "r": 15
+  },
+  {
+   "n": "barrel",
+   "x": -4.4,
+   "z": -5.0
+  },
+  {
+   "n": "crate",
+   "x": -3.1,
+   "z": -6.1,
+   "r": -10
+  },
+  {
+   "n": "lantern_post",
+   "x": -3.2,
+   "z": 3.4
+  },
+  {
+   "n": "lantern_post",
+   "x": 2.6,
+   "z": 1.4
+  },
+  {
+   "n": "log",
+   "x": 4.6,
+   "z": 2.0,
+   "r": 30
+  },
+  {
+   "n": "stump",
+   "x": 5.6,
+   "z": -0.2
+  },
+  {
+   "n": "rock_s",
+   "x": 1.4,
+   "z": 7.0,
+   "r": 10
+  },
+  {
+   "n": "rock_m",
+   "x": -5.8,
+   "z": 4.4,
+   "r": 20
+  },
+  {
+   "n": "rock_l",
+   "x": -9.4,
+   "z": 2.8,
+   "r": 0
+  },
+  {
+   "n": "signpost",
+   "x": 0.6,
+   "z": 8.2,
+   "r": -20
+  },
+  {
+   "n": "bush",
+   "x": -7.8,
+   "z": 0.2
+  },
+  {
+   "n": "bush_berry",
+   "x": 5.6,
+   "z": 8.2
+  },
+  {
+   "n": "reeds",
+   "x": 5.4,
+   "z": 3.9
+  },
+  {
+   "n": "reeds",
+   "x": 9.8,
+   "z": 7.6
+  },
+  {
+   "n": "lily",
+   "x": 8.6,
+   "z": 5.2,
+   "dy": -0.42,
+   "abs": true
+  },
+  {
+   "n": "flower_yellow",
+   "x": -2.4,
+   "z": 3.6
+  },
+  {
+   "n": "flower_white",
+   "x": -2.0,
+   "z": 4.2,
+   "r": 90
+  },
+  {
+   "n": "flower_red",
+   "x": 3.3,
+   "z": 3.2
+  },
+  {
+   "n": "grass_tall",
+   "x": -0.6,
+   "z": 5.6
+  },
+  {
+   "n": "grass_tuft",
+   "x": 1.8,
+   "z": 2.6
+  },
+  {
+   "n": "fern",
+   "x": -6.6,
+   "z": -2.0,
+   "r": 30
+  },
+  {
+   "n": "mushroom_red",
+   "x": -8.4,
+   "z": 1.6
+  }
+ ],
+ "npcs": [
+  {
+   "rig": "characters/npc/cartografa",
+   "x": -1.4,
+   "z": -1.2,
+   "r": 20,
+   "clip": "emote"
+  },
+  {
+   "rig": "characters/npc/indira",
+   "x": -0.2,
+   "z": 0.9,
+   "r": 5,
+   "clip": "emote"
+  },
+  {
+   "rig": "characters/npc/suvia",
+   "x": 2.9,
+   "z": 0.2,
+   "r": -35,
+   "clip": "idle"
+  }
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4",
+    "tree_oak3"
+   ],
+   "count": 70,
+   "ring": [
+    15.0,
+    24
+   ],
+   "seed": 7,
+   "minDist": 2.7,
+   "frontGap": 4.5
+  }
+ ],
+ "creatures": [
+  {
+   "n": "mariposa",
+   "x": 4.6,
+   "z": -3.0,
+   "r": -40,
+   "clip": "idle",
+   "lift": 0.9
+  },
+  {
+   "n": "pompom",
+   "x": 3.9,
+   "z": -1.2,
+   "r": 200,
+   "clip": "idle"
+  }
+ ],
+ "clouds": [
+  [
+   -20,
+   14,
+   -30
+  ],
+  [
+   10,
+   16,
+   -34
+  ],
+  [
+   26,
+   15,
+   -20
+  ]
+ ],
+ "jogo": {
+  "_doc": "início do herói [x, z, rumo em graus], limite jogável (círculo), personagens interativos e falas (originais).",
+  "inicio": [
+   0.6,
+   4.4,
+   200
+  ],
+  "limite": {
+   "centro": [
+    -1.0,
+    -0.5
+   ],
+   "raio": 11.5
+  },
+  "interativos": [
+   {
+    "rig": "characters/npc/kelyra",
+    "nome": "Kelyra",
+    "titulo": "Estalajadeira",
+    "x": -3.6,
+    "z": 0.4,
+    "r": 40,
+    "alcance": 1.8,
+    "falas": [
+     {
+      "texto": "Ora, um rosto novo! Faz tempo que a trilha não traz viajante à vila.",
+      "expressao": "joy"
+     },
+     {
+      "texto": "Sou Kelyra. Cuido da estalagem ali atrás — estas chaves abrem quase todas as portas daqui."
+     },
+     {
+      "texto": "A cartógrafa anda marcando caminhos novos perto do posto. Se for explorar, siga a trilha até conhecer o lugar.",
+      "expressao": "determined"
+     },
+     {
+      "texto": "E quando cansar, volte. Sempre tem lugar perto do fogo.",
+      "expressao": "joy"
+     }
+    ]
+   }
+  ]
+ }
+}
