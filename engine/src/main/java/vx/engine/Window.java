@@ -24,6 +24,33 @@ public final class Window implements AutoCloseable {
     private double mouseX, mouseY, lastX, lastY;
     private double dx, dy, scroll;
     private boolean firstMouse = true;
+    private int winWidth = 1, winHeight = 1;
+
+    /**
+     * Rodada 07.2 — evento de entrada já em PIXELS DO FRAMEBUFFER (HiDPI: a posição do cursor do GLFW vem em
+     * coordenadas de janela e é convertida pela razão framebuffer/janela). A interface do editor só lê esta fila.
+     */
+    public record InputEvent(Kind kind, float x, float y, int button, float scroll, int code) {
+        public enum Kind { MOVE, DOWN, UP, SCROLL, KEY, CHAR }
+    }
+
+    private final java.util.List<InputEvent> events = new java.util.ArrayList<>();
+
+    /** Eventos do quadro atual (limpos no próximo {@link #poll()}). */
+    public java.util.List<InputEvent> events() { return events; }
+
+    /** Põe um evento na MESMA fila dos eventos do GLFW (roteiros de demonstração e testes de integração). */
+    public void inject(InputEvent e) {
+        if (e.kind() == InputEvent.Kind.MOVE) { mouseX = e.x() / scaleX(); mouseY = e.y() / scaleY(); }
+        events.add(e);
+    }
+
+    private float scaleX() { return winWidth <= 0 ? 1f : (float) fbWidth / winWidth; }
+    private float scaleY() { return winHeight <= 0 ? 1f : (float) fbHeight / winHeight; }
+
+    /** Cursor em pixels do framebuffer. */
+    public float cursorX() { return (float) mouseX * scaleX(); }
+    public float cursorY() { return (float) mouseY * scaleY(); }
 
     public Window(String title, int width, int height, boolean visible) {
         GLFWErrorCallback.createPrint(System.err).set();
@@ -50,6 +77,13 @@ public final class Window implements AutoCloseable {
         glfwGetFramebufferSize(handle, w, h);
         fbWidth = w[0];
         fbHeight = h[0];
+        glfwGetWindowSize(handle, w, h);
+        winWidth = w[0];
+        winHeight = h[0];
+        glfwSetWindowSizeCallback(handle, (win, nw, nh) -> {
+            winWidth = nw;
+            winHeight = nh;
+        });
 
         glfwSetFramebufferSizeCallback(handle, (win, nw, nh) -> {
             fbWidth = nw;
@@ -57,6 +91,8 @@ public final class Window implements AutoCloseable {
         });
         glfwSetKeyCallback(handle, (win, key, sc, action, mods) -> {
             if (key < 0 || key > GLFW_KEY_LAST) return;
+            if (action == GLFW_PRESS || action == GLFW_REPEAT)
+                events.add(new InputEvent(InputEvent.Kind.KEY, cursorX(), cursorY(), 0, 0, key));
             if (action == GLFW_PRESS) {
                 keys[key] = true;
                 pressed.add(key);
@@ -66,17 +102,24 @@ public final class Window implements AutoCloseable {
         });
         glfwSetMouseButtonCallback(handle, (win, b, action, mods) -> {
             if (b >= 0 && b < buttons.length) buttons[b] = action != GLFW_RELEASE;
+            events.add(new InputEvent(action == GLFW_RELEASE ? InputEvent.Kind.UP : InputEvent.Kind.DOWN, cursorX(), cursorY(), b, 0, 0));
         });
         glfwSetCursorPosCallback(handle, (win, x, y) -> {
             mouseX = x;
             mouseY = y;
+            events.add(new InputEvent(InputEvent.Kind.MOVE, cursorX(), cursorY(), 0, 0, 0));
         });
-        glfwSetScrollCallback(handle, (win, sx, sy) -> scroll += sy);
+        glfwSetScrollCallback(handle, (win, sx, sy) -> {
+            scroll += sy;
+            events.add(new InputEvent(InputEvent.Kind.SCROLL, cursorX(), cursorY(), 0, (float) sy, 0));
+        });
+        glfwSetCharCallback(handle, (win, cp) -> events.add(new InputEvent(InputEvent.Kind.CHAR, cursorX(), cursorY(), 0, 0, cp)));
     }
 
     /** Processa eventos; deve ser chamado uma vez por quadro, antes de ler a entrada. */
     public void poll() {
         pressed.clear();
+        events.clear();
         scroll = 0;
         glfwPollEvents();
         if (firstMouse) {
