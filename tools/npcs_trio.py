@@ -23,7 +23,7 @@ import math
 import charlib_e as L
 import chars_b as B
 import chars_d as D
-from charlib_e import BLUSH, EYE_HI, decal, shade
+from charlib_e import BLUSH, EYE_HI, TEETH, decal, shade
 from npcs_e import (ANKLE, EL_X, ELBOW, EYE_Y, FACE_Z, HIP, KNEE, NECK, SH_X, SHOULDER, VS)
 from voxlib import C, Rig, Vox, exposed_faces
 
@@ -516,7 +516,7 @@ def face(s, v, expr):
             brow(lR, rR, lift=1, tilt=-1)
             brow(lL, rL, lift=1, tilt=-1)
             mouth([(-3, 2, lip), (-2, 1, lip), (-1, 1, lip), (0, 1, lip), (1, 1, lip), (2, 2, lip),
-                   (-2, 0, lip_d), (-1, 0, EYE_HI), (0, 0, EYE_HI), (1, 0, lip_d)])
+                   (-2, 0, lip_d), (-1, 0, TEETH), (0, 0, TEETH), (1, 0, lip_d)])
         elif expr == "determined":                       # olhar firme, uma sobrancelha arqueada, meio sorriso
             open_eye(lR, rR, oR)
             open_eye(lL, rL, oL)

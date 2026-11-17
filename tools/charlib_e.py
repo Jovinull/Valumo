@@ -100,6 +100,9 @@ MOUTH_IN = C("#7a3440")
 LASH = C("#3a2238")
 PUPIL = C("#2a1c34")
 EYE_HI = C("#fffaf0")
+# Rodada 08 — dentes em marfim quente, bem abaixo do brilho do olho: com EYE_HI (o tom mais claro do rosto) os
+# dentes viravam uma mancha branca que competia com os olhos (aventureiro determinado, Kelyra alegre).
+TEETH = C("#dccbbb")
 LEATHER = P("#9a6238")
 LEATHER_D = P("#6e4130")
 TAN = P("#c98f55")
@@ -367,7 +370,7 @@ def act_face(v, iris, brow, expr, st):
             brows(R, tilt=2, thick=True)
             brows(Lf, tilt=2, thick=True)
             mouth([(-2, 1, MOUTH), (-1, 1, MOUTH), (0, 1, MOUTH), (1, 1, MOUTH),
-                   (-2, 0, EYE_HI), (-1, 0, EYE_HI), (0, 0, EYE_HI), (1, 0, EYE_HI)])          # dentes cerrados
+                   (-2, 0, TEETH), (-1, 0, TEETH), (0, 0, TEETH), (1, 0, TEETH)])              # dentes cerrados
         else:
             open_eye(R, top=5, wide=True)                  # espanto de quem grita "ah!"
             open_eye(Lf, top=5, wide=True)
