@@ -15,12 +15,13 @@ import static org.lwjgl.opengl.GL33.*;
  */
 public final class CreatorView implements AutoCloseable {
     // paleta da interface (família da direção E: madeira da casa, pergaminho do posto, latão, P1)
-    static final int PARCH = 0xf3e6c8f0, PARCH_D = 0xe6d3abff, PARCH_L = 0xfbf3dfff, INK = 0x3a2a26ff, INK_SOFT = 0x6b5444ff,
-            WOOD = 0x6b4630ff, WOOD_D = 0x45291cff, WOOD_L = 0x8f6040ff, GOLD = 0xecb84cff, GOLD_D = 0xb8862eff,
-            MOSS = 0x5f8a5aff, MOSS_D = 0x45683fff, P1 = 0x4fd6aeff, CORAL = 0xc8643cff, SHADOW = 0x00000055;
+    // paleta e peças: UiKit (rodada 08: compartilhadas com o jogo)
+    static final int PARCH = UiKit.PARCH, PARCH_D = UiKit.PARCH_D, PARCH_L = UiKit.PARCH_L, INK = UiKit.INK, INK_SOFT = UiKit.INK_SOFT,
+            WOOD = UiKit.WOOD, WOOD_D = UiKit.WOOD_D, WOOD_L = UiKit.WOOD_L, GOLD = UiKit.GOLD, GOLD_D = UiKit.GOLD_D,
+            MOSS = UiKit.MOSS, MOSS_D = UiKit.MOSS_D, P1 = UiKit.P1, CORAL = UiKit.CORAL, SHADOW = UiKit.SHADOW;
 
-    private final UiBatch ui = new UiBatch();
-    private final FontAtlas bold = new FontAtlas(true), regular = new FontAtlas(false);   // fonte própria (PixelFont)
+    private final UiKit kit = new UiKit();
+    private final UiBatch ui = kit.ui;
     public boolean drawCursor;
 
     /** Métrica para o layout (as mesmas fontes do desenho). */
@@ -77,23 +78,9 @@ public final class CreatorView implements AutoCloseable {
     // ------------------------------------------------------------------ peças
 
     /** Painel de madeira com cantos chanfrados (degraus de voxel) e miolo de pergaminho. */
-    private void panel(CreatorLayout.Rect r, float s, boolean strong) {
-        float b = Math.max(3, 5 * s), c = Math.max(3, 6 * s);
-        ui.rect(r.x() + 4 * s, r.y() + 6 * s, r.w(), r.h(), SHADOW);
-        chamfer(r.x(), r.y(), r.w(), r.h(), c, WOOD_D);
-        chamfer(r.x() + b * 0.5f, r.y() + b * 0.5f, r.w() - b, r.h() - b, c, WOOD);
-        chamfer(r.x() + b, r.y() + b, r.w() - 2 * b, r.h() - 2 * b, c * 0.7f, strong ? PARCH_L : PARCH);
-        ui.rect(r.x() + b + c, r.y() + b, r.w() - 2 * (b + c), Math.max(1, 2 * s), 0xffffff40);
-    }
+    private void panel(CreatorLayout.Rect r, float s, boolean strong) { kit.panel(r.x(), r.y(), r.w(), r.h(), s, strong); }
 
-    private void chamfer(float x, float y, float w, float h, float c, int col) {
-        ui.rect(x + c, y, w - 2 * c, h, col);
-        ui.rect(x, y + c, c, h - 2 * c, col);
-        ui.rect(x + w - c, y + c, c, h - 2 * c, col);
-        float c2 = c * 0.5f;
-        ui.rect(x + c2, y + c2, c2, h - c, col);
-        ui.rect(x + w - c, y + c2, c2, h - c, col);
-    }
+    private void chamfer(float x, float y, float w, float h, float c, int col) { kit.chamfer(x, y, w, h, c, col); }
 
     private void widget(CreatorLayout.Widget w, CreatorLayout l, CreatorController c, CreatorThumbs thumbs) {
         float s = l.s;
@@ -181,22 +168,13 @@ public final class CreatorView implements AutoCloseable {
         }
     }
 
-    private float measureW(String t, int px, boolean b) { return (b ? bold : regular).width(t, px); }
+    private float measureW(String t, int px, boolean b) { return kit.width(t, px, b); }
 
-    private void text(float x, float y, String t, int px, boolean b, int col) { (b ? bold : regular).draw(ui, x, y, t, px, col); }
+    private void text(float x, float y, String t, int px, boolean b, int col) { kit.text(x, y, t, px, b, col); }
 
-    private void seed(float x, float y, float s) {                     // P1: semente de luz (acento, um só ponto)
-        ui.rect(x - 2 * s, y - 2 * s, 12 * s, 12 * s, 0x4fd6ae40);
-        ui.rect(x, y, 8 * s, 8 * s, P1);
-        ui.rect(x + 2 * s, y + 1 * s, 3 * s, 3 * s, 0xe6fff8ff);
-    }
+    private void seed(float x, float y, float s) { kit.seed(x, y, s); }
 
-    private void check(float x, float y, float s) {
-        ui.rect(x, y, 18 * s, 18 * s, GOLD_D);
-        ui.rect(x + 2 * s, y + 2 * s, 14 * s, 14 * s, GOLD);
-        String[] m = {"......X", ".....XX", "X...XX.", "XX.XX..", ".XXX...", "..X...."};
-        bitmap(m, x + 3 * s, y + 4 * s, 1.8f * s, INK);
-    }
+    private void check(float x, float y, float s) { kit.check(x, y, s); }
 
     private void lock(float x, float y, float s) {
         String[] m = {"..XXXX..", ".X....X.", ".X....X.", "XXXXXXXX", "XXX..XXX", "XXX..XXX", "XXXXXXXX"};
@@ -253,16 +231,7 @@ public final class CreatorView implements AutoCloseable {
         text(x + 14 * s, y + 21 * s - px * 0.66f, w.reason, px, true, PARCH_L);
     }
 
-    private void cursor(float x, float y, float s, boolean down) {
-        String[] m = {"X.........", "XX........", "XWX.......", "XWWX......", "XWWWX.....", "XWWWWX....", "XWWWWWX...", "XWWWWWWX..",
-                "XWWWWXXXX.", "XWXWWX....", "XX.XWWX...", ".....XWX..", "......XX.."};
-        float k = 2.4f * s * (down ? 0.92f : 1f);
-        for (int r = 0; r < m.length; r++)
-            for (int q = 0; q < m[r].length(); q++) {
-                char ch = m[r].charAt(q);
-                if (ch != '.') ui.rect(x + q * k, y + r * k, k, k, ch == 'X' ? INK : (down ? GOLD : 0xfffaf0ff));
-            }
-    }
+    private void cursor(float x, float y, float s, boolean down) { kit.cursor(x, y, s, down); }
 
     // ------------------------------------------------------------------ ícones de pixel (desenhados aqui)
 
@@ -279,27 +248,12 @@ public final class CreatorView implements AutoCloseable {
         if (m != null) bitmap(m, x, y, k, col);
     }
 
-    private void bitmap(String[] m, float x, float y, float k, int col) {
-        for (int r = 0; r < m.length; r++)
-            for (int q = 0; q < m[r].length(); q++)
-                if (m[r].charAt(q) == 'X') ui.rect(x + q * k, y + r * k, k, k, col);
-    }
+    private void bitmap(String[] m, float x, float y, float k, int col) { kit.bitmap(m, x, y, k, col); }
 
-    static int mix(int a, int b, float t) {
-        int r = Math.round(((a >>> 24) & 255) * (1 - t) + ((b >>> 24) & 255) * t), g = Math.round(((a >>> 16) & 255) * (1 - t) + ((b >>> 16) & 255) * t),
-                bl = Math.round(((a >>> 8) & 255) * (1 - t) + ((b >>> 8) & 255) * t);
-        return (r << 24) | (g << 16) | (bl << 8) | 0xff;
-    }
+    static int mix(int a, int b, float t) { return UiKit.mix(a, b, t); }
 
-    static int mul(int a, float k) {
-        return (Math.round(((a >>> 24) & 255) * k) << 24) | (Math.round(((a >>> 16) & 255) * k * 0.92f) << 16)
-                | (Math.round(((a >>> 8) & 255) * k * 1.04f) << 8) | 0xff;
-    }
+    static int mul(int a, float k) { return UiKit.mul(a, k); }
 
     @Override
-    public void close() {
-        ui.close();
-        bold.close();
-        regular.close();
-    }
+    public void close() { kit.close(); }
 }
