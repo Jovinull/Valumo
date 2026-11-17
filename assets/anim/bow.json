@@ -1,0 +1,668 @@
+{
+ "name": "bow",
+ "description": "Arco recurvo (exploradora). Mão ESQUERDA segura o arco (item), DIREITA pega a flecha na aljava por cima do ombro, gira pelo lado de fora, encaixa e puxa. Proporção chibi: braço 10,6 voxels, então a puxada é CURTA, com as duas mãos à frente do peito no eixo de tiro, e o arco é inclinado (topo longe do rosto); a flecha tem 15 voxels. Corda em V até a mão; voo como efeito, sem colisão.",
+ "rightItem": null,
+ "leftItem": "bow",
+ "tipLength": 0,
+ "attack": "bow_shot",
+ "arrowRest": [
+  9.0,
+  15.0,
+  2.5
+ ],
+ "arrowSpeed": 9.0,
+ "defaults": {
+  "rElbow": [
+   -1,
+   -0.6,
+   -0.6
+  ],
+  "lElbow": [
+   1,
+   -0.6,
+   -0.6
+  ]
+ },
+ "carry": {
+  "idle": "rest",
+  "walk": "carry_walk",
+  "run": "carry_run",
+  "free": "r",
+  "swingWalk": 1.6,
+  "swingRun": 2.6
+ },
+ "poses": {
+  "rest": {
+   "l": [
+    10.5,
+    14.5,
+    2.0
+   ],
+   "lDir": [
+    0.15,
+    0.97,
+    0.18
+   ],
+   "lEdge": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "lElbow": [
+    1,
+    -0.4,
+    -1
+   ],
+   "r": [
+    -8.4,
+    13.6,
+    1.8
+   ],
+   "rElbow": [
+    -0.6,
+    -0.4,
+    -1
+   ],
+   "lMode": "ik",
+   "arrow": "hidden"
+  },
+  "carry_walk": {
+   "base": "rest"
+  },
+  "carry_run": {
+   "base": "rest",
+   "l": [
+    9.2,
+    14.5,
+    0.5
+   ],
+   "lDir": [
+    0.1,
+    0.85,
+    -0.5
+   ]
+  },
+  "reach": {
+   "base": "rest",
+   "r": [
+    -8.5,
+    23.0,
+    -4.0
+   ],
+   "rDir": [
+    -0.3,
+    0.6,
+    -0.75
+   ],
+   "rElbow": [
+    -1,
+    -0.6,
+    0.2
+   ],
+   "torso": [
+    0,
+    -4,
+    0
+   ],
+   "arrow": "hidden"
+  },
+  "take": {
+   "base": "reach",
+   "r": [
+    -9.0,
+    23.5,
+    -4.5
+   ],
+   "arrow": "hand"
+  },
+  "swing": {
+   "base": "take",
+   "r": [
+    -10.5,
+    21.0,
+    2.0
+   ],
+   "rDir": [
+    -0.95,
+    0.1,
+    0.28
+   ],
+   "rElbow": [
+    -0.6,
+    -1,
+    -0.4
+   ],
+   "arrow": "hand"
+  },
+  "raise": {
+   "l": [
+    4.0,
+    23.4,
+    9.4
+   ],
+   "lDir": [
+    0.12,
+    0.99,
+    0.0
+   ],
+   "lEdge": [
+    0.45,
+    0.0,
+    -0.89
+   ],
+   "lElbow": [
+    1,
+    -0.6,
+    -0.4
+   ],
+   "r": [
+    -2.0,
+    23.6,
+    7.0
+   ],
+   "rDir": [
+    0.89,
+    0.0,
+    0.45
+   ],
+   "rElbow": [
+    -1,
+    -0.6,
+    -0.4
+   ],
+   "yaw": -63,
+   "head": [
+    0,
+    52,
+    0
+   ],
+   "torso": [
+    2,
+    0,
+    0
+   ],
+   "hip": 0.92,
+   "feet": [
+    2.0,
+    -2.0
+   ],
+   "arrow": "hand"
+  },
+  "nock": {
+   "base": "raise",
+   "l": [
+    4.5,
+    23.8,
+    10.0
+   ],
+   "r": [
+    0.3,
+    24.1,
+    8.2
+   ],
+   "draw": 1.0,
+   "arrow": "string"
+  },
+  "drawn": {
+   "base": "nock",
+   "r": [
+    -0.5,
+    24.2,
+    7.6
+   ],
+   "rElbow": [
+    -1,
+    -0.2,
+    -0.6
+   ],
+   "hip": 0.91
+  },
+  "release": {
+   "base": "drawn",
+   "r": [
+    -4.0,
+    24.8,
+    6.4
+   ],
+   "rDir": [
+    -0.6,
+    0.3,
+    -0.75
+   ],
+   "rElbow": [
+    -1,
+    0.2,
+    -0.6
+   ],
+   "draw": 0.0
+  },
+  "recoil": {
+   "base": "release",
+   "l": [
+    5.2,
+    24.6,
+    9.2
+   ],
+   "r": [
+    -5.5,
+    24.2,
+    6.2
+   ],
+   "arrow": "hidden",
+   "head": [
+    0,
+    50,
+    0
+   ],
+   "torso": [
+    -4,
+    0,
+    0
+   ]
+  },
+  "lower": {
+   "base": "raise",
+   "l": [
+    7.5,
+    18.5,
+    8.0
+   ],
+   "r": [
+    -7.0,
+    17.0,
+    4.0
+   ],
+   "yaw": -20,
+   "head": [
+    0,
+    16,
+    0
+   ],
+   "draw": 0.0,
+   "arrow": "hidden"
+  },
+  "present": {
+   "base": "raise",
+   "l": [
+    8.0,
+    19.5,
+    7.5
+   ],
+   "lDir": [
+    0.1,
+    0.99,
+    0.0
+   ],
+   "lEdge": [
+    0.3,
+    0,
+    -0.95
+   ],
+   "r": [
+    -8.5,
+    21.5,
+    5.5
+   ],
+   "rDir": [
+    0.2,
+    0.05,
+    0.98
+   ],
+   "yaw": -30,
+   "head": [
+    0,
+    26,
+    0
+   ],
+   "arrow": "hand"
+  },
+  "hit_recoil": {
+   "base": "rest",
+   "l": [
+    10.5,
+    17.0,
+    2.0
+   ],
+   "r": [
+    -6.0,
+    21.0,
+    6.5
+   ],
+   "rElbow": [
+    -1,
+    -0.6,
+    -0.2
+   ],
+   "torso": [
+    -16,
+    6,
+    -4
+   ],
+   "head": [
+    -12,
+    0,
+    -6
+   ],
+   "hip": 0.88,
+   "feet": [
+    1.0,
+    -3.4
+   ],
+   "rootZ": -2.0,
+   "arrow": "hidden",
+   "lDir": [
+    0.249,
+    0.92,
+    -0.304
+   ],
+   "lEdge": [
+    0.279,
+    -0.369,
+    -0.887
+   ]
+  },
+  "hit_hold": {
+   "base": "hit_recoil",
+   "torso": [
+    -12,
+    4,
+    -2
+   ],
+   "hip": 0.89,
+   "rootZ": -1.6,
+   "lDir": [
+    0.245,
+    0.945,
+    -0.216
+   ],
+   "lEdge": [
+    0.223,
+    -0.272,
+    -0.936
+   ]
+  },
+  "emote_crouch": {
+   "base": "rest",
+   "r": [
+    -7.5,
+    14.5,
+    4.0
+   ],
+   "hip": 0.8,
+   "torso": [
+    10,
+    0,
+    0
+   ],
+   "feet": [
+    1.4,
+    -1.2
+   ]
+  },
+  "emote_up": {
+   "base": "rest",
+   "l": [
+    11.0,
+    26.0,
+    2.5
+   ],
+   "lDir": [
+    0.25,
+    0.96,
+    0.1
+   ],
+   "lEdge": [
+    0,
+    0,
+    -1
+   ],
+   "lElbow": [
+    1,
+    0.1,
+    -0.5
+   ],
+   "r": [
+    -9.5,
+    26.5,
+    3.0
+   ],
+   "rElbow": [
+    -1,
+    0.1,
+    -0.5
+   ],
+   "torso": [
+    -6,
+    0,
+    0
+   ],
+   "head": [
+    -8,
+    0,
+    0
+   ],
+   "hip": 0.97,
+   "lift": 7.0,
+   "feet": [
+    1.2,
+    -1.2
+   ]
+  },
+  "emote_land": {
+   "base": "emote_crouch",
+   "l": [
+    10.5,
+    20.0,
+    3.0
+   ],
+   "r": [
+    -8.0,
+    19.0,
+    5.0
+   ],
+   "hip": 0.84
+  },
+  "drawn_full": {
+   "base": "drawn",
+   "r": [
+    -1.3,
+    24.3,
+    6.9
+   ],
+   "torso": [
+    1,
+    0,
+    0
+   ],
+   "hip": 0.9
+  }
+ },
+ "moves": {
+  "bow_shot": {
+   "label": "Arco: pegar a flecha, levantar, encaixar, puxar, sustentar, soltar, recuo, recuperar",
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.2,
+     "pose": "reach"
+    },
+    {
+     "t": 0.3,
+     "pose": "take",
+     "stop": true
+    },
+    {
+     "t": 0.42,
+     "pose": "swing"
+    },
+    {
+     "t": 0.52,
+     "pose": "present"
+    },
+    {
+     "t": 0.62,
+     "pose": "raise"
+    },
+    {
+     "t": 0.7,
+     "pose": "nock",
+     "stop": true
+    },
+    {
+     "t": 0.92,
+     "pose": "drawn",
+     "stop": true
+    },
+    {
+     "t": 1.16,
+     "pose": "drawn_full",
+     "stop": true
+    },
+    {
+     "t": 1.2,
+     "pose": "release",
+     "snap": 1.4
+    },
+    {
+     "t": 1.32,
+     "pose": "recoil",
+     "stop": true
+    },
+    {
+     "t": 1.62,
+     "pose": "lower"
+    },
+    {
+     "t": 2.0,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.7
+    ],
+    "exec": [
+     0.7,
+     1.16
+    ],
+    "follow": [
+     1.16,
+     1.32
+    ],
+    "recover": [
+     1.32,
+     2.0
+    ]
+   },
+   "release": 1.17
+  },
+  "hit": {
+   "label": "Golpe recebido: recuo pelo tronco e pés; arma afastada da cabeça",
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.1,
+     "pose": "hit_recoil",
+     "snap": 1.4
+    },
+    {
+     "t": 0.24,
+     "pose": "hit_hold"
+    },
+    {
+     "t": 0.6,
+     "pose": "rest"
+    },
+    {
+     "t": 0.9,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.0
+    ],
+    "exec": [
+     0.0,
+     0.12
+    ],
+    "follow": [
+     0.12,
+     0.3
+    ],
+    "recover": [
+     0.3,
+     0.9
+    ]
+   }
+  },
+  "emote": {
+   "label": "Comemoração: agacha, pula com a arma erguida ao lado da cabeça, aterrissa",
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.24,
+     "pose": "emote_crouch",
+     "stop": true
+    },
+    {
+     "t": 0.44,
+     "pose": "emote_up"
+    },
+    {
+     "t": 0.62,
+     "pose": "emote_up",
+     "stop": true
+    },
+    {
+     "t": 0.82,
+     "pose": "emote_land"
+    },
+    {
+     "t": 1.05,
+     "pose": "emote_crouch",
+     "stop": true
+    },
+    {
+     "t": 1.6,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.24
+    ],
+    "exec": [
+     0.24,
+     0.62
+    ],
+    "follow": [
+     0.62,
+     0.82
+    ],
+    "recover": [
+     0.82,
+     1.6
+    ]
+   }
+  }
+ }
+}
