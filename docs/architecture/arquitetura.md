@@ -4,7 +4,8 @@
 
 ```
 engine  (vx.engine)   biblioteca: não conhece estilos, personagens nem o jogo
-  Window        janela GLFW, contexto OpenGL 3.3 core, estado de teclado/mouse por quadro
+  Window        janela GLFW, contexto OpenGL 3.3 core, estado de teclado/mouse por quadro; fila de eventos
+                em pixels do framebuffer (HiDPI) com injeção para roteiros (07.2)
   Shader        programa GLSL do classpath, cache de uniforms
   Mesh          VAO/VBO de triângulos não indexados, atributos float intercalados, caixa delimitadora
   VoxelSource   interface de volume (voxel -> cor + material)
@@ -13,7 +14,10 @@ engine  (vx.engine)   biblioteca: não conhece estilos, personagens nem o jogo
   Texture       textura RGBA8 (nearest para pixel art)
   Framebuffer   FBO com N anexos de cor + profundidade
   Camera        câmera orbital
-  Hud           retângulos e texto em fonte bitmap 5x7 embutida
+  Hud           retângulos e texto em fonte bitmap 5x7 embutida (depuração)
+  UiBatch       quads 2D coloridos/texturizados da interface do jogo, VBO persistente (07.2)
+  PixelFont     fonte de pixel própria com acentos; FontAtlas = textura dela, escala inteira (07.2)
+  VoxGrid       grade de voxels em memória (personalização, 07)
   Screenshot    leitura do framebuffer -> PNG
 
 viewer  (vx.viewer)   aplicativo desta rodada
@@ -26,7 +30,12 @@ viewer  (vx.viewer)   aplicativo desta rodada
   Animator / Actor              clipes procedurais, pose, hierarquia, transição
   World         clareira: relevo analítico, terreno por estilo, layout JSON, criaturas, água, nuvens
   Review        pacote de capturas e pranchas de comparação
+  Appearance / ComponentCatalog / Composer   personalização em tempo de execução (07)
+  AsyncComposer composição em thread de trabalho, envio na thread do GL, descarte, LRU (07.2)
+  Creator*      criador de personagens: estado, layout, controle, câmera, desenho, miniaturas (07.2)
 ```
+
+Interfaces de jogo: [criador de personagens](criador-de-personagens.md) (estrutura e procedimento reutilizáveis).
 
 A dependência é de mão única: `viewer -> engine`. Bibliotecas externas: LWJGL 3.4.3 (GLFW, OpenGL),
 JOML 1.10.8, Gson 2.13.2; JUnit 5 nos testes. Ver [ADR 0001](../decisions/0001-stack-java-lwjgl.md).
