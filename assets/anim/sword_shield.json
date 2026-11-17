@@ -1,0 +1,855 @@
+{
+ "name": "sword_shield",
+ "extends": "sword",
+ "description": "Espada e broquel (estudo characters/r4/adventurer_shield). Herda os golpes da espada; o broquel fica na guarda à frente enquanto a lâmina está do outro lado e recolhe para a lateral quando ela cruza a frente.",
+ "leftItem": "shield",
+ "carry": {
+  "idle": "rest",
+  "walk": "carry_walk",
+  "run": "carry_run",
+  "swingWalk": 1.6,
+  "swingRun": 2.6
+ },
+ "poses": {
+  "rest": {
+   "merge": true,
+   "lMode": "ik",
+   "l": [
+    9.6,
+    13.2,
+    1.2
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0,
+    0,
+    -1
+   ],
+   "lElbow": [
+    1,
+    -0.5,
+    -1
+   ]
+  },
+  "guard": {
+   "merge": true,
+   "l": [
+    7.8,
+    16.5,
+    6.4
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "h_lift": {
+   "merge": true,
+   "l": [
+    7.8,
+    17.0,
+    6.8
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "h_wind": {
+   "merge": true,
+   "l": [
+    7.4,
+    18.0,
+    7.6
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "h_drive": {
+   "merge": true,
+   "l": [
+    8.4,
+    17.0,
+    5.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "h_cut": {
+   "merge": true,
+   "l": [
+    9.8,
+    16.0,
+    1.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "h_pass": {
+   "merge": true,
+   "l": [
+    9.6,
+    14.5,
+    -3.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "h_follow": {
+   "merge": true,
+   "l": [
+    9.0,
+    14.0,
+    -5.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "h_settle": {
+   "merge": true,
+   "l": [
+    8.8,
+    16.5,
+    4.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "d_wind": {
+   "merge": true,
+   "l": [
+    7.4,
+    18.5,
+    7.4
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "d_drive": {
+   "merge": true,
+   "l": [
+    8.4,
+    17.0,
+    5.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "d_cut": {
+   "merge": true,
+   "l": [
+    9.8,
+    16.0,
+    1.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "d_pass": {
+   "merge": true,
+   "l": [
+    10.0,
+    15.5,
+    -1.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "d_follow": {
+   "merge": true,
+   "l": [
+    10.0,
+    15.5,
+    -2.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "d_settle": {
+   "merge": true,
+   "l": [
+    8.8,
+    16.5,
+    4.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "v_wind": {
+   "merge": true,
+   "l": [
+    7.4,
+    18.5,
+    7.4
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "v_drive": {
+   "merge": true,
+   "l": [
+    8.4,
+    17.0,
+    5.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "v_cut": {
+   "merge": true,
+   "l": [
+    9.6,
+    16.0,
+    2.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "v_low": {
+   "merge": true,
+   "l": [
+    9.8,
+    15.5,
+    0.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "v_follow": {
+   "merge": true,
+   "l": [
+    9.8,
+    15.5,
+    0.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "v_settle": {
+   "merge": true,
+   "l": [
+    8.8,
+    16.5,
+    4.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "b_turn": {
+   "merge": true,
+   "l": [
+    10.0,
+    15.5,
+    -1.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "b_cut": {
+   "merge": true,
+   "l": [
+    9.8,
+    16.0,
+    1.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.2,
+    0,
+    -0.98
+   ],
+   "lElbow": [
+    1.0,
+    -0.4,
+    -0.8
+   ]
+  },
+  "b_pass": {
+   "merge": true,
+   "l": [
+    8.6,
+    16.5,
+    4.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "shield_high": {
+   "base": "guard",
+   "l": [
+    6.4,
+    20.5,
+    7.4
+   ],
+   "lDir": [
+    0,
+    0.97,
+    0.25
+   ],
+   "lEdge": [
+    0.95,
+    0,
+    -0.3
+   ],
+   "lElbow": [
+    1,
+    -0.6,
+    -0.4
+   ],
+   "r": [
+    -9.0,
+    15.0,
+    3.0
+   ],
+   "rDir": [
+    -0.25,
+    0.45,
+    0.86
+   ],
+   "torso": [
+    4,
+    10,
+    0
+   ],
+   "hip": 0.9
+  },
+  "shield_block": {
+   "base": "guard",
+   "l": [
+    4.5,
+    21.5,
+    8.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0.1
+   ],
+   "lEdge": [
+    1,
+    0,
+    0
+   ],
+   "lElbow": [
+    1,
+    -0.6,
+    -0.6
+   ],
+   "r": [
+    -9.5,
+    15.0,
+    1.0
+   ],
+   "rDir": [
+    -0.3,
+    0.55,
+    0.78
+   ],
+   "rElbow": [
+    -0.6,
+    -0.6,
+    -1.0
+   ],
+   "torso": [
+    6,
+    18,
+    0
+   ],
+   "hip": 0.87,
+   "feet": [
+    1.6,
+    -3.0
+   ],
+   "rootZ": -0.4
+  },
+  "shield_brace": {
+   "base": "shield_block",
+   "torso": [
+    9,
+    16,
+    0
+   ],
+   "hip": 0.85,
+   "rootZ": -1.2
+  },
+  "hit_recoil": {
+   "merge": true,
+   "l": [
+    6.8,
+    20.5,
+    7.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0.1
+   ],
+   "lEdge": [
+    1,
+    0,
+    0
+   ],
+   "lElbow": [
+    1,
+    -0.6,
+    -0.4
+   ]
+  },
+  "hit_hold": {
+   "merge": true,
+   "l": [
+    6.8,
+    20.5,
+    7.0
+   ]
+  },
+  "emote_crouch": {
+   "merge": true,
+   "l": [
+    9.6,
+    14.0,
+    2.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0,
+    0,
+    -1
+   ]
+  },
+  "emote_up": {
+   "merge": true,
+   "l": [
+    10.5,
+    24.0,
+    2.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0,
+    0,
+    -1
+   ],
+   "lElbow": [
+    1,
+    0,
+    -0.8
+   ]
+  },
+  "emote_land": {
+   "merge": true,
+   "l": [
+    10.0,
+    18.0,
+    2.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0,
+    0,
+    -1
+   ]
+  }
+ },
+ "moves": {
+  "shield_guard": {
+   "label": "Escudo: repouso → guarda baixa → guarda alta → guarda baixa → repouso",
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.35,
+     "pose": "guard",
+     "stop": true
+    },
+    {
+     "t": 1.05,
+     "pose": "guard",
+     "stop": true
+    },
+    {
+     "t": 1.35,
+     "pose": "shield_high",
+     "stop": true
+    },
+    {
+     "t": 2.05,
+     "pose": "shield_high",
+     "stop": true
+    },
+    {
+     "t": 2.35,
+     "pose": "guard",
+     "stop": true
+    },
+    {
+     "t": 2.9,
+     "pose": "guard",
+     "stop": true
+    },
+    {
+     "t": 3.3,
+     "pose": "rest",
+     "stop": true
+    }
+   ]
+  },
+  "shield_block": {
+   "label": "Escudo: bloqueio frontal e retorno à guarda",
+   "keys": [
+    {
+     "t": 0,
+     "pose": "guard",
+     "stop": true
+    },
+    {
+     "t": 0.16,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 0.3,
+     "pose": "shield_brace"
+    },
+    {
+     "t": 0.46,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 1.05,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 1.4,
+     "pose": "guard",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.16
+    ],
+    "exec": [
+     0.16,
+     0.3
+    ],
+    "follow": [
+     0.3,
+     0.46
+    ],
+    "recover": [
+     1.05,
+     1.4
+    ]
+   }
+  }
+ }
+}
