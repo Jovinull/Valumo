@@ -15,6 +15,7 @@ public final class Mesh implements AutoCloseable {
 
     private final int vao, vbo;
     public final int vertexCount;
+    private final long bytes;
     /** Bytes de vértices vivos na GPU (todas as malhas); usado nas métricas do viewer. */
     public static long liveBytes, liveMeshes;
     /** Caixa delimitadora no espaço do modelo (min xyz, max xyz). */
@@ -30,7 +31,8 @@ public final class Mesh implements AutoCloseable {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         float[] exact = count == data.length ? data : java.util.Arrays.copyOf(data, count);
         glBufferData(GL_ARRAY_BUFFER, exact, GL_STATIC_DRAW);
-        liveBytes += (long) exact.length * Float.BYTES;
+        bytes = (long) exact.length * Float.BYTES;
+        liveBytes += bytes;
         liveMeshes++;
         int off = 0;
         for (int i = 0; i < layout.length; i++) {
@@ -61,7 +63,7 @@ public final class Mesh implements AutoCloseable {
 
     @Override
     public void close() {
-        liveBytes -= (long) vertexCount * 13 * Float.BYTES;
+        liveBytes -= bytes;              // o que foi somado (o layout não é sempre o de cena)
         liveMeshes--;
         glDeleteBuffers(vbo);
         glDeleteVertexArrays(vao);
