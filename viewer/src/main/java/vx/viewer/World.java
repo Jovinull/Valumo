@@ -33,7 +33,7 @@ public final class World {
     /** Paleta e resolução do terreno de um estilo. */
     public record TerrainStyle(float voxel, int[] grass, int[] forest, int[] path, int[] sand, int dirt, int rock,
                                int water, float jitter) {
-        static TerrainStyle of(String key) {
+        public static TerrainStyle of(String key) {
             return switch (key) {
                 case "b" -> new TerrainStyle(0.25f,
                         new int[]{0x92c264, 0x84b658, 0xa6cf74}, new int[]{0x6f9f58, 0x66944f},
@@ -56,8 +56,28 @@ public final class World {
         }
     }
 
-    private record Placed(Mesh mesh, Matrix4f model, Texture texture, float outline) { }
-    private record Creature(Actor actor, float x, float z, float yaw, Animator.Clip clip, float phase, float lift) { }
+    private record Placed(String name, Mesh mesh, Matrix4f model, Texture texture, float outline) { }
+    private record Creature(String name, Actor actor, float x, float z, float yaw, Animator.Clip clip, float phase, float lift) { }
+
+    /** Rodada 08: prop colocado (nome do asset, matriz de mundo e caixa da malha no espaço do modelo). */
+    public record Placement(String name, Matrix4f model, float[] bounds) { }
+
+    /** Rodada 08: personagem ou criatura da composição (nome do rig, posição). */
+    public record Body(String name, float x, float z, float yaw) { }
+
+    /** Props colocados (para a colisão do jogo; a geometria visual não muda). */
+    public List<Placement> placements() {
+        List<Placement> out = new ArrayList<>();
+        for (Placed p : placed) out.add(new Placement(p.name, new Matrix4f(p.model), p.mesh.bounds.clone()));
+        return out;
+    }
+
+    /** NPCs e criaturas posicionados na composição. */
+    public List<Body> bodies() {
+        List<Body> out = new ArrayList<>();
+        for (Creature c : creatures) out.add(new Body(c.name, c.x, c.z, c.yaw));
+        return out;
+    }
 
     public final String key;
     private final TerrainStyle ts;
@@ -70,13 +90,13 @@ public final class World {
     public float heroX = 0f, heroZ = 3f, heroYaw = 0.3f;
 
     // ------------------------------------------------------------------ relevo (compartilhado)
-    private static float hash(int x, int z) {
+    static float hash(int x, int z) {
         int h = x * 374761393 + z * 668265263;
         h = (h ^ (h >>> 13)) * 1274126177;
         return ((h ^ (h >>> 16)) & 0xFFFF) / 65535f;
     }
 
-    private static float noise(float x, float z) {
+    static float noise(float x, float z) {
         int xi = (int) Math.floor(x), zi = (int) Math.floor(z);
         float fx = x - xi, fz = z - zi;
         fx = fx * fx * (3 - 2 * fx);
@@ -85,7 +105,7 @@ public final class World {
         return (a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz) * 2 - 1;
     }
 
-    private static float smooth(float a, float b, float x) {
+    static float smooth(float a, float b, float x) {
         float t = Math.clamp((x - a) / (b - a), 0f, 1f);
         return t * t * (3 - 2 * t);
     }
@@ -136,7 +156,9 @@ public final class World {
 
     // ------------------------------------------------------------------ construção
     private final int n;
-    private final int[] top;      // índice de voxel do topo de cada coluna
+    private final int[] top;      // índice de voxel do topo de cada coluna (de terrainGrid)
+    /** Colunas do relevo, sem OpenGL (rodada 08: colisão e testes do jogo usam o mesmo chão). */
+    public final Terrain terrainGrid;
     private final int[] topColor;
 
     /** Tratamento de relevo da E (rodada 03): 0 = rodada 02, 1 = voxel refinado, 2 = orgânico, 3 = híbrido,
@@ -156,13 +178,13 @@ public final class World {
         float tv = ts.voxel;
         n = Math.round(SIZE / tv);
         int ny = Math.round((Y_MAX - Y_MIN) / tv);
-        top = new int[n * n];
+        terrainGrid = Terrain.of(key, this.terrainMode);       // rodada 08: as mesmas colunas servem à colisão do jogo
+        top = terrainGrid.top;
         topColor = new int[n * n];
         for (int z = 0; z < n; z++)
             for (int x = 0; x < n; x++) {
                 float wx = (x + 0.5f) * tv - SIZE / 2, wz = (z + 0.5f) * tv - SIZE / 2;
                 float h = height(wx, wz, !key.equals("e"));
-                top[x + z * n] = Math.clamp(quantize(h, wx, wz, tv), 0, ny - 1);
                 topColor[x + z * n] = surfaceColor(wx, wz, h, x, z);
             }
         Path tex = assets.root().resolve("textures/" + key + "/terrain.png");
@@ -211,7 +233,7 @@ public final class World {
      * bordas deixam de ser curvas de nível perfeitas sem virar ruído. T2: patamares largos de 0,4 u e
      * rupturas curtas (o relevo sobe em "saltos" de pedra entre áreas planas). T3: alturas do T1.
      */
-    private int quantize(float h, float wx, float wz, float tv) {
+    static int quantize(int terrainMode, float h, float wx, float wz, float tv) {
         float base = (h - Y_MIN) / tv;
         if (terrainMode == 0) return (int) Math.floor(base);
         float wob = noise(wx * 0.35f + 31, wz * 0.35f - 17) * 0.45f + noise(wx * 1.1f, wz * 1.1f) * 0.12f;
@@ -462,19 +484,10 @@ public final class World {
     }
 
     /** Altura do chão (topo do voxel) no ponto, em unidades de mundo. */
-    public float groundAt(float x, float z) {
-        float tv = ts.voxel;
-        int xi = Math.clamp((int) Math.floor((x + SIZE / 2) / tv), 0, n - 1);
-        int zi = Math.clamp((int) Math.floor((z + SIZE / 2) / tv), 0, n - 1);
-        return (top[xi + zi * n] + 1) * tv + Y_MIN;
-    }
+    public float groundAt(float x, float z) { return terrainGrid.groundAt(x, z); }
 
     /** Altura suavizada (média de vizinhos) para o personagem não "pular" entre degraus. */
-    public float groundSmooth(float x, float z) {
-        float tv = ts.voxel, s = 0;
-        for (int dz = -1; dz <= 1; dz++) for (int dx = -1; dx <= 1; dx++) s += groundAt(x + dx * tv * 0.75f, z + dz * tv * 0.75f);
-        return Math.max(s / 9f, groundAt(x, z) - tv * 0.5f);
-    }
+    public float groundSmooth(float x, float z) { return terrainGrid.groundSmooth(x, z); }
 
     /** Rodada 06: composição alternativa (assets/scenes/&lt;layout&gt;.json), ex.: a vitrine da expansão.
      *  null = a clareira de sempre (clearing_&lt;estilo&gt;.json); a cena canônica não muda. */
@@ -557,7 +570,7 @@ public final class World {
             JsonObject o = el.getAsJsonObject();
             String dir = "creatures/" + key + "/" + o.get("n").getAsString();
             if (!assets.exists(dir)) continue;
-            creatures.add(new Creature(new Actor(assets.rig(dir), style.animExaggeration),
+            creatures.add(new Creature(dir, new Actor(assets.rig(dir), style.animExaggeration),
                     o.get("x").getAsFloat(), o.get("z").getAsFloat(), (float) Math.toRadians(o.get("r").getAsFloat()),
                     Animator.Clip.valueOf(o.get("clip").getAsString().toUpperCase()), creatures.size() * 0.37f,
                     o.has("lift") ? o.get("lift").getAsFloat() : 0f));
@@ -567,7 +580,7 @@ public final class World {
             JsonObject o = el.getAsJsonObject();
             String dir = o.get("rig").getAsString();
             if (!assets.exists(dir)) continue;
-            creatures.add(new Creature(new Actor(assets.rig(dir), style.animExaggeration),
+            creatures.add(new Creature(dir, new Actor(assets.rig(dir), style.animExaggeration),
                     o.get("x").getAsFloat(), o.get("z").getAsFloat(), (float) Math.toRadians(o.get("r").getAsFloat()),
                     Animator.Clip.valueOf(o.get("clip").getAsString().toUpperCase()), creatures.size() * 0.37f,
                     o.has("lift") ? o.get("lift").getAsFloat() : 0f));
@@ -585,7 +598,7 @@ public final class World {
         float y = absolute ? dy : groundAt(x, z) + dy;
         // Plantas pequenas (flores, tufos) não recebem contorno na E: em grupo viram ruído de tinta.
         float ow = key.equals("e") && p.height() < 0.7f ? 0.25f : 1f;
-        placed.add(new Placed(p.mesh(), new Matrix4f().translate(x, y, z).rotateY((float) Math.toRadians(rotDeg)), p.texture(), ow));
+        placed.add(new Placed(name, p.mesh(), new Matrix4f().translate(x, y, z).rotateY((float) Math.toRadians(rotDeg)), p.texture(), ow));
     }
 
     public void submit(Renderer.Frame f, float time) {
