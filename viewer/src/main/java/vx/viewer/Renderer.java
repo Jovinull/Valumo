@@ -84,6 +84,9 @@ public final class Renderer implements AutoCloseable {
         public void add(Mesh mesh, Matrix4f model, Texture tex) { draws.add(new Draw(mesh, model, tex, false, true)); }
     }
 
+    /** Diagnóstico (rodada 08.1): -Dvx.wind=0 desliga o vento para isolar defeitos de malha. */
+    static final float WIND_SCALE = Float.parseFloat(System.getProperty("vx.wind", "1"));
+
     /** Lado do mapa de sombra em texels; -Dvx.shadow=N permite experimentar. */
     public static final int SHADOW_SIZE = Integer.getInteger("vx.shadow", 2048);
 
@@ -225,7 +228,7 @@ public final class Renderer implements AutoCloseable {
         if (depthPrepass) {
             glColorMask(false, false, false, false);
             prepass.use().set("uView", f.camera.view()).set("uViewProj", f.camera.viewProj()).set("uLightVP", lightVP)
-                    .set("uTime", f.time).set("uWind", s.wind).set("uAffineWind", s.affineWind);
+                    .set("uTime", f.time).set("uWind", s.wind * WIND_SCALE).set("uAffineWind", s.affineWind);
             for (Draw d : f.draws) {
                 if (d.transparent || d.overlay || (d.texture != null && tg.textures) || !visible(d)) continue;
                 prepass.set("uModel", d.model);
@@ -236,7 +239,7 @@ public final class Renderer implements AutoCloseable {
 
         scene.use()
                 .set("uView", f.camera.view()).set("uViewProj", f.camera.viewProj()).set("uLightVP", lightVP)
-                .set("uTime", f.time).set("uWind", s.wind).set("uAffineWind", s.affineWind)
+                .set("uTime", f.time).set("uWind", s.wind * WIND_SCALE).set("uAffineWind", s.affineWind)
                 .set("uFogStart", s.fogStart > 0 ? s.fogStart + 0.8f * f.camera.distance : 0f).set("uFogMax", s.fogMax).set("uFogSunColor", s.fogSunColor)
                 .set("uFillDir", s.fillDir).set("uFillColor", s.fillColor)
                 .set("uOutlineFoliage", s.outlineFoliage).set("uSilhouette", tg.silhouette)
