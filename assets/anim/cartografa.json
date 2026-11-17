@@ -1,0 +1,246 @@
+{
+ "name": "cartografa",
+ "description": "NPC cartógrafa (rodada 06). Sem ataques: só transporte da bússola na mão direita (mão esquerda livre no balanço) e o gesto característico 'consultar a bússola e apontar o caminho' (move emote). Posições em voxels do esqueleto do NPC (ombro ±5,8 / 26,5; braço ~11,5 voxels).",
+ "rightItem": "tool",
+ "leftItem": null,
+ "tipLength": 0,
+ "attack": "emote",
+ "defaults": {
+  "rElbow": [
+   -1,
+   -0.6,
+   -0.6
+  ],
+  "lElbow": [
+   1,
+   -0.6,
+   -0.6
+  ]
+ },
+ "carry": {
+  "idle": "rest",
+  "walk": "carry_walk",
+  "run": "carry_run",
+  "free": "l",
+  "swingWalk": 1.1,
+  "swingRun": 1.8
+ },
+ "poses": {
+  "rest": {
+   "r": [
+    -7.2,
+    15.2,
+    1.6
+   ],
+   "rDir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "rEdge": [
+    1,
+    0,
+    0
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ],
+   "lMode": "free",
+   "l": [
+    7.0,
+    16.0,
+    1.8
+   ],
+   "lElbow": [
+    0.6,
+    -0.3,
+    -1
+   ]
+  },
+  "carry_walk": {
+   "base": "rest"
+  },
+  "carry_run": {
+   "base": "rest",
+   "r": [
+    -7.4,
+    16.4,
+    2.6
+   ]
+  },
+  "look_raise": {
+   "base": "rest",
+   "r": [
+    -3.2,
+    21.6,
+    7.4
+   ],
+   "rDir": [
+    0.2,
+    0.3,
+    0.93
+   ],
+   "rEdge": [
+    1,
+    0,
+    0
+   ],
+   "rElbow": [
+    -1,
+    -0.8,
+    -0.2
+   ],
+   "lMode": "ik",
+   "l": [
+    1.0,
+    20.8,
+    7.6
+   ],
+   "lElbow": [
+    1,
+    -0.8,
+    -0.2
+   ],
+   "head": [
+    16,
+    -6,
+    0
+   ],
+   "torso": [
+    5,
+    -6,
+    0
+   ],
+   "hip": 0.96
+  },
+  "look_read": {
+   "base": "look_raise",
+   "r": [
+    -2.8,
+    22.0,
+    7.6
+   ],
+   "head": [
+    22,
+    -10,
+    -6
+   ],
+   "torso": [
+    7,
+    -6,
+    0
+   ]
+  },
+  "look_point": {
+   "base": "look_raise",
+   "r": [
+    -5.0,
+    19.6,
+    5.0
+   ],
+   "l": [
+    11.0,
+    25.2,
+    5.2
+   ],
+   "lElbow": [
+    0.3,
+    -1,
+    -0.2
+   ],
+   "head": [
+    -2,
+    26,
+    0
+   ],
+   "torso": [
+    -3,
+    18,
+    0
+   ],
+   "hip": 0.98
+  },
+  "look_lower": {
+   "base": "rest",
+   "lMode": "ik",
+   "l": [
+    7.2,
+    16.2,
+    2.2
+   ],
+   "head": [
+    4,
+    6,
+    0
+   ],
+   "torso": [
+    0,
+    4,
+    0
+   ]
+  }
+ },
+ "moves": {
+  "emote": {
+   "label": "Consulta a bússola e aponta o caminho",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.45,
+     "pose": "look_raise"
+    },
+    {
+     "t": 0.8,
+     "pose": "look_read"
+    },
+    {
+     "t": 1.35,
+     "pose": "look_read",
+     "stop": true
+    },
+    {
+     "t": 1.75,
+     "pose": "look_point"
+    },
+    {
+     "t": 2.35,
+     "pose": "look_point",
+     "stop": true
+    },
+    {
+     "t": 2.8,
+     "pose": "look_lower"
+    },
+    {
+     "t": 3.2,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.45
+    ],
+    "exec": [
+     0.45,
+     2.35
+    ],
+    "follow": [
+     2.35,
+     2.8
+    ],
+    "recover": [
+     2.8,
+     3.2
+    ]
+   }
+  }
+ }
+}

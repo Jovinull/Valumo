@@ -1,0 +1,33 @@
+{
+ "name": "npc_vila",
+ "description": "Perfil compartilhado dos NPCs da vila sem item (Kelyra, Índira, Súvia): as duas mãos livres no balanço da locomoção (carry.free = r + lMode free no repouso) e um gesto reutilizável 'acenar' (move emote, mão direita por IK, cabeça inclinada). Posições em voxels do esqueleto NPC (ombro ±5,8 / 26,5; braço ~11,5 voxels).",
+ "rightItem": null,
+ "leftItem": null,
+ "tipLength": 0,
+ "attack": "emote",
+ "defaults": {"rElbow": [-1, -0.6, -0.6], "lElbow": [1, -0.6, -0.6]},
+ "carry": {"idle": "rest", "walk": "rest", "run": "rest", "free": "r", "swingWalk": 1.2, "swingRun": 1.9},
+ "poses": {
+  "rest": {"r": [-7.2, 15.2, 1.6], "rDir": [0.0, 1.0, 0.0], "rEdge": [1, 0, 0], "rElbow": [-0.6, -0.3, -1],
+           "lMode": "free", "l": [7.0, 16.0, 1.8], "lElbow": [0.6, -0.3, -1]},
+  "wave_up": {"base": "rest", "r": [-11.4, 34.6, 2.2], "rElbow": [-1, -0.5, 0.1], "head": [-4, -8, 5], "torso": [0, -5, 2]},
+  "wave_a": {"base": "wave_up", "r": [-12.6, 34.4, 1.6]},
+  "wave_b": {"base": "wave_up", "r": [-10.2, 35.4, 2.6], "head": [-5, -10, 7]}
+ },
+ "moves": {
+  "emote": {
+   "label": "Acena",
+   "keys": [
+    {"t": 0.0, "pose": "rest", "stop": true},
+    {"t": 0.4, "pose": "wave_up"},
+    {"t": 0.62, "pose": "wave_a"},
+    {"t": 0.86, "pose": "wave_b"},
+    {"t": 1.1, "pose": "wave_a"},
+    {"t": 1.34, "pose": "wave_b"},
+    {"t": 1.6, "pose": "wave_up", "stop": true},
+    {"t": 2.05, "pose": "rest", "stop": true}
+   ],
+   "phases": {"prep": [0, 0.4], "exec": [0.4, 1.34], "follow": [1.34, 1.6], "recover": [1.6, 2.05]}
+  }
+ }
+}
