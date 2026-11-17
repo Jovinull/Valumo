@@ -3,10 +3,10 @@
 RPG voxel 3D de fantasia em terceira pessoa, com personagens pequenos e expressivos, em **engine própria**
 (Java 25 + LWJGL 3 + OpenGL 3.3 core, sem game engine pronta).
 
-**Estado: protótipo artístico e técnico, não um RPG jogável.** O repositório tem um visualizador que fixa a
-identidade visual, as ferramentas de modelagem por script, a animação procedural com coreografia de armas,
-validadores e cenas de demonstração. Não há combate de verdade, inventário, diálogo, salvamento ou mundo
-aberto.
+**Estado: protótipo com a primeira exploração jogável.** Dá para escolher ou criar a aparência do herói, andar e
+correr pela vila com câmera em terceira pessoa e conversar com a Kelyra. O repositório também tem o visualizador
+que fixa a identidade visual, as ferramentas de modelagem por script, a animação procedural com coreografia de
+armas, validadores e cenas de demonstração. Não há combate, inventário, missões, progressão nem mundo aberto.
 
 Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visual-identity.md),
 [contrato de qualidade](docs/art/contrato-de-qualidade.md), [referências canônicas](docs/art/reference/README.md)).
@@ -23,11 +23,12 @@ Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visu
 | Validação | testes Java, validador espacial de golpes, oclusão de rosto/arma, sonda de pegada, auditoria de voxels, reprodução determinística |
 | Personalização | **em tempo de execução**: os três heróis como presets (idênticos ao original), 4 estilos de cabelo, 10 cores, 5 tons de pele, 3 rostos, 5 íris, chapéu e capuz; salvar e carregar — [arquitetura](docs/architecture/personalizacao.md) |
 | Criador de personagens | interface do jogador com mouse: cena própria, miniaturas reais, amostras de cor, giro e zoom, poses, salvar/carregar/restaurar — [interface](docs/architecture/criador-de-personagens.md) |
+| Jogo (exploração) | herói controlável na vila: andar/correr com aceleração, colisão com o cenário, degraus e encostas, câmera em terceira pessoa que não atravessa paredes, conversa com a Kelyra, aparência escolhida ou criada no editor — [jogo](docs/architecture/jogo.md) |
 
 Rodadas: 01 comparou quatro direções (A–D), 02 consolidou a E, 03 poliu, 04 refez a coreografia de armas,
 05/05.1 auditaram e provaram reprodutibilidade, 06 fez a primeira expansão controlada, 06.1 refinou os NPCs e
-07 levou a personalização para dentro do viewer, com os heróis como presets idênticos, e **07.2** deu a ela
-um criador de personagens clicável ([relatório](docs/validation/relatorio-rodada-07-2.md)).
+07 levou a personalização para dentro do viewer, com os heróis como presets idênticos, 07.2 deu a ela um
+criador clicável e **08** fez a primeira exploração jogável ([relatório](docs/validation/relatorio-rodada-08.md)).
 
 ## Requisitos
 
@@ -41,6 +42,7 @@ um criador de personagens clicável ([relatório](docs/validation/relatorio-roda
 
 ```bash
 export JAVA_HOME=~/.sdkman/candidates/java/current   # ou o caminho do seu JDK 25
+./gradlew jogo                                       # o jogo: escolher a aparência e explorar a vila
 ./gradlew editor                                     # criador de personagens (interface do jogador)
 ./gradlew editorDebug                                # editor técnico da personalização (depuração)
 ./gradlew :viewer:run                                # visualizador na clareira canônica
@@ -53,6 +55,26 @@ versionados**. O Gradle gera tudo sozinho antes de `run`, `editor`, `test` e `in
 pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gradlew assets` ou
 `python3 tools/build_assets.py`. Depois de `./gradlew :viewer:installDist`, o mesmo binário fica em
 `viewer/build/install/viewer/bin/viewer`.
+
+### Jogar
+
+`./gradlew jogo`:
+1. escolha a aparência (os três modelos, uma salva pelo criador ou **Criar no editor**) e **Entrar na vila**;
+2. explore e converse.
+
+| Tecla | Ação |
+|---|---|
+| `W A S D` / setas | andar (relativo à câmera) |
+| `Shift` | correr |
+| mouse | girar a câmera |
+| roda | aproximar e afastar |
+| `E` | conversar (perto e de frente para a Kelyra) e avançar as falas |
+| `Esc` | pausa (continuar, trocar aparência, abrir o criador, sensibilidade, inverter vertical, sair) |
+| `F1` | ajuda dos controles |
+| `F12` | captura em `output/visual-review/manual/` |
+
+Detalhes: [jogo](docs/architecture/jogo.md). Teste com teclado e mouse físicos:
+[roteiro](docs/validation/roteiro-de-teste-fisico.md).
 
 ### Criar um personagem
 
@@ -115,7 +137,8 @@ Sem janela: `tools/snap.sh "mode=char,style=e,custom=aventureiro,cabelo=cabelo.c
 ## Validar
 
 ```bash
-./gradlew test :viewer:installDist                         # testes (engine, contrato, qualidade, NPCs, modularidade)
+./gradlew test :viewer:installDist                         # testes (engine, malha, contrato, qualidade, NPCs, jogo)
+tools/review81.sh temporal                                 # cintilação em câmera lenta: malha legada × conforme
 viewer/build/install/viewer/bin/viewer --check             # golpes e gestos sem interseção (0 falhas)
 tools/review7.sh gate                                      # presets recompostos × originais, pixel a pixel (0 diferenças)
 viewer/build/install/viewer/bin/viewer --occlusion         # rosto coberto / arma escondida (exceção conhecida: arco)
@@ -132,8 +155,10 @@ de revisão por rodada em `tools/review*.sh` (o da 06.1 é `tools/review61.sh an
 ## Onde está cada coisa
 
 ```
-engine/    núcleo: janela, shaders, malhas, leitor .vox, mesher, câmera, FBO, HUD
-viewer/    visualizador: estilos, renderer, animador, coreografia, mundo, modos, captura, bench, validadores
+engine/    núcleo: janela e eventos, shaders, malhas, leitor .vox, mesher, câmera, FBO, HUD, lote 2D, fonte própria
+viewer/    runtime (renderer, mundo, relevo, animador, compositor, criador, peças de interface) + visualizador:
+           estilos, modos, captura, bench, validadores
+game/      o jogo: jogador, colisão, câmera de exploração, NPCs interativos, diálogo, estados, interface
 tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_e, npcs_trio), criaturas,
            ambiente, prova de personalização (custom_e) + utilitários de QA
 assets/    feitos à mão (versionados): scenes/*.json e anim/*.json; gerados por build_assets.py (fora do git):
@@ -148,10 +173,10 @@ Comece por [docs/README.md](docs/README.md).
 
 ## Limitações conhecidas
 
-- Protótipo: sem jogo (combate real, IA, diálogo, inventário, save).
+- Protótipo: exploração de uma vila pequena e uma conversa; sem combate, IA, inventário, missões nem progressão.
 - Interromper um golpe por dano ainda atravessa o corpo em algumas janelas (espada, lâmina longa).
 - NPCs e assets da rodada 06 são candidatos; NPCs têm só um gesto compartilhado.
-- O criador escolhe a aparência dos três heróis; não há classes, equipamento nem jogo depois do "Pronto".
+- A aparência não define classe nem equipamento; a validação com mouse e teclado físicos é do proprietário.
 - Capturas, vídeos e pacotes de revisão (`output/`) não são versionados; os relatórios em `docs/validation/`
   citam esses caminhos locais, regeneráveis pelos scripts de revisão.
 

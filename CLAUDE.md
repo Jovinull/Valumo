@@ -1,6 +1,6 @@
 # Guia para agentes neste repositório
 
-**Valumo** — RPG voxel original (protótipo artístico e técnico) em Java 25 + LWJGL 3 (OpenGL 3.3 core), engine própria. Direção oficial: **E —
+**Valumo** — RPG voxel original (protótipo com a primeira exploração jogável) em Java 25 + LWJGL 3 (OpenGL 3.3 core), engine própria. Direção oficial: **E —
 "Fábula Voxel"**. A–D existem só para comparação. Produção de assets novos **só com aprovação do
 proprietário**.
 
@@ -10,7 +10,7 @@ proprietário**.
 2. `docs/art/visual-identity.md` §0 (invariantes × flexíveis) e `docs/art/contrato-de-qualidade.md`.
 3. `docs/art/reference/` — imagens canônicas e reprovados.
 4. A skill da tarefa em `.claude/skills/`: `character-design`, `voxel-art`, `weapon-animation`,
-   `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`.
+   `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`.
 5. `docs/validation/problemas-conhecidos.md` — o que está aberto e o que é limitação aceita
    (histórico completo: `matriz-de-problemas.md`).
 
@@ -20,6 +20,9 @@ proprietário**.
 export JAVA_HOME=~/.sdkman/candidates/java/current
 ./gradlew editor                                    # criador de personagens do jogador (gera assets antes, se preciso)
 ./gradlew editorDebug                               # editor técnico da personalização (rodada 07)
+./gradlew jogo                                      # protótipo jogável (escolha de aparência → vila)
+tools/review8.sh [capturas|videos|desempenho|testes|zip]  # pacote do jogo (entrada por roteiro, tools/jogo/)
+tools/review81.sh [temporal|dentes|referencias|regressao|desempenho|testes]  # malha conforme: câmera lenta, legado × conforme
 tools/review72.sh [capturas|video|desempenho|testes] # pacote do criador (entrada real por roteiro)
 python3 tools/build_assets.py [módulo ...]          # regenera assets à mão (o Gradle faz sozinho antes de run/test)
 ./gradlew test :viewer:installDist                  # testes + viewer usado pelas capturas
@@ -39,6 +42,9 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 
 - **Sem game engine.** Só LWJGL, JOML e Gson. Dependência nova exige ADR em `docs/decisions/`. Interface de
   jogo usa `UiBatch` + `PixelFont` (fonte própria) + fila de eventos da janela ([ADR 0012](docs/decisions/0012-interface-do-jogo.md)).
+- **Malha conforme** (ADR 0014): nunca sobreponha nem recue faces para tapar fresta. Defeito de cintilação ou
+  fresta se investiga com as três malhas (`-Dvx.mesh=legado`, padrão, `-Dvx.merge=false`) e em câmera lenta
+  (`tools/review81.sh temporal`). As invariantes ficam em `MeshSeamTest`.
 - **Assets são gerados.** Nunca edite `assets/characters`, `assets/creatures`, `assets/environment`,
   `assets/textures`, `assets/studies` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
   e `assets/anim/*.json`. Peça desenhada num editor entra via `voxlib.load_vox` (ver `pipeline-de-producao.md`).
@@ -77,4 +83,5 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Cenário | `viewer/.../World.java`, `assets/scenes/clearing_e.json` |
 | Captura | `viewer/.../App.java`, `Main.java` (chaves de `snap`, `--layout`), `tools/snap.sh`, `tools/anim.sh`, `tools/review61.sh` (antes/depois) |
 | Personalização | `tools/components_e.py` → `assets/components/`; `viewer/.../Composer.java`, `ComponentCatalog.java`, `Appearance.java`, `engine/.../VoxGrid.java`; modo PERSONALIZACAO; `tools/review7.sh` (gate pixel a pixel); `docs/architecture/personalizacao.md`; skill `character-customization` |
+| Jogo | módulo `game/` (`vx.game`): `GameLogic` (estados), `Player` (movimento), `Collision` (relevo + formas), `FollowCamera`, `Game` (janela, desenho, roteiros); cena `assets/scenes/jogo_vila_e.json`, colisão `assets/scenes/colisao_e.json`; `viewer/.../Terrain.java`; `docs/architecture/jogo.md`; skill `gameplay` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |
