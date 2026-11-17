@@ -206,3 +206,23 @@ Lições (rodadas 06 e 06.1):
    valores alternados para ler contra roupa clara.
 
 Prévia rápida sem GPU: `tools/vox_preview.py <rig ou .vox> saida.png` (frente, perfil, costas).
+
+## 11. Cabelo, rosto e cobertura como componentes (rodada 07)
+
+Os heróis continuam gerados como sempre (cabelo fundido na cabeça canônica). Para a personalização, o
+`tools/components_e.py` separa cada cabeça em **rosto** (crânio e rosto, 4 expressões), **cabelo** e **capuz**,
+e o compositor Java os junta de novo na mesma ordem: preset idêntico. Os ganchos `_parts`, `hair_hex` e
+`iris_hex` de `chars_e.adventurer/ranger/mage` são só para esse exportador (o padrão não muda; conferido por
+hash).
+
+| Estilo (`cabelo.*`) | Fonte | Leitura |
+|---|---|---|
+| `topete` | `adventurer_hair("h2")` | topete compacto com cacho |
+| `curto` | `adventurer_hair("curto")`, novo | curto e bagunçado: casca 1,5, laterais e nuca curtas, tufos deitados para trás |
+| `chanel` | cabelo da maga | médio com franja e tufos laterais |
+| `rabo` | cabelo da exploradora + `tail` | preso, com rabo-de-cavalo em gomos |
+
+Regras para estilo novo: proporção dos heróis (a cabeça não cresce além do volume dos estilos atuais), poucas
+massas grossas e sem fios de 1 voxel. Confira debaixo do chapéu (a aba precisa encostar) e com o capuz C3 (a
+faixa é pintada sobre o cabelo). Procedimento completo na skill `character-customization`.
+

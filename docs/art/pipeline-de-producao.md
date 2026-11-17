@@ -65,6 +65,12 @@ fluxo da E (sem texturas pintadas; cuboides só na direção C histórica).
 QA (`asset_audit.py`, `./gradlew test`, `viewer --check`, comparação com `docs/art/reference/`) →
 correção no script → regeneração. Reprodução numa cópia limpa: `tools/repro_compare.py`.
 
+## Componentes de personalização (rodada 07)
+
+`build_assets` roda `components_e` depois de `chars_e`. Ele lê os rigs canônicos, refaz e confere as cabeças, e
+grava `assets/components/` (catálogo, peças e máscaras). Mudou um herói ou estilo? Regere e rode
+`CustomizationTest` mais `tools/review7.sh gate`. Os assets gerados não vão para o git.
+
 ## Proveniência
 
 Tudo em `assets/` é gerado por scripts deste repositório (determinístico: dois builds dão os mesmos

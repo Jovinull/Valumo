@@ -98,7 +98,14 @@ esquerdo (`x > 0`).
   `confident`/`sweet`/`playful`), `acting` (objeto de atuação de animação — `guia-de-animacao.md`).
 - Estudos de alternativa: `assets/studies/<nome>/` (ex.: `kelyra_estalajadeira`, `kelyra_tecela`), gerados
   pelo mesmo módulo; não entram em cenas.
-- Prova de personalização (rodada 06.1): `assets/characters/custom/<id>/` (`tools/custom_e.py`), com a parte
+- **Componentes de personalização (rodada 07):** `assets/components/` (gerado por `tools/components_e.py`).
+  `catalog.json` (contrato `valumo.componentes/1`) traz `componentes`, `presets`, `cores`, `canais` e
+  `pivoCabeca`. Cada peça tem `file`/`origin` (voxels no espaço do modelo, com o mesmo pivô de cabeça
+  `[0, NECK, 0.5]` dos heróis), `mascara` opcional (`<peça>.mask.vox`, canal pela cor: `#010000` pele,
+  `#020000` cabelo, `#030000` sobrancelha, `#040000` íris). Peças próprias usam `partes` (`nome`, `pai`, `pivo`).
+  O chapéu e o rabo apontam para os arquivos canônicos (`../characters/e/...`), sem cópia. A aparência salva
+  segue o contrato `valumo.aparencia` v1 (`docs/architecture/personalizacao.md` §6).
+- Prova de personalização (rodada 06.1, mantida como histórico e com testes): `assets/characters/custom/<id>/` (`tools/custom_e.py`), com a parte
   `hair` (filha de `head`, mesmo pivô) separada do rosto e `meta.appearance` (contrato
   `valumo.aparencia/1`). Ver `docs/architecture/personalizacao.md`.
 - Perfil compartilhado de NPC sem item: `assets/anim/npc_vila.json` (`meta.weaponProfile = "npc_vila"`,
