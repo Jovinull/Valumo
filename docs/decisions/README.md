@@ -13,6 +13,8 @@
 | [0009](0009-articulacoes-e-ik-de-pe.md) | Cotovelo, joelho e IK analítico de pé nos heróis da E (rodada 03) |
 | [0010](0010-fxaa-e-margem-anti-fresta.md) | FXAA na qualidade padrão e margem anti-fresta na fusão de faces (rodada 03) |
 | [0011](0011-coreografia-por-trajetorias.md) | Coreografia de armas por trajetórias, IK de braço e validação espacial (rodada 04; limite de duas mãos revisto na 05) |
+| [0014](0014-malha-conforme-sem-t-junctions.md) | Malha conforme: fusão sem T-junctions e sem sobreposição; fim da margem anti-fresta (rodada 08.1) |
+| [0013](0013-modulo-game.md) | Módulo `game` sobre o runtime do viewer, sem duplicar renderer nem assets (rodada 08) |
 | [0012](0012-interface-do-jogo.md) | Interface do jogo na engine própria: lote 2D, fonte de pixel própria, fila de eventos, composição assíncrona (rodada 07.2) |
 
 Só entram aqui decisões que mudam o rumo do projeto ou que alguém poderia querer desfazer. Escolhas
