@@ -1,0 +1,26 @@
+# Build e IDE
+.gradle/
+build/
+*/build/
+bin/
+*/bin/
+.idea/
+*.iml
+.vscode/
+hs_err_pid*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Assets GERADOS por tools/build_assets.py (determinístico): não versionar.
+# Feitos à mão (versionados): assets/scenes/*.json e assets/anim/*.json.
+assets/characters/
+assets/creatures/
+assets/environment/
+assets/textures/
+assets/studies/
+
+# Capturas, vídeos e pacotes de revisão: locais, regeneráveis pelos scripts (tools/review*.sh, snap.sh, anim.sh)
+output/
