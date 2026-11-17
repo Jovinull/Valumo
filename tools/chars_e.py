@@ -72,6 +72,18 @@ def adventurer_hair(sk, hair, style):
         locks = [((0, Yh + 14, 4), (1, Yh + 19, 6.2), (3, Yh + 19.2, 9.4), 2.9, 1.6),
                  ((3, Yh + 19.2, 9.4), (4.4, Yh + 17.8, 10.2), (3.6, Yh + 16.4, 9.6), 1.6, 1.0),
                  ((0, Yh + 16, -1), (0, Yh + 17.2, -6), (0, Yh + 14.6, -10), 3.4, 2.0)] + sides + nape_tips + fringe
+    elif style == "curto":
+        # rodada 07: curto e bagunçado — casca rente, laterais e nuca curtas, tufos espetados no topo
+        bang = {x: (12 if abs(x + 0.5) < 5 else 9 if abs(x + 0.5) < 8 else 6) for x in range(-11, 11)}
+        nape = lambda x, z: 3                                  # v1 (nuca 5, laterais 8) deixava o lado da cabeça careca
+        locks = [((-3, Yh + 15, 3), (-4.4, Yh + 16.8, 0), (-5.6, Yh + 16.6, -3.4), 2.0, 0.9),   # tufos deitados para trás
+                 ((2, Yh + 15.5, 3), (3.0, Yh + 17.2, 0), (4.4, Yh + 16.8, -3.6), 2.1, 0.9),    # (v1 espetados liam como chifres)
+                 ((-0.5, Yh + 15.5, 1), (-0.5, Yh + 17.4, -2.5), (0, Yh + 16.6, -6), 2.2, 1.0),
+                 ((0, Yh + 15, -4), (0.6, Yh + 16.8, -7), (1.2, Yh + 15.4, -9.4), 2.1, 0.9),
+                 ((-6, Yh + 13, -3), (-8.6, Yh + 14.6, -5), (-9.6, Yh + 13, -6.2), 1.7, 0.7),
+                 ((6, Yh + 13, -4), (8.4, Yh + 14.2, -5.6), (9.2, Yh + 12.6, -6.6), 1.7, 0.7),
+                 ((1, Yh + 14, 6), (2.6, Yh + 12.6, 7.8), (3.6, Yh + 11.2, 7.8), 1.7, 0.6),
+                 ((-2, Yh + 14, 6), (-3.6, Yh + 13, 7.8), (-4.6, Yh + 11.8, 7.8), 1.6, 0.6)]
     else:
         # recorte de vento: mechas varridas para trás e um rabinho curto amarrado (parte 'tail')
         locks = [((-4, Yh + 15, 4), (-7, Yh + 17, -1), (-10, Yh + 15, -6), 2.6, 0.9),
@@ -82,7 +94,7 @@ def adventurer_hair(sk, hair, style):
         for i, (yy, zz, r) in enumerate(((Yh + 9, -9.5, 2.0), (Yh + 7, -11, 1.9), (Yh + 5, -12, 1.6), (Yh + 3.4, -12.4, 1.2))):
             B.sblob(tail, 0, yy, zz, r, r, r, hair, p=2.2)
         tail.box(-1, Yh + 8, -11, 0, Yh + 9, -10, LEATHER)
-    h = L.hair_base(sk, hair, bang, nape, thick=2.0)
+    h = L.hair_base(sk, hair, bang, nape, thick=1.5 if style == "curto" else 2.0)
     head_top = h.bounds()[4]
     L.hair_locks(h, hair, locks)
     h = L.hair_finish(h, sk, hair, face_guard=face_guard)
@@ -92,25 +104,27 @@ def adventurer_hair(sk, hair, style):
     return h, head_top, tail
 
 
-def adventurer(variant="e", hair_style=None, face=None, name=None, kit="sword"):
+def adventurer(variant="e", hair_style=None, face=None, name=None, kit="sword", hair_hex=None, iris_hex=None, _parts=None):
     hair_style = hair_style or (ADV_HAIR if variant == "e" else "r02")
     face = face if face is not None else (ADV_FACE if variant == "e" else {})
     tunic = P("#3a958a")
     trim = CREAM
     scarf = P("#eeaa3a")
     pants = P("#6b4a5e")
-    hair = P("#c2582c", ks=0.85, kl=0.55)
+    hair = P(hair_hex or "#c2582c", ks=0.85, kl=0.55)
     pack = P("#8a5536")
     roll = P("#ecd9ab")
     roll_s = P("#d9644a")
     boot = P("#c48a52")
-    iris = C("#3d9c78")
+    iris = C(iris_hex or "#3d9c78")
     brow = B.shadow(hair, 1.6)
 
     # --- cabeça
     sk = L.skull(SKIN)
     h, head_top, ptail = adventurer_hair(sk, hair, hair_style)
     heads = L.head_with_expressions(sk, h, iris, brow, style=face)
+    if _parts is not None:                                 # rodada 07: componentes (tools/components_e.py)
+        _parts.update(sk=sk, hair=h, hood=None, iris=iris, brow=brow, face=face)
 
     # --- tronco
     t = L.torso(tunic, hem=trim)
@@ -215,7 +229,7 @@ RNG_FACE = {"eye": "almond", "brow": "thin", "mouth": "small", "freckles": True,
 RNG_HOOD = "c3"          # escolhido no estudo da rodada 03
 
 
-def ranger(hood_style=None, face=None, name=None):
+def ranger(hood_style=None, face=None, name=None, hair_hex=None, iris_hex=None, _parts=None):
     """Exploradora. hood_style: c0 = rodada 02 (capuz verde pontudo); c1 = c0 refinado;
     c2 = capuz de folha azul-petróleo/terracota com a ponta enrolada para a frente;
     c3 = capuz abaixado e assimétrico, cabelo à mostra, faixa, pena e bússola (escolhido)."""
@@ -228,11 +242,11 @@ def ranger(hood_style=None, face=None, name=None):
     tunic = P("#f0dcae")
     legg = P("#8c5340")
     boot = P("#6e4130")
-    hair = P("#e3a64a", ks=0.85, kl=0.5)
+    hair = P(hair_hex or "#e3a64a", ks=0.85, kl=0.5)
     coral = P("#c8643c") if teal else P("#e0644e")
     quiv = P("#b0623c")
     bronze = C("#c08a3e", "metal")
-    iris = C("#3d8fd8")
+    iris = C(iris_hex or "#3d8fd8")
     brow = B.shadow(hair, 1.9)
 
     sk = L.skull(SKIN_TAN)
@@ -249,6 +263,8 @@ def ranger(hood_style=None, face=None, name=None):
                                ((3, Y + 14, 6), (5, Y + 12, 7.6), (5.8, Y + 9.6, 7.6), 1.9, 0.8)])
         h = L.hair_finish(h, sk, hair, face_guard=face_guard, sheen=True)
         L.hair_strands(h, hair, period=0.95)
+        if _parts is not None:
+            _parts["hair_sem_faixa"] = h.copy()                # cabelo antes da faixa do capuz (componente puro)
         # faixa terracota amarrada (nó e duas pontas soltas do lado direito) + pena do lado esquerdo
         for (x, y, z), c in list(h.v.items()):
             if y in (NECK + 13, NECK + 14) and z >= -7 and z <= 5 and (x, y + 1, z) in h.v:
@@ -303,6 +319,8 @@ def ranger(hood_style=None, face=None, name=None):
     # capuz é chapéu: fica fora da razão de cabeças (como o chapéu da maga); conta o topo do cabelo
     head_top = h.bounds()[4]
     heads = L.head_with_expressions(sk, h, iris, brow, extra=hood, style=face)
+    if _parts is not None:
+        _parts.update(sk=sk, hair=h, hood=hood, iris=iris, brow=brow, face=face, lining=lining)
 
     # trança (à esquerda das costas; a aljava fica à direita): gomos alternados, laço coral
     tail = Vox()
@@ -313,6 +331,8 @@ def ranger(hood_style=None, face=None, name=None):
     tail.paint(lambda x, y, z, c: B.shadow(hair, 1.3) if (y - NECK - 2) % 3 == 2 else None)
     tail.box(3, NECK - 13, -11, 7, NECK - 12, -8, coral)
     B.sblob(tail, 5.3, NECK - 15.5, -9.4, 1.4, 1.8, 1.3, hair, p=2.2)
+    if _parts is not None:
+        _parts["tail"] = tail
 
     # tronco: túnica creme, cinto, capinha com barra recortada em folhas
     t = L.torso(tunic, hem=hood_d, rx0=6.5, rx1=4.9)
@@ -391,17 +411,17 @@ HATS = {"m0": ((12.2, 11.8), 14, 7, 7.0, False),        # rodada 02
         "m2": ((11.2, 10.8), 15, 7, 5.6, True)}         # aba média virada, copa alta e estreita
 
 
-def mage(hat_style=None, face=None, staff_style="r3", name=None):
+def mage(hat_style=None, face=None, staff_style="r3", name=None, hair_hex=None, iris_hex=None, _parts=None):
     hat_style = hat_style or MAGE_HAT
     face = MAGE_FACE if face is None else face
     robe = P("#7a4a8c")
     robe_d = P("#5a3670")
     gold = P("#ecb84c")
-    hair = P("#e2d4f2", ks=0.8, kl=0.4)
+    hair = P(hair_hex or "#e2d4f2", ks=0.8, kl=0.4)
     tights = P("#4a3058")
     crystal = C("#7ff0dc", "emissive")
     crystal_hi = C("#e6fff8", "emissive")
-    iris = C("#8a58c8")
+    iris = C(iris_hex or "#8a58c8")
     brow = B.shadow(hair, 2.6)
 
     sk = L.skull(SKIN_PALE)
@@ -418,6 +438,8 @@ def mage(hat_style=None, face=None, staff_style="r3", name=None):
     L.hair_strands(h, hair, period=1.0)
     head_top = h.bounds()[4]
     heads = L.head_with_expressions(sk, h, iris, brow, style=face)
+    if _parts is not None:
+        _parts.update(sk=sk, hair=h, hood=None, iris=iris, brow=brow, face=face)
 
     # chapéu: aba larga com a frente erguida + copa torta com a ponta dobrada e um amuleto
     (brx, brz), by_off, n, r0, band = HATS[hat_style]
