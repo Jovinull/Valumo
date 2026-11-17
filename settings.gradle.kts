@@ -1,3 +1,3 @@
 rootProject.name = "voxel-rpg"
 
-include("engine", "viewer")
+include("engine", "viewer", "game")
