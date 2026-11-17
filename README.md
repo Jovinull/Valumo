@@ -21,11 +21,13 @@ Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visu
 | Cenário | clareira canônica; vitrine da expansão; vila (NPCs da vila) |
 | Animação | locomoção com IK de pé, golpes por perfil (espada, escudo, lâmina longa, arco, cajado), gestos de NPC com atuação por personagem |
 | Validação | testes Java, validador espacial de golpes, oclusão de rosto/arma, sonda de pegada, auditoria de voxels, reprodução determinística |
-| Personalização | só **prova técnica** (cabelo, cor de cabelo, chapéu sobre o aventureiro) — [estudo](docs/architecture/personalizacao.md) |
+| Personalização | **em tempo de execução**: os três heróis como presets (idênticos ao original), 4 estilos de cabelo, 10 cores, 5 tons de pele, 3 rostos, 5 íris, chapéu e capuz; salvar e carregar — [arquitetura](docs/architecture/personalizacao.md) |
+| Criador de personagens | interface do jogador com mouse: cena própria, miniaturas reais, amostras de cor, giro e zoom, poses, salvar/carregar/restaurar — [interface](docs/architecture/criador-de-personagens.md) |
 
 Rodadas: 01 comparou quatro direções (A–D), 02 consolidou a E, 03 poliu, 04 refez a coreografia de armas,
-05/05.1 auditaram e provaram reprodutibilidade, 06 fez a primeira expansão controlada e **06.1** refinou os
-NPCs, investigou desempenho e estudou a personalização ([relatório](docs/validation/relatorio-rodada-06-1.md)).
+05/05.1 auditaram e provaram reprodutibilidade, 06 fez a primeira expansão controlada, 06.1 refinou os NPCs e
+07 levou a personalização para dentro do viewer, com os heróis como presets idênticos, e **07.2** deu a ela
+um criador de personagens clicável ([relatório](docs/validation/relatorio-rodada-07-2.md)).
 
 ## Requisitos
 
@@ -39,15 +41,48 @@ NPCs, investigou desempenho e estudou a personalização ([relatório](docs/vali
 
 ```bash
 export JAVA_HOME=~/.sdkman/candidates/java/current   # ou o caminho do seu JDK 25
-python3 tools/build_assets.py                        # gera assets/ a partir dos scripts (segundos)
+./gradlew editor                                     # criador de personagens (interface do jogador)
+./gradlew editorDebug                                # editor técnico da personalização (depuração)
 ./gradlew :viewer:run                                # visualizador na clareira canônica
 ./gradlew :viewer:run --args="--layout vila_e"       # a vila: cartógrafa, Kelyra, Índira e Súvia
 ./gradlew :viewer:run --args="--layout vitrine_e"    # vitrine da rodada 06
 ```
 
-Os assets gerados **não são versionados**: depois de clonar, rode `build_assets.py` (a geração é
-determinística e leva segundos). Depois de `./gradlew :viewer:installDist`, o mesmo binário fica em
+Os scripts em `tools/` são a fonte dos modelos; os `.vox`, rigs e texturas que eles geram **não são
+versionados**. O Gradle gera tudo sozinho antes de `run`, `editor`, `test` e `installDist` (tarefa `assets`,
+pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gradlew assets` ou
+`python3 tools/build_assets.py`. Depois de `./gradlew :viewer:installDist`, o mesmo binário fica em
 `viewer/build/install/viewer/bin/viewer`.
+
+### Criar um personagem
+
+`./gradlew editor` abre o criador:
+- **Mouse:**
+  - clique nas abas (Modelo, Cabelo, Rosto, Pele, Chapéu), nas miniaturas e nas cores;
+  - arraste sobre o personagem para girá-lo (o botão direito sobe e desce o enquadramento);
+  - a roda aproxima sobre o personagem e rola sobre o painel.
+- **Botões:**
+  - Restaurar (com confirmação), Salvar, Carregar (lista dentro do editor) e Pronto (vitrine);
+  - poses, Rosto, Corpo e Centralizar sob o personagem.
+- **Teclado:**
+  - `Tab` categoria, `←`/`→` opção, `↑`/`↓` cor, `Enter` Pronto;
+  - `F2`/`F3` salvar/carregar, `Backspace` restaurar, `Esc` fecha.
+
+Detalhes: [criador de personagens](docs/architecture/criador-de-personagens.md).
+
+### Editor técnico (depuração)
+
+`./gradlew editorDebug` — ou `./gradlew :viewer:run` e `Tab` até **PERSONALIZACAO**:
+
+| Tecla | Ação |
+|---|---|
+| `↑` / `↓` | escolhe a linha (preset, rosto, cabelo, cor do cabelo, pele, íris, cobertura, expressão, clipe) |
+| `←` / `→` | troca o valor (combinação incompatível é pulada e informada) |
+| `Backspace` | volta ao preset original |
+| `F2` / `F3` | salva em `output/aparencias/` (nunca sobrescreve) / carrega o mais recente |
+| arrastar / roda / `T` | gira, aproxima, turntable |
+
+Sem janela: `tools/snap.sh "mode=char,style=e,custom=aventureiro,cabelo=cabelo.curto,corCabelo=6b4630,cobertura=chapeu.maga,out=output/tmp/eu.png"`.
 
 ### Ver os NPCs
 
@@ -82,6 +117,7 @@ determinística e leva segundos). Depois de `./gradlew :viewer:installDist`, o m
 ```bash
 ./gradlew test :viewer:installDist                         # testes (engine, contrato, qualidade, NPCs, modularidade)
 viewer/build/install/viewer/bin/viewer --check             # golpes e gestos sem interseção (0 falhas)
+tools/review7.sh gate                                      # presets recompostos × originais, pixel a pixel (0 diferenças)
 viewer/build/install/viewer/bin/viewer --occlusion         # rosto coberto / arma escondida (exceção conhecida: arco)
 python3 tools/asset_audit.py assets/characters/npc         # voxels soltos e fragmentos
 tools/reference.sh output/tmp/ref && .venv/bin/python tools/repro_compare.py imgs docs/art/reference output/tmp/ref
@@ -102,7 +138,7 @@ tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_
            ambiente, prova de personalização (custom_e) + utilitários de QA
 assets/    feitos à mão (versionados): scenes/*.json e anim/*.json; gerados por build_assets.py (fora do git):
            characters/ (e = heróis, npc = NPCs, custom = prova modular, r3/r4/variants = estudos), creatures/,
-           environment/, textures/, studies/
+           environment/, textures/, studies/, components/ (peças da personalização)
 docs/      documentação oficial (visão, arte, arquitetura, decisões, validação, processo) + historico/
 .claude/skills/  procedimentos para agentes
 output/    local, fora do git: capturas e pacotes de revisão por rodada (visual-review/), temporários (tmp/)
@@ -115,7 +151,7 @@ Comece por [docs/README.md](docs/README.md).
 - Protótipo: sem jogo (combate real, IA, diálogo, inventário, save).
 - Interromper um golpe por dano ainda atravessa o corpo em algumas janelas (espada, lâmina longa).
 - NPCs e assets da rodada 06 são candidatos; NPCs têm só um gesto compartilhado.
-- Personalização é só prova em tempo de geração; o criador de personagens não existe.
+- O criador escolhe a aparência dos três heróis; não há classes, equipamento nem jogo depois do "Pronto".
 - Capturas, vídeos e pacotes de revisão (`output/`) não são versionados; os relatórios em `docs/validation/`
   citam esses caminhos locais, regeneráveis pelos scripts de revisão.
 

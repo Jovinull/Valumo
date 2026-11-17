@@ -10,11 +10,12 @@ Valumo v1, que tinha capturas e assets gerados. Ficam em `output/quarentena/`.
 |---|---|
 | `engine/`, `viewer/` (fontes e build Gradle), wrapper | `build/`, `bin/`, `.gradle/` |
 | `tools/` (geradores e utilitários) | `__pycache__/`, `.venv/` |
-| `assets/scenes/*.json`, `assets/anim/*.json` (feitos à mão) | assets **gerados**: `assets/characters`, `creatures`, `environment`, `textures`, `studies` |
+| `assets/scenes/*.json`, `assets/anim/*.json` (feitos à mão) | assets **gerados**: `assets/characters`, `creatures`, `environment`, `textures`, `studies`, `components` |
 | `docs/` (incluindo as referências canônicas em `docs/art/reference/`) | `output/` inteiro (capturas, vídeos, zips, temporários, quarentena) |
 | `.claude/skills/`, `CLAUDE.md`, `README.md` | credenciais e qualquer vínculo de personagem com pessoa real |
 
-Depois de clonar: `python3 tools/build_assets.py` (determinístico). As imagens canônicas ficam no git porque
+Depois de clonar não é preciso gerar nada à mão: `./gradlew :viewer:run`, `editor`, `test` e `installDist`
+dependem da tarefa `assets` (scripts de `tools/` → assets gerados; pulada quando nada mudou). As imagens canônicas ficam no git porque
 são a prova da aprovação do proprietário. Os pacotes de revisão são locais e não vão para Releases.
 
 ## Regras do proprietário

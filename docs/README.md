@@ -19,12 +19,15 @@
 | [art/pipeline-de-producao.md](art/pipeline-de-producao.md) | fonte → geração → viewer → QA → correção; edição manual (Goxel) sem perda |
 | [architecture/arquitetura.md](architecture/arquitetura.md) | módulos Java, renderização, assets |
 | [architecture/personalizacao.md](architecture/personalizacao.md) | personalização modular: estudo, modelo de dados, compatibilidade, persistência (implementado × validado × planejado) |
+| [architecture/criador-de-personagens.md](architecture/criador-de-personagens.md) | criador de personagens do jogador: layout, componentes, mouse, escala, fonte própria, miniaturas, composição assíncrona, roteiros e testes; guia das próximas interfaces |
 | [decisions/](decisions/README.md) | ADRs (decisões vigentes e revistas) |
 | [validation/checklist-de-aceitacao.md](validation/checklist-de-aceitacao.md), [validation/processo-de-revisao-visual.md](validation/processo-de-revisao-visual.md) | QA |
 | [processo/commits.md](processo/commits.md) | commits, histórico e repositório público (regras do proprietário) |
 | [validation/problemas-conhecidos.md](validation/problemas-conhecidos.md) | abertos, corrigidos, limitações aceitas, fora do escopo |
 | [validation/matriz-de-problemas.md](validation/matriz-de-problemas.md) | rastreabilidade de todos os problemas (rodadas 01–05.1) com evidência verificada |
-| [validation/relatorio-rodada-06-1.md](validation/relatorio-rodada-06-1.md) | relatório da rodada atual (06.1: refinamento dos NPCs, desempenho, personalização) |
+| [validation/relatorio-rodada-07-2.md](validation/relatorio-rodada-07-2.md) | relatório da rodada atual (07.2: criador de personagens do jogador) |
+| [validation/relatorio-rodada-07.md](validation/relatorio-rodada-07.md) | relatório da rodada 07 (personalização modular em tempo de execução) |
+| [validation/relatorio-rodada-06-1.md](validation/relatorio-rodada-06-1.md) | relatório da rodada 06.1 (: refinamento dos NPCs, desempenho, personalização) |
 | [validation/relatorio-rodada-06.md](validation/relatorio-rodada-06.md) | relatório da rodada 06 (primeira expansão controlada) |
 | [validation/relatorio-rodada-05-1.md](validation/relatorio-rodada-05-1.md) | relatório da rodada 05.1 (gate de qualidade) |
 | [validation/relatorio-rodada-05.md](validation/relatorio-rodada-05.md) | relatório da rodada 05 |
