@@ -43,6 +43,32 @@ Valores congelados (aprovados H2/C3/M1). Mudar qualquer um exige decisão do pro
 | Faces | [B] | ≤ 9 mil faces expostas | `meta.faces` |
 | Capturas obrigatórias | [O] | frente, perfil, costas, 3/4, silhueta, luz neutra, câmera de exploração, vídeo das ações | `tools/review5.sh`/`review51.sh` ou equivalente |
 
+## Personalização dos protagonistas (rodada 07)
+
+| Regra | Classe | Critério |
+|---|---|---|
+| Preset intacto | [O] | preset sem mudanças idêntico ao canônico: voxels, cores, malha, pivôs, expressões e **0 pixel** no gate (`tools/review7.sh gate`) |
+| Cabeça fundida | [O] | rosto, cabelo e capuz numa grade só por expressão (sem costura nem faces internas) |
+| Variante | [O] | só remove voxels; nada atravessa nem sai por cima da cobertura; a aba encosta na cabeça |
+| Estilo de cabelo | [O] | volume distinto (Jaccard < 0,8 entre pares) e silhueta própria; proporção pequena; sem capacete nem fios finos |
+| Cor | [O] | recoloração pela rampa (`Composer.recolor`); a cor original não muda nada; legível nas três luzes |
+| Pele | [O] | canal da origem (sonda), blush e olhos legíveis em todos os tons do catálogo |
+| Animação | [O] | validador TODOS OK para presets e combinações carregadas |
+| Desempenho | [B] | compor, malhar e enviar sob demanda (cache); nenhuma malha vazando depois de limpar o cache |
+
+## Interface do jogador (rodada 07.2)
+
+| Regra | Classe | Critério |
+|---|---|---|
+| Nada falso | [O] | todo controle visível funciona; miniatura = modelo composto real da opção; nenhuma opção que não existe |
+| Sem técnica na tela | [O] | nenhuma métrica, ID técnico ou código de cor na tela do jogador (ficam no editor técnico) |
+| Legível | [O] | texto na fonte própria, escala inteira, sem sair do controle nem ganhar "…" a partir de 720p (`CreatorTest`) |
+| Estados | [O] | hover, selecionado, pressionado e indisponível visíveis; indisponível explica o motivo |
+| Personagem em destaque | [O] | painéis nunca cobrem o centro da área do personagem; rosto inteiro no foco de rosto |
+| Resoluções | [O] | 1280×720, 1920×1080 e ultrawide sem sobreposição de controles; redimensionar mantém tudo clicável |
+| Fluidez | [B] | composição fora da thread do GL; nenhum quadro > 25 ms nos cliques rápidos; malhas vivas estáveis em 360 trocas |
+| Identidade | [B] | madeira, pergaminho, dourado e musgo da E; P1 só como acento da escolha ativa; nada copiado de outros jogos |
+
 ## Personagens — NPCs humanoides futuros
 
 **Regra de origem [O]:** um personagem pode ser inspirado em pessoa real, desde que a pessoa tenha autorizado

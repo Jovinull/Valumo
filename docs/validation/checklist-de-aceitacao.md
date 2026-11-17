@@ -55,3 +55,15 @@ Itens 2, 3, 7, 9, 11, 12 acima + nível de complexidade declarado (`meta.tier`) 
 Hierarquia (circulação → interesse → secundário → decoração) visível no panorama; áreas de descanso;
 névoa não vela o plano do herói; contorno discreto; ≥ 60 FPS em 1080p nativo na Iris Xe
 (`viewer --bench "1920x1080,style=e"`).
+
+## Interface do jogador
+
+- [ ] Todo controle visível funciona com mouse **e** tem alternativa de teclado; clique = apertar e soltar no mesmo controle.
+- [ ] Miniaturas são modelos reais da opção e mudam junto com a aparência atual; nenhuma imagem pré-desenhada.
+- [ ] Nenhuma métrica ou ID técnico na tela do jogador.
+- [ ] Hover, selecionado, pressionado e indisponível visíveis; indisponível diz o motivo.
+- [ ] Ação destrutiva pede confirmação; salvar nunca sobrescreve; erro em linguagem compreensível.
+- [ ] Capturas em 720p, 1080p e ultrawide sem texto cortado nem controle sobreposto; personagem nunca coberto.
+- [ ] Vídeo do fluxo completo com entrada pelo roteiro (`tools/review72.sh video`) revisado quadro a quadro nos pontos de troca.
+- [ ] `CreatorTest` e os testes de identidade dos presets passam; gate pixel a pixel 0 diferenças.
+- [ ] Medição de cliques rápidos sem quadro > 25 ms e malhas vivas estáveis (`desempenho`, `vazamento`).

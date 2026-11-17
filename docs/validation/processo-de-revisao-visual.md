@@ -50,5 +50,7 @@ o relatório da rodada com severidade, correção e situação final.
 - `tools/anim.sh` — vídeo real (sequência offscreen → ffmpeg).
 - `tools/sheet.py` — pranchas e redução (Pillow do `.venv`).
 - `viewer --review2` — pacote determinístico completo.
+- `tools/review72.sh` — interface do jogador: capturas por roteiro de entrada (mesma fila de eventos do
+  GLFW), vídeo do fluxo com cursor, medição de quadros e vazamento. Roteiros em `tools/criador/`.
 - Viewer interativo: `L` luz, `O` contorno, `F7` névoa, `K` silhueta, `X` expressão, `M` métricas,
   `P` qualidade, `V` conjunto da LINHA, `F12` captura.
