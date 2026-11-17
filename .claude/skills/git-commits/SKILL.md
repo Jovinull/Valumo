@@ -46,7 +46,7 @@ Exemplos: `feat(engine): adiciona mesher de voxels com fusão exata de faces` ·
 
 ## Nunca versionar
 
-`output/` inteiro (capturas, vídeos, zips, temporários, quarentena), assets gerados (`assets/characters`,
+`output/` inteiro (capturas, vídeos, zips, temporários, quarentena), assets gerados (`assets/characters`, `components`,
 `creatures`, `environment`, `textures`, `studies`), `build/`, `bin/`, `.gradle/`, `.venv/`, `__pycache__/`.
 Sem Releases para pacotes de revisão (decisão do proprietário). Nenhum arquivo acima de 5 MB sem motivo. Nada que ligue um personagem a
 pessoa real (fotos, nomes, referências — ver skill `character-design`). Nenhuma credencial.

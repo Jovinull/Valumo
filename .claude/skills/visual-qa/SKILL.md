@@ -1,6 +1,6 @@
 ---
 name: visual-qa
-description: Revisar visualmente qualquer mudança do jogo com capturas reais do viewer — comparação controlada no modo LINHA, silhueta, argila, luz neutra, tamanho reduzido, close de rosto, cena, vídeo de animação (MP4/GIF), pacote --review2 e checklist de aceitação. Use sempre que algo visual mudar, antes de declarar pronto.
+description: Revisar visualmente qualquer mudança do jogo com capturas reais do viewer — comparação controlada no modo LINHA, silhueta, argila, luz neutra, tamanho reduzido, close de rosto, cena, vídeo de animação (MP4/GIF), pacote --review2, revisão de interface por roteiro de entrada (tools/review72.sh) e checklist de aceitação. Use sempre que algo visual mudar, antes de declarar pronto.
 ---
 
 # QA visual (rodada 02 em diante)
@@ -100,3 +100,22 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
 - Câmera de cena = órbita em torno do ponto `hx,hz`: confira se ela não caiu dentro de um tronco, morro ou
   parede (aconteceu várias vezes nesta rodada) antes de usar a imagem.
 - Silhueta de prop: `tools/prop_silhouette.py` (o `sil=1` em modo cena pinta o chão também).
+
+## Rodada 07.2 — interface do jogador
+
+- `tools/review72.sh [capturas|video|desempenho|testes|tudo]` → `output/visual-review/round-07-2/`.
+  - As capturas e o vídeo usam roteiros de entrada (`tools/criador/*.txt`) que entram na mesma fila de
+    eventos do GLFW.
+  - O cursor do vídeo é desenhado pela interface. Diga isso no relatório e não chame de "automação do mouse
+    do sistema".
+- Olhe **em tamanho real**, não só na prancha:
+  - texto em 720p;
+  - borda de hover × selecionado;
+  - sangria de glifo (marca solta perto das letras);
+  - listras em degradês (faixas sobrepostas).
+- Confira que a miniatura mostra o que o personagem vira depois do clique. Cobertura discreta (C3) precisa
+  de ângulo que a identifique.
+- Tempo de quadro: separe o aquecimento (primeiro quadro, trabalho de GPU enfileirado antes da medição) do
+  custo real. Anote cada quadro > 25 ms com a causa (miniatura, envio, atlas novo…).
+- Prancha com o ffmpeg: imagens de tamanhos diferentes não entram em `-pattern_type glob` + `tile` (vira
+  sequência); escale cada uma.
