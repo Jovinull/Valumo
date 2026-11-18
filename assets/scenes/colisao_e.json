@@ -1,5 +1,5 @@
 {
- "_doc": "Rodada 08 — colisão do jogo por tipo de prop (direção E), separada da malha visual. tipo: caixa (pegada da malha × escala, girada com o prop), circulo (raio em u), tronco (círculo do tronco para o corpo + copa só para a câmera: raio = copa × menor lado da malha, a partir de copaDe × altura), nenhum (atravessável). camera=false: a câmera atravessa. altura: fração da altura da malha. 'corpos': raio dos NPCs e criaturas parados (0 = atravessável). Nomes terminados em * valem como prefixo.",
+ "_doc": "Rodada 08 — colisão do jogo por tipo de prop (direção E), separada da malha visual. tipo: caixa (pegada da malha × escala, girada com o prop), circulo (raio em u), tronco (círculo do tronco para o corpo + copa só para a câmera: raio = copa × menor lado da malha, a partir de copaDe × altura), nenhum (atravessável). camera=false: a câmera atravessa. altura: fração da altura da malha. 'corpos': raio dos NPCs e criaturas parados (0 = atravessável). Nomes terminados em * valem como prefixo. Rodada 09.2: pisavel=true faz o topo da forma virar chão para quem pula em cima (caixote, tronco caído, toco, pedras pequena e média, barril); nada mais vira plataforma.",
  "padrao": {"tipo": "caixa", "escala": 0.9},
  "props": {
   "house": {"tipo": "caixa", "escala": 0.94},
@@ -7,23 +7,23 @@
   "well": {"tipo": "circulo", "raio": 0.95},
   "shrine": {"tipo": "caixa", "escala": 0.85},
   "fence": {"tipo": "caixa", "escala": 1.0},
-  "crate": {"tipo": "caixa", "escala": 1.0},
-  "barrel": {"tipo": "circulo", "raio": 0.3},
-  "log": {"tipo": "caixa", "escala": 0.9},
-  "stump": {"tipo": "circulo", "raio": 0.5},
+  "crate": {"tipo": "caixa", "escala": 1.0, "pisavel": true},
+  "barrel": {"tipo": "circulo", "raio": 0.3, "pisavel": true},
+  "log": {"tipo": "caixa", "escala": 0.9, "pisavel": true},
+  "stump": {"tipo": "circulo", "raio": 0.5, "pisavel": true},
   "campfire": {"tipo": "circulo", "raio": 0.45, "camera": false},
   "lantern_post": {"tipo": "circulo", "raio": 0.13, "camera": false},
   "signpost": {"tipo": "circulo", "raio": 0.12, "camera": false},
-  "rock_s": {"tipo": "circulo", "raio": 0.38},
-  "rock_m": {"tipo": "circulo", "raio": 0.72},
+  "rock_s": {"tipo": "circulo", "raio": 0.38, "pisavel": true},
+  "rock_m": {"tipo": "circulo", "raio": 0.72, "pisavel": true},
   "rock_l": {"tipo": "circulo", "raio": 1.25},
   "bush": {"tipo": "circulo", "raio": 0.72, "camera": false},
   "bush_berry": {"tipo": "circulo", "raio": 0.72, "camera": false},
   "sapling": {"tipo": "circulo", "raio": 0.16, "camera": false},
   "mushroom_big": {"tipo": "tronco", "raio": 0.4, "copa": 0.45, "copaDe": 0.5},
   "tree_big": {"tipo": "tronco", "raio": 0.6, "copa": 0.42, "copaDe": 0.3},
-  "tree_willow": {"tipo": "tronco", "raio": 0.38, "copa": 0.40, "copaDe": 0.4},
-  "tree_*": {"tipo": "tronco", "raio": 0.32, "copa": 0.40, "copaDe": 0.35},
+  "tree_willow": {"tipo": "tronco", "raio": 0.38, "copa": 0.4, "copaDe": 0.4},
+  "tree_*": {"tipo": "tronco", "raio": 0.32, "copa": 0.4, "copaDe": 0.35},
   "flower_*": {"tipo": "nenhum"},
   "grass_*": {"tipo": "nenhum"},
   "fern": {"tipo": "nenhum"},
@@ -33,10 +33,5 @@
   "cloud": {"tipo": "nenhum"},
   "dock": {"tipo": "nenhum"}
  },
- "corpos": {
-  "padrao": 0.3,
-  "creatures/e/pompom": 0.32,
-  "creatures/e/tortuga": 0.6,
-  "creatures/e/mariposa": 0
- }
+ "corpos": {"padrao": 0.3, "creatures/e/pompom": 0.32, "creatures/e/tortuga": 0.6, "creatures/e/mariposa": 0}
 }

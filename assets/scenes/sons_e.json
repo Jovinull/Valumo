@@ -1,0 +1,27 @@
+{
+  "_doc": "Rodada 09.1 (09.2: esquiva_rolar, esquiva_recuo, salto, pouso e fungo_desfaz, na mesma linguagem; os da 09.1 não mudaram) — mistura dos efeitos sonoros (escrita à mão; os sons são gerados por tools/audio_e.py em assets/audio/). Por efeito: ganho (0–1, sobre o volume de efeitos), espacial (true = posição do inimigo no mundo, atenua com a distância; false = colado ao ouvinte, sons do herói e sinais), tom (variação aleatória ± na apresentação, nunca na lógica), vozes (máximo simultâneo desse efeito; a mais nova não toca se passar) e intervalo (s mínimos entre duas do mesmo efeito). Todos os arquivos saem a −3 dBFS de pico; o equilíbrio é aqui, por alvo de nível no jogo (impactos ≈ −18,5 dB, vozes ≈ −22/−23, corte no ar e preparação ≈ −25; medição em docs/architecture/audio.md). O acerto da espada é do herói: colado ao ouvinte (clareza), não espacial. Ver docs/architecture/audio.md.",
+  "volumePrincipal": 0.8,
+  "volumeEfeitos": 1.0,
+  "efeitos": {
+    "golpe_ar_h":      {"ganho": 0.39, "espacial": false, "tom": 0.04, "vozes": 2, "intervalo": 0.05},
+    "golpe_ar_d":      {"ganho": 0.41, "espacial": false, "tom": 0.04, "vozes": 2, "intervalo": 0.05},
+    "golpe_ar_v":      {"ganho": 0.46, "espacial": false, "tom": 0.04, "vozes": 2, "intervalo": 0.05},
+    "golpe_acerto":    {"ganho": 1.00, "espacial": false,  "tom": 0.05, "vozes": 2, "intervalo": 0.05},
+    "escudo_bloqueio": {"ganho": 0.60, "espacial": false, "tom": 0.03, "vozes": 1, "intervalo": 0.10},
+    "fungo_alerta":    {"ganho": 0.81, "espacial": true,  "tom": 0.04, "vozes": 1, "intervalo": 0.40},
+    "fungo_preparo":   {"ganho": 0.29, "espacial": true,  "tom": 0.00, "vozes": 1, "intervalo": 0.20},
+    "fungo_cabecada":  {"ganho": 0.43, "espacial": true,  "tom": 0.04, "vozes": 1, "intervalo": 0.10},
+    "cabecada_acerto": {"ganho": 0.85, "espacial": false, "tom": 0.03, "vozes": 1, "intervalo": 0.10},
+    "heroi_dano":      {"ganho": 0.38, "espacial": false, "tom": 0.03, "vozes": 1, "intervalo": 0.20},
+    "fungo_dano":      {"ganho": 0.66, "espacial": true,  "tom": 0.05, "vozes": 1, "intervalo": 0.08},
+    "fungo_derrota":   {"ganho": 0.40, "espacial": true,  "tom": 0.00, "vozes": 1, "intervalo": 1.00},
+    "vitoria":         {"ganho": 0.43, "espacial": false, "tom": 0.00, "vozes": 1, "intervalo": 1.00},
+    "derrota":         {"ganho": 0.47, "espacial": false, "tom": 0.00, "vozes": 1, "intervalo": 1.00},
+    "passo_terra":     {"ganho": 0.21, "espacial": false, "tom": 0.06, "vozes": 2, "intervalo": 0.12},
+    "esquiva_rolar":   {"ganho": 0.36, "espacial": false, "tom": 0.04, "vozes": 1, "intervalo": 0.20},
+    "esquiva_recuo":   {"ganho": 0.40, "espacial": false, "tom": 0.04, "vozes": 1, "intervalo": 0.20},
+    "salto":           {"ganho": 0.30, "espacial": false, "tom": 0.05, "vozes": 1, "intervalo": 0.15},
+    "pouso":           {"ganho": 0.36, "espacial": false, "tom": 0.05, "vozes": 1, "intervalo": 0.15},
+    "fungo_desfaz":    {"ganho": 0.70, "espacial": true,  "tom": 0.04, "vozes": 3, "intervalo": 0.05}
+  }
+}

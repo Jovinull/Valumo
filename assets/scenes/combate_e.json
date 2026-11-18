@@ -1,0 +1,155 @@
+{
+ "_doc": "Rodada 09 — primeiro combate (escrito à mão). Tempos em s, distâncias em u, ângulos em graus. Regras e motivos: docs/architecture/combate.md. Três volumes diferentes por combatente: colisão de movimento (raio do corpo, na Collision), hurtbox (onde pode ser atingido) e hitbox (o que fere, só na fase ativa). Rodada 09.2: perfis de sensação (sensacao), esquiva, salto, mira opcional, grupo e encontros (docs/architecture/combate.md, ADRs 0017–0022).",
+ "arena": {"_doc": "clareira na borda sul da vila, onde a trilha entra na mata; o limite jogável vira a união deste círculo com o da vila", "centro": [-1.6, 11.2], "raio": 3.6, "recomeco": [-1.0, 8.4, 0]},
+ "heroi": {
+  "perfil": "sword_shield",
+  "kit": "characters/r4/adventurer_shield",
+  "vida": 6,
+  "invulneravel": 0.75,
+  "atordoado": 0.42,
+  "atordoadoSaida": {"_doc": "golpe levado logo depois do próprio corte: a reação é a saída autorada e o controle só volta quando agir dali é seguro (medido pelo validador)", "hit_cross_h": 0.6, "hit_cross_d": 0.7},
+  "empurrao": 2.2,
+  "hurtbox": {"de": 0.12, "ate": 1.02, "raio": 0.24},
+  "lamina": {"_doc": "cápsula ao longo do +Y da peça 'weapon' (voxels do item, 1/40 u): do fim do punho à ponta", "item": "weapon", "de": 5, "ate": 27, "raio": 0.05},
+  "golpes": {
+   "_doc": "ativo = janela de DANO (s do golpe): só enquanto a ponta varre a metade da frente (CombatAnimationTest confere na própria animação); avanco = deslocamento na execução; aceita = cliques que encadeiam; encadeiaEm = instante da troca; libera = a partir de quando andar/guardar/recomeçar corta o golpe",
+   "slash_h": {"dano": 1, "ativo": [0.33, 0.47], "avanco": 0.22, "encadeia": "slash_d", "aceita": [0.2, 0.7], "encadeiaEm": 0.64, "libera": 0.82},
+   "slash_d": {"dano": 1, "ativo": [0.35, 0.48], "avanco": 0.22, "encadeia": "slash_v", "aceita": [0.22, 0.72], "encadeiaEm": 0.64, "libera": 0.94},
+   "slash_v": {"dano": 2, "ativo": [0.39, 0.53], "avanco": 0.3, "libera": 0.8}
+  },
+  "bufferAtaque": 0.25,
+  "giroPreparo": 12,
+  "assistencia": {"_doc": "só na mira LIVRE: giro suave para o inimigo mais perto do rumo pedido, na largada do golpe (não é trava de mira; com a mira travada o golpe vai para o alvo)", "alcance": 2.4, "angulo": 40},
+  "escudo": {"subida": 0.12, "angulo": 65, "velocidade": 0.45, "giro": 9, "empurrao": 1.2}
+ },
+ "inimigo": {
+  "rig": "creatures/e/fungo_cardo",
+  "nome": "Fungo-cardo",
+  "inicio": [-1.8, 12.4, 200],
+  "vida": 6,
+  "raio": 0.28,
+  "hurtbox": {"de": 0.04, "ate": 0.72, "raio": 0.3},
+  "hitbox": {"_doc": "esfera presa ao chapéu (voxels da criatura, 1/32 u, no espaço da peça 'cap')", "parte": "cap", "ponto": [0, 3, 7], "raio": 0.2},
+  "visao": 5.2,
+  "campo": 140,
+  "ouvir": 1.6,
+  "perde": 2.5,
+  "coleira": 4.4,
+  "velocidade": 1.15,
+  "giro": 4.5,
+  "giroPreparo": 2.2,
+  "travaPreparo": 0.6,
+  "alcance": 1.05,
+  "anguloAtaque": 25,
+  "alerta": 0.55,
+  "preparo": 0.7,
+  "golpe": 0.26,
+  "recuperacao": 0.85,
+  "intervalo": 0.45,
+  "avanco": 3.0,
+  "ativo": [0.2, 0.85],
+  "dano": 1,
+  "atordoado": 0.45,
+  "imune": 0.8,
+  "ricochete": 1.25,
+  "empurrao": 1.8,
+  "preso": 0.7
+ },
+ "impacto": {"pausaAcerto": 0.07, "pausaDano": 0.05, "pausaDefesa": 0.05},
+ "sensacao": {
+  "_doc": "Rodada 09.2 — perfis de sensação para COMPARAR (não são estilos definitivos). andar/correr: velocidade (u/s); passada: escala do comprimento do passo (as pernas do herói têm 0,24 u: a velocidade nova vem mais da cadência); acel/freio (u/s²); giro (rad/s). golpe: fração da velocidade de andar permitida em cada fase do corte (prep, exec, follow, recover; o avanço autorado soma na execução); giroGolpe: giro do corpo (rad/s) em cada fase (na execução pouco: a trajetória fica); ar: controle no ar (fração da aceleração). A = rodada 09.1 (parado no golpe). -Dvx.sensacao=A|B|C ou o menu de pausa trocam.",
+  "padrao": "C",
+  "perfis": {
+   "A": {
+    "_doc": "rodada 09.1: velocidades e golpe parado (só o avanço autorado)",
+    "andar": 1.14,
+    "correr": 2.33,
+    "passada": 1.0,
+    "acel": 9,
+    "freio": 11,
+    "giro": 11,
+    "golpe": [0, 0, 0, 0],
+    "giroGolpe": [12, 0, 0, 0],
+    "ar": 0.45
+   },
+   "B": {
+    "_doc": "responsivo: mais rápido, anda um pouco no golpe, recuperação permissiva",
+    "andar": 1.45,
+    "correr": 2.9,
+    "passada": 1.0,
+    "acel": 14,
+    "freio": 16,
+    "giro": 12,
+    "golpe": [0.5, 0.25, 0.4, 0.7],
+    "giroGolpe": [12, 2, 4, 8],
+    "ar": 0.5
+   },
+   "C": {
+    "_doc": "ágil: locomoção rápida (cadência), golpe com deslocamento real em todas as fases, giro de reorientação na preparação e na recuperação",
+    "andar": 1.75,
+    "correr": 3.5,
+    "passada": 1.05,
+    "acel": 22,
+    "freio": 24,
+    "giro": 15,
+    "golpe": [0.65, 0.35, 0.55, 0.85],
+    "giroGolpe": [14, 3, 6, 10],
+    "ar": 0.55
+   }
+  }
+ },
+ "esquiva": {
+  "_doc": "Rodada 09.2 — esquiva direcional (ADR 0018). rolar = com direção (WASD); recuo = sem direção (passo evasivo para trás, de frente). distancia (u) percorrida de verdade (colisão normal: a invulnerabilidade protege de dano, não atravessa parede); desloca: janela do deslocamento (s do gesto); invulneravel: janela de invulnerabilidade (s, passo lógico); atacarDe: a partir de quando um clique vira golpe (corte validado em interrupcao-fina); liberaDe: a partir de quando andar devolve a locomoção; recarga: tempo depois do fim antes de outra (sem rolar sem custo); janelas: instantes de cada corte dos quais dá para esquivar — MEDIDOS (viewer --check esquiva: cortar para rolar E para recuar passa no validador nos dois kits, a cada 0,01 s; a execução fica de fora por regra). A guarda pode esquivar a qualquer momento (0 cortes inseguros). Cortar o próprio rolamento só é seguro a partir de 0,24 s: a invulnerabilidade (até 0,32) cobre esse trecho e o golpe só sai em atacarDe. Rodada 09.3: estilos (qual gesto cada direção usa; distância, janelas, invulnerabilidade e recarga são as do 'rolar', iguais para todos): 'frente' = rumo livre (o corpo vira para a direção) ou à frente com a mira travada; 'esquerda'/'direita' = de lado com a mira travada, de frente para o alvo; 'tras' = de costas com a mira travada (null = vira e usa 'frente'). -Dvx.esquiva= troca. Rodada 09.3: o gesto com direção é o salto baixo R2 (dodge_f; lados com a mira travada em 'lados'); o nome 'rolar' ficou por compatibilidade. Os números não mudaram.",
+  "rolar": {"golpe": "dodge_f", "distancia": 1.9, "desloca": [0.03, 0.46], "invulneravel": [0.0, 0.32], "atacarDe": 0.44, "liberaDe": 0.46, "giro": 30},
+  "recuo": {"golpe": "backstep", "distancia": 0.95, "desloca": [0.04, 0.28], "invulneravel": [0.0, 0.2], "atacarDe": 0.26, "liberaDe": 0.3, "giro": 0},
+  "lados": {
+   "_doc": "rodada 09.3 (decisão do proprietário: esquiva R2) — com a mira travada, esquiva para a esquerda ou a direita do alvo usa este gesto sem virar o corpo (continua de frente para o alvo); para a frente e para trás, e na mira livre, o gesto de 'rolar' com o corpo virado para o rumo",
+   "esquerda": "dodge_l",
+   "direita": "dodge_r"
+  },
+  "recarga": 0.22,
+  "buffer": 0.3,
+  "janelas": {"slash_h": [[0.01, 0.27], [0.68, 1.09]], "slash_d": [[0.01, 0.3], [0.64, 0.76], [0.92, 1.12]], "slash_v": [[0.01, 0.36], [0.53, 1.19]]}
+ },
+ "salto": {
+  "_doc": "Rodada 09.2 — salto (ADR 0019): altura (u, do pé), gravidade na subida e na queda (u/s²: cai mais rápido do que sobe, sem flutuar), coyote (s depois de sair da borda em que ainda pula), buffer (s antes de tocar o chão em que o aperto vale), pouso (s de amortecimento visual). Golpe no ar: não nesta rodada (o clique no ar fica guardado e sai ao pousar).",
+  "altura": 0.62,
+  "gravidadeSobe": 24.0,
+  "gravidadeDesce": 34.0,
+  "coyote": 0.09,
+  "buffer": 0.12,
+  "pouso": 0.16
+ },
+ "mira": {
+  "_doc": "Rodada 09.2 — mira opcional (ADR 0020). alcance: até onde Q trava; solta: além disso solta sozinha; oculto: s escondido atrás de sólido até soltar; aoMorrer: 'proximo' (passa ao inimigo engajado mais perto dentro do alcance) ou 'soltar'; angulo: peso do afastamento do centro da tela na escolha (u por radiano).",
+  "alcance": 8.0,
+  "solta": 11.0,
+  "oculto": 1.2,
+  "aoMorrer": "proximo",
+  "angulo": 3.0
+ },
+ "grupo": {
+  "_doc": "Rodada 09.2 — coordenação leve do grupo: atacantes (no máximo tantos preparando/atacando ao mesmo tempo), intervalo (s mínimo entre o começo de duas preparações), espaco (u: distância mínima entre corpos de inimigos), anel (u: quem espera a vez fica a esta distância do herói, rodeando).",
+  "atacantes": 2,
+  "intervalo": 0.5,
+  "espaco": 0.95,
+  "anel": 1.75
+ },
+ "variantes": {
+  "_doc": "Rodada 09.2 — variantes de inimigo: campos de 'inimigo' trocados. escala multiplica o modelo, a colisão, a hurtbox, a hitbox e o alcance. chefe=true: barra grande no topo. prototipo=true: recurso TEMPORÁRIO de teste (o mesmo modelo ampliado), não é um chefe artístico.",
+  "fungo_cardo": {},
+  "fungo_anciao": {"nome": "Fungo-cardo ancião (protótipo)", "escala": 1.6, "vida": 16, "velocidade": 0.95, "preparo": 0.85, "recuperacao": 1.0, "chefe": true, "prototipo": true, "empurrao": 1.1}
+ },
+ "encontros": {
+  "_doc": "Rodada 09.2 — encontros da arena (pausa: Encontro; -Dvx.encontro=). Cada inimigo: variante, x, z, rumo (graus).",
+  "padrao": "um",
+  "um": [["fungo_cardo", -1.8, 12.4, 200]],
+  "grupo": [["fungo_cardo", -1.8, 12.6, 200], ["fungo_cardo", -0.3, 13.3, 215], ["fungo_cardo", -3.2, 13.1, 185]],
+  "chefe": [["fungo_anciao", -1.6, 13.6, 200], ["fungo_cardo", -0.1, 12.4, 220], ["fungo_cardo", -3.1, 12.3, 170]]
+ },
+ "interface": {
+  "_doc": "Rodada 09.2 — barras de vida. Inimigo comum: barra pequena sobre ele (preferência do jogador: nunca | dano (padrão: quando leva dano ou está travado) | sempre (engajado e visível)); dura 'mostra' s depois do último dano. Chefe: barra grande no topo, só para variante chefe.",
+  "barraPadrao": "dano",
+  "mostra": 3.0
+ }
+}
