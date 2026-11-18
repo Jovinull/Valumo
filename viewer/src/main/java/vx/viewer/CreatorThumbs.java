@@ -44,6 +44,8 @@ public final class CreatorThumbs implements AutoCloseable {
             case "preset" -> { a = Appearance.preset(v); }
             case "hair" -> a.hair = v;
             case "face" -> a.face = v;
+            case "eyes" -> a.eyes = v;
+            case "feet" -> a.feet = v;
             case "cover" -> a.cover = v;
             default -> { return null; }
         }
@@ -56,7 +58,8 @@ public final class CreatorThumbs implements AutoCloseable {
     /** Coberturas em 3/4 lateral e com folga em cima: o laço e a pena do C3 ficam atrás da cabeça, a copa do
      *  chapéu sobe além dela. */
     static String framing(String id) {
-        return id.startsWith("preset:") ? "corpo" : id.startsWith("cover:") ? "cobertura" : id.startsWith("hair:") ? "cabelo" : "cabeca";
+        return id.startsWith("preset:") ? "corpo" : id.startsWith("cover:") ? "cobertura" : id.startsWith("hair:") ? "cabelo"
+                : id.startsWith("eyes:") ? "olhos" : id.startsWith("feet:") ? "pes" : "cabeca";
     }
 
     /** Pede as miniaturas que faltam para o layout atual (as já pedidas não se repetem). */

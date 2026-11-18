@@ -1,0 +1,35 @@
+# Rodada 09.4 — áudio em contexto: música da escolha, começar (confirmar), passos na terra do caminho e na grama,
+# andando e correndo, pausa (abrir/cancelar) e conversa com a Kelyra. Grave com loopback para ouvir o que o jogo
+# mistura, em sincronia com os quadros: tools/review94.sh contexto
+size 1280 720
+wait 0.5
+record on
+wait 2.5
+click comecar
+wait 1.2
+ir 0.5 2.2
+estado
+ir 3.0 3.0
+ir 3.5 1.0
+estado
+ir -1.0 -1.0 correndo
+estado
+ir -2.5 0.5
+estado
+wait 0.6
+key ESC
+wait 1.4
+key ESC
+wait 0.8
+ir -2.6 0.9
+key E
+wait 2.0
+key E
+wait 2.0
+key E
+wait 2.0
+key E
+wait 1.6
+key E
+wait 1.5
+record off

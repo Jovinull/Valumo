@@ -1,0 +1,15 @@
+# Rodada 09.4 — ambiente: vento (cama) e lago (posicional). Vai até a areia da margem, para, e se afasta até a grama
+# longe do lago. Grave com loopback (tools/review94.sh ambiente): o lago tem de sumir com a distância.
+size 1280 720
+click comecar
+wait 0.8
+record on
+wait 1.0
+ir 3.9 4.6
+estado
+wait 3.0
+ir 0.5 2.2
+ir -2.5 -1.0
+estado
+wait 3.0
+record off

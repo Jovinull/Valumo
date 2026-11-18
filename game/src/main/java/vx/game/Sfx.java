@@ -18,7 +18,7 @@ import java.util.Map;
  * Rodada 09.1 — efeitos sonoros do jogo sobre um {@link AudioBackend} (OpenAL, mudo ou o registrador dos testes).
  *
  * <ul>
- *   <li>Carrega TUDO na criação (assets/audio/ gerados + mistura assets/scenes/sons_e.json): tocar não lê disco, não
+ *   <li>Carrega TUDO na criação (assets/audio/sintese/ gerados + mistura assets/scenes/sons_e.json): tocar não lê disco, não
  *       decodifica e não aloca buffer de som — o primeiro golpe não engasga.</li>
  *   <li>Regras por efeito: vozes simultâneas, intervalo mínimo, um pedido igual no mesmo passo vira um só.</li>
  *   <li>Variação (qual arquivo, desvio de tom) só na apresentação e determinística: vem de um hash de (semente, efeito,
@@ -50,7 +50,7 @@ public final class Sfx implements AutoCloseable {
     public Sfx(AudioBackend backend, Path assets) {
         this.backend = backend;
         JsonObject m = read(assets.resolve("scenes/sons_e.json"));
-        JsonObject v = read(assets.resolve("audio/variantes.json")).getAsJsonObject("efeitos");
+        JsonObject v = read(assets.resolve("audio/sintese/variantes.json")).getAsJsonObject("efeitos");
         master = m.get("volumePrincipal").getAsFloat();
         effects = m.get("volumeEfeitos").getAsFloat();
         JsonObject fx = m.getAsJsonObject("efeitos");
@@ -66,7 +66,7 @@ public final class Sfx implements AutoCloseable {
             for (int i = 0; i < ids.length; i++) {
                 names[i] = arr.get(i).getAsString();
                 try {
-                    Wav w = Wav.read(assets.resolve("audio").resolve(names[i]));
+                    Wav w = Wav.read(assets.resolve("audio/sintese").resolve(names[i]));
                     if (w.channels != 1) throw new IllegalStateException("efeito precisa ser mono (espacial): " + names[i]);
                     ids[i] = backend.load(names[i], w.samples, w.rate);
                     pk += peakTime(w.samples, w.rate) / ids.length;

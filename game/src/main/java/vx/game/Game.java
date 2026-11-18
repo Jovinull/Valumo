@@ -64,6 +64,8 @@ public final class Game implements AutoCloseable {
     private final List<Button> buttons = new ArrayList<>();
     private String hover;
     public boolean drawCursor, scripted;
+    final GameAudio gameAudio;
+    final AudioPrefs audioPrefs = AudioPrefs.load(AudioPrefs.FILE);
     private float mouseX = -1, mouseY = -1;
     private final Animator.Motion pMotion = new Animator.Motion(), nMotion = new Animator.Motion(), eMotion = new Animator.Motion();
     /** Rodada 09: ator do inimigo (fungo-cardo) e modo técnico (caixas de golpe e de dano; F3 com -Dvx.tecnico=1). */
@@ -109,6 +111,8 @@ public final class Game implements AutoCloseable {
         SceneDef scene = SceneDef.load(assetsPath, SCENE);
         Collision col = Collision.build(terrain, Collision.profiles(assetsPath), world.placements(), world.bodies(), scene);
         logic = new GameLogic(scene, col);
+        gameAudio = new GameAudio(logic);
+        audioPrefs.apply();
         async = new AsyncComposer(assetsPath, 8);
         if (logic.combat != null) {                                       // rodada 09: espada e broquel em qualquer aparência
             async.kit(logic.combat.def.heroKit);
@@ -140,22 +144,44 @@ public final class Game implements AutoCloseable {
      * audio.wav). Qualquer falha ao abrir o OpenAL: o jogo segue sem som, avisando no console.
      */
     private void initAudio() {
+        // um só dispositivo (ADR 0023): se o Audio abriu o OpenAL (catálogo presente), os efeitos do combate tocam no MESMO
+        // contexto; senão (sem catálogo), o Sfx abre o seu, como na rodada 09.1.
         String mode = System.getProperty("vx.som", "dispositivo");
-        vx.engine.audio.AudioBackend b = Sfx.backendFor(mode, vx.engine.audio.OpenAlBackend::open,
-                () -> vx.engine.audio.OpenAlBackend.loopback(48000));
-        loopback = b instanceof vx.engine.audio.OpenAlBackend o && !o.audible() ? o : null;
+        vx.engine.audio.OpenAlOut shared = vx.engine.audio.Audio.output();
+        vx.engine.audio.AudioBackend b = shared != null ? vx.engine.audio.OpenAlBackend.shared(shared)
+                : Sfx.backendFor(mode, vx.engine.audio.OpenAlBackend::open, () -> vx.engine.audio.OpenAlBackend.loopback(48000));
+        loopback = shared == null && b instanceof vx.engine.audio.OpenAlBackend o && !o.audible() ? o : null;
         long t0 = System.nanoTime();
         sfx = new Sfx(b, assetsPath);
+        sfxMaster = sfx.master;
         System.out.printf("som: %s (efeitos carregados em %.1f ms)%n", b.describe(), (System.nanoTime() - t0) / 1e6);
         if (logic.combat != null) logic.audio = new CombatAudio(sfx, logic.combat);
-        logic.steps = new Footsteps(sfx);
+        // passos: os do catálogo (quatro superfícies, GameAudio) quando houver; senão o passo único da 09.1
+        if (!vx.engine.audio.Audio.has("passo.grama.andar")) logic.steps = new Footsteps(sfx);
+        applyVolumes();
+    }
+
+    /** Volume principal da mistura do combate (sons_e.json), antes da preferência do jogador. */
+    private float sfxMaster = 1f;
+
+    /** Preferências do jogador → catálogo (música, efeitos, interface, ambiente) e efeitos do combate. */
+    private void applyVolumes() {
+        audioPrefs.apply();
+        if (sfx != null) sfx.setVolumes(sfxMaster * audioPrefs.effects, sfx.effects, sfx.muted);
+    }
+
+    /** Mudo (M ou botão da pausa): tudo — combate, música, ambiente e interface. */
+    private void setMuted(boolean m) {
+        sfx.setVolumes(sfx.master, sfx.effects, m);
+        vx.engine.audio.SoundSystem ss = vx.engine.audio.Audio.get();
+        if (ss != null) ss.volume("geral", m ? 0f : 1f);
     }
 
     private final org.joml.Vector3f earEye = new org.joml.Vector3f();
 
     /** Pausa, mudo (M) e ouvinte na câmera, depois da lógica do quadro. */
     private void audioFrame() {
-        if (input.hit(GLFW_KEY_M)) sfx.setVolumes(sfx.master, sfx.effects, !sfx.muted);
+        if (input.hit(GLFW_KEY_M)) setMuted(!sfx.muted);
         sfx.setPaused(logic.state == GameLogic.State.PAUSE);
         FollowCamera c = logic.cam;
         c.position(earEye);
@@ -207,7 +233,8 @@ public final class Game implements AutoCloseable {
         if (technical && input.hit(GLFW_KEY_F3)) debugCombat = !debugCombat;
         logic.update(dt, input);
         if (logic.state == GameLogic.State.EXPLORE) updateDeaths(dt);
-        audioFrame();
+        audioFrame();                                                     // efeitos do combate: pausa, mudo
+        gameAudio.tick(dt);                                               // passos, interface, música, ambiente, ouvinte, mistura
         async.poll();
         String sig = async.shown;
         if (sig != null && !sig.equals(shownSig)) {
@@ -752,10 +779,26 @@ public final class Game implements AutoCloseable {
         return out;
     }
 
+    /**
+     * Fileira "rótulo … [−] valor [+]" da pausa (sensibilidade e volumes, rodada 09.4). O rótulo cabe no espaço à
+     * esquerda dos botões (escala inteira que cabe, como nos botões: em 720p ele era atravessado pelo "−") e o valor
+     * fica centrado entre − e +.
+     */
+    private void stepperRow(String id, String label, String value, float bx, float bw, float y) {
+        float minusX = bx + bw - 236 * s, plusX = bx + bw - 56 * s, room = minusX - bx - 12 * s;
+        int lp = textPx(label, room, 21);
+        kit.text(bx, y + 25 * s - lp * 0.66f, label, lp, true, UiKit.INK);
+        button(id + "-", minusX, y, 56 * s, 50 * s, "-", false);
+        int vp = textPx("100%", plusX - minusX - 56 * s - 8 * s, 22);
+        float cx = (minusX + 56 * s + plusX) / 2;
+        kit.text(cx - kit.width(value, vp, true) / 2, y + 25 * s - vp * 0.66f, value, vp, true, UiKit.INK);
+        button(id + "+", plusX, y, 56 * s, 50 * s, "+", false);
+    }
+
     private void drawPause(int w, int h) {
         kit.rect(0, 0, w, h, 0x1a1210a0);
         boolean cmb = logic.combat != null;
-        float pw = 620 * s, ph = (cmb ? 960 : 760) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
+        float pw = 620 * s, ph = (cmb ? 990 : 800) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
         kit.panel(x, y, pw, ph, s, true);
         kit.text(x + 40 * s, y + 34 * s, "Pausa", px(40), true, UiKit.INK);
         float bx = x + 40 * s, bw = pw - 80 * s, bh = 62 * s, by = y + 110 * s;
@@ -764,27 +807,20 @@ public final class Game implements AutoCloseable {
         button("criador", bx, by + 152 * s, bw, bh, "Abrir o criador", false);
         // sensibilidade do mouse
         float sy = by + 240 * s;
-        kit.text(bx, sy + 14 * s, "Sensibilidade do mouse", px(21), true, UiKit.INK);
-        String val = String.format("%.1f", logic.cam.sensitivity / 0.0032f);
-        button("sens-", bx + bw - 200 * s, sy, 56 * s, 50 * s, "-", false);
-        kit.text(bx + bw - 130 * s, sy + 25 * s - px(22) * 0.66f, val, px(22), true, UiKit.INK);
-        button("sens+", bx + bw - 56 * s, sy, 56 * s, 50 * s, "+", false);
+        stepperRow("sens", "Sensibilidade", String.format("%.1f", logic.cam.sensitivity / 0.0032f), bx, bw, sy);
         String inv = logic.cam.invertY ? "Inverter vertical: sim" : "Inverter vertical: não";
         button("inverter", bx, sy + 66 * s, bw, 50 * s, inv, false);
-        // rodada 09.1: som
-        float vy = sy + 140 * s;
-        kit.text(bx, vy + 14 * s, "Volume", px(21), true, UiKit.INK);
-        button("vol-", bx + bw - 200 * s, vy, 56 * s, 50 * s, "-", false);
-        kit.text(bx + bw - 130 * s, vy + 25 * s - px(22) * 0.66f, String.format("%d%%", Math.round(sfx.master * 100)), px(22), true, UiKit.INK);
-        button("vol+", bx + bw - 56 * s, vy, 56 * s, 50 * s, "+", false);
-        button("mudo", bx, vy + 66 * s, bw, 50 * s, sfx.muted ? "Som: mudo (M)" : "Som: ligado (M)", false);
+        // som: volumes do jogador (música; efeitos = combate, passos, interface e ambiente), gravados nas preferências, e mudo
+        stepperRow("mus", "Música", AudioPrefs.percent(audioPrefs.music), bx, bw, sy + 132 * s);
+        stepperRow("efe", "Efeitos", AudioPrefs.percent(audioPrefs.effects), bx, bw, sy + 198 * s);
+        button("mudo", bx, sy + 264 * s, bw, 50 * s, sfx.muted ? "Som: mudo (M)" : "Som: ligado (M)", false);
         if (cmb) {                                                         // rodada 09.2: combate
-            float cy = vy + 136 * s, half = (bw - 12 * s) / 2;
-            String bars = switch (logic.prefs.bars) { case "nunca" -> "nunca"; case "sempre" -> "sempre"; default -> "ao levar dano / alvo"; };
-            button("barras", bx, cy, bw, 50 * s, "Barras de inimigos: " + bars, false);
-            button("sensacao", bx, cy + 62 * s, half, 50 * s, "Sensação: " + logic.prefs.feel, false);
+            float cy = sy + 334 * s;
+            String bars = switch (logic.prefs.bars) { case "nunca" -> "nunca"; case "sempre" -> "sempre"; default -> "com dano ou alvo"; };
+            button("barras", bx, cy, bw, 50 * s, "Barras: " + bars, false);
+            button("sensacao", bx, cy + 62 * s, bw, 50 * s, "Sensação: " + logic.prefs.feel, false);
             String enc = switch (logic.combat.encounter) { case "grupo" -> "três fungos"; case "chefe" -> "chefe + 2"; default -> "um fungo"; };
-            button("encontro", bx + half + 12 * s, cy + 62 * s, half, 50 * s, "Arena: " + enc, false);
+            button("encontro", bx, cy + 124 * s, bw, 50 * s, "Arena: " + enc, false);
         }
         button("sair", bx, y + ph - 40 * s - bh, bw, bh, "Sair do jogo", false);
     }
@@ -828,9 +864,14 @@ public final class Game implements AutoCloseable {
                     case "sens-" -> logic.cam.sensitivity = Math.max(0.0008f, logic.cam.sensitivity - 0.0008f);
                     case "sens+" -> logic.cam.sensitivity = Math.min(0.012f, logic.cam.sensitivity + 0.0008f);
                     case "inverter" -> logic.cam.invertY = !logic.cam.invertY;
-                    case "vol-" -> sfx.setVolumes(Math.round(sfx.master * 10 - 1) / 10f, sfx.effects, sfx.muted);
-                    case "vol+" -> sfx.setVolumes(Math.round(sfx.master * 10 + 1) / 10f, sfx.effects, sfx.muted);
-                    case "mudo" -> sfx.setVolumes(sfx.master, sfx.effects, !sfx.muted);
+                    case "mus-", "mus+", "efe-", "efe+" -> {
+                        if (audioPrefs.nudge(b.id.startsWith("mus") ? "musica" : "efeitos", b.id.endsWith("+") ? 1 : -1)) {
+                            applyVolumes();
+                            audioPrefs.save(AudioPrefs.FILE);
+                        }
+                        vx.engine.audio.Audio.event("ui.selecionar");             // referência do novo nível
+                    }
+                    case "mudo" -> setMuted(!sfx.muted);
                     default -> { }
                 }
             }
@@ -874,6 +915,7 @@ public final class Game implements AutoCloseable {
      */
     public void script(Path file, Path out, int fps) throws IOException {
         scripted = true;
+        vx.engine.audio.Audio.recording(false);                          // rodada 09.4: áudio gravado = quadros gravados
         drawCursor = true;
         List<String> lines = Files.readAllLines(file);
         Files.createDirectories(out);
@@ -890,6 +932,7 @@ public final class Game implements AutoCloseable {
                 case "size" -> { w = Integer.parseInt(t[1]); h = Integer.parseInt(t[2]); mx = w / 2f; my = h / 2f; }
                 case "record" -> {
                     record = t[1].equals("on");
+                    vx.engine.audio.Audio.recording(record);                  // áudio gravado = quadros gravados
                     if (record && logic.combat != null) {                  // rodada 09.1: referência para alinhar som e quadros
                         recordTick = logic.combat.ticks;
                         recordFrame = recorded;
@@ -939,6 +982,7 @@ public final class Game implements AutoCloseable {
                         cr.recorded = recorded;
                         cr.script(Path.of(t[1]), out, fps);
                         recorded = cr.recorded;
+                        vx.engine.audio.Audio.recording(record);
                         if (cr.cs.finished) logic.useCreated(cr.cs.appearance, cr.cs.name.isBlank() ? "Criada agora" : cr.cs.name.trim());
                     }
                     logic.action("trocar-aparencia");

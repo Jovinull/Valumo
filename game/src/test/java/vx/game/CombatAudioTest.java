@@ -310,11 +310,11 @@ class CombatAudioTest {
     @Test
     void everyEffectIsGeneratedCleanAndEveryGeneratedFileIsUsed() throws Exception {
         var mix = JsonParser.parseString(Files.readString(A.resolve("scenes/sons_e.json"))).getAsJsonObject().getAsJsonObject("efeitos");
-        var gen = JsonParser.parseString(Files.readString(A.resolve("audio/variantes.json"))).getAsJsonObject().getAsJsonObject("efeitos");
+        var gen = JsonParser.parseString(Files.readString(A.resolve("audio/sintese/variantes.json"))).getAsJsonObject().getAsJsonObject("efeitos");
         assertEquals(mix.keySet(), gen.keySet(), "mistura × sons gerados");
         for (String cue : gen.keySet())
             for (var f : gen.getAsJsonArray(cue)) {
-                Wav w = Wav.read(A.resolve("audio").resolve(f.getAsString()));
+                Wav w = Wav.read(A.resolve("audio/sintese").resolve(f.getAsString()));
                 assertEquals(1, w.channels, f + " precisa ser mono (espacial)");
                 assertEquals(48000, w.rate, f.toString());
                 int peak = 0;

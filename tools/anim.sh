@@ -12,7 +12,7 @@ mkdir -p output/tmp; tmp="$(mktemp -d output/tmp/vxanim.XXXXXX)"
 tools/snap.sh "$spec,frames=$n,fps=$fps,out=$tmp/f.png" >/dev/null
 mkdir -p "$(dirname "$out")"
 # libx264 quando existir; no Fedora (ffmpeg-free) cai para libopenh264
-if ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libx264; then enc=(-c:v libx264 -crf 18)
+if ffmpeg -hide_banner -encoders 2>/dev/null | grep libx264 > /dev/null; then enc=(-c:v libx264 -crf 18)
 else enc=(-c:v libopenh264 -b:v 6M); fi
 ffmpeg -loglevel error -y -framerate "$fps" -i "$tmp/f_%03d.png" "${enc[@]}" -pix_fmt yuv420p "$out.mp4"
 ffmpeg -loglevel error -y -framerate "$fps" -i "$tmp/f_%03d.png" \

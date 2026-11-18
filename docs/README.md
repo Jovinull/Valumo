@@ -19,6 +19,7 @@
 | [art/pipeline-de-producao.md](art/pipeline-de-producao.md) | fonte → geração → viewer → QA → correção; edição manual (Goxel) sem perda |
 | [architecture/arquitetura.md](architecture/arquitetura.md) | módulos Java, renderização, assets |
 | [architecture/personalizacao.md](architecture/personalizacao.md) | personalização modular: estudo, modelo de dados, compatibilidade, persistência (implementado × validado × planejado) |
+| [architecture/personalizacao-evolucao.md](architecture/personalizacao-evolucao.md) | evolução da personalização: rosto por partes (olhos feitos na 09), roupas por região (botas feitas na 09), criador |
 | [architecture/criador-de-personagens.md](architecture/criador-de-personagens.md) | criador de personagens do jogador: layout, componentes, mouse, escala, fonte própria, miniaturas, composição assíncrona, roteiros e testes; guia das próximas interfaces |
 | [decisions/](decisions/README.md) | ADRs (decisões vigentes e revistas) |
 | [validation/checklist-de-aceitacao.md](validation/checklist-de-aceitacao.md), [validation/processo-de-revisao-visual.md](validation/processo-de-revisao-visual.md) | QA |
@@ -26,10 +27,11 @@
 | [validation/problemas-conhecidos.md](validation/problemas-conhecidos.md) | abertos, corrigidos, limitações aceitas, fora do escopo |
 | [validation/matriz-de-problemas.md](validation/matriz-de-problemas.md) | rastreabilidade de todos os problemas (rodadas 01–05.1) com evidência verificada |
 | [architecture/combate.md](architecture/combate.md) | o combate (rodada 09; câmera refeita na 09.1; mobilidade, esquiva, mira, grupos, morte voxel e barras na 09.2 §14–19): tempo e ordem, herói, golpes e janelas de dano, inimigo e IA, interrupções, vida, defesa, câmera de luta e sua medição, retorno visual e sonoro, testes |
-| [architecture/audio.md](architecture/audio.md) | o som (rodada 09.1): OpenAL, diretor que só lê a lógica, regras de reprodução, síntese e proveniência dos efeitos, mistura por nível, sincronia e latência medidas |
+| [architecture/audio.md](architecture/audio.md) | o som: um dispositivo por processo; parte A (09.4) catálogo de eventos, música, ambiente, interface, pisada por superfície, laço, gravação; parte B (09.1–09.3) efeitos do combate, diretor que só lê a lógica, síntese, mistura, sincronia |
 | [architecture/jogo.md](architecture/jogo.md) | o jogo: módulos, estados, controle do herói, colisão, câmera, cena, interação, aparência, interface, testes |
 | [validation/roteiro-de-teste-fisico.md](validation/roteiro-de-teste-fisico.md) | roteiro de teste com teclado e mouse físicos (criador e jogo) para o proprietário |
-| [validation/relatorio-rodada-09-3.md](validation/relatorio-rodada-09-3.md) | relatório da rodada atual (09.3: esquiva R1/R2 com a mesma função, salto com impulso e pouso, herói pontilhado perto da câmera) |
+| [validation/relatorio-rodada-09-4.md](validation/relatorio-rodada-09-4.md) | relatório da rodada 09.4 (desenvolvida em paralelo como "rodada 09": direção sonora, estudos de música e efeitos, integração de áudio, estudos de cabelo, olhos e botas) |
+| [validation/relatorio-rodada-09-3.md](validation/relatorio-rodada-09-3.md) | relatório da 09.3 ( esquiva R1/R2 com a mesma função, salto com impulso e pouso, herói pontilhado perto da câmera) |
 | [validation/relatorio-rodada-09-2.md](validation/relatorio-rodada-09-2.md) | relatório da 09.2 ( mobilidade, esquiva, salto, mira opcional, grupos, ensaio de chefe, morte voxel, barras) |
 | [validation/relatorio-rodada-09-1.md](validation/relatorio-rodada-09-1.md) | relatório da rodada 09.1 (câmera de luta e primeiro som) |
 | [validation/relatorio-rodada-09.md](validation/relatorio-rodada-09.md) | relatório da rodada 09 (primeiro combate) |
@@ -44,8 +46,8 @@
 | [validation/relatorio-rodada-05.md](validation/relatorio-rodada-05.md) | relatório da rodada 05 |
 | [validation/ambiente.md](validation/ambiente.md) | máquina e versões |
 
-Procedimentos para agentes: `.claude/skills/` (character-design, voxel-art, visual-qa, rendering,
-weapon-animation). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
+Procedimentos para agentes: `.claude/skills/` (character-design, character-customization, voxel-art, visual-qa,
+rendering, weapon-animation, game-ui, gameplay, git-commits, music-composition, sound-design, audio-qa). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
 
 ## Histórico (rastreabilidade — não é especificação atual)
 

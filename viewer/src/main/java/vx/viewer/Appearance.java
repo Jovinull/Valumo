@@ -14,13 +14,16 @@ import java.util.regex.Pattern;
 
 /**
  * Rodada 07 — aparência de um personagem jogável (contrato {@value #CONTRACT}, versão {@value #VERSION}).
+ * Rodada 09.4: versão 2 acrescenta o formato dos olhos ({@code aparencia.olhos}); arquivos v1 abrem por
+ * {@link #migrate1to2} (função pura; a v1 não tinha olhos, então o formato fica o do rosto). Também na v2:
+ * {@code equipamento_visual.pes} (botas; ausente = as do modelo).
  * Guarda só IDs e parâmetros, nunca geometria: o {@link Composer} reconstrói o modelo a partir do catálogo de
  * componentes. Campo {@code null} = "o do preset". Aparência é independente de classe/combate (não há esses
  * campos aqui de propósito).
  */
 public final class Appearance {
     public static final String CONTRACT = "valumo.aparencia";
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
     static final Pattern HEX = Pattern.compile("#[0-9a-f]{6}");
     /** Valor de {@link #cover} que tira a cobertura do preset (null = a do preset). */
     public static final String NO_COVER = "nenhum";
@@ -31,6 +34,8 @@ public final class Appearance {
     public String hairColor;         // #rrggbb ou null
     public String skin;              // #rrggbb ou null
     public String iris;              // #rrggbb ou null
+    public String eyes;              // olhos.<formato> ou null (o do rosto) — rodada 09.4
+    public String feet;              // botas.<id> ou null (as do modelo) — rodada 09.4, equipamento visual "pes"
     public String cover;             // chapeu.maga | capuz.c3 | "nenhum" | null
     public String name;              // identidade (opcional, não afeta a geometria)
 
@@ -43,18 +48,18 @@ public final class Appearance {
     public Appearance copy() {
         Appearance a = new Appearance();
         a.preset = preset; a.face = face; a.hair = hair; a.hairColor = hairColor; a.skin = skin; a.iris = iris;
-        a.cover = cover; a.name = name;
+        a.eyes = eyes; a.feet = feet; a.cover = cover; a.name = name;
         return a;
     }
 
     /** Volta ao preset (mantém só o preset e o nome). */
     public void reset() {
-        face = hair = hairColor = skin = iris = cover = null;
+        face = hair = hairColor = skin = iris = eyes = feet = cover = null;
     }
 
     /** Assinatura estável da GEOMETRIA/CORES (cache do compositor): nome não entra. */
     public String signature() {
-        return String.join("|", preset, s(face), s(hair), s(hairColor), s(skin), s(iris), s(cover));
+        return String.join("|", preset, s(face), s(hair), s(hairColor), s(skin), s(iris), s(cover), s(eyes), s(feet));
     }
 
     private static String s(String v) { return v == null ? "-" : v; }
@@ -81,6 +86,7 @@ public final class Appearance {
         d.add("origem", o);
         JsonObject ap = new JsonObject();
         if (face != null) ap.addProperty("rosto", face);
+        if (eyes != null) ap.addProperty("olhos", eyes);
         if (hair != null || hairColor != null) {
             JsonObject h = new JsonObject();
             if (hair != null) h.addProperty("estilo", hair);
@@ -92,6 +98,7 @@ public final class Appearance {
         d.add("aparencia", ap);
         JsonObject eq = new JsonObject();
         if (cover != null) eq.addProperty("cabeca", cover);
+        if (feet != null) eq.addProperty("pes", feet);
         d.add("equipamento_visual", eq);
         return new GsonBuilder().setPrettyPrinting().create().toJson(d);
     }
@@ -107,7 +114,8 @@ public final class Appearance {
         String contract = str(d, "contrato");
         if (!CONTRACT.equals(contract)) throw new InvalidAppearance("contrato desconhecido: " + contract);
         int v = d.has("versao") ? d.get("versao").getAsInt() : -1;
-        if (v != VERSION) throw new InvalidAppearance("versão " + v + " não suportada (esta aplicação lê a " + VERSION + ")");
+        if (v == 1) d = migrate1to2(d);
+        else if (v != VERSION) throw new InvalidAppearance("versão " + v + " não suportada (esta aplicação lê 1 e " + VERSION + ")");
         Appearance a = new Appearance();
         JsonObject o = obj(d, "origem");
         a.preset = o == null ? null : str(o, "preset");
@@ -116,6 +124,7 @@ public final class Appearance {
         JsonObject ap = obj(d, "aparencia");
         if (ap != null) {
             a.face = str(ap, "rosto");
+            a.eyes = str(ap, "olhos");
             JsonObject h = obj(ap, "cabelo");
             if (h != null) {
                 a.hair = str(h, "estilo");
@@ -126,6 +135,7 @@ public final class Appearance {
         }
         JsonObject eq = obj(d, "equipamento_visual");
         a.cover = eq == null ? null : str(eq, "cabeca");
+        a.feet = eq == null ? null : str(eq, "pes");
         a.validate(cat);
         return a;
     }
@@ -134,11 +144,21 @@ public final class Appearance {
     public void validate(ComponentCatalog cat) {
         if (preset == null || !cat.presets.containsKey(preset)) throw new InvalidAppearance("preset desconhecido: " + preset);
         checkId(cat, face, "rosto");
+        checkId(cat, eyes, "olhos");
+        checkId(cat, feet, "pes");
         checkId(cat, hair, "cabelo");
         if (cover != null && !NO_COVER.equals(cover)) checkId(cat, cover, "cabeca");
         for (String[] c : new String[][]{{hairColor, "cor do cabelo"}, {skin, "pele"}, {iris, "íris"}})
             if (c[0] != null && !HEX.matcher(c[0]).matches()) throw new InvalidAppearance(c[1] + " inválida: " + c[0] + " (esperado #rrggbb)");
         cat.coverVariant(this);                          // lança se a combinação for incompatível
+    }
+
+    /** Migração v1 → v2 (pura, devolve um documento novo): nada a converter — a v1 não tinha olhos, e "sem olhos"
+     *  na v2 significa "o formato do rosto". IDs nunca são reaproveitados, então nada muda de sentido. */
+    static JsonObject migrate1to2(JsonObject v1) {
+        JsonObject v2 = v1.deepCopy();
+        v2.addProperty("versao", 2);
+        return v2;
     }
 
     private static void checkId(ComponentCatalog cat, String id, String slot) {

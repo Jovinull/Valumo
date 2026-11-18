@@ -1,0 +1,8 @@
+# Rodada 09.4 — categoria Roupa (botas) no criador, 1080p e 720p.
+size 1920 1080
+click cat:ROUPA
+click feet:botas.viajante
+shot 01-roupa-botas-1080p
+size 1280 720
+settle
+shot 02-roupa-botas-720p

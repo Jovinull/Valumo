@@ -167,7 +167,8 @@ unilaterais: mochila só se afasta, cachecol só vai para a frente). Acessório 
 - **Canais novos:** `rollZ`, `feetX`, `spinPivot`, `spinAxis` e o `fadeIn` do gesto. Ver o guia de animação, seção
   "Esquiva e salto".
 - **Rolamento:** use giro diagonal (`spinAxis`) com o pivô baixo. Meça a coluna (altura no meio do giro) e a folga da cabeça
-  (`theR1RollStaysLowerThanThe092RollAndTheHeadNeverSinks`); com 2,4 cabeças, a cabeça encosta quando o corpo inverte.
+  (a sonda que mediu o R1 na 09.3); com 2,4 cabeças, a cabeça encosta quando o corpo inverte. A R2 atual é coberta por
+  `theR2DodgeNeverPutsTheHeadOnTheGround`.
   A lâmina passa
   por cima, com o pomo longe das pernas.
 - **Clipping:** a Maga (robe) e o kit `adventurer_shield` são os piores casos de pomo × perna. Valide os presets com
@@ -218,3 +219,29 @@ unilaterais: mochila só se afasta, cachecol só vai para a frente). Acessório 
    - Valide as entradas (idle, walk, run → gesto), os cortes (golpe → gesto a cada 0,01 s) e as saídas (gesto → golpe,
      reação, guarda), todos em `--check esquiva`.
    - Quando um gesto não cabe em todo corte, dê janelas próprias e um substituto. Nunca aumente tolerância.
+
+## Rodada 09.4 — arma × cabelo personalizado
+
+O `--check` mede a cabeça como uma cápsula (raio 8,6): cabelo além dela não é visto. `viewer --check-cabelos` mede a
+arma contra a cabeça COMPOSTA (voxels reais) em todo golpe, HIT, EMOTE e locomoção, para cada preset × penteado.
+Achado: o EMOTE do aventureiro põe 21 voxels da espada dentro do topete canônico (t = 0,77 s). Ao mexer em qualquer
+golpe ou gesto, rode também `--check-cabelos` e não aumente a penetração de nenhuma combinação.
+
+### Rodada 09.4 — EMOTE corrigido e o que ele escondia
+
+- **EMOTE** (comemoração): a lâmina erguida (`emote_up`) e a do pouso (`emote_land`) inclinam para FORA (−x) e um pouco
+  para trás; no cajado, o bastão também abre no agachamento (`emote_crouch` do `staff.json`). Inclinar demais leva a
+  ponta de baixo à perna, e abrir a mão demais estoura o alcance: varra poucos pontos e fique com o mais perto do
+  original que passe nos três (cabelo, corpo, alcance).
+- **Um defeito grande esconde os pequenos:** com o EMOTE em 0, o `--check-cabelos` mostrou o roçar do `slash_v` no ápice
+  (1–2 voxels em penteados altos). `v_drive` foi 1 voxel à frente; `combo` tem pose própria (`cv_drive`). Depois de
+  mexer num golpe jogável, rode `--check`, `interrupcao-fina`, `golpe-andando` e `esquiva` (a 1ª tentativa estourou o
+  alcance e quebrou os quatro).
+- **Cajado da maga:** o culpado era a pose de DESCANSO (todo gesto volta a ela). A inclinação do cajado gira em torno da
+  mão: topo para fora leva a ponta de baixo à perna, e abrir a mão estoura o alcance. A saída foi a terceira direção
+  (topo um pouco à frente: a ponta de baixo passa atrás da perna) e a empunhadura um pouco mais alta (mão mais perto do
+  ombro = mais alcance).
+- **Medição por gesto**, não só o pior instante: um gesto grave esconde os outros. A ferramenta de depuração precisa
+  provar que rodou: `Val` com `idle` (em vez de `clip:IDLE`) lança exceção, e "nenhuma linha de FALHA" NÃO é aprovação.
+  Conte as linhas OK.
+

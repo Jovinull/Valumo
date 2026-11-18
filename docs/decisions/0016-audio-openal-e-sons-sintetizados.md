@@ -68,3 +68,9 @@ quatro riscos:
 | Middleware (FMOD, Wwise) | licença comercial, binários fechados, contra a regra de não usar engine/middleware |
 | Amostras de bancos livres | verificação de licença caso a caso, proveniência difícil de manter e controle fino menor que a síntese |
 | Gerador de áudio por IA | proibido como atalho (direção do proprietário) e não reproduzível |
+
+## Adendo — rodada 09.4
+
+Estendida pelo [ADR 0023](0023-audio-openal-stb-vorbis.md). Música, ambiente, interface e passos por superfície entram
+num catálogo, e o processo passa a ter UM dispositivo: os efeitos do combate tocam no mesmo contexto
+(`OpenAlBackend.shared`). Os sons gerados por `tools/audio_e.py` mudam para `assets/audio/sintese/`.

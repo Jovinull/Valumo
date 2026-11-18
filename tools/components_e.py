@@ -33,6 +33,11 @@ PRESETS = {
     "exploradora": (E.ranger, {}, "characters/e/ranger", "rabo", "#e3a64a", "#3d8fd8", "#e8b185"),
     "maga": (E.mage, {}, "characters/e/mage", "chanel", "#e2d4f2", "#8a58c8", "#f9d8ba"),
 }
+# rodada 09.4 — formato dos olhos como componente (primeiro passo do rosto por partes). O traço depende da ATUAÇÃO do
+# rosto (bold/cool/soft), então cada rosto guarda as suas variantes, geradas pelo próprio pintor (paint_face) com só
+# o parâmetro "eye" trocado; o formato nativo continua sendo os arquivos originais (preset idêntico).
+NATIVE_FACE = {"aventureiro": E.ADV_FACE, "exploradora": E.RNG_FACE, "maga": E.MAGE_FACE}
+EYES = {"olhos.redondos": "round", "olhos.amendoados": "almond", "olhos.inclinados": "tilt"}
 HAIR_RAMP = {"#c2582c": (0.85, 0.55), "#e3a64a": (0.85, 0.5), "#e2d4f2": (0.8, 0.4)}
 
 # paletas pequenas e escolhidas à mão (ver docs/architecture/personalizacao.md)
@@ -145,6 +150,35 @@ def build(out):
             e = _save(out, f"{fid}/{ex}.vox", f)
             e["mascara"] = _mask(out, f"{fid}/{ex}.mask.vox", chans)
             entry["exprs"][ex] = e
+        native_eye = NATIVE_FACE[pid]["eye"]
+        entry["olhos"] = next(k for k, v in EYES.items() if v == native_eye)
+        entry["variantesOlhos"] = {}
+        for oid, eye in EYES.items():
+            if eye == native_eye:
+                continue
+            st = dict(NATIVE_FACE[pid], eye=eye)
+            _, pv = _gen(pid, face=st)
+            mv = _merged(pv)
+            hood_v = set(pv["hood"].v) & set(mv["neutral"].v) if pv["hood"] is not None else set()
+            hair_v = (set(pv["hair"].v) & set(mv["neutral"].v)) - hood_v
+            _, phv = _gen(pid, face=st, hair_hex=PROBE_HAIR)
+            mhv = _merged(phv)
+            _, piv = _gen(pid, face=st, iris_hex=PROBE_IRIS)
+            miv = _merged(piv)
+            _, psv = _with_skin_probe(lambda: _gen(pid, face=st))
+            msv = _with_skin_probe(lambda: _merged(psv))
+            var = {"exprs": {}}
+            for ex, v in mv.items():
+                f = Vox()
+                for k, c in v.v.items():
+                    if k not in hair_v and k not in hood_v:
+                        f.v[k] = c
+                chans = {"pele": _diff(f, msv[ex]) & set(f.v), "sobrancelha": _diff(f, mhv[ex]) & set(f.v),
+                         "iris": _diff(f, miv[ex]) & set(f.v)}
+                e2 = _save(out, f"{fid}/{oid}/{ex}.vox", f)
+                e2["mascara"] = _mask(out, f"{fid}/{oid}/{ex}.mask.vox", chans)
+                var["exprs"][ex] = e2
+            entry["variantesOlhos"][oid] = var
         comps[fid] = entry
 
         # cabelo (massa que vai na cabeça + partes próprias)
@@ -175,7 +209,9 @@ def build(out):
             comps["capuz.c3"] = {"versao": 1, "slot": "cabeca", "origem": canon, "cabeca": _save(out, "capuz.c3/hood.vox", hood),
                                  "faixa": {"cor": f"#{lin[0]:02x}{lin[1]:02x}{lin[2]:02x}", "linhas": [L.NECK + 13, L.NECK + 14],
                                            "zMin": -7, "zMax": 5},
-                                 "cabelo": {"rabo": "faixa", "*": "faixa"}}
+                                 "cabelo": {"rabo": "faixa", "*": "faixa",
+                                            # rodada 09.4: no volume do crespo o nó e as fitas ficam enterrados
+                                            "crespo": "X"}}
         if pid == "maga":                                                    # chapéu: hat.vox canônico
             hat_doc = next(p for p in json.load(open(os.path.join(out, canon, "rig.json")))["parts"] if p["name"] == "hat")
             comps["chapeu.maga"] = {"versao": 1, "slot": "cabeca", "origem": canon,
@@ -198,6 +234,46 @@ def build(out):
                                    "iris": iris_hex, "cabeca": "chapeu.maga" if pid == "maga" else ("capuz.c3" if pid == "exploradora" else None),
                                    "mascarasDoCorpo": masks}
 
+    # integração da 09.4 (pedido do proprietário): o "Preso" (cabelo.rabo) em OUTRO corpo usava a trança da exploradora —
+    # feita para cair à esquerda das costas dela (a aljava fica à direita) e até o meio das costas: nos outros corpos ela
+    # ficava fora do centro, solta da cabeça, com a ponta flutuando. Para eles: rabo de cavalo CENTRADO, amarração de
+    # couro encostada na massa do cabelo (atrás, z = −8 entre y 30 e 36, medido) e a mecha curta até a nuca. A
+    # exploradora continua com a trança canônica (presets idênticos ao original).
+    if "cabelo.rabo" in comps:
+        hair_c = L.P("#e3a64a", ks=0.85, kl=0.5)                         # a mesma cor/rampa do cabelo da exploradora
+        pony = Vox()
+        lobes = [(35.0, -9.2, 2.0), (32.6, -9.4, 2.1), (30.1, -9.2, 2.0), (27.6, -8.8, 1.8), (25.2, -8.4, 1.5)]
+        for i, (y, z, r) in enumerate(lobes):                             # gomos alternados, afinando para a ponta
+            B.sblob(pony, 0.4 if i % 2 else 0.0, y, z, r, 1.9, r, hair_c, p=2.3)
+        B.sblob(pony, 0.2, 23.3, -8.2, 1.1, 1.5, 1.0, hair_c, p=2.2)      # ponta
+        L.shade(pony)
+        pony.paint(lambda x, y, z, c: B.shadow(hair_c, 1.3) if (y - 35) % 3 == 2 else None)
+        hair_cells = set(pony.v)
+        tie = {(x, y, z) for x in range(-2, 3) for y in (36, 37) for z in range(-11, -7)}   # amarração (couro), rente ao cabelo
+        for k in tie:
+            pony.v[k] = L.LEATHER if k[1] == 37 else L.LEATHER_D
+        pe = _save(out, "cabelo.rabo/rabo_centrado.vox", pony)
+        pe.update({"nome": "tail", "pai": "head", "pivo": [0.0, 36.5, -9.0],
+                   "mascara": _mask(out, "cabelo.rabo/rabo_centrado.mask.vox", {"cabelo": hair_cells - tie})})
+        comps["cabelo.rabo"]["porCorpo"] = {pid: {"partes": [pe]} for pid in PRESETS if pid != "exploradora"}
+
+    # rodada 09.4: primeira peça de roupa por região — botas (slot "pes"). Ocupa só as canelas (shin_l/shin_r), com o
+    # pivô do joelho do corpo; "botas.originais" = as do modelo (o compositor não troca nada).
+    comps["botas.originais"] = {"versao": 1, "slot": "pes", "nativo": True, "ocupa": ["perna.canela"],
+                                "origem": "botas canônicas de cada corpo"}
+    boots = {"versao": 1, "slot": "pes", "aprovado": "rodada 09.4", "ocupa": ["perna.canela"], "substitui": ["shin_l", "shin_r"],
+             "origem": "tools/charlib_e.py leg(boot_style='viajante') (rodada 09.4)", "porCorpo": {}}
+    for pid in PRESETS:
+        rig_b, _ = _gen(pid, boot_style="viajante")
+        rp = _rig_parts(rig_b)
+        boots["porCorpo"][pid] = {"partes": [dict(_save(out, f"botas.viajante/{pid}/{n}.vox", rp[n]), nome=n)
+                                             for n in ("shin_l", "shin_r")]}
+    comps["botas.viajante"] = boots
+
+    for oid, eye in EYES.items():                                      # rodada 09.4: slot "olhos" (formato)
+        comps[oid] = {"versao": 1, "slot": "olhos", "forma": eye, "origem": f"tools/charlib_e.py paint_face eye={eye}",
+                      "nota": "o desenho de cada expressão mora no rosto (variantesOlhos), porque depende da atuação"}
+
     # estilo extra: 'curto' (rodada 07) — curto e bagunçado. O 'natural' (h1) ficou fora do catálogo: medido,
     # é 82% do mesmo volume do topete (93% de frente) — seria variação, não estilo.
     rig_n, pn = _gen("aventureiro", hair_style="curto")
@@ -212,6 +288,23 @@ def build(out):
          "ocupa": ["cabeca.topo", "cabeca.nuca"]}
     e["cabeca"]["mascara"] = _mask(out, "cabelo.curto/hair.mask.vox", {"cabelo": _diff(hair, pnh["hair"])})
     comps["cabelo.curto"] = e
+
+    # rodada 09.4: estudos EXPERIMENTAIS (aprovação do proprietário pendente) — mesmo procedimento do 'curto'.
+    # Partes que não são cabelo (a amarração de couro do coque) ficam fora da máscara pela sonda: não recolorem.
+    for style, origem in (("crespo", "tools/chars_e.py hair_crespo (rodada 09.4)"),
+                          ("coque", "tools/chars_e.py hair_coque (rodada 09.4)")):
+        _, ps_ = _gen("aventureiro", hair_style=style)
+        ms_ = _merged(ps_)
+        hair = Vox()
+        for k in set(ps_["hair"].v) & set(ms_["neutral"].v):
+            hair.v[k] = ps_["hair"].v[k]
+        _, psh = _gen("aventureiro", hair_style=style, hair_hex=PROBE_HAIR)
+        hid = f"cabelo.{style}"
+        e = {"versao": 1, "slot": "cabelo", "origem": origem, "base": "#c2582c", "rampa": HAIR_RAMP["#c2582c"],
+             "aprovado": "rodada 09.4", "cabeca": _save(out, f"{hid}/hair.vox", hair), "partes": [],
+             "ocupa": ["cabeca.topo", "cabeca.nuca"]}
+        e["cabeca"]["mascara"] = _mask(out, f"{hid}/hair.mask.vox", {"cabelo": _diff(hair, psh["hair"])})
+        comps[hid] = e
 
     os.makedirs(os.path.join(out, "components"), exist_ok=True)
     with open(os.path.join(out, "components", "catalog.json"), "w") as f:

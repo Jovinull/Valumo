@@ -18,7 +18,13 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
-    runtimeOnly("org.lwjgl:lwjgl-openal::$lwjglNatives")   // traz o OpenAL Soft (LGPL, biblioteca dinâmica)
+    // Áudio (ADRs 0016 e 0023): OpenAL Soft (mixagem, vozes posicionais, laço, loopback para testes e gravação) e
+    // stb_vorbis (música em OGG). Módulos do próprio LWJGL, mesma versão do BOM; os natives trazem o OpenAL Soft (LGPL,
+    // biblioteca dinâmica).
+    api("org.lwjgl:lwjgl-openal")
+    api("org.lwjgl:lwjgl-stb")
+    runtimeOnly("org.lwjgl:lwjgl-openal::$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
 
     api("org.joml:joml:$jomlVersion")
     api("com.google.code.gson:gson:$gsonVersion")

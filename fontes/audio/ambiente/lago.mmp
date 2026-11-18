@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!DOCTYPE lmms-project>
+<lmms-project creator="LMMS" creatorversion="1.2.2" type="song" version="1.0">
+  <head bpm="120" timesig_numerator="4" timesig_denominator="4" mastervol="100" masterpitch="0"/>
+  <song>
+    <trackcontainer type="song">
+      <track muted="0" type="0" name="Marulho" solo="0">
+        <instrumenttrack fxch="1" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100003" value="100" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="100" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="6" modalgo1="2" userwavefile0="" vol1="0" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="0" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Marulho" pos="0">
+          <note pos="0" len="1728" key="48" vol="79" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Respingos" solo="0">
+        <instrumenttrack fxch="2" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100004" value="90" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="3.5" decay="40" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Respingos" pos="0">
+          <note pos="115" len="3" key="48" vol="50" pan="0"/>
+          <note pos="121" len="3" key="48" vol="36" pan="0"/>
+          <note pos="130" len="3" key="48" vol="27" pan="0"/>
+          <note pos="141" len="3" key="48" vol="16" pan="0"/>
+          <note pos="394" len="3" key="48" vol="50" pan="0"/>
+          <note pos="399" len="3" key="48" vol="36" pan="0"/>
+          <note pos="408" len="3" key="48" vol="27" pan="0"/>
+          <note pos="420" len="3" key="48" vol="16" pan="0"/>
+          <note pos="653" len="3" key="48" vol="55" pan="0"/>
+          <note pos="659" len="3" key="48" vol="41" pan="0"/>
+          <note pos="667" len="3" key="48" vol="31" pan="0"/>
+          <note pos="679" len="3" key="48" vol="20" pan="0"/>
+          <note pos="970" len="3" key="48" vol="50" pan="0"/>
+          <note pos="975" len="3" key="48" vol="36" pan="0"/>
+          <note pos="984" len="3" key="48" vol="27" pan="0"/>
+          <note pos="996" len="3" key="48" vol="16" pan="0"/>
+          <note pos="1238" len="3" key="48" vol="55" pan="0"/>
+          <note pos="1244" len="3" key="48" vol="41" pan="0"/>
+          <note pos="1253" len="3" key="48" vol="31" pan="0"/>
+          <note pos="1264" len="3" key="48" vol="20" pan="0"/>
+          <note pos="1498" len="3" key="48" vol="55" pan="0"/>
+          <note pos="1503" len="3" key="48" vol="41" pan="0"/>
+          <note pos="1512" len="3" key="48" vol="31" pan="0"/>
+          <note pos="1524" len="3" key="48" vol="20" pan="0"/>
+          <note pos="1651" len="3" key="48" vol="50" pan="0"/>
+          <note pos="1657" len="3" key="48" vol="36" pan="0"/>
+          <note pos="1666" len="3" key="48" vol="27" pan="0"/>
+          <note pos="1677" len="3" key="48" vol="16" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Gotas" solo="0">
+        <instrumenttrack fxch="3" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100005" value="60" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="0.5" decay="60" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.1" env="0.12" startfreq="1800" endfreq="900" startnote="1" endnote="0" noise="0.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Gotas" pos="0">
+          <note pos="259" len="6" key="76" vol="36" pan="0"/>
+          <note pos="854" len="6" key="71" vol="36" pan="0"/>
+          <note pos="1094" len="6" key="78" vol="36" pan="0"/>
+          <note pos="1373" len="6" key="73" vol="36" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="5" name="Volume: Marulho" solo="0">
+        <automationtrack/>
+        <automationpattern prog="1" tens="1" mute="0" name="Marulho&gt;&gt;Volume" pos="0" len="1930">
+          <time pos="10" value="25"/>
+          <time pos="115" value="70"/>
+          <time pos="202" value="35"/>
+          <time pos="288" value="25"/>
+          <time pos="394" value="70"/>
+          <time pos="480" value="35"/>
+          <time pos="547" value="25"/>
+          <time pos="653" value="70"/>
+          <time pos="739" value="35"/>
+          <time pos="864" value="25"/>
+          <time pos="970" value="70"/>
+          <time pos="1056" value="35"/>
+          <time pos="1133" value="25"/>
+          <time pos="1238" value="70"/>
+          <time pos="1325" value="35"/>
+          <time pos="1392" value="25"/>
+          <time pos="1498" value="70"/>
+          <time pos="1546" value="25"/>
+          <time pos="1584" value="35"/>
+          <time pos="1651" value="70"/>
+          <time pos="1738" value="35"/>
+          <object id="4100003"/>
+        </automationpattern>
+      </track>
+    </trackcontainer>
+    <fxmixer>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="0" name="Master">
+        <fxchain enabled="0" numofeffects="0">
+        </fxchain>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="1" name="Marulho">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="70" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="500" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="2" name="Respingos">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="800" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="2500" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="1400" Peak1gain="2.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="3" name="Gotas">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="500" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+    </fxmixer>
+    <timeline lp0pos="0" lp1pos="192" lpstate="0"/>
+    <controllers/>
+    <projectnotes>Ambiente da vila — rodada 09 (estudo; NÃO canônico). Duas camadas, cada uma numa sessão LMMS própria.
+
+VENTO (cama, sem posição, estéreo, laço de 24 s): o mundo é grande e aberto — ar sempre presente, discreto.
+  - "Ar": ruído contínuo, passa-baixa 650 Hz (o corpo do vento), nível fixo e baixo.
+  - "Rajada": ruído em banda 400–2 500 Hz com AUTOMAÇÃO de volume desenhada (curva de 24 s, termina onde começa).
+  - "Folhas": grãos agudos (3–8 kHz) só perto dos picos das rajadas — as folhas mexem quando o vento passa.
+LAGO (posicional, mono, laço de 16 s): água parada que encosta na margem — nada de cachoeira.
+  - "Marulho": ruído grave (passa-baixa 500 Hz) com ondas de período IRREGULAR (2,6–3,4 s) por automação.
+  - "Respingos": grãos de ruído médios (0,8–2,5 kHz) na crista de cada onda.
+  - "Gotas": 4 "plinks" esparsos (Kicker tonal 1,8 → 0,9 kHz, 60 ms).
+Tudo síntese do LMMS (ruído e tom), sem amostras. O laço sai de um render mais longo com a sobra fundida no início
+(tools/audio/render_ambiente.py).
+</projectnotes>
+  </song>
+</lmms-project>

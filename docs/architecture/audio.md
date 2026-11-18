@@ -1,7 +1,150 @@
-# Áudio — efeitos sonoros do combate (rodada 09.1; esquiva, salto, pouso e desfazer na 09.2)
+# Áudio
 
-Primeiro som do Valumo: efeitos que melhoram a leitura das ações da luta e passos discretos. Não há música nem
-ambiência. Decisões estruturais: [ADR 0016](../decisions/0016-audio-openal-e-sons-sintetizados.md).
+O Valumo tem **um só dispositivo de som por processo** ([ADR 0023](../decisions/0023-audio-openal-stb-vorbis.md),
+que estende o [ADR 0016](../decisions/0016-audio-openal-e-sons-sintetizados.md)). Duas camadas tocam nele:
+
+| Camada | O que toca | Onde | Arquivos |
+|---|---|---|---|
+| **Catálogo** (rodada 09.4, parte A) | música, ambiente, passos por superfície, interface | `vx.engine.audio.Audio` + `SoundSystem`, jogo em `GameAudio`, criador | versionados em `assets/audio/` (`sons.json`, `musica/`, `ambiente/`, `sfx/`); fontes em `fontes/audio/` |
+| **Efeitos do combate** (rodadas 09.1–09.3, parte B) | golpes, acertos, defesa, fungo, esquiva, salto, pouso | `vx.game.Sfx` + `CombatAudio` sobre `OpenAlBackend` | GERADOS por `tools/audio_e.py` em `assets/audio/sintese/` (fora do git); mistura em `assets/scenes/sons_e.json` |
+
+- **Um contexto:** o `Audio` abre o OpenAL (dispositivo, loopback ou mudo). Os efeitos do combate criam as vozes deles
+  no MESMO contexto (`OpenAlBackend.shared`). Sem catálogo, o `Sfx` abre o dele, como na 09.1.
+- **Uma mistura e uma gravação:** com `-Dvx.som=loopback` (ou `-Dvx.audio=loopback`), o `Audio` mistura uma vez por
+  quadro e o roteiro grava `SAIDA/audio.wav`.
+- **Um ouvinte:** a câmera, olhando para o herói.
+- **Volume:**
+  - o principal do combate é por voz (o ganho do ouvinte é de todo o contexto);
+  - "Efeitos", na pausa, vale para combate, passos, interface e ambiente; "Música" vale para a música;
+  - o mudo (M) desliga tudo.
+- **Passos:** os do catálogo (quatro superfícies × andar/correr). O passo único da 09.1 (`Footsteps`, `passo_terra`) só
+  age sem catálogo.
+- **Preferências de volume:** `-Dvx.prefs.audio` (padrão `output/preferencias/audio.json`). `-Dvx.prefs=-` desliga,
+  como as outras.
+
+## Parte A — catálogo, música, ambiente e interface (rodada 09.4)
+
+Rodada 09.4 (desenvolvida em paralelo como "rodada 09.4"). Decisão: [ADR 0023](../decisions/0023-audio-openal-stb-vorbis.md). Procedimentos: skills
+`music-composition`, `sound-design`, `audio-qa`. Todos os sons e músicas atuais são **estudos** (aprovação do
+proprietário pendente).
+
+| Marca | Significa |
+|---|---|
+| **[IMPLEMENTADO]** | existe e é coberto por testes |
+| **[PLANEJADO]** | proposta; nada no código ainda |
+
+### 1. Visão geral **[IMPLEMENTADO]**
+
+```
+fontes/audio/  (partitura .py → sessão LMMS .mmp + .mid)  ──render (LMMS CLI)──►  output/ (masters, propostas, QA)
+                                                                           └──►  assets/audio/ (runtime, versionado)
+assets/audio/sons.json (catálogo, à mão) ──► SoundCatalog ──► SoundSystem (regras) ──► AudioOut
+                                                                                      ├─ OpenAlOut (dispositivo | loopback)
+jogo (GameAudio) / criador (CreatorController.sound) ──► Audio.event("…")              └─ SilentOut (mudo)
+```
+
+| Peça | Onde | Papel |
+|---|---|---|
+| `Audio` | `engine/.../audio/Audio.java` | ponto único; mudo até alguém chamar `start`; propriedades `vx.audio`, `vx.vol.*`, `vx.musica`, `vx.audio.gravar` |
+| `SoundCatalog` | idem | lê `assets/audio/sons.json` (`valumo.sons` v1) |
+| `SoundSystem` | idem | variação, intervalo, limites, prioridade, barramentos, música com transição e abafamento |
+| `OpenAlOut` / `SilentOut` | idem | OpenAL Soft (fontes em pool, fila de 4 × 0,25 s por música, loopback para gravar/testar) |
+| `Pcm`, `VorbisSource`, `LoopingReader` | idem | WAV 16 bits próprio; OGG por stb_vorbis; laço exato na amostra |
+| `GameAudio` | `game/.../GameAudio.java` | pisadas (`Player.steps` + `World.surfaceAt`), ações do `GameLogic`, música da vila, ambiente e ouvinte |
+| `AudioPrefs` | `game/.../AudioPrefs.java` | volumes do jogador (música, efeitos) na pausa; `output/preferencias/audio.json` (`valumo.preferencias` v1) |
+| Criador | `CreatorController.sound` → `Audio::event` | sons da interface; `Creator.frame` avança o áudio |
+
+### 1.1 Timbres: síntese própria **[IMPLEMENTADO]**
+
+Decisão do proprietário na integração: nenhum banco de amostras. As partituras usam os instrumentos de
+`tools/audio/sintese.py`. Cada um é só parâmetros dos sintetizadores do LMMS 1.2.2, sem predefinição nem amostra:
+- TripleOscillator: osciladores somados, envelope de volume e filtro com envelope de corte;
+- Kicker: madeira e percussão.
+
+| Uso | Instrumentos |
+|---|---|
+| Vila A | violão, flauta, clarinete, baixo, cordas, glockenspiel, chocalho |
+| Vila B | harpa, celesta, flauta de pã, violoncelo, cordas lentas, vibrafone ("sino grave"), cristal |
+| Interface | bloco de madeira, kalimba, sininho, celesta, caixa de música |
+
+- **Calibração medida:** tempos do envelope ≈ 5 s × valor²; `sustain` é o nível.
+- **Equilíbrio:** `tools/audio/nivelar.py` renderiza cada faixa sozinha e mede a sonoridade (LUFS) contra um alvo por
+  papel.
+- **Comparação com a versão de banco:** bandas a até ~5 dB, um pouco mais escura. O timbre se julga de ouvido.
+
+### 2. Catálogo e eventos **[IMPLEMENTADO]**
+
+`assets/audio/sons.json` (escrito à mão): `barramentos` (música 0,6 · efeitos 0,85 · interface 0,75 · ambiente 0,7), `eventos`
+(arquivos = variações, `ganho_db`, `variacao_tom` em semitons, `variacao_ganho_db`, `intervalo_min`, `max_vozes`,
+`prioridade`, `duracao`), `musicas` (`arquivo`, `laco_inicio`/`laco_fim` em quadros, `ganho_db`) e `ambientes`
+(`arquivo`, `barramento`, `ganho_db`, `posicional`, `distancia_ref`, `distancia_max`).
+
+| Evento | Quem dispara | Arquivos |
+|---|---|---|
+| `passo.grama.andar` / `.correr` | pé começa o apoio sobre grama/floresta | 4 + 4 |
+| `passo.terra.andar` / `.correr` | idem sobre o caminho | 4 + 4 |
+| `passo.areia.andar` / `.correr` | idem sobre a areia (margem do lago) | 4 + 4 |
+| `passo.pedra.andar` / `.correr` | idem sobre rocha (encostas) | 4 + 4 |
+| `ui.selecionar` | trocar opção/cor/categoria/pose no criador; escolher aparência; avançar fala | 3 |
+| `ui.confirmar` | começar, concluir, confirmar restauração, carregar arquivo, vitrine, abrir o criador | 1 |
+| `ui.cancelar` | Esc/fechar diálogo, opção indisponível, sair da pausa, fim da conversa | 1 |
+| `ui.abrir` | pausa, diálogo de restaurar/carregar/concluir, começo da conversa, trocar aparência | 1 |
+| `ui.salvar` | aparência gravada em disco (só no sucesso) | 1 |
+| música `vila_a` / `vila_b` | jogo (padrão `vila_a`) e criador; `-Dvx.musica=vila_b|nenhuma` | OGG com laço |
+| ambiente `vento` | jogo, sempre (cama, sem posição, estéreo) | OGG em laço de 24 s |
+| ambiente `lago` | jogo, no centro do lago (`World.pondCenter`), posicional, mono: pleno até 2,5 u, some até 14 u | OGG em laço de 16 s |
+
+Regras: nunca a mesma variação duas vezes seguidas (gerador com semente → roteiro reproduzível); interface sem
+variação de tom (fica em Ré maior); limite por evento rouba a voz mais antiga dele; limite global (24 vozes)
+rouba a mais antiga de prioridade ≤, senão descarta; música pedida de novo não reinicia; troca de música sai em
+1,2 s e entra em 1,5 s; pausa abafa a música a 45%, conversa a 70%.
+
+### 3. Pisada sincronizada **[IMPLEMENTADO]**
+
+`Player.animate` conta uma pisada quando `floor(2 · animT · cadência)` muda — exatamente quando `frac(t·cad)` ou
+`frac(t·cad + ½)` volta a 0, a fase em que o `Animator` começa o apoio de um pé. Só com o herói no chão e acima de
+0,12 u/s. O som coincide com o pé por construção, e a contagem não depende do FPS (testado a 30 × 144 FPS).
+
+### 4. Laço da música **[IMPLEMENTADO]**
+
+O OGG do jogo tem introdução + duas passadas do corpo; o laço é a 2ª passada (que já começa com a cauda da 1ª).
+`LoopingReader` volta de `laco_fim` a `laco_inicio` sem pular nem repetir quadro; `stb_vorbis_seek` medido exato no
+início do laço. Pontos calibrados no próprio render do LMMS (`tools/audio/render_musica.py`).
+
+### 5. Falhas e modos **[IMPLEMENTADO]**
+
+- Sem dispositivo, sem natives ou sem catálogo → aviso no console e jogo mudo (`SilentOut`), nunca exceção.
+- Arquivo ausente → a variação não toca; o problema fica em `SoundSystem.problems()` (teste exige lista vazia).
+- `./gradlew jogo` e `./gradlew editor` abrem o dispositivo. Roteiros, capturas, `--demo` e testes são mudos.
+- `-Dvx.audio=loopback -Dvx.audio.gravar=x.wav` grava a mistura em sincronia com os quadros do roteiro.
+
+### 6. Ambiente, posição e volume do jogador **[IMPLEMENTADO]**
+
+- Ambientes são fluxos em laço (`SoundSystem.ambient`), entram e saem em 2 s, não reiniciam se pedidos de novo.
+  Posicionais exigem OGG mono; o OpenAL atenua por distância (modelo inverso com limite: `distancia_ref`,
+  `distancia_max`). O ouvinte (`SoundSystem.listener`) fica no herói, olhando para onde a câmera olha.
+- Fontes: `fontes/audio/ambiente/ambiente.py` → `vento.mmp`/`lago.mmp` → `tools/audio/render_ambiente.py` (laço por
+  crossfade de igual potência da sobra de 2 s; −24 LUFS).
+- Prova de posição: `AudioTest` mede pelo loopback o mesmo lago a 2 u e a 12 u (longe < metade do RMS); no jogo,
+  `tools/jogo/09-ambiente.txt` mostra o marulho ~8 dB mais baixo longe do lago.
+- Volume do jogador: pausa → Música e Efeitos (−/+ de 10%, 0–100%). Multiplicam o equilíbrio do catálogo
+  (`SoundSystem.userVolume`); "Efeitos" vale para efeitos, interface e ambiente. Arquivo ausente ou inválido = 100%.
+
+### 7. Custo **[medido na rodada 09.4]**
+
+Buffers dos efeitos carregados no início (39 arquivos); música e ambientes decodificados em fluxo (4 × 0,25 s cada,
+até 3 fluxos simultâneos: música, vento, lago); 32 fontes reservadas. Nada alocado por quadro além do bloco de decodificação da música.
+
+### 8. Limites e próximos passos **[PLANEJADO]**
+
+- Efeitos curtos posicionais no mundo (NPC, criaturas): os buffers já são mono; falta a API de evento com posição.
+- Pássaros e outras camadas de ambiente (fora por risco de soar caricato por síntese); música de exploração e de
+  combate; transição por região do mundo.
+- Aterrissagem quando houver pulo; passos de NPC.
+
+## Parte B — efeitos sonoros do combate (rodada 09.1; esquiva, salto, pouso e desfazer na 09.2)
+
+Primeiro som do Valumo: efeitos que melhoram a leitura das ações da luta e passos discretos. (Na 09.1 não havia música nem ambiência; vieram com a parte A.) Decisões estruturais: [ADR 0016](../decisions/0016-audio-openal-e-sons-sintetizados.md).
 
 ```bash
 ./gradlew jogo                                       # som no dispositivo padrão; M liga/desliga; volume na pausa (Esc)
@@ -12,7 +155,7 @@ tools/review91.sh videos                             # vídeos com o som GRAVADO
 JAVA_OPTS=-Dvx.som=loopback game/build/install/game/bin/game --roteiro R.txt SAIDA 30   # grava SAIDA/audio.wav
 ```
 
-## 1. Peças
+### 1. Peças
 
 | Peça | Onde | Faz |
 |---|---|---|
@@ -23,10 +166,10 @@ JAVA_OPTS=-Dvx.som=loopback game/build/install/game/bin/game --roteiro R.txt SAI
 | `Sfx` | game | mistura (`sons_e.json`), pré-carga, regras de reprodução, volumes, mudo, pausa, registro do que tocou |
 | `CombatAudio` | game | diretor: depois de cada passo lógico, olha o que mudou no confronto e pede os efeitos |
 | `Footsteps` | game | passos no pouso de cada pé (mesma fase de animação do desenho) |
-| `tools/audio_e.py` | tools | síntese de todos os efeitos (a fonte editável) → `assets/audio/*.wav` + `variantes.json` + `analise.json` |
+| `tools/audio_e.py` | tools | síntese de todos os efeitos (a fonte editável) → `assets/audio/sintese/*.wav` + `variantes.json` + `analise.json` |
 | `assets/scenes/sons_e.json` | escrito à mão | ganho, espacial, variação de tom, vozes e intervalo por efeito; volumes iniciais |
 
-## 2. Fluxo (e por que o som não muda a luta)
+### 2. Fluxo (e por que o som não muda a luta)
 
 ```
 passo lógico (1/120 s): combat.tick(...)  →  CombatAudio.afterTick(combat)  →  Sfx.cue(efeito, passo, posição)  →  backend.play
@@ -56,7 +199,7 @@ passo lógico (1/120 s): combat.tick(...)  →  CombatAudio.afterTick(combat)  �
 | `salto` / `pouso` | rodada 09.2: saiu do chão / pousou (contadores do `Player`; pouso só depois de 0,12 s no ar) | colado |
 | `fungo_desfaz` | rodada 09.2: o corpo se desfaz em blocos (morte + 0,14 s de reação + a pausa de impacto) | no inimigo |
 
-## 3. Regras de reprodução (`Sfx`)
+### 3. Regras de reprodução (`Sfx`)
 
 - **Pré-carga:** tudo é carregado na criação, cerca de 60–80 ms com o aquecimento. Depois, tocar não lê disco, não
   decodifica e não aloca buffer de som.
@@ -84,7 +227,7 @@ passo lógico (1/120 s): combat.tick(...)  →  CombatAudio.afterTick(combat)  �
 - **Picos:** cada arquivo sai a −3 dBFS e os ganhos da mistura ficam ≤ 1. O OpenAL Soft tem limitador de saída ligado
   por padrão. Na luta gravada, o pico da mistura fica em −5,6 dBFS, sem nenhuma amostra cortada.
 
-## 4. Os sons: síntese, revisão e mistura
+### 4. Os sons: síntese, revisão e mistura
 
 Todos os sons foram sintetizados em `tools/audio_e.py`: nenhum arquivo de terceiros, nenhuma amostra gravada, nenhuma IA
 geradora. A tabela é a proveniência completa: cada som vem da função indicada, com a semente fixa do arquivo.
@@ -129,7 +272,7 @@ geradora. A tabela é a proveniência completa: cada som vem da função indicad
   - O acerto fica ~6 dB acima do corte no ar: errar e acertar se distinguem pelo nível, não só pelo timbre.
   - A primeira mistura punha a preparação acima do acerto e o acerto, espacial, abaixo do "fuu". Foi corrigido.
 
-## 5. Sincronia e latência (o que foi medido, e como)
+### 5. Sincronia e latência (o que foi medido, e como)
 
 | O quê | Como | Resultado |
 |---|---|---|
@@ -147,7 +290,7 @@ geradora. A tabela é a proveniência completa: cada som vem da função indicad
 - **Latência absoluta:** do clique ao ouvido, com mouse físico e alto-falante, não foi medida. Precisaria de microfone e
   ferramenta externa, e fica no teste físico.
 
-## 6. Como acrescentar um som
+### 6. Como acrescentar um som
 
 Ver a skill `audio` (`.claude/skills/audio/SKILL.md`). Em resumo:
 

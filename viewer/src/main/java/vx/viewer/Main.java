@@ -48,6 +48,10 @@ public final class Main {
             System.exit(GripProbe.run(args) ? 0 : 1);
             return;
         }
+        if (args.length > 0 && args[0].equals("--check-cabelos")) { // rodada 09.4: arma × cabeça composta, voxel a voxel
+            System.exit(HairWeaponCheck.run(args.length > 1 ? args[1] : null) ? 0 : 1);
+            return;
+        }
         if (args.length > 0 && args[0].equals("--check")) {        // validação geométrica, sem janela
             System.exit(Check.run(args.length > 1 ? args[1] : null) ? 0 : 1);
             return;
@@ -75,8 +79,14 @@ public final class Main {
                     st.style = 4;                        // abre na direção consolidada E
                     st.quality = App.Quality.ALTA;       // inspeção; P alterna
                     if (hasArg(args, "--editor")) {      // rodada 07.2: criador do jogador
-                        try (Creator c = new Creator(app, window, Path.of(System.getProperty("vx.assets", "assets")))) {
+                        Path assets = Path.of(System.getProperty("vx.assets", "assets"));
+                        // rodada 09.4: som da interface (e a música da vila) no criador do jogador; teste de fumaça mudo
+                        vx.engine.audio.Audio.start(assets, demo == 0 ? vx.engine.audio.Audio.Mode.DEVICE : vx.engine.audio.Audio.Mode.OFF);
+                        vx.engine.audio.Audio.music(vx.engine.audio.Audio.musicChoice("vila_a"));
+                        try (Creator c = new Creator(app, window, assets)) {
                             c.run(demo);
+                        } finally {
+                            vx.engine.audio.Audio.stop();
                         }
                         return;
                     }
@@ -96,11 +106,17 @@ public final class Main {
                             i + 1 < args.length && !args[i + 1].startsWith("--") ? args[i + 1] : "all").run();
                     if (args[i].equals("--bench")) app.bench(i + 1 < args.length ? args[i + 1] : "");
                     if (args[i].equals("--editor-script")) {                                   // rodada 07.2
-                        try (Creator c = new Creator(app, window, Path.of(System.getProperty("vx.assets", "assets")))) {
+                        Path assets = Path.of(System.getProperty("vx.assets", "assets"));
+                        // rodada 09.4: mudo por padrão; -Dvx.audio=loopback -Dvx.audio.gravar=x.wav grava a sessão
+                        vx.engine.audio.Audio.start(assets, vx.engine.audio.Audio.Mode.OFF);
+                        vx.engine.audio.Audio.music(vx.engine.audio.Audio.musicChoice("vila_a"));
+                        try (Creator c = new Creator(app, window, assets)) {
                             c.script(Path.of(args[i + 1]), Path.of(args[i + 2]), i + 3 < args.length && !args[i + 3].startsWith("--")
                                     ? Integer.parseInt(args[i + 3]) : 30);
                         } catch (java.io.IOException e) {
                             throw new java.io.UncheckedIOException(e);
+                        } finally {
+                            vx.engine.audio.Audio.stop();
                         }
                     }
                     try {                                                                      // rodada 07
@@ -164,6 +180,8 @@ public final class Main {
                 // rodada 07: personagem composto em tempo de execução (preset + escolhas; null = do preset)
                 case "custom" -> { st.appearance = Appearance.preset(v); if (st.mode == App.Mode.CHARACTER) st.mode = App.Mode.CUSTOMIZE; }
                 case "rosto" -> st.appearance.face = v;
+                case "olhos" -> st.appearance.eyes = v;                  // rodada 09.4
+                case "pes" -> st.appearance.feet = v;                    // rodada 09.4
                 case "cabelo" -> st.appearance.hair = v;
                 case "corCabelo" -> st.appearance.hairColor = "#" + v;
                 case "pele" -> st.appearance.skin = "#" + v;

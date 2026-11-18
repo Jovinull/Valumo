@@ -1,0 +1,20 @@
+# Rodada 09.4 — pausa com os volumes (música e efeitos) em 1080p e 720p; clique nos botões de volume.
+size 1920 1080
+click comecar
+wait 1.0
+key ESC
+wait 0.6
+settle
+click mus-
+click efe+
+wait 0.3
+settle
+shot 01-pausa-volume-1080p
+size 1280 720
+wait 0.4
+settle
+shot 02-pausa-volume-720p
+settle
+click mus+
+key ESC
+wait 0.3

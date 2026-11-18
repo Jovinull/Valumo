@@ -1,0 +1,13 @@
+# Rodada 09.4 — formato dos olhos no criador (variante A em 1080p e 720p; variante B).
+size 1920 1080
+click cat:ROSTO
+click eyes:olhos.redondos
+shot 01-rosto-olhos-1080p
+size 1280 720
+settle
+shot 02-rosto-olhos-720p
+variant B
+size 1920 1080
+click cat:ROSTO
+click eyes:olhos.inclinados
+shot 03-rosto-olhos-variante-b

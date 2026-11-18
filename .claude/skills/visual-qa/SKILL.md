@@ -199,3 +199,11 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
 - **`antes`:** os mesmos roteiros do jogo no binário da 09.2 guardado, lado a lado com a 09.3.
 - **Quadros soltos enganam no rolamento:** veja o vídeo lento. Procure cabeça no chão, perna atravessando o pomo e
   subida mecânica.
+
+## Rodada 09.4 — áudio e personalização
+
+- `tools/review94.sh [audio|contexto|ambiente|criador|cabelos|armas|olhos|botas|pausa|gate|testes|tudo]` →
+  `output/visual-review/round-09-4/`. Vídeos do jogo saem COM SOM (mistura gravada pelo loopback, em sincronia).
+- Captura de evidência pode ser sobrescrita pela próxima rodada de capturas: copie o "antes" para `comparacoes/`
+  antes de corrigir (na 09.4 a imagem do defeito de layout se perdeu).
+- `--check-cabelos` (arma × cabeça composta) entra no portão de qualquer mudança de cabelo, rosto ou golpe.

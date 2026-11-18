@@ -85,3 +85,21 @@ que foi testado é a leitura pelo carregador do projeto (`VoxModelTest` e o pró
 A biblioteca Pillow (10.2.0) existente na máquina foi usada apenas para montar mosaicos temporários
 durante a iteração; não é dependência do projeto (as pranchas de entrega são montadas pelo viewer).
 
+
+## Áudio e ferramentas da rodada 09.4
+
+Instalados nesta máquina (Ubuntu 24.04.4, PipeWire 1.0.5): LMMS 1.2.2, FluidR3 GM 3.1 (`fluid-soundfont-gm`, MIT),
+Audacity 3.4.2 (sem `mod-script-pipe`), sox 14.4.2, ffmpeg/ffprobe 6.1.1, vorbis-tools, plugins LADSPA (swh, tap,
+caps), xvfb + xdotool + imagemagick (inspeção de interfaces), Goxel 0.13.0 (Flatpak de usuário). `.venv` recriada com
+numpy, Pillow, imageio, soundfile e scipy. Áudio do jogo: OpenAL Soft embutido nos natives do LWJGL 3.4.3 (ADR 0023).
+Detalhes e verificações: `docs/validation/relatorio-rodada-09-4.md` §2 e as skills de áudio.
+
+**Fedora (máquina principal do projeto, integração da 09.4):**
+- **LMMS 1.2.2:** a mesma versão, pelo Flatpak do usuário, sem privilégio:
+  `flatpak install --user flathub io.lmms.LMMS`.
+  - `tools/audio/render_musica.py` acha o LMMS sozinho: `VX_LMMS`, `lmms` no PATH ou o Flatpak (com acesso ao disco e
+    ao `/tmp`).
+  - Verificado: `render_sfx.py fontes/audio/sfx/passos/passos.mmp` gera os 48 passos.
+- **FluidR3 GM:** não é mais usado. Por decisão do proprietário, os timbres são de síntese própria
+  (`tools/audio/sintese.py`). Tudo renderiza só com o LMMS: as duas músicas, a interface, os passos e o ambiente.
+- **Python:** `soundfile` e `scipy` no `.venv` (o QA de áudio usa).

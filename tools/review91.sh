@@ -87,19 +87,19 @@ fi
 if [ "$what" = sons ] || [ "$what" = tudo ]; then
   # catálogo: cada efeito isolado (os próprios arquivos), uma faixa com todos em sequência e a prancha de revisão
   rm -rf "$R/sons"; mkdir -p "$R/sons/arquivos"
-  cp assets/audio/*.wav assets/audio/analise.json "$R/sons/arquivos/"
+  cp assets/audio/sintese/*.wav assets/audio/sintese/analise.json "$R/sons/arquivos/"
   python3 tools/audio_board.py "$R/sons/prancha-efeitos.png" > /dev/null
   python3 - "$R/sons" <<'PY'
 import json, sys, wave
 import numpy as np
 out = sys.argv[1]
-var = json.load(open("assets/audio/variantes.json"))["efeitos"]
+var = json.load(open("assets/audio/sintese/variantes.json"))["efeitos"]
 mix = json.load(open("assets/scenes/sons_e.json"))["efeitos"]
 sr, gap = 48000, 0.6
 track, lines, t = [], ["# catálogo isolado (faixa catalogo-isolado.wav): instante, efeito, arquivo, ganho da mistura aplicado"], 0.0
 for cue, files in var.items():
     for f in files:
-        w = wave.open("assets/audio/" + f)
+        w = wave.open("assets/audio/sintese/" + f)
         y = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(float) * mix[cue]["ganho"] * 0.8
         lines.append(f"{t:7.2f} s  {cue:16s} {f}")
         track += [y, np.zeros(int(gap * sr))]

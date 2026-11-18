@@ -33,6 +33,11 @@ public final class OpenAlBackend implements AudioBackend {
 
     private final long device, context;
     private final boolean loopback;
+    /** Rodada 09 (integração, ADR 0023): vozes num contexto que outro abriu ({@link #shared}) — não fecha o dispositivo. */
+    private final boolean owner;
+    /** Ganho de cada voz pedido no play e o volume principal: o final é o produto (o ouvinte é de todos no contexto). */
+    private final float[] voiceGain = new float[VOICES];
+    private float master = 1f;
     private final int rate;
     private final String name;
     private final int[] sources = new int[VOICES], generation = new int[VOICES];
@@ -42,11 +47,27 @@ public final class OpenAlBackend implements AudioBackend {
     private int next = VOICES - 1;
 
     private OpenAlBackend(long device, long context, boolean loopback, int rate, String name) {
+        this(device, context, loopback, rate, name, true);
+    }
+
+    private OpenAlBackend(long device, long context, boolean loopback, int rate, String name, boolean owner) {
         this.device = device;
         this.context = context;
         this.loopback = loopback;
         this.rate = rate;
         this.name = name;
+        this.owner = owner;
+    }
+
+    /**
+     * Vozes dos efeitos no contexto já aberto por {@link OpenAlOut} (o {@link Audio} do processo): um só dispositivo para
+     * música, ambiente, interface e combate; a gravação por loopback é a do {@link Audio}. Fechar só libera estas vozes.
+     */
+    public static OpenAlBackend shared(OpenAlOut out) {
+        OpenAlBackend b = new OpenAlBackend(out.device(), 0L, out.isLoopback(), out.isLoopback() ? OpenAlOut.RATE : 0,
+                "OpenAL Soft (compartilhado com o áudio do jogo: " + out.name() + ")", false);
+        b.initSources(ALC.createCapabilities(out.device()));
+        return b;
     }
 
     /** Dispositivo de saída padrão. */
@@ -82,8 +103,13 @@ public final class OpenAlBackend implements AudioBackend {
     private void init(ALCCapabilities caps) {
         if (!alcMakeContextCurrent(context)) throw new IllegalStateException("não foi possível ativar o contexto OpenAL");
         AL.createCapabilities(caps);
-        hasClock = caps.ALC_SOFT_device_clock;
         alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+        initSources(caps);
+    }
+
+    /** Cria as vozes no contexto atual. */
+    private void initSources(ALCCapabilities caps) {
+        hasClock = caps.ALC_SOFT_device_clock;
         alGenSources(sources);
         for (int s : sources) {
             alSourcef(s, AL_REFERENCE_DISTANCE, REF_DIST);
@@ -112,7 +138,8 @@ public final class OpenAlBackend implements AudioBackend {
             int s = sources[i], st = alGetSourcei(s, AL_SOURCE_STATE);
             if (st == AL_PLAYING || st == AL_PAUSED) continue;
             alSourcei(s, AL_BUFFER, buffers.get(sound));
-            alSourcef(s, AL_GAIN, gain);
+            voiceGain[i] = gain;
+            alSourcef(s, AL_GAIN, gain * master);
             alSourcef(s, AL_PITCH, pitch);
             alSourcei(s, AL_SOURCE_RELATIVE, spatial ? AL_FALSE : AL_TRUE);
             if (spatial) alSource3f(s, AL_POSITION, x, y, z); else alSource3f(s, AL_POSITION, 0f, 0f, 0f);
@@ -146,7 +173,10 @@ public final class OpenAlBackend implements AudioBackend {
         alListenerfv(AL_ORIENTATION, orient);
     }
 
-    @Override public void masterGain(float gain) { alListenerf(AL_GAIN, gain); }
+    @Override public void masterGain(float gain) {                       // por voz: o ouvinte é de todo o contexto
+        master = gain;
+        for (int i = 0; i < VOICES; i++) alSourcef(sources[i], AL_GAIN, voiceGain[i] * master);
+    }
 
     @Override public int activeVoices() {
         int n = 0;
@@ -175,6 +205,7 @@ public final class OpenAlBackend implements AudioBackend {
             alDeleteSources(sources);
             for (int b : buffers) alDeleteBuffers(b);
         } catch (RuntimeException ignored) { }
+        if (!owner) return;                                               // o contexto e o dispositivo são do Audio
         alcMakeContextCurrent(0L);
         alcDestroyContext(context);
         alcCloseDevice(device);

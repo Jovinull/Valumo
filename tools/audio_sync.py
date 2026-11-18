@@ -43,7 +43,7 @@ def main():
     print(f"# sincronia som × lógica (loopback, {sr} Hz, {fps} quadros/s; passo lógico 1/120 s)")
     print(f"# esperado = começo do quadro que processou o passo; medido = melhor encaixe do envelope do arquivo")
     print(f"{'passo':>6} {'efeito':18} {'esperado s':>10} {'medido s':>9} {'dif ms':>7} {'r':>5}  nota")
-    folder = sys.argv[4] if len(sys.argv) > 4 else "assets/audio"
+    folder = sys.argv[4] if len(sys.argv) > 4 else "assets/audio/sintese"
     diffs = []
     for t, cue, f, pitch in rows:
         if t <= start_tick:

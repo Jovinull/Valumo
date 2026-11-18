@@ -96,6 +96,11 @@ public final class Composer {
         ComponentCatalog.Component hairC = catalog.components.get(catalog.hair(a));
         String cover = catalog.cover(a), variant = catalog.coverVariant(a);
         int skinT = rgb(catalog.skin(a)), hairT = rgb(catalog.hairColor(a)), irisT = rgb(catalog.iris(a));
+        Map<String, JsonObject> feetParts = new java.util.HashMap<>();    // rodada 09.4: peças que as botas substituem
+        JsonObject feetDoc = catalog.components.get(catalog.feet(a)).doc;
+        if (feetDoc.has("porCorpo") && feetDoc.getAsJsonObject("porCorpo").has(a.preset))
+            for (JsonElement el : feetDoc.getAsJsonObject("porCorpo").getAsJsonObject(a.preset).getAsJsonArray("partes"))
+                feetParts.put(el.getAsJsonObject().get("nome").getAsString(), el.getAsJsonObject());
 
         // cabelo (massa da cabeça), recolorido pela rampa
         JsonObject hh = hairC.doc.getAsJsonObject("cabeca");
@@ -137,7 +142,12 @@ public final class Composer {
             piece.pivot = floats(p.getAsJsonArray("pivot"));
             if (n.equals("head")) {
                 for (String ex : EXPRS) {
-                    JsonObject fe = face.getAsJsonObject("exprs").getAsJsonObject(ex);
+                    // rodada 09.4: formato dos olhos ≠ o nativo do rosto → as expressões daquela variante (mesmo pintor)
+                    JsonObject exprs = face.getAsJsonObject("exprs");
+                    String eyes = catalog.eyes(a);
+                    if (eyes != null && face.has("variantesOlhos") && face.getAsJsonObject("variantesOlhos").has(eyes))
+                        exprs = face.getAsJsonObject("variantesOlhos").getAsJsonObject(eyes).getAsJsonObject("exprs");
+                    JsonObject fe = exprs.getAsJsonObject(ex);
                     VoxGrid g = load(fe).copy();
                     Map<Long, Integer> fm = mask(fe);
                     recolor(g, fm, "pele", rgb(face.get("pele").getAsString()), skinT);
@@ -148,6 +158,8 @@ public final class Composer {
                     if (ex.equals("neutral")) piece.grid = g;
                     else piece.alts.put(ex, g);
                 }
+            } else if (feetParts.containsKey(n)) {                         // rodada 09.4: botas trocam as canelas
+                piece.grid = load(feetParts.get(n));
             } else {
                 piece.grid = load(p, pre.body);
                 JsonElement bm = pre.bodyMasks.get(n);
@@ -158,8 +170,13 @@ public final class Composer {
             }
             r.pieces.add(piece);
         }
-        if (hairC.doc.has("partes"))                                       // partes próprias do cabelo (rabo)
-            for (JsonElement el : hairC.doc.getAsJsonArray("partes"))
+        // partes próprias do cabelo (rabo); integração da 09.4: o cabelo pode ter partes POR CORPO ("porCorpo", como as
+        // botas) — o "Preso" usa a trança canônica na exploradora e um rabo centrado nos outros corpos
+        JsonArray hairParts = hairC.doc.has("porCorpo") && hairC.doc.getAsJsonObject("porCorpo").has(a.preset)
+                ? hairC.doc.getAsJsonObject("porCorpo").getAsJsonObject(a.preset).getAsJsonArray("partes")
+                : hairC.doc.has("partes") ? hairC.doc.getAsJsonArray("partes") : null;
+        if (hairParts != null)
+            for (JsonElement el : hairParts)
                 r.pieces.add(piece(el.getAsJsonObject(), "cabelo", rgb(hairC.doc.get("base").getAsString()), hairT));
         r.pieces.addAll(coverPieces);
         if (hairC.doc.has("meta")) for (var e : hairC.doc.getAsJsonObject("meta").entrySet()) r.meta.add(e.getKey(), e.getValue());

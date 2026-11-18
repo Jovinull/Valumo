@@ -30,7 +30,7 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            "custom_e",
            # rodada 07: componentes de personalização em tempo de execução (lê assets de chars_e)
            "components_e",
-           # rodada 09.1: efeitos sonoros do combate (assets/audio/)
+           # rodada 09.1: efeitos sonoros do combate (assets/audio/sintese/)
            "audio_e"]
 
 

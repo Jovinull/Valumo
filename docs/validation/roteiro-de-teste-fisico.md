@@ -47,7 +47,7 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
    - durante a conversa o herói não anda.
 5. **Pausa:**
    - `Esc` pausa e solta o cursor; **Continuar** volta ao mesmo lugar;
-   - em **Sensibilidade do mouse** (− e +), teste se a mudança se sente;
+   - em **Sensibilidade** (− e +, a do mouse), teste se a mudança se sente;
    - experimente **Inverter vertical**.
 6. **Trocar aparência / Abrir o criador:** abra o criador pela pausa, mude o cabelo, clique em **Pronto** e
    **Levar para a vila**. O herói da vila deve ter a aparência nova.
@@ -61,6 +61,37 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
    - degraus que deveriam subir e não sobem;
    - a velocidade do mouse estranha.
 
+## C. Rodada 09.4 — o que só você pode validar (escuta e decisões)
+
+Nenhum som desta rodada foi avaliado por escuta. Use fones e depois a caixa; o pacote local
+`output/visual-review/round-09-4/LEIA-ME.md` lista os arquivos na ordem (regenerável com `tools/review94.sh tudo`).
+
+> **Depois da integração:** você aprovou a A (padrão), a B e os estudos de personalização, e escolheu **síntese
+> própria**. A música e a interface foram REFEITAS sem o banco de amostras. O que você ouviu antes não é mais o que
+> toca: ouça de novo os itens 1 e 2.
+
+1. **Música da vila (síntese própria)** — ouça `assets/audio/musica/vila_a.ogg` e `vila_b.ogg`, depois jogue
+   (`./gradlew jogo` toca a A; a B: `./gradlew jogo -Dvx.musica=vila_b`).
+   - Os timbres sintetizados ficaram bons? Algum instrumento soa artificial demais ou alto demais (violão, flauta,
+     clarinete; na B, harpa, celesta, vibrafone)?
+   - O laço passa sem emenda depois de ~1 min (A) / ~1 min 10 s (B)? A música cansa em 5 minutos de jogo?
+2. **Interface (síntese própria)** — no criador (`./gradlew editor`) clique bastante: o bloco de madeira e a kalimba
+   sintetizados incomodam depois de muitos cliques?
+3. **Passos** — ande e corra na grama, no caminho de terra, na areia da margem do lago e (se alcançar) na pedra das
+   encostas. Leem como superfícies diferentes? O passo coincide com o pé? Fica repetitivo?
+4. **Ambiente** — vento sempre presente e água do lago aumentando ao chegar perto da margem e sumindo ao se afastar.
+   O vento é discreto o bastante? A água soa como água?
+5. **Volume** — Esc → Música e Efeitos (−/+). O equilíbrio padrão (música × passos × interface × ambiente) está bom?
+   As preferências voltam ao reabrir o jogo?
+6. **Personalização** — no criador: cabelos Crespo e Coque alto, Formato dos olhos (Rosto) e botas Viajante
+   (categoria Roupa). Aprovar, pedir ajuste ou recusar cada estudo (todos marcados como experimentais).
+7. **Decisão pendente** — o gesto de comemoração (EMOTE) do aventureiro atravessa o topete canônico (achado pela
+   validação nova `viewer --check-cabelos`). Autorizar a correção da coreografia (muda as referências aprovadas)?
+8. **Ambiente de trabalho** — o Audacity do Ubuntu foi instalado mas não teve a abertura com interface verificada:
+   abra um WAV qualquer da pasta acima e confirme.
+
+Responda o que soar mal com o arquivo e o instante; a correção volta às fontes em `fontes/audio/`.
+
 ## O que já foi verificado sem você (para comparar)
 
 | Item | Como foi verificado |
@@ -69,3 +100,4 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
 | Criador | testes `CreatorTest` (eventos sintéticos) |
 | Janela real abre, desenha e fecha | teste de fumaça (`--demo N`) |
 | Fluxo completo | vídeos por roteiro de entrada (`tools/review8.sh`, `tools/review72.sh`) |
+| Áudio (rodada 09.4) | `AudioTest` (laço exato, regras, catálogo, mixagem real e atenuação por distância no loopback do OpenAL), `GameAudioTest`, mistura do jogo gravada em sincronia com os quadros (`tools/review94.sh contexto ambiente`), QA técnico (`tools/audio/audio_qa.py`) — medição, não escuta |

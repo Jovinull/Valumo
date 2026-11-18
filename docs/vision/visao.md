@@ -45,5 +45,9 @@ entender **princípios** (proporção, leitura, composição), nunca para copiar
 
 ## Fora do escopo até nova decisão
 Combate funcional, inventário, sistema de equipamentos, mana/habilidades, multiplayer, mundo infinito,
-missões, talentos, editor de mapas, física, áudio, menus. A engine cresce conforme a necessidade real,
+missões, talentos, editor de mapas, física.
+
+Áudio entrou na rodada 09.4 (pedido do proprietário): direção sonora em estudo, música e efeitos compostos de forma
+deliberada em ferramentas reais (LMMS), integração mínima por eventos ([ADR 0023](../decisions/0023-audio-openal-stb-vorbis.md),
+[audio.md](../architecture/audio.md)). Nada sonoro está aprovado ainda. A engine cresce conforme a necessidade real,
 não por antecipação.

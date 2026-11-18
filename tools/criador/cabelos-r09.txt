@@ -1,0 +1,47 @@
+# Rodada 09.4 — os dois estudos de cabelo no criador do jogador (miniaturas reais, nomes, cor, cobertura) e uma
+# sessão gravada (vídeo + áudio por loopback: tools/review94.sh criador).
+size 1920 1080
+saves limpar
+click cat:CABELO
+shot 01-categoria-cabelo-1080p
+record on
+wait 0.6
+click hair:cabelo.crespo
+wait 0.8
+shot 02-crespo
+click hairColor:preto
+wait 0.6
+shot 03-crespo-preto
+click hair:cabelo.coque
+wait 0.8
+shot 04-coque
+click hairColor:loiro
+wait 0.6
+shot 05-coque-loiro
+click cat:CHAPEU
+wait 0.4
+click cover:chapeu.maga
+wait 0.8
+shot 06-coque-com-chapeu
+click cover:capuz.c3
+wait 0.8
+shot 07-coque-com-capuz
+click cat:CABELO
+wait 0.4
+move hair:cabelo.crespo
+wait 0.6
+shot 07b-crespo-indisponivel-com-capuz
+click hair:cabelo.crespo
+wait 0.4
+shot 07c-clique-no-indisponivel
+click cat:CHAPEU
+wait 0.3
+click cover:nenhum
+wait 0.4
+key F2
+wait 1.2
+shot 08-salvo
+record off
+size 1280 720
+click cat:CABELO
+shot 09-categoria-cabelo-720p

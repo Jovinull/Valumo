@@ -82,6 +82,9 @@ public final class GameLogic {
     private boolean victoryShown;
     /** Avisado quando a aparência escolhida muda (o Game compõe o modelo). */
     public Consumer<Appearance> onAppearance = a -> { };
+    /** Rodada 09.4 — avisado a cada ação do jogador ("comecar", "pausar", "fala", "escolha", …): o som da interface
+     *  sai daqui (GameAudio), sem a regra de jogo saber de áudio. */
+    public Consumer<String> onAction = a -> { };
 
     public GameLogic(SceneDef scene, Collision collision) {
         this.scene = scene;
@@ -155,7 +158,8 @@ public final class GameLogic {
     public void select(int i) {
         if (i < 0 || i >= choices.size()) return;
         Choice c = choices.get(i);
-        if (!c.valid()) { message(c.label() + ": " + c.reason(), 3.5f); return; }
+        if (!c.valid()) { message(c.label() + ": " + c.reason(), 3.5f); onAction.accept("indisponivel"); return; }
+        if (started || i != selected) onAction.accept("escolha");
         selected = i;
         appearance = c.appearance().copy();
         onAppearance.accept(appearance);
@@ -298,6 +302,7 @@ public final class GameLogic {
     }
 
     public void startDialog(Npc n) {
+        onAction.accept("fala-inicio");
         talking = n;
         line = 0;
         candidate = null;
@@ -326,6 +331,7 @@ public final class GameLogic {
     }
 
     public void endDialog() {
+        if (talking != null) onAction.accept("fala-fim");
         talking = null;
         state = State.EXPLORE;
         cam.frame(false, null, 0, 0, 0);
@@ -345,6 +351,8 @@ public final class GameLogic {
     // ------------------------------------------------------------------ ações (teclado e cliques chegam aqui)
 
     public void action(String id) {
+        if (!id.startsWith("escolha:") && !id.equals("encerrar-fala") && !(id.equals("continuar-fala") && lastLine()))
+            onAction.accept(id);                                          // escolha e fim de fala avisam sozinhos
         switch (id) {
             case "comecar" -> {
                 if (appearance == null) { message("Escolha uma aparência", 3f); return; }

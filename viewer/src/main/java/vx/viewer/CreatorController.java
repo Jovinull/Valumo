@@ -26,6 +26,8 @@ public final class CreatorController {
     private final Consumer<Appearance> compose;
     public final CreatorCamera cam;
     public Path saveDir = Path.of("output/aparencias");
+    /** Rodada 09.4 — som da interface: recebe eventos semânticos ("ui.selecionar"…); o Creator liga ao áudio. */
+    public java.util.function.Consumer<String> sound = e -> { };
     public CreatorLayout layout;
     public String hover, pressed;
     public boolean dragging, panning;
@@ -117,11 +119,11 @@ public final class CreatorController {
             return;
         }
         if (st.dialog != CreatorState.Dialog.NONE) {
-            if (k == GLFW_KEY_ESCAPE) st.dialog = CreatorState.Dialog.NONE;
+            if (k == GLFW_KEY_ESCAPE) { st.dialog = CreatorState.Dialog.NONE; sound.accept("ui.cancelar"); }
             if (k == GLFW_KEY_ENTER) {
                 if (st.dialog == CreatorState.Dialog.CONFIRM_RESTORE) action("restore-confirm");
                 else if (st.dialog == CreatorState.Dialog.DONE) action(st.finishLabel != null ? "finish" : "showcase");
-                else st.dialog = CreatorState.Dialog.NONE;
+                else { st.dialog = CreatorState.Dialog.NONE; sound.accept("ui.cancelar"); }
             }
             return;
         }
@@ -158,6 +160,7 @@ public final class CreatorController {
     private void click(CreatorLayout.Widget w) {
         if (!w.enabled) {
             message(w.reason == null ? "Indisponível" : w.reason, "erro");
+            sound.accept("ui.cancelar");
             return;
         }
         action(w.id);
@@ -170,6 +173,7 @@ public final class CreatorController {
         Appearance a = st.appearance.copy();
         switch (op) {
             case "cat" -> {
+                sound.accept("ui.selecionar");
                 st.category = CreatorState.Category.valueOf(v);
                 st.scroll = 0;
                 cam.focusFace(st.category == CreatorState.Category.CABELO || st.category == CreatorState.Category.ROSTO
@@ -182,22 +186,27 @@ public final class CreatorController {
             case "skin" -> a.skin = hex("pele", v);
             case "iris" -> a.iris = hex("iris", v);
             case "face" -> a.face = v;
+            case "eyes" -> a.eyes = v;                                   // rodada 09.4
+            case "feet" -> a.feet = v;                                   // rodada 09.4
             case "cover" -> a.cover = v;
-            case "expr" -> { st.expr = v.equals("neutral") ? null : v; return; }
-            case "pose" -> { st.pose = Animator.Clip.valueOf(v); return; }
+            case "expr" -> { st.expr = v.equals("neutral") ? null : v; sound.accept("ui.selecionar"); return; }
+            case "pose" -> { st.pose = Animator.Clip.valueOf(v); sound.accept("ui.selecionar"); return; }
             case "cam" -> {
+                sound.accept("ui.selecionar");
                 if (v.equals("face")) cam.focusFace(true);
                 else if (v.equals("body")) cam.focusFace(false);
                 else cam.reset();
                 return;
             }
-            case "name" -> { st.editingName = true; return; }
+            case "name" -> { st.editingName = true; sound.accept("ui.selecionar"); return; }
             case "restore" -> {
-                if (st.isOriginal()) { message("Já é o modelo original", "info"); return; }
+                if (st.isOriginal()) { message("Já é o modelo original", "info"); sound.accept("ui.cancelar"); return; }
                 st.dialog = CreatorState.Dialog.CONFIRM_RESTORE;
+                sound.accept("ui.abrir");
                 return;
             }
             case "restore-confirm" -> {
+                sound.accept("ui.confirmar");
                 st.dialog = CreatorState.Dialog.NONE;
                 a.reset();
                 st.appearance = a;
@@ -208,27 +217,30 @@ public final class CreatorController {
             case "save" -> { save(); return; }
             case "load" -> {
                 refreshSaves();
-                if (st.saves.isEmpty()) { message("Nenhuma aparência salva ainda", "erro"); return; }
+                if (st.saves.isEmpty()) { message("Nenhuma aparência salva ainda", "erro"); sound.accept("ui.cancelar"); return; }
                 st.loadScroll = 0;
                 st.dialog = CreatorState.Dialog.LOAD;
+                sound.accept("ui.abrir");
                 return;
             }
-            case "loadfile" -> { load(st.saves.get(Integer.parseInt(v))); return; }
-            case "done" -> { st.dialog = CreatorState.Dialog.DONE; return; }
-            case "showcase" -> { st.dialog = CreatorState.Dialog.NONE; st.showcase = true; st.pose = Animator.Clip.WALK; cam.focusFace(false); return; }
-            case "finish" -> { st.dialog = CreatorState.Dialog.NONE; st.finished = true; return; }
-            case "showcase-exit" -> { st.showcase = false; st.pose = Animator.Clip.IDLE; return; }
-            case "dialog-cancel" -> { st.dialog = CreatorState.Dialog.NONE; return; }
+            case "loadfile" -> { sound.accept("ui.confirmar"); load(st.saves.get(Integer.parseInt(v))); return; }
+            case "done" -> { st.dialog = CreatorState.Dialog.DONE; sound.accept("ui.abrir"); return; }
+            case "showcase" -> { st.dialog = CreatorState.Dialog.NONE; st.showcase = true; st.pose = Animator.Clip.WALK; cam.focusFace(false); sound.accept("ui.confirmar"); return; }
+            case "finish" -> { st.dialog = CreatorState.Dialog.NONE; st.finished = true; sound.accept("ui.confirmar"); return; }
+            case "showcase-exit" -> { st.showcase = false; st.pose = Animator.Clip.IDLE; sound.accept("ui.cancelar"); return; }
+            case "dialog-cancel" -> { st.dialog = CreatorState.Dialog.NONE; sound.accept("ui.cancelar"); return; }
             default -> { return; }
         }
         try {
             a.validate(cat);
         } catch (Appearance.InvalidAppearance ex) {
             message(CreatorLayout.reasonFor(ex.getMessage()), "erro");            // nunca aplica combinação inválida
+            sound.accept("ui.cancelar");
             return;
         }
         st.appearance = a;
         compose.accept(a);
+        sound.accept("ui.selecionar");
     }
 
     /** Cor da paleta curada pelo nome ("castanho" → #rrggbb). */
@@ -261,8 +273,10 @@ public final class CreatorController {
             a.save(f, false);                                          // nunca sobrescreve
             refreshSaves();
             message("Aparência salva: " + f.getFileName(), "info");
+            sound.accept("ui.salvar");                                    // só quando o arquivo foi gravado
         } catch (IOException e) {
             message("Não consegui salvar: " + e.getMessage(), "erro");
+            sound.accept("ui.cancelar");
         }
     }
 

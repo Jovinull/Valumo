@@ -1,0 +1,294 @@
+{
+ "bpm": 240,
+ "compasso_ticks": 192,
+ "fatias": [
+  {
+   "id": "grama_a_andar_1",
+   "grupo": "grama_a_andar",
+   "tick": 0,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_a_andar_2",
+   "grupo": "grama_a_andar",
+   "tick": 192,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_a_andar_3",
+   "grupo": "grama_a_andar",
+   "tick": 384,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_a_andar_4",
+   "grupo": "grama_a_andar",
+   "tick": 576,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_a_correr_1",
+   "grupo": "grama_a_correr",
+   "tick": 768,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_a_correr_2",
+   "grupo": "grama_a_correr",
+   "tick": 960,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_a_correr_3",
+   "grupo": "grama_a_correr",
+   "tick": 1152,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_a_correr_4",
+   "grupo": "grama_a_correr",
+   "tick": 1344,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_b_andar_1",
+   "grupo": "grama_b_andar",
+   "tick": 1536,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_b_andar_2",
+   "grupo": "grama_b_andar",
+   "tick": 1728,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_b_andar_3",
+   "grupo": "grama_b_andar",
+   "tick": 1920,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_b_andar_4",
+   "grupo": "grama_b_andar",
+   "tick": 2112,
+   "max_ms": 170
+  },
+  {
+   "id": "grama_b_correr_1",
+   "grupo": "grama_b_correr",
+   "tick": 2304,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_b_correr_2",
+   "grupo": "grama_b_correr",
+   "tick": 2496,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_b_correr_3",
+   "grupo": "grama_b_correr",
+   "tick": 2688,
+   "max_ms": 140
+  },
+  {
+   "id": "grama_b_correr_4",
+   "grupo": "grama_b_correr",
+   "tick": 2880,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_a_andar_1",
+   "grupo": "terra_a_andar",
+   "tick": 3072,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_a_andar_2",
+   "grupo": "terra_a_andar",
+   "tick": 3264,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_a_andar_3",
+   "grupo": "terra_a_andar",
+   "tick": 3456,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_a_andar_4",
+   "grupo": "terra_a_andar",
+   "tick": 3648,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_a_correr_1",
+   "grupo": "terra_a_correr",
+   "tick": 3840,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_a_correr_2",
+   "grupo": "terra_a_correr",
+   "tick": 4032,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_a_correr_3",
+   "grupo": "terra_a_correr",
+   "tick": 4224,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_a_correr_4",
+   "grupo": "terra_a_correr",
+   "tick": 4416,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_b_andar_1",
+   "grupo": "terra_b_andar",
+   "tick": 4608,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_b_andar_2",
+   "grupo": "terra_b_andar",
+   "tick": 4800,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_b_andar_3",
+   "grupo": "terra_b_andar",
+   "tick": 4992,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_b_andar_4",
+   "grupo": "terra_b_andar",
+   "tick": 5184,
+   "max_ms": 170
+  },
+  {
+   "id": "terra_b_correr_1",
+   "grupo": "terra_b_correr",
+   "tick": 5376,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_b_correr_2",
+   "grupo": "terra_b_correr",
+   "tick": 5568,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_b_correr_3",
+   "grupo": "terra_b_correr",
+   "tick": 5760,
+   "max_ms": 140
+  },
+  {
+   "id": "terra_b_correr_4",
+   "grupo": "terra_b_correr",
+   "tick": 5952,
+   "max_ms": 140
+  },
+  {
+   "id": "areia_andar_1",
+   "grupo": "areia_andar",
+   "tick": 6144,
+   "max_ms": 170
+  },
+  {
+   "id": "areia_andar_2",
+   "grupo": "areia_andar",
+   "tick": 6336,
+   "max_ms": 170
+  },
+  {
+   "id": "areia_andar_3",
+   "grupo": "areia_andar",
+   "tick": 6528,
+   "max_ms": 170
+  },
+  {
+   "id": "areia_andar_4",
+   "grupo": "areia_andar",
+   "tick": 6720,
+   "max_ms": 170
+  },
+  {
+   "id": "areia_correr_1",
+   "grupo": "areia_correr",
+   "tick": 6912,
+   "max_ms": 140
+  },
+  {
+   "id": "areia_correr_2",
+   "grupo": "areia_correr",
+   "tick": 7104,
+   "max_ms": 140
+  },
+  {
+   "id": "areia_correr_3",
+   "grupo": "areia_correr",
+   "tick": 7296,
+   "max_ms": 140
+  },
+  {
+   "id": "areia_correr_4",
+   "grupo": "areia_correr",
+   "tick": 7488,
+   "max_ms": 140
+  },
+  {
+   "id": "pedra_andar_1",
+   "grupo": "pedra_andar",
+   "tick": 7680,
+   "max_ms": 170
+  },
+  {
+   "id": "pedra_andar_2",
+   "grupo": "pedra_andar",
+   "tick": 7872,
+   "max_ms": 170
+  },
+  {
+   "id": "pedra_andar_3",
+   "grupo": "pedra_andar",
+   "tick": 8064,
+   "max_ms": 170
+  },
+  {
+   "id": "pedra_andar_4",
+   "grupo": "pedra_andar",
+   "tick": 8256,
+   "max_ms": 170
+  },
+  {
+   "id": "pedra_correr_1",
+   "grupo": "pedra_correr",
+   "tick": 8448,
+   "max_ms": 140
+  },
+  {
+   "id": "pedra_correr_2",
+   "grupo": "pedra_correr",
+   "tick": 8640,
+   "max_ms": 140
+  },
+  {
+   "id": "pedra_correr_3",
+   "grupo": "pedra_correr",
+   "tick": 8832,
+   "max_ms": 140
+  },
+  {
+   "id": "pedra_correr_4",
+   "grupo": "pedra_correr",
+   "tick": 9024,
+   "max_ms": 140
+  }
+ ]
+}

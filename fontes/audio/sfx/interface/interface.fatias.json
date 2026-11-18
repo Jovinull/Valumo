@@ -1,0 +1,90 @@
+{
+ "bpm": 240,
+ "compasso_ticks": 192,
+ "fatias": [
+  {
+   "id": "a_selecionar_1",
+   "grupo": "a_selecionar",
+   "tick": 0,
+   "max_ms": 180
+  },
+  {
+   "id": "a_selecionar_2",
+   "grupo": "a_selecionar",
+   "tick": 192,
+   "max_ms": 180
+  },
+  {
+   "id": "a_selecionar_3",
+   "grupo": "a_selecionar",
+   "tick": 384,
+   "max_ms": 180
+  },
+  {
+   "id": "a_confirmar_1",
+   "grupo": "a_confirmar",
+   "tick": 576,
+   "max_ms": 450
+  },
+  {
+   "id": "a_cancelar_1",
+   "grupo": "a_cancelar",
+   "tick": 768,
+   "max_ms": 380
+  },
+  {
+   "id": "a_abrir_1",
+   "grupo": "a_abrir",
+   "tick": 960,
+   "max_ms": 360
+  },
+  {
+   "id": "a_salvar_1",
+   "grupo": "a_salvar",
+   "tick": 1152,
+   "max_ms": 950
+  },
+  {
+   "id": "b_selecionar_1",
+   "grupo": "b_selecionar",
+   "tick": 1344,
+   "max_ms": 180
+  },
+  {
+   "id": "b_selecionar_2",
+   "grupo": "b_selecionar",
+   "tick": 1536,
+   "max_ms": 180
+  },
+  {
+   "id": "b_selecionar_3",
+   "grupo": "b_selecionar",
+   "tick": 1728,
+   "max_ms": 180
+  },
+  {
+   "id": "b_confirmar_1",
+   "grupo": "b_confirmar",
+   "tick": 1920,
+   "max_ms": 450
+  },
+  {
+   "id": "b_cancelar_1",
+   "grupo": "b_cancelar",
+   "tick": 2112,
+   "max_ms": 380
+  },
+  {
+   "id": "b_abrir_1",
+   "grupo": "b_abrir",
+   "tick": 2304,
+   "max_ms": 360
+  },
+  {
+   "id": "b_salvar_1",
+   "grupo": "b_salvar",
+   "tick": 2496,
+   "max_ms": 950
+  }
+ ]
+}

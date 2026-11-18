@@ -6,7 +6,7 @@ description: Criar, integrar, revisar e validar efeitos sonoros do Valumo (rodad
 # Som (rodada 09.1 em diante)
 
 Arquitetura, números e proveniência: `docs/architecture/audio.md`; decisão: ADR 0016. Mistura:
-`assets/scenes/sons_e.json` (à mão). Sons: `assets/audio/` (GERADOS, fora do git).
+`assets/scenes/sons_e.json` (à mão). Sons: `assets/audio/sintese/` (GERADOS, fora do git; o resto de `assets/audio/` é o catálogo versionado da 09.4).
 
 ## Regras que não se negociam
 
@@ -103,3 +103,15 @@ Comandos de roteiro:
   - o som de acerto no fungo sai do inimigo atingido (`Combat.Impact.who`);
   - salto e pouso vêm dos contadores do `Player`; a esquiva, de `Hero.dodges`.
 - **O som não muda a luta:** continua só lendo. O teste "o som não muda a luta" segue valendo.
+
+## Rodada 09.4 — um dispositivo com o catálogo (ADR 0023)
+
+- **O `Audio` (catálogo: música, ambiente, passos, interface) abre o OpenAL.** O `Sfx` do combate toca no mesmo
+  contexto (`OpenAlBackend.shared(Audio.output())`). Nunca abra um segundo dispositivo: seriam duas misturas, e no
+  loopback a gravação correria em dobro.
+- **Volume do combate por voz:** o ganho do ouvinte é de todo o contexto (baixaria a música).
+- **Um ouvinte:** a câmera (o `GameAudio` usa o mesmo).
+- **Sons gerados:** `tools/audio_e.py` → `assets/audio/sintese/` (fora do git). O resto de `assets/audio/` é versionado.
+- **Passos:** os do catálogo. `Footsteps` (`passo_terra`) só age sem catálogo.
+- **Gravação:** `-Dvx.som=loopback` (ou `-Dvx.audio=loopback`) → `SAIDA/audio.wav`, mistura feita pelo `Audio.update`.
+

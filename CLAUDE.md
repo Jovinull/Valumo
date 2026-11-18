@@ -10,7 +10,8 @@ proprietário**.
 2. `docs/art/visual-identity.md` §0 (invariantes × flexíveis) e `docs/art/contrato-de-qualidade.md`.
 3. `docs/art/reference/` — imagens canônicas e reprovados.
 4. A skill da tarefa em `.claude/skills/`: `character-design`, `voxel-art`, `weapon-animation`,
-   `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`, `combat`, `audio`.
+   `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`, `combat`, `audio`,
+   `music-composition`, `sound-design`, `audio-qa`.
 5. `docs/validation/problemas-conhecidos.md` — o que está aberto e o que é limitação aceita
    (histórico completo: `matriz-de-problemas.md`).
 
@@ -29,7 +30,7 @@ tools/review93.sh [animacao|videos [NN]|antes|desempenho|testes|validadores|regr
 viewer/build/install/viewer/bin/viewer --check golpe-andando   # golpes com as pernas andando (4 rumos × 4 fases): 0 problemas
 viewer/build/install/viewer/bin/viewer --check esquiva         # cortes golpe→esquiva R2/recuo nas janelas medidas + saídas: segura
 ./gradlew jogo -Dvx.sensacao=A|B|C -Dvx.encontro=um|grupo|chefe -Dvx.morte=D2|D1|antiga   # comparar (também na pausa)
-python3 tools/audio_e.py                            # efeitos sonoros sintetizados → assets/audio/ (gerados; mistura em assets/scenes/sons_e.json)
+python3 tools/audio_e.py                            # efeitos do combate sintetizados → assets/audio/sintese/ (gerados; mistura em assets/scenes/sons_e.json)
 viewer/build/install/viewer/bin/viewer --check interrupcao-fina   # golpes jogáveis cortados a cada 0,01 s: 0 inseguros
 tools/review8.sh [capturas|videos|desempenho|testes|zip]  # pacote do jogo (entrada por roteiro, tools/jogo/)
 tools/review81.sh [temporal|dentes|referencias|regressao|desempenho|testes]  # malha conforme: câmera lenta, legado × conforme
@@ -44,6 +45,12 @@ tools/snap.sh "mode=lineup,style=e,set=herois,out=output/tmp/x.png"   # captura 
 tools/anim.sh output/tmp/x "mode=lineup,style=e,set=herois,clip=walk" 60 30   # vídeo
 tools/reference.sh [pasta]                          # refaz as referências canônicas
 python3 tools/check_links.py                        # links da documentação
+python3 fontes/audio/musica/vila/vila_a.py          # partitura → sessão LMMS (.mmp) + .mid (áudio: skills de áudio)
+.venv/bin/python tools/audio/render_musica.py SESSAO.mmp SAIDA [--runtime assets/audio/musica/ID]  # render + laço + master
+.venv/bin/python tools/audio/render_sfx.py SESSAO.mmp SAIDA --alvo-rms -26   # efeitos: fatia, mono, consistência
+.venv/bin/python tools/audio/audio_qa.py --catalogo assets/audio/sons.json   # QA técnico de todo o áudio do jogo
+tools/review94.sh [audio|contexto|ambiente|criador|cabelos|armas|olhos|botas|pausa|gate|testes]  # pacote da rodada 09.4 (áudio e personalização)
+viewer/build/install/viewer/bin/viewer --check-cabelos  # arma × cabeça composta (cabelo personalizado), voxel a voxel
 ```
 
 Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README.md` e as skills.
@@ -56,7 +63,7 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   fresta se investiga com as três malhas (`-Dvx.mesh=legado`, padrão, `-Dvx.merge=false`) e em câmera lenta
   (`tools/review81.sh temporal`). As invariantes ficam em `MeshSeamTest`.
 - **Assets são gerados.** Nunca edite `assets/characters`, `assets/creatures`, `assets/environment`,
-  `assets/textures`, `assets/studies`, `assets/audio` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
+  `assets/textures`, `assets/studies`, `assets/audio/sintese` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
   e `assets/anim/*.json`. Peça desenhada num editor entra via `voxlib.load_vox` (ver `pipeline-de-producao.md`).
 - **Armas:** golpe = trajetória no perfil (`assets/anim/`). `viewer --check`, `--occlusion` e `--grip` sem
   alerta + vídeo em 4 ângulos (passar no validador não basta: arma pode sumir atrás do braço). **Nunca** aumente tolerância para passar: corrija pose ou volume (`*_volumes`) com justificativa.
@@ -82,9 +89,16 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   nada de dano em área. Chefe = variante `chefe: true`; protótipo ampliado sempre marcado `prototipo`.
 - **Morte** (ADR 0022): desagregação nos próprios blocos (`DeathFx`/`VoxelCloud`, uma malha dinâmica); a antiga só em
   `-Dvx.morte=antiga`.
-- **Som** (rodada 09.1, ADR 0016): OpenAL Soft pelo LWJGL; o som **só lê** a lógica depois de cada passo (luta idêntica
-  com e sem som, teste); sons só sintetizados em `tools/audio_e.py` (nada de terceiros nem IA); sem dispositivo = mudo,
-  nunca erro; vídeos com o som gravado pela própria aplicação (`-Dvx.som=loopback`). Skill `audio`.
+- **Som** (ADRs 0016 e 0023): um só dispositivo OpenAL por processo (`Audio`); os efeitos do combate tocam no mesmo
+  contexto (`OpenAlBackend.shared`). O som **só lê** a lógica depois de cada passo (luta idêntica com e sem som, teste);
+  jogo e interface emitem eventos (`Audio.event("ui.confirmar")`), nunca caminhos. Combate: síntese em
+  `tools/audio_e.py` → `assets/audio/sintese/` (gerado). Catálogo (música, ambiente, passos, interface): fontes em
+  `fontes/audio/` (partitura `.py`, sessão LMMS `.mmp`, `.mid`), arquivos versionados em `assets/audio/` (renderizar exige
+  LMMS), catálogo `assets/audio/sons.json` à mão. Timbres: síntese própria nos sintetizadores do LMMS
+  (`tools/audio/sintese.py`; equilíbrio medido com `tools/audio/nivelar.py`). Nada de amostra de terceiros nem de IA
+  geradora de som (o banco FluidR3 GM saiu na 09.4, decisão do proprietário). Sem
+  dispositivo = mudo, nunca erro. Roteiros e testes mudos; vídeos com o som da própria aplicação (`-Dvx.som=loopback`).
+  Medir não é ouvir: diga quando não ouviu. Skills `audio`, `sound-design`, `music-composition`, `audio-qa`.
 - **Contrato:** nomes, eixos e escalas em `docs/art/contrato-de-assets.md`; mudou → atualize o documento,
   `AssetContractTest` e `QualityTest`.
 - **Protagonistas da E:** 2,35–2,60 cabeças, ≤ 1,25 u, voxel 1/40 u, articulados (`farm_*`, `shin_*`),
@@ -117,9 +131,9 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Luz e pós | `viewer/.../StyleProfile.java`, `engine/src/main/resources/shaders/` |
 | Cenário | `viewer/.../World.java`, `assets/scenes/clearing_e.json` |
 | Captura | `viewer/.../App.java`, `Main.java` (chaves de `snap`, `--layout`), `tools/snap.sh`, `tools/anim.sh`, `tools/review61.sh` (antes/depois) |
-| Personalização | `tools/components_e.py` → `assets/components/`; `viewer/.../Composer.java`, `ComponentCatalog.java`, `Appearance.java`, `engine/.../VoxGrid.java`; modo PERSONALIZACAO; `tools/review7.sh` (gate pixel a pixel); `docs/architecture/personalizacao.md`; skill `character-customization` |
+| Personalização | `tools/components_e.py` → `assets/components/` (rodada 09.4: `olhos.*`, `pes` = botas, Appearance v2; `docs/architecture/personalizacao-evolucao.md`); `viewer/.../Composer.java`, `ComponentCatalog.java`, `Appearance.java`, `engine/.../VoxGrid.java`; modo PERSONALIZACAO; `tools/review7.sh` (gate pixel a pixel); `docs/architecture/personalizacao.md`; skill `character-customization` |
 | Jogo | módulo `game/` (`vx.game`): `GameLogic` (estados, passo fixo), `Player` (movimento), `Collision` (relevo + formas), `FollowCamera`, `Game` (janela, desenho, roteiros); cena `assets/scenes/jogo_vila_e.json`, colisão `assets/scenes/colisao_e.json`; `viewer/.../Terrain.java`; `docs/architecture/jogo.md`; skill `gameplay` |
 | Mobilidade, mira, grupos (09.2) | `vx.game`: `Hero` (golpe móvel, esquiva), `Player` (perfil, salto), `Targeting` (Q/Tab), `Combat.enemies` (encontros, vez no grupo), `DeathFx` + `VoxelCloud` + `DeathFxMesh` (morte), `Prefs` (barras, sensação, arena); `viewer`: `Animator` (`Motion.legW/locoDir/air/land`, `spin`/`footY`, contato do rolamento), `Choreo` (`cutFade`); `MobilityTest`, `GroupCombatTest`, `CameraModesTest`; roteiros `tools/combate92/`; `combate.md` §14–19 |
-| Som | engine `vx.engine.audio` (`OpenAlBackend`, `SilentBackend`, `Wav`); `vx.game`: `Sfx`, `CombatAudio`, `Footsteps`; síntese `tools/audio_e.py`, revisão `tools/audio_board.py`, sincronia `tools/audio_sync.py`; mistura `assets/scenes/sons_e.json`; `CombatAudioTest`; `docs/architecture/audio.md`; skill `audio` |
+| Áudio | um dispositivo por processo (ADR 0023): engine `vx.engine.audio` — `Audio`, `SoundSystem`, `SoundCatalog`, `OpenAlOut`, `LoopingReader`, `VorbisSource` (catálogo: música, ambiente, passos, interface) e `OpenAlBackend` (`shared`), `SilentBackend`, `Wav` (efeitos do combate); `vx.game`: `GameAudio`, `AudioPrefs` (volumes na pausa), `Sfx`, `CombatAudio`, `Footsteps` (só sem catálogo); catálogo `assets/audio/sons.json` + arquivos versionados de `fontes/audio/` e `tools/audio/`; combate gerado por `tools/audio_e.py` em `assets/audio/sintese/`, mistura `assets/scenes/sons_e.json`; `AudioTest`, `GameAudioTest`, `CombatAudioTest`; `docs/architecture/audio.md`; skills `audio`, `sound-design`, `music-composition`, `audio-qa` |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |

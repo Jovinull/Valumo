@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Rodada 09.1 — prancha de revisão dos efeitos sonoros: forma de onda (com o envelope RMS) e espectrograma de cada
-arquivo de assets/audio/, mais os números de analise.json. Para revisar ataque, decaimento, faixa de frequência,
+arquivo de assets/audio/sintese/, mais os números de analise.json. Para revisar ataque, decaimento, faixa de frequência,
 repetição entre variações e cortes sem depender só do ouvido.
 
 Uso: python3 tools/audio_board.py <saida.png> [pasta-de-áudio]
@@ -67,7 +67,7 @@ def tile(name, y, info, dur_max):
 
 def main():
     out = sys.argv[1]
-    folder = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "audio")
+    folder = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "audio", "sintese")
     info = json.load(open(os.path.join(folder, "analise.json")))
     names = [n[:-4] for n in sorted(os.listdir(folder)) if n.endswith(".wav")]
     ys = {n: load(os.path.join(folder, n + ".wav")) for n in names}

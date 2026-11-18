@@ -2,7 +2,7 @@
 """Rodada 09.1 — efeitos sonoros do primeiro combate (direção E, "Fábula Voxel"), sintetizados aqui.
 
 Tudo é síntese controlada e determinística (sementes fixas), sem amostras de terceiros nem geradores por IA: este
-arquivo É a fonte editável de cada som. Saída: assets/audio/*.wav (PCM 16 bits mono, 48 kHz) + variantes.json (qual
+arquivo É a fonte editável de cada som. Saída: assets/audio/sintese/*.wav (PCM 16 bits mono, 48 kHz) + variantes.json (qual
 arquivo é variação de qual efeito). A mistura (ganho, espacial, limites de vozes) é escrita à mão em
 assets/scenes/sons_e.json.
 
@@ -438,7 +438,7 @@ def analyse(y):
 
 
 def build(out_assets):
-    out = os.path.join(out_assets, "audio")
+    out = os.path.join(out_assets, "audio", "sintese")   # o resto de assets/audio/ é versionado (catálogo, ADR 0023)
     os.makedirs(out, exist_ok=True)
     variants, report = {}, {}
     for cue, items in catalog().items():

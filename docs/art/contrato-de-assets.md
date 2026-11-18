@@ -238,13 +238,13 @@ Testes novos: `AssetContractTest.consolidatedHeroesHaveElbowsAndKnees`,
 Estudos novos: `characters/r4/adventurer_shield`, `characters/r4/adventurer_longblade` (`tools/chars_e_study.py`).
 A flecha da exploradora passou a 15 voxels (proporção chibi da puxada). Testes: `ChoreoTest` (14 casos).
 
-## 10. Efeitos sonoros (rodada 09.1)
+## 10. Efeitos sonoros do combate (rodada 09.1)
 
 | Onde | O quê | Regra |
 |---|---|---|
-| `assets/audio/*.wav` | efeitos GERADOS por `tools/audio_e.py` (fora do git) | PCM 16 bits, **mono** (posicionáveis), 48 kHz, pico em −3 dBFS (±0,1), sem DC, sem estalo nas bordas |
-| `assets/audio/variantes.json` | gerado: efeito → arquivos (variações) | todo efeito da mistura tem som gerado, e todo som gerado é usado |
-| `assets/audio/analise.json` | gerado: números de revisão por arquivo | duração, pico, RMS, crista, DC, cortes, centroide |
+| `assets/audio/sintese/*.wav` | efeitos do combate GERADOS por `tools/audio_e.py` (fora do git) | PCM 16 bits, **mono** (posicionáveis), 48 kHz, pico em −3 dBFS (±0,1), sem DC, sem estalo nas bordas |
+| `assets/audio/sintese/variantes.json` | gerado: efeito → arquivos (variações) | todo efeito da mistura tem som gerado, e todo som gerado é usado |
+| `assets/audio/sintese/analise.json` | gerado: números de revisão por arquivo | duração, pico, RMS, crista, DC, cortes, centroide |
 | `assets/scenes/sons_e.json` | **escrito à mão**: mistura por efeito | `ganho` 0–1, `espacial`, `tom` (variação ±), `vozes`, `intervalo` (s); volumes iniciais |
 | nomes | efeitos em português, `snake_case` | `golpe_ar_h`, `golpe_acerto`, `escudo_bloqueio`, `fungo_preparo`… (o diretor em `CombatAudio` os usa) |
 
@@ -265,4 +265,18 @@ Origem: só síntese (nenhuma amostra de terceiros, nenhum gerador por IA); a pr
 - **`assets/scenes/colisao_e.json`:** `"pisavel": true` faz o topo da forma virar chão para quem pula em cima.
 - **`assets/scenes/sons_e.json`:** `esquiva_rolar`, `esquiva_recuo`, `salto`, `pouso`, `fungo_desfaz`.
 - **`output/preferencias.json`** (gerado pelo jogo, fora do git): `barrasInimigos`, `sensacao`, `encontro`.
+
+## 12. Extensões da rodada 09.4 (áudio e personalização)
+
+- **Áudio do catálogo** (fonte de verdade escrita à mão + arquivos renderizados versionados; não são gerados pelo build;
+  os efeitos do combate gerados ficam à parte, em `assets/audio/sintese/`, §10):
+  `assets/audio/sons.json` (contrato `valumo.sons` v1: `barramentos`, `eventos`, `musicas`, `ambientes`),
+  `assets/audio/sfx/<familia>/*.wav` (PCM 16 bits, 48 kHz, **mono**), `assets/audio/musica/*.ogg` (Vorbis, 48 kHz,
+  estéreo, laço em quadros no catálogo), `assets/audio/ambiente/*.ogg` (posicional = mono; cama = estéreo). Fontes
+  editáveis em `fontes/audio/` (partitura `.py`, sessão LMMS `.mmp`, `.mid`, `*.fatias.json`, `*.laco.json`).
+  Teste: `AudioTest` (formato, taxa, canais, duração por evento, laço).
+- **Componentes** (gerados por `tools/components_e.py`): slot `olhos` (`olhos.*`, parâmetro; o desenho mora em
+  `rosto.*.variantesOlhos.<id>.exprs`), slot `pes` (`botas.originais` nativo; `botas.viajante` com
+  `porCorpo.<preset>.partes` = `shin_l`/`shin_r` no espaço do modelo, mesmo pivô do corpo), `"experimental": true`
+  nos estudos e `"aprovado": "rodada NN"` depois da aprovação do proprietário (crespo, coque e botas: rodada 09.4). Um cabelo pode ter partes por corpo: `porCorpo.<preset>.partes` substitui `partes` naquele corpo (`cabelo.rabo`: rabo centrado fora da exploradora). Aparência `valumo.aparencia` v2 (`aparencia.olhos`, `equipamento_visual.pes`).
 

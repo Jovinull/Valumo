@@ -38,7 +38,11 @@ ADV_HAIR = "h2"          # escolhido no estudo da rodada 03 (docs/historico/expe
 
 def adventurer_hair(sk, hair, style):
     """Cabelo do aventureiro. r02 = versão da rodada 02 (pontas da coroa liam como antenas);
-    h1 natural assimétrico; h2 topete refinado (escolhido); h3 recorte de vento com rabinho."""
+    h1 natural assimétrico; h2 topete refinado (escolhido); h3 recorte de vento com rabinho.
+    Rodada 09.4: 'crespo' e 'coque' são ESTUDOS de personalização (funções próprias abaixo; os ramos
+    existentes não mudam — os heróis canônicos saem idênticos)."""
+    if style in HAIR_STUDIES_R09:
+        return HAIR_STUDIES_R09[style](sk, hair)
     Yh = NECK
     nape = lambda x, z: 2 if abs(x + 0.5) < 6 else 3
     nape_tips = [((-4.5, Yh + 6, -7), (-5, Yh + 3, -8.5), (-5.2, Yh + 1.5, -8.8), 2.5, 1.3),
@@ -104,7 +108,101 @@ def adventurer_hair(sk, hair, style):
     return h, head_top, tail
 
 
-def adventurer(variant="e", hair_style=None, face=None, name=None, kit="sword", hair_hex=None, iris_hex=None, _parts=None):
+# ----------------------------------------------------------------------------- rodada 09.4: estudos de cabelo
+
+def _lobe_notches(h, hair, lobes, gap=0.10):
+    """Contorno dos cachos (v2): na SUPERFÍCIE, a célula na fronteira entre dois lóbulos (distâncias normalizadas
+    quase iguais) é retirada — um entalhe geométrico contínuo que a luz e o contorno leem como linha, em vez de
+    tinta escura em voxels soltos (v1: virou ruído de pontos nas costas)."""
+    def exposed(k):
+        x, y, z = k
+        return any((x + dx, y + dy, z + dz) not in h.v for dx, dy, dz in
+                   ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)))
+    cut = []
+    for k, c in h.v.items():
+        p = (k[0] + 0.5, k[1] + 0.5, k[2] + 0.5)
+        ds = sorted(math.dist(p, (cx, cy, cz)) / r for (cx, cy, cz, r) in lobes)
+        if ds[0] <= 1.05 and ds[1] - ds[0] < gap and exposed(k):
+            cut.append(k)
+    for k in cut:
+        del h.v[k]
+
+
+# lado da cabeça: abaixo desta altura (rel. a NECK) a têmpora ficava careca no perfil (v1 dos dois estudos)
+TEMPLE = 6
+
+
+def hair_crespo(sk, hair):
+    """Crespo volumoso (v2): nuvem de cachos em POUCOS lóbulos grandes (não um domo liso — capacete é defeito; nem
+    muitos pequenos — vira couve-flor). A silhueta mais LARGA do catálogo; a altura fica na do topete.
+    v1 → v2: 19 → 13 lóbulos maiores; contorno por entalhe (não tinta); têmporas e costeletas cobertas; franja em
+    três cachos escalonados (v1 era uma placa reta, "viseira")."""
+    Yh = NECK
+    bang = {x: (13 if abs(x + 0.5) < 4 else 12 if abs(x + 0.5) < 6.5 else TEMPLE) for x in range(-12, 12)}
+    h = L.hair_base(sk, hair, bang, lambda x, z: 3, thick=1.5)
+    head_top = h.bounds()[4]
+    lobes = [
+        # coroa (4)
+        (-2.6, Yh + 17.2, -0.6, 4.6), (3.0, Yh + 17.0, -1.2, 4.5), (-1.8, Yh + 16.4, -6.2, 4.4), (3.4, Yh + 16.0, -6.4, 4.2),
+        # laterais (4): largura; os da frente descem sobre a têmpora
+        (-9.0, Yh + 13.4, -1.4, 4.0), (8.8, Yh + 13.6, -1.8, 4.0), (-8.6, Yh + 9.6, 2.0, 2.8), (8.4, Yh + 9.4, 1.8, 2.8),
+        # nuca (3)
+        (-5.4, Yh + 10.4, -7.0, 3.9), (5.2, Yh + 10.6, -7.2, 3.9), (0.0, Yh + 6.6, -8.0, 3.0),
+        # franja (2 + 1 escalonados)
+        (-3.6, Yh + 14.6, 5.4, 2.4), (2.4, Yh + 15.6, 5.2, 2.6),
+    ]
+    for (cx, cy, cz, r) in lobes:
+        B.sblob(h, cx, cy, cz, r, r * 0.95, r, hair, p=2.1)
+    h = L.hair_finish(h, sk, hair, face_guard=face_guard, sheen=False)   # faixa de brilho é de cabelo liso
+    _lobe_notches(h, hair, lobes)
+    return h, head_top, None
+
+
+def hair_coque(sk, hair):
+    """Coque alto (v2): cabelo puxado (casca rente, testa livre), coque REDONDO no alto-trás com espiral e amarração
+    de couro, e duas mechas soltas emoldurando o rosto. A silhueta mais ALTA do catálogo, tudo dentro do volume da
+    cabeça (nada pende sobre ombros ou mochila).
+    v1 → v2: sem a faixa de brilho (virava um anel claro, "prato", em volta da coroa); coque esférico (p 2,3 → 2,0)
+    com colo mais fino; costas com os sulcos largos padrão (hair_strands) — v1 tinha a nuca chapada com um
+    retângulo claro; têmporas cobertas."""
+    Yh = NECK
+    bang = {x: (14 if abs(x + 0.5) < 3 else 13 if abs(x + 0.5) < 6.5 else TEMPLE) for x in range(-12, 12)}
+    h = L.hair_base(sk, hair, bang, lambda x, z: 4, thick=1.3)
+    head_top = h.bounds()[4]
+    bx, by, bz, br = 0.0, Yh + 19.0, -3.4, 4.0
+    B.sblob(h, bx, by, bz, br, br * 0.92, br, hair, p=2.0)                 # coque redondo
+    B.sblob(h, 0.0, Yh + 15.6, -2.8, 2.8, 1.6, 2.8, hair, p=2.2)          # colo fino
+    L.hair_locks(h, hair, [((-6.2, Yh + 12.5, 5.0), (-7.8, Yh + 8.6, 6.6), (-7.3, Yh + 4.6, 6.8), 1.4, 0.8),
+                           ((5.6, Yh + 12.2, 5.2), (7.0, Yh + 9.4, 6.4), (6.6, Yh + 6.6, 6.6), 1.3, 0.8)])
+    h = L.hair_finish(h, sk, hair, face_guard=face_guard, sheen=False)
+    L.hair_strands(h, hair)                                                # mechas largas nas costas e lados
+    groove, lit = B.RAMPS[hair]
+    for (x, y, z), c in list(h.v.items()):
+        if c not in (hair, lit) or y < Yh + 16:
+            continue
+        if ((x + 0.5 - bx) / br) ** 2 + ((y + 0.5 - by) / (br * 0.92)) ** 2 + ((z + 0.5 - bz) / br) ** 2 <= 1.25:
+            # espiral do coque: 2,5 voltas, faixa de sombra — enrolado, não bola lisa
+            s = math.atan2(x + 0.5 - bx, z + 0.5 - bz) / (2 * math.pi) * 2.5 + (y + 0.5 - by) / 2.8
+            if s - math.floor(s) < 0.18:
+                h.v[(x, y, z)] = groove
+    tie = Vox()                                                       # amarração: fora do canal do cabelo
+    for x in range(-6, 6):
+        for z in range(-8, 3):
+            d = math.hypot(x + 0.5 - bx, z + 0.5 - bz)
+            if 2.2 <= d <= 3.6:
+                for y in (Yh + 15, Yh + 16):
+                    if (x, y, z) in h.v:
+                        tie.set(x, y, z, LEATHER)
+    L.shade(tie)
+    h.merge(tie)
+    return h, head_top, None
+
+
+HAIR_STUDIES_R09 = {"crespo": hair_crespo, "coque": hair_coque}
+
+
+def adventurer(variant="e", hair_style=None, face=None, name=None, kit="sword", hair_hex=None, iris_hex=None, _parts=None,
+               boot_style=None):
     hair_style = hair_style or (ADV_HAIR if variant == "e" else "r02")
     face = face if face is not None else (ADV_FACE if variant == "e" else {})
     tunic = P("#3a958a")
@@ -188,7 +286,7 @@ def adventurer(variant="e", hair_style=None, face=None, name=None, kit="sword", 
     pa.set(8, int(SHOULDER + 1), 3, GOLD)
     shade(pa)
     arm_r.merge(pa.flipped_x(), overwrite=True)
-    leg_l, leg_r = L.leg(pants, boot, B.light(boot), LEATHER_D)
+    leg_l, leg_r = L.leg(pants, boot, B.light(boot), LEATHER_D, boot_style=boot_style)
 
     # kit (rodada 04): "sword" (herói oficial), "shield" (espada + broquel, estudo) ou "longblade" (estudo)
     if kit == "longblade":
@@ -229,7 +327,7 @@ RNG_FACE = {"eye": "almond", "brow": "thin", "mouth": "small", "freckles": True,
 RNG_HOOD = "c3"          # escolhido no estudo da rodada 03
 
 
-def ranger(hood_style=None, face=None, name=None, hair_hex=None, iris_hex=None, _parts=None):
+def ranger(hood_style=None, face=None, name=None, hair_hex=None, iris_hex=None, _parts=None, boot_style=None):
     """Exploradora. hood_style: c0 = rodada 02 (capuz verde pontudo); c1 = c0 refinado;
     c2 = capuz de folha azul-petróleo/terracota com a ponta enrolada para a frente;
     c3 = capuz abaixado e assimétrico, cabelo à mostra, faixa, pena e bússola (escolhido)."""
@@ -382,7 +480,7 @@ def ranger(hood_style=None, face=None, name=None, hair_hex=None, iris_hex=None, 
     shade(t)
 
     arm_l, arm_r = L.arm(tunic, TAN, cuff=hood_d, puff=None)
-    leg_l, leg_r = L.leg(legg, boot, B.light(boot), B.shadow(boot), tall=True)
+    leg_l, leg_r = L.leg(legg, boot, B.light(boot), B.shadow(boot), tall=True, boot_style=boot_style)
     bw, grip = L.bow(wood=P("#9a6236"), wrap=coral, with_string=False)
 
     alts = {"head": {k: v for k, v in heads.items() if k != "neutral"}}
@@ -411,7 +509,7 @@ HATS = {"m0": ((12.2, 11.8), 14, 7, 7.0, False),        # rodada 02
         "m2": ((11.2, 10.8), 15, 7, 5.6, True)}         # aba média virada, copa alta e estreita
 
 
-def mage(hat_style=None, face=None, staff_style="r3", name=None, hair_hex=None, iris_hex=None, _parts=None):
+def mage(hat_style=None, face=None, staff_style="r3", name=None, hair_hex=None, iris_hex=None, _parts=None, boot_style=None):
     hat_style = hat_style or MAGE_HAT
     face = MAGE_FACE if face is None else face
     robe = P("#7a4a8c")
@@ -511,7 +609,7 @@ def mage(hat_style=None, face=None, staff_style="r3", name=None, hair_hex=None, 
     skirt_r = sk_
 
     arm_l, arm_r = L.arm(robe, None, cuff=gold, bell=True, skin_hand=SKIN_PALE)
-    leg_l, leg_r = L.leg(tights, LEATHER, TAN, LEATHER_D)
+    leg_l, leg_r = L.leg(tights, LEATHER, TAN, LEATHER_D, boot_style=boot_style)
     if staff_style == "r02":
         st, grip = L.staff(gold, crystal, crystal_hi, length=25)   # topo abaixo da aba do chapéu
     else:

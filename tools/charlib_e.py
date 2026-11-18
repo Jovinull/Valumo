@@ -567,8 +567,10 @@ def arm(sleeve, glove, cuff=None, puff=2.5, skin_hand=None, bell=False, sleeve_t
     return a, a.flipped_x()
 
 
-def leg(pants, boot, cuff, sole, tall=False, cx=3.5):
-    """Perna esquerda (x>0): coxa curta e bota grande de bico redondo. Devolve (esquerda, direita)."""
+def leg(pants, boot, cuff, sole, tall=False, cx=3.5, boot_style=None):
+    """Perna esquerda (x>0): coxa curta e bota grande de bico redondo. Devolve (esquerda, direita).
+    Rodada 09.4: boot_style="viajante" (personalização) = forro de lã creme virado em sino + tira com fivela no peito do pé, tudo
+    dentro da canela (mesmo pivô de joelho, mesma sola e tornozelo: o IK do pé não muda). None = a bota canônica."""
     l = Vox()
     cz = 0.5
     top = 6 if not tall else 7
@@ -583,6 +585,19 @@ def leg(pants, boot, cuff, sole, tall=False, cx=3.5):
         del l.v[k]
     for k in [k for k in l.v if k[1] == 0]:
         l.v[k] = sole
+    if boot_style == "viajante":
+        # v2: forro de lã (creme) virado para fora, 3 fileiras abrindo em sino — a v1 usava o tom claro da própria bota
+        # e não se lia na câmera de jogo (contraste de valor é o que separa a peça a distância)
+        for y in (top - 2, top - 1, top):
+            ring(l, y, y, 3.55 + 0.25 * (y - top + 2), 3.6 + 0.25 * (y - top + 2), CREAM, cz=cz, cx=cx + 0.1, p=2.6)
+        for k in [k for k in l.v if k[1] == top and abs(k[0] + 0.5 - cx) < 2.2 and abs(k[2] + 0.5 - cz) < 2.2]:
+            l.v[k] = pants                                               # a calça entra pela boca da bota
+        ring(l, 3, 3, 3.0, 3.05, LEATHER_D, cz=cz + 0.4, cx=cx + 0.1, p=2.6)   # tira sobre o peito do pé
+        fz = max(k[2] for k in l.v if k[1] == 3 and abs(k[0] + 0.5 - (cx + 0.1)) < 1.0)
+        l.set(int(round(cx - 0.4)), 3, fz, GOLD)                         # fivela (2 voxels, presa à tira)
+        l.set(int(round(cx + 0.6)), 3, fz, GOLD_D)
+        for k in [k for k in l.v if k[1] < 0 or k[0] < 1]:
+            del l.v[k]
     shade(l)
     return l, l.flipped_x()
 

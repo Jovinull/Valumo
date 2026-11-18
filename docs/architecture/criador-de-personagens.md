@@ -227,6 +227,24 @@ Os testes da rodada 07 (identidade dos presets) continuam iguais. O gate pixel a
 `tools/review7.sh gate`; para não sobrescrever o pacote da 07, use
 `R=output/visual-review/round-07-2/regressao tools/review7.sh gate`.
 
+## 9.1 Rodada 09.4
+
+- **Categoria Roupa** (ícone de bota em pixel): seção "Botas" com miniaturas reais enquadradas nos pés
+  (enquadramento `pes` do `App.renderThumb`); "Do modelo" é o componente nativo `botas.originais`.
+- **Rosto**: "Formato dos olhos" (miniaturas com enquadramento `olhos`, close na linha dos olhos) e "Cor dos olhos"
+  (antes "Olhos"). No ateliê (variante B), que tem pouca altura, o formato vira botões de alternância sob um único
+  título "Olhos" — com miniaturas a fileira saía da tela em 2560×1080 e 1280×720 (`CreatorTest` pegou).
+- **Cabelo**: com mais de 4 penteados a grade usa 3 colunas (com 2, a "Cor do cabelo" saía do painel e o clique em
+  "loiro" caía num controle recortado).
+- **Opção indisponível**: penteado incompatível com a cobertura mostra "Não combina com o chapéu atual"; cobertura
+  incompatível com o penteado, "Não combina com o penteado atual". Primeira regra real: crespo × capuz C3.
+- **Sons**: `CreatorController.sound` emite eventos semânticos (`ui.selecionar`, `ui.confirmar`, `ui.cancelar`,
+  `ui.abrir`, `ui.salvar` só ao gravar de fato); `./gradlew editor` abre o áudio; roteiros ficam mudos (loopback
+  opcional para gravar).
+- **Composição assíncrona**: pedidos tirados da fila por um pedido mais novo contam como descartados (antes não
+  contavam e o `CreatorTest.rapidRequestsEndOnTheLastChoice` falhava com a CPU cheia).
+- Roteiros: `tools/criador/cabelos-r09.txt`, `olhos-r09.txt`, `roupa-r09.txt`.
+
 ## 10. Revisão visual
 
 `tools/review72.sh tudo` gera:

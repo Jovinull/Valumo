@@ -247,8 +247,11 @@ public final class CreatorLayout {
             }
             case CABELO -> {
                 y = heading("Penteado", null, cx, y, cw);
-                y = thumbs(ordered(cat.ids("cabelo"), HAIR_ORDER).stream().map(i -> "hair:" + i).toList(), "hair", cat.hair(a),
-                        cx, y, cw, b ? 4 : 2, b ? 0.9f : 0.66f, st, cat, m);
+                // rodada 09.4: com mais de 4 penteados, 2 colunas viravam 3 fileiras e empurravam "Cor do cabelo" para
+                // fora do painel (o clique em "loiro" caía num controle recortado); 3 colunas mantêm as cores à vista
+                List<String> hairIds = ordered(cat.ids("cabelo"), HAIR_ORDER);
+                y = thumbs(hairIds.stream().map(i -> "hair:" + i).toList(), "hair", cat.hair(a),
+                        cx, y, cw, b ? 4 : hairIds.size() > 4 ? 3 : 2, b ? 0.9f : 0.66f, st, cat, m);
                 y = nextColumn(y, box, pad);
                 y = heading("Cor do cabelo", null, cx, y + (b ? 0 : 8 * s), cw);
                 y = swatches("hairColor", cat.colors.get("cabelo"), cat.hairColor(a), cx, y, cw, 5, m);
@@ -258,7 +261,22 @@ public final class CreatorLayout {
                 y = thumbs(cat.ids("rosto").stream().map(i -> "face:" + i).toList(), "face", cat.face(a), cx, y, cw, 3,
                         b ? 0.62f : 1.0f, st, cat, m);
                 y = nextColumn(y, box, pad);
-                y = heading("Olhos", null, cx, y + (b ? 0 : 8 * s), cw);
+                // rodada 09.4: formato dos olhos (primeiro passo do rosto por partes); o desenho segue a atuação do rosto.
+                // Na 2ª coluna do layout largo (B), junto da cor — antes da troca de coluna ele saía da tela em 2560×1080
+                y = heading(b ? "Olhos" : "Formato dos olhos", null, cx, y + (b ? 0 : 6 * s), cw);
+                if (!b) y = thumbs(cat.ids("olhos").stream().map(i -> "eyes:" + i).toList(), "eyes", cat.eyes(a), cx, y, cw, 3,
+                        0.62f, st, cat, m);
+                else {                                                   // ateliê (B): pouca altura → botões de alternância
+                    List<String> eyes = cat.ids("olhos");
+                    float ew = (cw - (eyes.size() - 1) * 10 * s) / eyes.size();
+                    for (int i = 0; i < eyes.size(); i++) {
+                        Widget t = add("eyes:" + eyes.get(i), Kind.TOGGLE, cx + i * (ew + 10 * s), y, ew, 48 * s, CreatorState.name(eyes.get(i)));
+                        t.selected = eyes.get(i).equals(cat.eyes(a));
+                        t.scrolls = true;
+                    }
+                    y += 48 * s + 8 * s;
+                }
+                if (!b) y = heading("Cor dos olhos", null, cx, y + 8 * s, cw);   // B: um título só para formato e cor
                 y = swatches("iris", cat.colors.get("iris"), cat.iris(a), cx, y, cw, 5, m);
                 y = heading("Expressão (prévia)", null, cx, y + 8 * s, cw);
                 String[] ex = {"neutral", "joy", "determined", "surprise"};
@@ -274,6 +292,11 @@ public final class CreatorLayout {
                 y = heading("Tom de pele", null, cx, y, cw);
                 y = swatches("skin", cat.colors.get("pele"), cat.skin(a), cx, y, cw, b ? 5 : 3, m);
             }
+            case ROUPA -> {                                              // rodada 09.4: roupa por região (botas)
+                y = heading("Botas", null, cx, y, cw);
+                y = thumbs(cat.ids("pes").stream().map(i -> "feet:" + i).toList(), "feet", cat.feet(a), cx, y, cw, b ? 3 : 2,
+                        b ? 0.62f : 0.82f, st, cat, m);
+            }
             case CHAPEU -> {
                 y = heading("Chapéu", null, cx, y, cw);
                 List<String> ids = new ArrayList<>(List.of("cover:" + Appearance.NO_COVER));
@@ -288,7 +311,8 @@ public final class CreatorLayout {
     }
 
     /** Ordem de exibição dos penteados (do mais curto e espetado ao preso); ids fora da lista vão ao fim. */
-    static final List<String> HAIR_ORDER = List.of("cabelo.topete", "cabelo.curto", "cabelo.chanel", "cabelo.rabo");
+    static final List<String> HAIR_ORDER = List.of("cabelo.topete", "cabelo.curto", "cabelo.chanel", "cabelo.rabo",
+            "cabelo.crespo", "cabelo.coque");                  // rodada 09.4: dois estudos experimentais no fim
 
     static List<String> ordered(List<String> ids, List<String> order) {
         List<String> out = new ArrayList<>();
@@ -323,6 +347,8 @@ public final class CreatorLayout {
                 case "preset" -> { cand.preset = value; cand.reset(); }
                 case "hair" -> cand.hair = value;
                 case "face" -> cand.face = value;
+                case "eyes" -> cand.eyes = value;
+                case "feet" -> cand.feet = value;
                 case "cover" -> cand.cover = value;
                 default -> { }
             }
@@ -330,7 +356,9 @@ public final class CreatorLayout {
                 cand.validate(cat);
             } catch (Appearance.InvalidAppearance e) {
                 t.enabled = false;
-                t.reason = reasonFor(e.getMessage());
+                // rodada 09.4: num PENTEADO o conflito é com a cobertura atual (antes a frase falava do penteado)
+                t.reason = kind.equals("hair") && e.getMessage().contains("incompatível") ? "Não combina com o chapéu atual"
+                        : reasonFor(e.getMessage());
             }
         }
         int rows = (ids.size() + cols - 1) / cols;

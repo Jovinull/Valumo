@@ -1,0 +1,547 @@
+<?xml version="1.0"?>
+<!DOCTYPE lmms-project>
+<lmms-project creator="LMMS" creatorversion="1.2.2" type="song" version="1.0">
+  <head bpm="240" timesig_numerator="4" timesig_denominator="4" mastervol="100" masterpitch="0"/>
+  <song>
+    <trackcontainer type="song">
+      <track muted="0" type="0" name="Pisada macia" solo="0">
+        <instrumenttrack fxch="1" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100000" value="100" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="1.2" decay="55" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.08" env="0.12" startfreq="110" endfreq="48" startnote="1" endnote="0" noise="0.0" click="0.03" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Pisada macia" pos="0">
+          <note pos="0" len="16" key="33" vol="61" pan="0"/>
+          <note pos="192" len="16" key="31" vol="59" pan="0"/>
+          <note pos="384" len="16" key="35" vol="57" pan="0"/>
+          <note pos="576" len="16" key="32" vol="54" pan="0"/>
+          <note pos="768" len="16" key="33" vol="76" pan="0"/>
+          <note pos="960" len="16" key="31" vol="73" pan="0"/>
+          <note pos="1152" len="16" key="35" vol="71" pan="0"/>
+          <note pos="1344" len="16" key="32" vol="69" pan="0"/>
+          <note pos="9407" len="1" key="57" vol="0" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Pisada leve" solo="0">
+        <instrumenttrack fxch="2" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100001" value="100" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="1.0" decay="40" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.08" env="0.12" startfreq="130" endfreq="60" startnote="1" endnote="0" noise="0.0" click="0.05" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Pisada leve" pos="0">
+          <note pos="1536" len="16" key="33" vol="47" pan="0"/>
+          <note pos="1728" len="16" key="31" vol="45" pan="0"/>
+          <note pos="1920" len="16" key="35" vol="43" pan="0"/>
+          <note pos="2112" len="16" key="32" vol="40" pan="0"/>
+          <note pos="2304" len="16" key="33" vol="61" pan="0"/>
+          <note pos="2496" len="16" key="31" vol="59" pan="0"/>
+          <note pos="2688" len="16" key="35" vol="57" pan="0"/>
+          <note pos="2880" len="16" key="32" vol="54" pan="0"/>
+          <note pos="4608" len="16" key="33" vol="58" pan="0"/>
+          <note pos="4800" len="16" key="31" vol="56" pan="0"/>
+          <note pos="4992" len="16" key="35" vol="54" pan="0"/>
+          <note pos="5184" len="16" key="32" vol="51" pan="0"/>
+          <note pos="5376" len="16" key="33" vol="72" pan="0"/>
+          <note pos="5568" len="16" key="31" vol="70" pan="0"/>
+          <note pos="5760" len="16" key="35" vol="68" pan="0"/>
+          <note pos="5952" len="16" key="32" vol="65" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Pisada firme" solo="0">
+        <instrumenttrack fxch="3" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100002" value="80" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="1.3" decay="60" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140" endfreq="58" startnote="1" endnote="0" noise="0.05" click="0.18" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Pisada firme" pos="0">
+          <note pos="3072" len="16" key="33" vol="69" pan="0"/>
+          <note pos="3264" len="16" key="31" vol="67" pan="0"/>
+          <note pos="3456" len="16" key="35" vol="65" pan="0"/>
+          <note pos="3648" len="16" key="32" vol="62" pan="0"/>
+          <note pos="3840" len="16" key="33" vol="83" pan="0"/>
+          <note pos="4032" len="16" key="31" vol="81" pan="0"/>
+          <note pos="4224" len="16" key="35" vol="79" pan="0"/>
+          <note pos="4416" len="16" key="32" vol="76" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Grama A (macia)" solo="0">
+        <instrumenttrack fxch="4" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100003" value="200" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="60" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Grama A (macia)" pos="0">
+          <note pos="0" len="4" key="48" vol="55" pan="0"/>
+          <note pos="1" len="4" key="48" vol="43" pan="0"/>
+          <note pos="3" len="4" key="48" vol="39" pan="0"/>
+          <note pos="6" len="4" key="48" vol="29" pan="0"/>
+          <note pos="10" len="4" key="48" vol="22" pan="0"/>
+          <note pos="15" len="4" key="48" vol="14" pan="0"/>
+          <note pos="21" len="4" key="48" vol="9" pan="0"/>
+          <note pos="192" len="4" key="48" vol="53" pan="0"/>
+          <note pos="194" len="4" key="48" vol="44" pan="0"/>
+          <note pos="196" len="4" key="48" vol="34" pan="0"/>
+          <note pos="199" len="4" key="48" vol="31" pan="0"/>
+          <note pos="203" len="4" key="48" vol="20" pan="0"/>
+          <note pos="208" len="4" key="48" vol="13" pan="0"/>
+          <note pos="384" len="4" key="48" vol="55" pan="0"/>
+          <note pos="385" len="4" key="48" vol="39" pan="0"/>
+          <note pos="388" len="4" key="48" vol="40" pan="0"/>
+          <note pos="392" len="4" key="48" vol="28" pan="0"/>
+          <note pos="396" len="4" key="48" vol="20" pan="0"/>
+          <note pos="402" len="4" key="48" vol="12" pan="0"/>
+          <note pos="406" len="4" key="48" vol="7" pan="0"/>
+          <note pos="576" len="4" key="48" vol="50" pan="0"/>
+          <note pos="578" len="4" key="48" vol="42" pan="0"/>
+          <note pos="581" len="4" key="48" vol="35" pan="0"/>
+          <note pos="585" len="4" key="48" vol="25" pan="0"/>
+          <note pos="590" len="4" key="48" vol="17" pan="0"/>
+          <note pos="596" len="4" key="48" vol="9" pan="0"/>
+          <note pos="768" len="4" key="48" vol="63" pan="0"/>
+          <note pos="769" len="4" key="48" vol="50" pan="0"/>
+          <note pos="770" len="4" key="48" vol="46" pan="0"/>
+          <note pos="772" len="4" key="48" vol="37" pan="0"/>
+          <note pos="775" len="4" key="48" vol="30" pan="0"/>
+          <note pos="778" len="4" key="48" vol="22" pan="0"/>
+          <note pos="783" len="4" key="48" vol="17" pan="0"/>
+          <note pos="960" len="4" key="48" vol="61" pan="0"/>
+          <note pos="961" len="4" key="48" vol="52" pan="0"/>
+          <note pos="963" len="4" key="48" vol="42" pan="0"/>
+          <note pos="965" len="4" key="48" vol="39" pan="0"/>
+          <note pos="968" len="4" key="48" vol="28" pan="0"/>
+          <note pos="971" len="4" key="48" vol="20" pan="0"/>
+          <note pos="1152" len="4" key="48" vol="63" pan="0"/>
+          <note pos="1153" len="4" key="48" vol="46" pan="0"/>
+          <note pos="1155" len="4" key="48" vol="48" pan="0"/>
+          <note pos="1158" len="4" key="48" vol="35" pan="0"/>
+          <note pos="1160" len="4" key="48" vol="28" pan="0"/>
+          <note pos="1165" len="4" key="48" vol="20" pan="0"/>
+          <note pos="1167" len="4" key="48" vol="15" pan="0"/>
+          <note pos="1344" len="4" key="48" vol="58" pan="0"/>
+          <note pos="1345" len="4" key="48" vol="50" pan="0"/>
+          <note pos="1348" len="4" key="48" vol="43" pan="0"/>
+          <note pos="1350" len="4" key="48" vol="33" pan="0"/>
+          <note pos="1354" len="4" key="48" vol="24" pan="0"/>
+          <note pos="1358" len="4" key="48" vol="17" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Grama B (seca)" solo="0">
+        <instrumenttrack fxch="5" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100004" value="200" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="40" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Grama B (seca)" pos="0">
+          <note pos="1536" len="4" key="48" vol="52" pan="0"/>
+          <note pos="1537" len="4" key="48" vol="46" pan="0"/>
+          <note pos="1538" len="4" key="48" vol="38" pan="0"/>
+          <note pos="1539" len="4" key="48" vol="34" pan="0"/>
+          <note pos="1541" len="4" key="48" vol="24" pan="0"/>
+          <note pos="1543" len="4" key="48" vol="15" pan="0"/>
+          <note pos="1728" len="4" key="48" vol="50" pan="0"/>
+          <note pos="1729" len="4" key="48" vol="43" pan="0"/>
+          <note pos="1730" len="4" key="48" vol="41" pan="0"/>
+          <note pos="1732" len="4" key="48" vol="30" pan="0"/>
+          <note pos="1734" len="4" key="48" vol="20" pan="0"/>
+          <note pos="1736" len="4" key="48" vol="11" pan="0"/>
+          <note pos="1920" len="4" key="48" vol="52" pan="0"/>
+          <note pos="1921" len="4" key="48" vol="39" pan="0"/>
+          <note pos="1923" len="4" key="48" vol="37" pan="0"/>
+          <note pos="1924" len="4" key="48" vol="31" pan="0"/>
+          <note pos="1926" len="4" key="48" vol="18" pan="0"/>
+          <note pos="2112" len="4" key="48" vol="49" pan="0"/>
+          <note pos="2113" len="4" key="48" vol="46" pan="0"/>
+          <note pos="2114" len="4" key="48" vol="36" pan="0"/>
+          <note pos="2115" len="4" key="48" vol="31" pan="0"/>
+          <note pos="2117" len="4" key="48" vol="23" pan="0"/>
+          <note pos="2120" len="4" key="48" vol="13" pan="0"/>
+          <note pos="2304" len="4" key="48" vol="60" pan="0"/>
+          <note pos="2305" len="4" key="48" vol="54" pan="0"/>
+          <note pos="2305" len="4" key="48" vol="46" pan="0"/>
+          <note pos="2306" len="4" key="48" vol="42" pan="0"/>
+          <note pos="2308" len="4" key="48" vol="32" pan="0"/>
+          <note pos="2309" len="4" key="48" vol="23" pan="0"/>
+          <note pos="2496" len="4" key="48" vol="57" pan="0"/>
+          <note pos="2497" len="4" key="48" vol="50" pan="0"/>
+          <note pos="2497" len="4" key="48" vol="49" pan="0"/>
+          <note pos="2499" len="4" key="48" vol="38" pan="0"/>
+          <note pos="2500" len="4" key="48" vol="28" pan="0"/>
+          <note pos="2502" len="4" key="48" vol="19" pan="0"/>
+          <note pos="2688" len="4" key="48" vol="60" pan="0"/>
+          <note pos="2689" len="4" key="48" vol="47" pan="0"/>
+          <note pos="2690" len="4" key="48" vol="45" pan="0"/>
+          <note pos="2691" len="4" key="48" vol="39" pan="0"/>
+          <note pos="2692" len="4" key="48" vol="26" pan="0"/>
+          <note pos="2880" len="4" key="48" vol="57" pan="0"/>
+          <note pos="2881" len="4" key="48" vol="54" pan="0"/>
+          <note pos="2881" len="4" key="48" vol="44" pan="0"/>
+          <note pos="2882" len="4" key="48" vol="39" pan="0"/>
+          <note pos="2884" len="4" key="48" vol="31" pan="0"/>
+          <note pos="2886" len="4" key="48" vol="21" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Terra A (batida)" solo="0">
+        <instrumenttrack fxch="6" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100005" value="200" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="60" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Terra A (batida)" pos="0">
+          <note pos="3072" len="4" key="48" vol="63" pan="0"/>
+          <note pos="3074" len="4" key="48" vol="41" pan="0"/>
+          <note pos="3077" len="4" key="48" vol="28" pan="0"/>
+          <note pos="3081" len="4" key="48" vol="15" pan="0"/>
+          <note pos="3264" len="4" key="48" vol="60" pan="0"/>
+          <note pos="3265" len="4" key="48" vol="44" pan="0"/>
+          <note pos="3268" len="4" key="48" vol="31" pan="0"/>
+          <note pos="3272" len="4" key="48" vol="17" pan="0"/>
+          <note pos="3456" len="4" key="48" vol="63" pan="0"/>
+          <note pos="3459" len="4" key="48" vol="38" pan="0"/>
+          <note pos="3462" len="4" key="48" vol="25" pan="0"/>
+          <note pos="3648" len="4" key="48" vol="57" pan="0"/>
+          <note pos="3650" len="4" key="48" vol="45" pan="0"/>
+          <note pos="3654" len="4" key="48" vol="28" pan="0"/>
+          <note pos="3658" len="4" key="48" vol="13" pan="0"/>
+          <note pos="3840" len="4" key="48" vol="71" pan="0"/>
+          <note pos="3841" len="4" key="48" vol="49" pan="0"/>
+          <note pos="3844" len="4" key="48" vol="35" pan="0"/>
+          <note pos="3846" len="4" key="48" vol="23" pan="0"/>
+          <note pos="4032" len="4" key="48" vol="68" pan="0"/>
+          <note pos="4033" len="4" key="48" vol="52" pan="0"/>
+          <note pos="4035" len="4" key="48" vol="39" pan="0"/>
+          <note pos="4038" len="4" key="48" vol="25" pan="0"/>
+          <note pos="4224" len="4" key="48" vol="71" pan="0"/>
+          <note pos="4226" len="4" key="48" vol="46" pan="0"/>
+          <note pos="4228" len="4" key="48" vol="33" pan="0"/>
+          <note pos="4416" len="4" key="48" vol="65" pan="0"/>
+          <note pos="4417" len="4" key="48" vol="53" pan="0"/>
+          <note pos="4420" len="4" key="48" vol="36" pan="0"/>
+          <note pos="4423" len="4" key="48" vol="21" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Terra B (cascalho)" solo="0">
+        <instrumenttrack fxch="7" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100006" value="200" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="40" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Terra B (cascalho)" pos="0">
+          <note pos="4608" len="4" key="48" vol="49" pan="0"/>
+          <note pos="4609" len="4" key="48" vol="39" pan="0"/>
+          <note pos="4610" len="4" key="48" vol="31" pan="0"/>
+          <note pos="4612" len="4" key="48" vol="35" pan="0"/>
+          <note pos="4613" len="4" key="48" vol="24" pan="0"/>
+          <note pos="4615" len="4" key="48" vol="27" pan="0"/>
+          <note pos="4617" len="4" key="48" vol="17" pan="0"/>
+          <note pos="4620" len="4" key="48" vol="10" pan="0"/>
+          <note pos="4800" len="4" key="48" vol="46" pan="0"/>
+          <note pos="4801" len="4" key="48" vol="35" pan="0"/>
+          <note pos="4803" len="4" key="48" vol="34" pan="0"/>
+          <note pos="4804" len="4" key="48" vol="25" pan="0"/>
+          <note pos="4806" len="4" key="48" vol="29" pan="0"/>
+          <note pos="4808" len="4" key="48" vol="18" pan="0"/>
+          <note pos="4811" len="4" key="48" vol="11" pan="0"/>
+          <note pos="4992" len="4" key="48" vol="49" pan="0"/>
+          <note pos="4994" len="4" key="48" vol="37" pan="0"/>
+          <note pos="4995" len="4" key="48" vol="31" pan="0"/>
+          <note pos="4997" len="4" key="48" vol="28" pan="0"/>
+          <note pos="4998" len="4" key="48" vol="21" pan="0"/>
+          <note pos="5001" len="4" key="48" vol="19" pan="0"/>
+          <note pos="5005" len="4" key="48" vol="9" pan="0"/>
+          <note pos="5184" len="4" key="48" vol="46" pan="0"/>
+          <note pos="5185" len="4" key="48" vol="41" pan="0"/>
+          <note pos="5186" len="4" key="48" vol="28" pan="0"/>
+          <note pos="5188" len="4" key="48" vol="31" pan="0"/>
+          <note pos="5191" len="4" key="48" vol="23" pan="0"/>
+          <note pos="5192" len="4" key="48" vol="17" pan="0"/>
+          <note pos="5196" len="4" key="48" vol="10" pan="0"/>
+          <note pos="5376" len="4" key="48" vol="57" pan="0"/>
+          <note pos="5377" len="4" key="48" vol="46" pan="0"/>
+          <note pos="5377" len="4" key="48" vol="39" pan="0"/>
+          <note pos="5379" len="4" key="48" vol="43" pan="0"/>
+          <note pos="5380" len="4" key="48" vol="32" pan="0"/>
+          <note pos="5381" len="4" key="48" vol="35" pan="0"/>
+          <note pos="5382" len="4" key="48" vol="24" pan="0"/>
+          <note pos="5384" len="4" key="48" vol="18" pan="0"/>
+          <note pos="5568" len="4" key="48" vol="54" pan="0"/>
+          <note pos="5569" len="4" key="48" vol="43" pan="0"/>
+          <note pos="5570" len="4" key="48" vol="42" pan="0"/>
+          <note pos="5571" len="4" key="48" vol="33" pan="0"/>
+          <note pos="5572" len="4" key="48" vol="37" pan="0"/>
+          <note pos="5574" len="4" key="48" vol="26" pan="0"/>
+          <note pos="5576" len="4" key="48" vol="19" pan="0"/>
+          <note pos="5760" len="4" key="48" vol="57" pan="0"/>
+          <note pos="5761" len="4" key="48" vol="45" pan="0"/>
+          <note pos="5762" len="4" key="48" vol="39" pan="0"/>
+          <note pos="5764" len="4" key="48" vol="35" pan="0"/>
+          <note pos="5764" len="4" key="48" vol="29" pan="0"/>
+          <note pos="5766" len="4" key="48" vol="27" pan="0"/>
+          <note pos="5769" len="4" key="48" vol="17" pan="0"/>
+          <note pos="5952" len="4" key="48" vol="54" pan="0"/>
+          <note pos="5953" len="4" key="48" vol="49" pan="0"/>
+          <note pos="5953" len="4" key="48" vol="35" pan="0"/>
+          <note pos="5955" len="4" key="48" vol="39" pan="0"/>
+          <note pos="5957" len="4" key="48" vol="31" pan="0"/>
+          <note pos="5958" len="4" key="48" vol="25" pan="0"/>
+          <note pos="5960" len="4" key="48" vol="18" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Pisada abafada" solo="0">
+        <instrumenttrack fxch="8" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100007" value="100" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="1.1" decay="50" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.08" env="0.12" startfreq="100" endfreq="42" startnote="1" endnote="0" noise="0.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Pisada abafada" pos="0">
+          <note pos="6144" len="16" key="33" vol="55" pan="0"/>
+          <note pos="6336" len="16" key="31" vol="53" pan="0"/>
+          <note pos="6528" len="16" key="35" vol="50" pan="0"/>
+          <note pos="6720" len="16" key="32" vol="48" pan="0"/>
+          <note pos="6912" len="16" key="33" vol="69" pan="0"/>
+          <note pos="7104" len="16" key="31" vol="67" pan="0"/>
+          <note pos="7296" len="16" key="35" vol="65" pan="0"/>
+          <note pos="7488" len="16" key="32" vol="62" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Pisada dura" solo="0">
+        <instrumenttrack fxch="9" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100008" value="90" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="1.0" decay="35" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.05" env="0.12" startfreq="220" endfreq="90" startnote="1" endnote="0" noise="0.0" click="0.4" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Pisada dura" pos="0">
+          <note pos="7680" len="16" key="33" vol="71" pan="0"/>
+          <note pos="7872" len="16" key="31" vol="69" pan="0"/>
+          <note pos="8064" len="16" key="35" vol="66" pan="0"/>
+          <note pos="8256" len="16" key="32" vol="64" pan="0"/>
+          <note pos="8448" len="16" key="33" vol="85" pan="0"/>
+          <note pos="8640" len="16" key="31" vol="83" pan="0"/>
+          <note pos="8832" len="16" key="35" vol="80" pan="0"/>
+          <note pos="9024" len="16" key="32" vol="78" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Areia" solo="0">
+        <instrumenttrack fxch="10" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100009" value="200" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="60" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Areia" pos="0">
+          <note pos="6144" len="4" key="48" vol="31" pan="0"/>
+          <note pos="6145" len="4" key="48" vol="40" pan="0"/>
+          <note pos="6146" len="4" key="48" vol="47" pan="0"/>
+          <note pos="6147" len="4" key="48" vol="46" pan="0"/>
+          <note pos="6149" len="4" key="48" vol="40" pan="0"/>
+          <note pos="6151" len="4" key="48" vol="33" pan="0"/>
+          <note pos="6153" len="4" key="48" vol="27" pan="0"/>
+          <note pos="6156" len="4" key="48" vol="20" pan="0"/>
+          <note pos="6159" len="4" key="48" vol="13" pan="0"/>
+          <note pos="6163" len="4" key="48" vol="6" pan="0"/>
+          <note pos="6336" len="4" key="48" vol="29" pan="0"/>
+          <note pos="6337" len="4" key="48" vol="38" pan="0"/>
+          <note pos="6338" len="4" key="48" vol="46" pan="0"/>
+          <note pos="6340" len="4" key="48" vol="45" pan="0"/>
+          <note pos="6342" len="4" key="48" vol="37" pan="0"/>
+          <note pos="6344" len="4" key="48" vol="30" pan="0"/>
+          <note pos="6347" len="4" key="48" vol="23" pan="0"/>
+          <note pos="6350" len="4" key="48" vol="15" pan="0"/>
+          <note pos="6354" len="4" key="48" vol="8" pan="0"/>
+          <note pos="6528" len="4" key="48" vol="33" pan="0"/>
+          <note pos="6529" len="4" key="48" vol="43" pan="0"/>
+          <note pos="6531" len="4" key="48" vol="49" pan="0"/>
+          <note pos="6532" len="4" key="48" vol="44" pan="0"/>
+          <note pos="6534" len="4" key="48" vol="38" pan="0"/>
+          <note pos="6537" len="4" key="48" vol="29" pan="0"/>
+          <note pos="6540" len="4" key="48" vol="20" pan="0"/>
+          <note pos="6544" len="4" key="48" vol="13" pan="0"/>
+          <note pos="6548" len="4" key="48" vol="6" pan="0"/>
+          <note pos="6720" len="4" key="48" vol="30" pan="0"/>
+          <note pos="6721" len="4" key="48" vol="39" pan="0"/>
+          <note pos="6722" len="4" key="48" vol="45" pan="0"/>
+          <note pos="6723" len="4" key="48" vol="47" pan="0"/>
+          <note pos="6725" len="4" key="48" vol="39" pan="0"/>
+          <note pos="6728" len="4" key="48" vol="31" pan="0"/>
+          <note pos="6730" len="4" key="48" vol="24" pan="0"/>
+          <note pos="6733" len="4" key="48" vol="16" pan="0"/>
+          <note pos="6737" len="4" key="48" vol="9" pan="0"/>
+          <note pos="6912" len="4" key="48" vol="39" pan="0"/>
+          <note pos="6913" len="4" key="48" vol="48" pan="0"/>
+          <note pos="6913" len="4" key="48" vol="55" pan="0"/>
+          <note pos="6914" len="4" key="48" vol="54" pan="0"/>
+          <note pos="6916" len="4" key="48" vol="48" pan="0"/>
+          <note pos="6917" len="4" key="48" vol="41" pan="0"/>
+          <note pos="6918" len="4" key="48" vol="35" pan="0"/>
+          <note pos="6920" len="4" key="48" vol="28" pan="0"/>
+          <note pos="6922" len="4" key="48" vol="20" pan="0"/>
+          <note pos="6925" len="4" key="48" vol="14" pan="0"/>
+          <note pos="7104" len="4" key="48" vol="37" pan="0"/>
+          <note pos="7105" len="4" key="48" vol="46" pan="0"/>
+          <note pos="7105" len="4" key="48" vol="54" pan="0"/>
+          <note pos="7107" len="4" key="48" vol="53" pan="0"/>
+          <note pos="7108" len="4" key="48" vol="45" pan="0"/>
+          <note pos="7110" len="4" key="48" vol="38" pan="0"/>
+          <note pos="7112" len="4" key="48" vol="31" pan="0"/>
+          <note pos="7114" len="4" key="48" vol="23" pan="0"/>
+          <note pos="7117" len="4" key="48" vol="16" pan="0"/>
+          <note pos="7296" len="4" key="48" vol="41" pan="0"/>
+          <note pos="7297" len="4" key="48" vol="50" pan="0"/>
+          <note pos="7298" len="4" key="48" vol="57" pan="0"/>
+          <note pos="7299" len="4" key="48" vol="52" pan="0"/>
+          <note pos="7300" len="4" key="48" vol="46" pan="0"/>
+          <note pos="7302" len="4" key="48" vol="37" pan="0"/>
+          <note pos="7304" len="4" key="48" vol="28" pan="0"/>
+          <note pos="7307" len="4" key="48" vol="20" pan="0"/>
+          <note pos="7310" len="4" key="48" vol="14" pan="0"/>
+          <note pos="7488" len="4" key="48" vol="38" pan="0"/>
+          <note pos="7489" len="4" key="48" vol="47" pan="0"/>
+          <note pos="7489" len="4" key="48" vol="53" pan="0"/>
+          <note pos="7490" len="4" key="48" vol="55" pan="0"/>
+          <note pos="7492" len="4" key="48" vol="47" pan="0"/>
+          <note pos="7494" len="4" key="48" vol="39" pan="0"/>
+          <note pos="7495" len="4" key="48" vol="32" pan="0"/>
+          <note pos="7497" len="4" key="48" vol="24" pan="0"/>
+          <note pos="7500" len="4" key="48" vol="17" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Pedra" solo="0">
+        <instrumenttrack fxch="11" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100010" value="120" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="20" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Pedra" pos="0">
+          <note pos="7680" len="4" key="48" vol="47" pan="0"/>
+          <note pos="7681" len="4" key="48" vol="17" pan="0"/>
+          <note pos="7872" len="4" key="48" vol="45" pan="0"/>
+          <note pos="7874" len="4" key="48" vol="14" pan="0"/>
+          <note pos="8064" len="4" key="48" vol="47" pan="0"/>
+          <note pos="8065" len="4" key="48" vol="20" pan="0"/>
+          <note pos="8067" len="4" key="48" vol="8" pan="0"/>
+          <note pos="8256" len="4" key="48" vol="43" pan="0"/>
+          <note pos="8257" len="4" key="48" vol="16" pan="0"/>
+          <note pos="8448" len="4" key="48" vol="55" pan="0"/>
+          <note pos="8449" len="4" key="48" vol="25" pan="0"/>
+          <note pos="8640" len="4" key="48" vol="53" pan="0"/>
+          <note pos="8641" len="4" key="48" vol="22" pan="0"/>
+          <note pos="8832" len="4" key="48" vol="55" pan="0"/>
+          <note pos="8833" len="4" key="48" vol="28" pan="0"/>
+          <note pos="8834" len="4" key="48" vol="16" pan="0"/>
+          <note pos="9024" len="4" key="48" vol="51" pan="0"/>
+          <note pos="9025" len="4" key="48" vol="24" pan="0"/>
+        </pattern>
+      </track>
+    </trackcontainer>
+    <fxmixer>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="0" name="Master">
+        <fxchain enabled="0" numofeffects="0">
+        </fxchain>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="1" name="Pisada macia">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="0" HPfreq="30" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="700" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="160" Peak1gain="2.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="2" name="Pisada leve">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="60" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="1100" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="3" name="Pisada firme">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="45" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="2200" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="110" Peak1gain="2.0" Peak1bw="0.5" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="4" name="Grama A (macia)">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="1400" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="6000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="3200" Peak1gain="3.0" Peak1bw="0.8" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="5" name="Grama B (seca)">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="2200" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="7500" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="4500" Peak1gain="3.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="6" name="Terra A (batida)">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="700" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="3000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="1400" Peak1gain="4.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="7" name="Terra B (cascalho)">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="1000" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="3500" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="2000" Peak1gain="4.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="8" name="Pisada abafada">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="0" HPfreq="30" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="480" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="9" name="Pisada dura">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="70" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="3200" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="1800" Peak1gain="3.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="10" name="Areia">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="500" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="3500" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="1400" Peak1gain="2.0" Peak1bw="0.7" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="11" name="Pedra">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="2500" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="9000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="4200" Peak1gain="4.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+    </fxmixer>
+    <timeline lp0pos="0" lp1pos="192" lpstate="0"/>
+    <controllers/>
+    <projectnotes>Passos do herói — família de efeitos da rodada 09 (estudo; NÃO canônico).
+
+Evento real: o Player do jogo planta um pé a cada meia passada (fase da locomoção pela distância percorrida;
+ver docs/architecture/audio.md). Superfícies que o relevo da vila classifica (World.surfaceClass):
+grama/floresta → GRAMA, caminho → TERRA (areia e rocha ficam para depois).
+
+Construção (síntese deliberada, sem amostras):
+- camada PISADA: Kicker do LMMS (tom com queda de frequência) — o peso do pé. Herói pequeno (chibi): pé
+  leve, sem estrondo; passa-baixa forte.
+- camada MATERIAL: grãos curtos de ruído (Kicker com ruído = 1, ~13 ms cada) com EQ de banda — a grama
+  "farfalha" em banda alta, a terra "range" em banda média. Os grãos são escritos um a um: o desenho do
+  farfalhar/rangido está nos tempos e intensidades, não em aleatoriedade.
+
+Duas propostas por superfície (hipóteses diferentes, não só volume):
+  GRAMA A "macia":    pisada grave e abafada + farfalhar longo e esparso (cauda ~110 ms), banda 1,4–6 kHz
+  GRAMA B "seca":     pisada mais leve + farfalhar curto e denso, mais agudo (banda 2,2–7,5 kHz) — capim seco
+  TERRA A "batida":   pisada firme com clique + poucos grãos médios (0,7–3 kHz) — chão compacto
+  TERRA B "cascalho": pisada média + muitos grãos 1–3,5 kHz espalhados — pedrisco
+  AREIA (2ª parte):   pisada abafada (passa-baixa 480 Hz) + "chff" de grãos densos e longos em 0,5–3,5 kHz
+  PEDRA (2ª parte):   pisada dura e curta com clique (220 → 90 Hz) + um ou dois estalos agudos (2,5–9 kHz)
+Variações: 4 por proposta (andar) + 4 (correr: pisada mais forte, grãos comprimidos no tempo). As variações
+mudam a altura da pisada (nota → frequência inicial), o desenho dos grãos e a intensidade — a identidade do
+evento fica igual.
+
+Nota técnica: o Kicker do LMMS só soa enquanto a nota está ligada (sem release). Nota mais curta que o
+decaimento = corte seco (clique). Pisada: 16 ticks (≈ 83 ms); grão: 4 ticks.
+</projectnotes>
+  </song>
+</lmms-project>

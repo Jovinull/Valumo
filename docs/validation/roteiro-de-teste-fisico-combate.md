@@ -99,7 +99,7 @@ Na arena (Pausa → **Arena: um fungo**):
 2. **Barras:**
    - inimigo comum: barra pequena sobre ele só quando leva dano ou está travado;
    - chefe: barra grande no topo;
-   - Pausa → **Barras de inimigos**: ao levar dano / sempre / nunca. A preferência fica gravada.
+   - Pausa → **Barras**: com dano ou alvo / sempre / nunca. A preferência fica gravada.
 3. **Pergunta:** a interface atrapalha pouco?
 
 ## 7.1 Rodada 09.3 — esquiva e salto polidos (5 min)
