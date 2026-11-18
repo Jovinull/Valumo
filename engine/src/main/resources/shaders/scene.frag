@@ -29,6 +29,8 @@ uniform float uFaceShade;    // escurecimento fixo por orientação de face (loo
 uniform float uRim;
 uniform float uSpec;
 uniform float uEmissive;
+uniform float uFlash;        // rodada 09: lampejo de impacto (0 = nada); puxa para um branco quente, antes da névoa
+uniform float uFade;         // rodada 09.3: personagem com a câmera colada nele vira pontilhado (0 = opaco; até 0,75)
 uniform float uBacklight;    // translucidez de folhagem
 uniform float uFogDensity;
 uniform float uFogHeight;
@@ -87,7 +89,16 @@ float shadowFactor(float ndl) {
     return mix(sum / n, 1.0, edge);
 }
 
+// rodada 09.3: matriz de Bayer 4×4 (pontilhado ordenado, estável no quadro: não cintila)
+float bayer4(vec2 p) {
+    int x = int(mod(p.x, 4.0)), y = int(mod(p.y, 4.0));
+    int i = x + 4 * y;
+    int m[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+    return (float(m[i]) + 0.5) / 16.0;
+}
+
 void main() {
+    if (uFade > 0.0 && bayer4(gl_FragCoord.xy) < uFade) discard;
     vec3 base = vColor;
     if (uUseTex) {
         vec4 t = texture(uAtlas, vUv);
@@ -147,6 +158,8 @@ void main() {
         float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0) * max(N.y * 0.5 + 0.7, 0.0);
         col += uRimColor * rim * uRim * (0.4 + 0.6 * sh);
     }
+
+    if (uFlash > 0.0) col = col * (1.0 + 0.35 * uFlash) + vec3(0.10, 0.07, 0.04) * uFlash;   // clareia quente, sem lavar a cor
 
     float dist = length(uCamPos - vWorldPos);
     float hf = exp(-max(vWorldPos.y - uFogHeight, 0.0) * 0.12);

@@ -14,8 +14,9 @@ public final class Mesh implements AutoCloseable {
     public static final int SCENE_STRIDE = 13;
 
     private final int vao, vbo;
-    public final int vertexCount;
-    private final long bytes;
+    public int vertexCount;
+    private long bytes;
+    private final int stride;
     /** Bytes de vértices vivos na GPU (todas as malhas); usado nas métricas do viewer. */
     public static long liveBytes, liveMeshes;
     /** Caixa delimitadora no espaço do modelo (min xyz, max xyz). */
@@ -24,6 +25,7 @@ public final class Mesh implements AutoCloseable {
     public Mesh(float[] data, int count, int[] layout) {
         int stride = 0;
         for (int s : layout) stride += s;
+        this.stride = stride;
         vertexCount = count / stride;
         vao = glGenVertexArrays();
         vbo = glGenBuffers();
@@ -54,6 +56,23 @@ public final class Mesh implements AutoCloseable {
     }
 
     public Mesh(float[] data, int[] layout) { this(data, data.length, layout); }
+
+    /**
+     * Rodada 09.2 — troca os vértices (malha dinâmica: fragmentos de efeito, reconstruídos a cada quadro sem criar outro
+     * objeto na GPU). {@code bounds} é responsabilidade de quem chama.
+     */
+    public void update(float[] data, int count) {
+        if (dyn == null || dyn.capacity() < count) dyn = org.lwjgl.BufferUtils.createFloatBuffer(Math.max(count, 1024));
+        dyn.clear();
+        dyn.put(data, 0, count).flip();                                    // sem alocar por quadro (buffer reaproveitado)
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, dyn, GL_DYNAMIC_DRAW);
+        liveBytes += (long) count * Float.BYTES - bytes;
+        bytes = (long) count * Float.BYTES;
+        vertexCount = count / stride;
+    }
+
+    private java.nio.FloatBuffer dyn;
 
     public void draw() {
         if (vertexCount == 0) return;
