@@ -55,9 +55,9 @@ Provas:
 |---|---|---|---|
 | `rosto` | `rosto.aventureiro`, `rosto.exploradora`, `rosto.maga` | rosto de cada herói (olho, sobrancelha, boca, atuação) | 4 expressões por rosto |
 | `cabelo` | `cabelo.topete`, `cabelo.curto`, `cabelo.chanel`, `cabelo.rabo` | topete h2 do aventureiro; **curto** (novo, rodada 07); cabelo da maga; cabelo da exploradora com o rabo (parte `tail`) | o `natural` (h1) ficou fora: tinha 82% do mesmo volume do topete |
-| `cabelo` (rodada 09.4, **experimental**) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"experimental": true` no catálogo; aprovação do proprietário pendente |
+| `cabelo` (rodada 09.4, **aprovado** pelo proprietário) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"experimental": true` no catálogo; aprovação do proprietário pendente |
 | `olhos` (rodada 09.4) | `olhos.redondos`, `olhos.amendoados`, `olhos.inclinados` | parâmetro `eye` do pintor (`paint_face`); o desenho de cada expressão mora no ROSTO (`variantesOlhos`), porque depende da atuação | o nativo de cada rosto = arquivos originais (preset idêntico) |
-| `pes` (rodada 09.4, **experimental**) | `botas.originais` (nativo), `botas.viajante` | `charlib_e.leg(boot_style="viajante")`, uma versão por corpo (`porCorpo`) | ocupa/substitui só `shin_l`/`shin_r`; mesmo pivô e mesma sola |
+| `pes` (rodada 09.4, **aprovado** pelo proprietário) | `botas.originais` (nativo), `botas.viajante` | `charlib_e.leg(boot_style="viajante")`, uma versão por corpo (`porCorpo`) | ocupa/substitui só `shin_l`/`shin_r`; mesmo pivô e mesma sola |
 | `cabeca` | `chapeu.maga`, `capuz.c3` | `hat.vox` canônico da maga; nó, fitas e pena da exploradora, mais a regra da faixa | |
 | corpo | dos rigs `characters/e/*` | arquivos canônicos | máscara de pele só onde há pele (mãos da maga) |
 
@@ -203,8 +203,9 @@ do modelo). Arquivos v1 abrem pela migração pura `Appearance.migrate1to2` e s�
 ## 9. QA de componentes
 
 Arma × cabeça composta, voxel a voxel (rodada 09.4): `viewer --check-cabelos [saida.md]` e `HairWeaponTest` — penteado
-EXPERIMENTAL não pode ser atravessado pela arma mais que o penteado do preset (o `WeaponCheck` mede a cabeça como uma
-cápsula de raio 8,6 e não vê o cabelo além dela).
+NOVO (estudo experimental ou já aprovado, `HairWeaponCheck.isNew`) não pode ser atravessado pela arma mais que o penteado
+do preset (o `WeaponCheck` mede a cabeça como uma cápsula de raio 8,6 e não vê o cabelo além dela). Duas tabelas: a arma de
+cada herói e o equipamento de combate (espada e broquel em toda aparência).
 
 
 1. O preset recomposto é idêntico ao canônico (testes e gate de captura).

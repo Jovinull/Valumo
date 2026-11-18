@@ -66,12 +66,17 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
 Nenhum som desta rodada foi avaliado por escuta. Use fones e depois a caixa; o pacote local
 `output/visual-review/round-09-4/LEIA-ME.md` lista os arquivos na ordem (regenerável com `tools/review94.sh tudo`).
 
-1. **Música da vila** — ouça `musica/vila_a/vila_a-escuta.wav` e `musica/vila_b/vila_b-escuta.wav`, depois jogue
-   (`./gradlew jogo` toca a A; a B: `JAVA_OPTS=-Dvx.musica=vila_b game/build/install/game/bin/game`).
-   - Soa como o Valumo ou como banco de instrumentos genérico? A, B ou nenhuma?
+> **Depois da integração:** você aprovou a A (padrão), a B e os estudos de personalização, e escolheu **síntese
+> própria**. A música e a interface foram REFEITAS sem o banco de amostras. O que você ouviu antes não é mais o que
+> toca: ouça de novo os itens 1 e 2.
+
+1. **Música da vila (síntese própria)** — ouça `assets/audio/musica/vila_a.ogg` e `vila_b.ogg`, depois jogue
+   (`./gradlew jogo` toca a A; a B: `./gradlew jogo -Dvx.musica=vila_b`).
+   - Os timbres sintetizados ficaram bons? Algum instrumento soa artificial demais ou alto demais (violão, flauta,
+     clarinete; na B, harpa, celesta, vibrafone)?
    - O laço passa sem emenda depois de ~1 min (A) / ~1 min 10 s (B)? A música cansa em 5 minutos de jogo?
-2. **Interface** — no criador (`./gradlew editor`) clique bastante: "madeira e papel" incomoda depois de muitos
-   cliques? Compare com `efeitos-sonoros/interface/contexto-proposta-B-sessao.wav` (vidro e dourado).
+2. **Interface (síntese própria)** — no criador (`./gradlew editor`) clique bastante: o bloco de madeira e a kalimba
+   sintetizados incomodam depois de muitos cliques?
 3. **Passos** — ande e corra na grama, no caminho de terra, na areia da margem do lago e (se alcançar) na pedra das
    encostas. Leem como superfícies diferentes? O passo coincide com o pé? Fica repetitivo?
 4. **Ambiente** — vento sempre presente e água do lago aumentando ao chegar perto da margem e sumindo ao se afastar.

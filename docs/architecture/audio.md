@@ -54,6 +54,24 @@ jogo (GameAudio) / criador (CreatorController.sound) ──► Audio.event("…"
 | `AudioPrefs` | `game/.../AudioPrefs.java` | volumes do jogador (música, efeitos) na pausa; `output/preferencias/audio.json` (`valumo.preferencias` v1) |
 | Criador | `CreatorController.sound` → `Audio::event` | sons da interface; `Creator.frame` avança o áudio |
 
+### 1.1 Timbres: síntese própria **[IMPLEMENTADO]**
+
+Decisão do proprietário na integração: nenhum banco de amostras. As partituras usam os instrumentos de
+`tools/audio/sintese.py`. Cada um é só parâmetros dos sintetizadores do LMMS 1.2.2, sem predefinição nem amostra:
+- TripleOscillator: osciladores somados, envelope de volume e filtro com envelope de corte;
+- Kicker: madeira e percussão.
+
+| Uso | Instrumentos |
+|---|---|
+| Vila A | violão, flauta, clarinete, baixo, cordas, glockenspiel, chocalho |
+| Vila B | harpa, celesta, flauta de pã, violoncelo, cordas lentas, vibrafone ("sino grave"), cristal |
+| Interface | bloco de madeira, kalimba, sininho, celesta, caixa de música |
+
+- **Calibração medida:** tempos do envelope ≈ 5 s × valor²; `sustain` é o nível.
+- **Equilíbrio:** `tools/audio/nivelar.py` renderiza cada faixa sozinha e mede a sonoridade (LUFS) contra um alvo por
+  papel.
+- **Comparação com a versão de banco:** bandas a até ~5 dB, um pouco mais escura. O timbre se julga de ouvido.
+
 ### 2. Catálogo e eventos **[IMPLEMENTADO]**
 
 `assets/audio/sons.json` (escrito à mão): `barramentos` (música 0,6 · efeitos 0,85 · interface 0,75 · ambiente 0,7), `eventos`

@@ -22,8 +22,18 @@ Pacote local (fora do git): `output/visual-review/round-09-4/` (`LEIA-ME.md`). R
 > - QA de áudio: 43 arquivos, 0 alertas;
 > - loopback do jogo: uma mistura por quadro (6,900 s para 207 quadros).
 >
-> **Decisão pendente:** a música e parte da interface usam amostras do banco FluidR3 GM, de terceiros
-> (`problemas-conhecidos.md`).
+> **Decisões do proprietário depois da integração (todas aplicadas):**
+> 1. **Síntese própria** no lugar do banco FluidR3 GM. As duas músicas e a interface foram refeitas nos sintetizadores
+>    do LMMS (`tools/audio/sintese.py`), com as mesmas notas, forma e mistura; o equilíbrio foi medido de novo
+>    (`tools/audio/nivelar.py`). QA: 43 arquivos, 0 alertas, emendas iguais à passagem natural. Achado no caminho: a
+>    sonda de calibração do laço dependia do banco e, sem ele, adiantava o laço 50 ms em silêncio; agora usa clique
+>    próprio e falha se sair muda.
+> 2. **Música A padrão e B alternativa**, as duas aprovadas.
+> 3. **Estudos aprovados:** crespo, coque alto, formatos de olho e botas viajante (`"aprovado": "rodada 09.4"`). Continuam
+>    protegidos pela regra de componente novo.
+> 4. **EMOTE corrigido** na espada e no cajado: 0 voxel em todo penteado. Isso revelou o roçar do corte vertical no ápice
+>    (1–2 voxels), corrigido com 1 voxel na mão de `v_drive` e validado por toda a bateria de combate. Ficam registrados
+>    o `combo` (vitrine, 1 voxel no chanel) e o `staff_cast_wide` da maga.
 
 ## Como executar
 

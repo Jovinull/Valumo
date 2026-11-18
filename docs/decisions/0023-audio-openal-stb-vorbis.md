@@ -78,5 +78,8 @@ Esta rodada foi desenvolvida em paralelo ("rodada 09") enquanto a linha do comba
 
 **Origem dos sons:** o ADR 0016 diz "só síntese, nada de terceiros". Os efeitos de passo e o ambiente desta rodada são
 síntese (Kicker do LMMS). A **música e parte da interface usam amostras do banco FluidR3 GM** (licença MIT, de terceiros).
-Isso é uma **decisão pendente do proprietário**: aceitar o banco (e registrar a exceção) ou trocar por síntese própria.
-Ver `problemas-conhecidos.md`.
+**Decisão do proprietário: síntese própria.** O banco saiu. A música (as duas versões) e a interface foram refeitas nos
+sintetizadores do LMMS, com timbres desenhados em `tools/audio/sintese.py`. As notas, a forma e a mistura das partituras
+não mudaram; o equilíbrio entre as faixas foi medido de novo (`tools/audio/nivelar.py`, alvo por papel). O `sf2player`
+saiu do gerador de sessões. A sonda de calibração do laço ficou com um clique próprio: com o banco ausente ela saía muda
+e as posições do laço vinham 50 ms adiantadas sem aviso; agora uma sonda muda é erro.

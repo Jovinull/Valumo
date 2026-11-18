@@ -1,6 +1,6 @@
 # Evolução da personalização — proposta (rodada 09.4)
 
-Estado: o primeiro passo do §1 (formato dos olhos) e a peça experimental do §2 (botas) foram **[IMPLEMENTADOS]** na
+Estado: o primeiro passo do §1 (formato dos olhos) e a peça do §2 (botas, aprovadas pelo proprietário) foram **[IMPLEMENTADOS]** na
 própria rodada 09.4 (ver [personalizacao.md](personalizacao.md)); o resto continua **[PLANEJADO]**. Base: [personalizacao.md](personalizacao.md) (o que existe)
 e a skill `character-customization` (regras que não mudam: presets idênticos, cabeça como grade única, variante
 só remove, canal semântico pela sonda, save só com IDs e cores).
@@ -65,7 +65,7 @@ Regras propostas (mesma filosofia do cabelo):
 - Aceite: `viewer --check`, `--occlusion`, `--grip` sem alerta nos três perfis de arma + vídeo em 4 ângulos de
   correr, golpe e HIT. Roupa bonita parada que atravessa o corpo correndo não está pronta.
 
-**Peça experimental [IMPLEMENTADA — rodada 09.4]: botas "viajante"** (forro de lã creme virado em sino + tira com
+**Peça [IMPLEMENTADA e aprovada — rodada 09.4]: botas "viajante"** (forro de lã creme virado em sino + tira com
 fivela). Achado: a canela JÁ é a bota inteira (joelho em y = 7/8), então "cano alto" exigiria a coxa dobrando com o
 joelho; a peça ficou na canela e se distingue pelo desenho (o forro claro lê na câmera de jogo). A recomendação era: Motivo: a canela já
 é parte própria com pivô no joelho, o pé tem IK testado (`AnimationQaTest`), e a bota não interage com armas

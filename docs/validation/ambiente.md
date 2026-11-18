@@ -100,6 +100,6 @@ Detalhes e verificações: `docs/validation/relatorio-rodada-09-4.md` §2 e as s
   - `tools/audio/render_musica.py` acha o LMMS sozinho: `VX_LMMS`, `lmms` no PATH ou o Flatpak (com acesso ao disco e
     ao `/tmp`).
   - Verificado: `render_sfx.py fontes/audio/sfx/passos/passos.mmp` gera os 48 passos.
-- **FluidR3 GM:** NÃO instalado. O banco é de terceiros, e a decisão do proprietário está pendente. Sem ele, a música e
-  os sons de interface com instrumento de banco não renderizam aqui; os arquivos versionados continuam valendo.
+- **FluidR3 GM:** não é mais usado. Por decisão do proprietário, os timbres são de síntese própria
+  (`tools/audio/sintese.py`). Tudo renderiza só com o LMMS: as duas músicas, a interface, os passos e o ambiente.
 - **Python:** `soundfile` e `scipy` no `.venv` (o QA de áudio usa).

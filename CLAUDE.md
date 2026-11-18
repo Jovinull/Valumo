@@ -94,8 +94,9 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   jogo e interface emitem eventos (`Audio.event("ui.confirmar")`), nunca caminhos. Combate: síntese em
   `tools/audio_e.py` → `assets/audio/sintese/` (gerado). Catálogo (música, ambiente, passos, interface): fontes em
   `fontes/audio/` (partitura `.py`, sessão LMMS `.mmp`, `.mid`), arquivos versionados em `assets/audio/` (renderizar exige
-  LMMS), catálogo `assets/audio/sons.json` à mão. Nada de IA geradora de som; amostras de terceiros só com decisão do
-  proprietário (a música e parte da interface da 09.4 usam o banco FluidR3 GM, ver `problemas-conhecidos.md`). Sem
+  LMMS), catálogo `assets/audio/sons.json` à mão. Timbres: síntese própria nos sintetizadores do LMMS
+  (`tools/audio/sintese.py`; equilíbrio medido com `tools/audio/nivelar.py`). Nada de amostra de terceiros nem de IA
+  geradora de som (o banco FluidR3 GM saiu na 09.4, decisão do proprietário). Sem
   dispositivo = mudo, nunca erro. Roteiros e testes mudos; vídeos com o som da própria aplicação (`-Dvx.som=loopback`).
   Medir não é ouvir: diga quando não ouviu. Skills `audio`, `sound-design`, `music-composition`, `audio-qa`.
 - **Contrato:** nomes, eixos e escalas em `docs/art/contrato-de-assets.md`; mudou → atualize o documento,
