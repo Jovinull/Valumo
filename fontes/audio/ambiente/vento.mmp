@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<!DOCTYPE lmms-project>
+<lmms-project creator="LMMS" creatorversion="1.2.2" type="song" version="1.0">
+  <head bpm="120" timesig_numerator="4" timesig_denominator="4" mastervol="100" masterpitch="0"/>
+  <song>
+    <trackcontainer type="song">
+      <track muted="0" type="0" name="Ar" solo="0">
+        <instrumenttrack fxch="1" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100000" value="45" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="100" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="6" modalgo1="2" userwavefile0="" vol1="0" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="0" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Ar" pos="0">
+          <note pos="0" len="2496" key="48" vol="79" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Rajada" solo="0">
+        <instrumenttrack fxch="2" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100001" value="100" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="100" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="6" modalgo1="2" userwavefile0="" vol1="0" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="0" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Rajada" pos="0">
+          <note pos="0" len="2496" key="48" vol="79" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Folhas" solo="0">
+        <instrumenttrack fxch="3" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100002" value="70" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="3.0" decay="40" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Folhas" pos="0">
+          <note pos="614" len="3" key="48" vol="31" pan="0"/>
+          <note pos="632" len="3" key="48" vol="61" pan="0"/>
+          <note pos="640" len="3" key="48" vol="54" pan="0"/>
+          <note pos="658" len="3" key="48" vol="48" pan="0"/>
+          <note pos="666" len="3" key="48" vol="42" pan="0"/>
+          <note pos="683" len="3" key="48" vol="35" pan="0"/>
+          <note pos="691" len="3" key="48" vol="65" pan="0"/>
+          <note pos="709" len="3" key="48" vol="58" pan="0"/>
+          <note pos="717" len="3" key="48" vol="52" pan="0"/>
+          <note pos="758" len="3" key="48" vol="31" pan="0"/>
+          <note pos="782" len="3" key="48" vol="61" pan="0"/>
+          <note pos="797" len="3" key="48" vol="54" pan="0"/>
+          <note pos="821" len="3" key="48" vol="48" pan="0"/>
+          <note pos="835" len="3" key="48" vol="42" pan="0"/>
+          <note pos="859" len="3" key="48" vol="35" pan="0"/>
+          <note pos="1430" len="3" key="48" vol="31" pan="0"/>
+          <note pos="1452" len="3" key="48" vol="61" pan="0"/>
+          <note pos="1463" len="3" key="48" vol="54" pan="0"/>
+          <note pos="1485" len="3" key="48" vol="48" pan="0"/>
+          <note pos="1496" len="3" key="48" vol="42" pan="0"/>
+          <note pos="1517" len="3" key="48" vol="35" pan="0"/>
+          <note pos="1529" len="3" key="48" vol="65" pan="0"/>
+          <note pos="1574" len="3" key="48" vol="31" pan="0"/>
+          <note pos="1591" len="3" key="48" vol="61" pan="0"/>
+          <note pos="1597" len="3" key="48" vol="54" pan="0"/>
+          <note pos="1614" len="3" key="48" vol="48" pan="0"/>
+          <note pos="1620" len="3" key="48" vol="42" pan="0"/>
+          <note pos="1637" len="3" key="48" vol="35" pan="0"/>
+          <note pos="1644" len="3" key="48" vol="65" pan="0"/>
+          <note pos="1660" len="3" key="48" vol="58" pan="0"/>
+          <note pos="1667" len="3" key="48" vol="52" pan="0"/>
+          <note pos="1683" len="3" key="48" vol="46" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="5" name="Volume: Rajada" solo="0">
+        <automationtrack/>
+        <automationpattern prog="1" tens="1" mute="0" name="Rajada&gt;&gt;Volume" pos="0" len="2736">
+          <time pos="0" value="30"/>
+          <time pos="240" value="52"/>
+          <time pos="384" value="38"/>
+          <time pos="672" value="78"/>
+          <time pos="816" value="62"/>
+          <time pos="1008" value="34"/>
+          <time pos="1248" value="30"/>
+          <time pos="1488" value="66"/>
+          <time pos="1632" value="84"/>
+          <time pos="1776" value="48"/>
+          <time pos="2016" value="36"/>
+          <time pos="2304" value="30"/>
+          <time pos="2544" value="52"/>
+          <object id="4100001"/>
+        </automationpattern>
+      </track>
+    </trackcontainer>
+    <fxmixer>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="0" name="Master">
+        <fxchain enabled="0" numofeffects="0">
+        </fxchain>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="1" name="Ar">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="60" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="650" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="2" name="Rajada">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="400" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="2500" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="1100" Peak1gain="2.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="3" name="Folhas">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="3000" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="8000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="5000" Peak1gain="2.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+    </fxmixer>
+    <timeline lp0pos="0" lp1pos="192" lpstate="0"/>
+    <controllers/>
+    <projectnotes>Ambiente da vila — rodada 09 (estudo; NÃO canônico). Duas camadas, cada uma numa sessão LMMS própria.
+
+VENTO (cama, sem posição, estéreo, laço de 24 s): o mundo é grande e aberto — ar sempre presente, discreto.
+  - "Ar": ruído contínuo, passa-baixa 650 Hz (o corpo do vento), nível fixo e baixo.
+  - "Rajada": ruído em banda 400–2 500 Hz com AUTOMAÇÃO de volume desenhada (curva de 24 s, termina onde começa).
+  - "Folhas": grãos agudos (3–8 kHz) só perto dos picos das rajadas — as folhas mexem quando o vento passa.
+LAGO (posicional, mono, laço de 16 s): água parada que encosta na margem — nada de cachoeira.
+  - "Marulho": ruído grave (passa-baixa 500 Hz) com ondas de período IRREGULAR (2,6–3,4 s) por automação.
+  - "Respingos": grãos de ruído médios (0,8–2,5 kHz) na crista de cada onda.
+  - "Gotas": 4 "plinks" esparsos (Kicker tonal 1,8 → 0,9 kHz, 60 ms).
+Tudo síntese do LMMS (ruído e tom), sem amostras. O laço sai de um render mais longo com a sobra fundida no início
+(tools/audio/render_ambiente.py).
+</projectnotes>
+  </song>
+</lmms-project>

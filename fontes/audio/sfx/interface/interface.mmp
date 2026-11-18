@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<!DOCTYPE lmms-project>
+<lmms-project creator="LMMS" creatorversion="1.2.2" type="song" version="1.0">
+  <head bpm="240" timesig_numerator="4" timesig_denominator="4" mastervol="100" masterpitch="0"/>
+  <song>
+    <trackcontainer type="song">
+      <track muted="0" type="0" name="Bloco de madeira" solo="0">
+        <instrumenttrack fxch="1" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100000" value="100" scale_type="linear"/>
+          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="128" patch="0" gain="1.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Bloco de madeira" pos="0">
+          <note pos="0" len="2" key="64" vol="55" pan="0"/>
+          <note pos="192" len="2" key="64" vol="50" pan="0"/>
+          <note pos="384" len="2" key="64" vol="58" pan="0"/>
+          <note pos="576" len="2" key="65" vol="46" pan="0"/>
+          <note pos="768" len="2" key="65" vol="36" pan="0"/>
+          <note pos="1152" len="2" key="65" vol="31" pan="0"/>
+          <note pos="2879" len="1" key="57" vol="0" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Kalimba" solo="0">
+        <instrumenttrack fxch="2" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100001" value="100" scale_type="linear"/>
+          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="108" gain="2.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Kalimba" pos="0">
+          <note pos="0" len="3" key="74" vol="27" pan="0"/>
+          <note pos="192" len="3" key="76" vol="27" pan="0"/>
+          <note pos="384" len="3" key="78" vol="27" pan="0"/>
+          <note pos="576" len="4" key="62" vol="65" pan="0"/>
+          <note pos="588" len="6" key="69" vol="72" pan="0"/>
+          <note pos="768" len="4" key="69" vol="52" pan="0"/>
+          <note pos="780" len="6" key="64" vol="44" pan="0"/>
+          <note pos="1152" len="4" key="62" vol="58" pan="0"/>
+          <note pos="1160" len="4" key="66" vol="63" pan="0"/>
+          <note pos="1168" len="4" key="69" vol="68" pan="0"/>
+          <note pos="1176" len="8" key="74" vol="72" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Sininho" solo="0">
+        <instrumenttrack fxch="3" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100002" value="100" scale_type="linear"/>
+          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="112" gain="2.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Sininho" pos="0">
+          <note pos="1176" len="8" key="86" vol="31" pan="0"/>
+          <note pos="2516" len="8" key="86" vol="35" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Papel" solo="0">
+        <instrumenttrack fxch="4" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100003" value="200" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="5.0" decay="30" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.06" env="0.12" startfreq="140.0" endfreq="60.0" startnote="0" endnote="0" noise="1.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Papel" pos="0">
+          <note pos="960" len="4" key="48" vol="14" pan="0"/>
+          <note pos="962" len="4" key="48" vol="20" pan="0"/>
+          <note pos="964" len="4" key="48" vol="26" pan="0"/>
+          <note pos="966" len="4" key="48" vol="32" pan="0"/>
+          <note pos="968" len="4" key="48" vol="38" pan="0"/>
+          <note pos="970" len="4" key="48" vol="44" pan="0"/>
+          <note pos="972" len="4" key="48" vol="50" pan="0"/>
+          <note pos="974" len="4" key="48" vol="57" pan="0"/>
+          <note pos="976" len="4" key="48" vol="51" pan="0"/>
+          <note pos="978" len="4" key="48" vol="46" pan="0"/>
+          <note pos="980" len="4" key="48" vol="40" pan="0"/>
+          <note pos="982" len="4" key="48" vol="35" pan="0"/>
+          <note pos="984" len="4" key="48" vol="30" pan="0"/>
+          <note pos="986" len="4" key="48" vol="24" pan="0"/>
+          <note pos="988" len="4" key="48" vol="19" pan="0"/>
+          <note pos="2304" len="4" key="48" vol="9" pan="0"/>
+          <note pos="2306" len="4" key="48" vol="13" pan="0"/>
+          <note pos="2308" len="4" key="48" vol="17" pan="0"/>
+          <note pos="2310" len="4" key="48" vol="21" pan="0"/>
+          <note pos="2312" len="4" key="48" vol="25" pan="0"/>
+          <note pos="2314" len="4" key="48" vol="29" pan="0"/>
+          <note pos="2316" len="4" key="48" vol="33" pan="0"/>
+          <note pos="2318" len="4" key="48" vol="38" pan="0"/>
+          <note pos="2320" len="4" key="48" vol="34" pan="0"/>
+          <note pos="2322" len="4" key="48" vol="31" pan="0"/>
+          <note pos="2324" len="4" key="48" vol="27" pan="0"/>
+          <note pos="2326" len="4" key="48" vol="24" pan="0"/>
+          <note pos="2328" len="4" key="48" vol="20" pan="0"/>
+          <note pos="2330" len="4" key="48" vol="17" pan="0"/>
+          <note pos="2332" len="4" key="48" vol="13" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Toque grave" solo="0">
+        <instrumenttrack fxch="5" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100004" value="100" scale_type="linear"/>
+          <instrument name="kicker"><kicker gain="0.8" decay="45" decay_numerator="4" decay_denominator="4" syncmode="0" slope="0.08" env="0.12" startfreq="120" endfreq="70" startnote="0" endnote="0" noise="0.0" click="0.0" dist="0.0" distend="0.0" version="1"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Toque grave" pos="0">
+          <note pos="964" len="12" key="48" vol="36" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Celesta" solo="0">
+        <instrumenttrack fxch="6" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100005" value="100" scale_type="linear"/>
+          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="8" gain="2.5" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Celesta" pos="0">
+          <note pos="1344" len="3" key="81" vol="41" pan="0"/>
+          <note pos="1536" len="3" key="83" vol="38" pan="0"/>
+          <note pos="1728" len="3" key="78" vol="43" pan="0"/>
+          <note pos="1920" len="4" key="74" vol="55" pan="0"/>
+          <note pos="1932" len="6" key="78" vol="61" pan="0"/>
+          <note pos="2112" len="4" key="78" vol="49" pan="0"/>
+          <note pos="2124" len="6" key="74" vol="43" pan="0"/>
+        </pattern>
+      </track>
+      <track muted="0" type="0" name="Caixa de música" solo="0">
+        <instrumenttrack fxch="7" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
+          <vol id="4100006" value="100" scale_type="linear"/>
+          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="10" gain="2.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
+          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <fxchain enabled="0" numofeffects="0"/>
+        </instrumenttrack>
+        <pattern muted="0" type="1" steps="16" name="Caixa de música" pos="0">
+          <note pos="1932" len="6" key="81" vol="39" pan="0"/>
+          <note pos="2306" len="6" key="69" vol="41" pan="0"/>
+          <note pos="2496" len="4" key="74" vol="55" pan="0"/>
+          <note pos="2506" len="4" key="81" vol="60" pan="0"/>
+          <note pos="2516" len="8" key="86" vol="63" pan="0"/>
+        </pattern>
+      </track>
+    </trackcontainer>
+    <fxmixer>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="0" name="Master">
+        <fxchain enabled="0" numofeffects="0">
+        </fxchain>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="1" name="Bloco de madeira">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="300" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="1200" Peak1gain="2.0" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="2" name="Kalimba">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="200" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="2400" Peak1gain="1.5" Peak1bw="0.6" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="3" name="Sininho">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="1500" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="4" name="Papel">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="1200" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="6000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="2600" Peak1gain="3.0" Peak1bw="0.7" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="5" name="Toque grave">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="0" HPfreq="30" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="1" LPfreq="600" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="6" name="Celesta">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="500" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="1.0" soloed="0" num="7" name="Caixa de música">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="400" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="0" Highshelffreq="8000" HighShelfgain="0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="0" Peak1freq="120" Peak1gain="0" Peak1bw="0.3" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+        <send amount="0.12" channel="8"/>
+      </fxchannel>
+      <fxchannel muted="0" volume="0.5" soloed="0" num="8" name="Sala">
+        <fxchain enabled="1" numofeffects="1">
+          <effect name="reverbsc" on="1" wet="1.0" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><ReverbSCControls input_gain="0" size="0.55" color="9000" output_gain="0.0"/></effect>
+        </fxchain>
+        <send amount="1.0" channel="0"/>
+      </fxchannel>
+    </fxmixer>
+    <timeline lp0pos="0" lp1pos="192" lpstate="0"/>
+    <controllers/>
+    <projectnotes>Interface — família de efeitos da rodada 09 (estudo; NÃO canônico).
+
+Eventos reais (CreatorController.action e GameLogic.action): selecionar uma opção, confirmar (Concluir,
+Começar, Restaurar confirmado), cancelar (Esc, fechar diálogo), abrir um painel/diálogo e salvar a aparência.
+
+A interface do Valumo é madeira, pergaminho e dourado (UiKit). Duas hipóteses:
+  A "madeira e papel": bloco de madeira + kalimba (madeira afinada, dedilhada) e grãos de "papel" (ruído em
+     banda média com envelope de inchaço) — tátil, quente, discreto; dourado só no salvar (sininho).
+  B "vidro e dourado": celesta e caixa de música — brilho mágico em tudo; mais "fantasia", mais cansativo
+     em repetição (o selecionar toca dezenas de vezes por minuto no criador).
+Regras comuns: ataque imediato (≤ 10 ms), curto (selecionar ≤ 180 ms), confirmar sobe (quinta justa),
+cancelar desce (quarta), salvar é o único arpejo completo. Tudo na escala de Ré maior (mesma tônica da
+música da vila: os sons não brigam com ela).
+</projectnotes>
+  </song>
+</lmms-project>
