@@ -43,6 +43,9 @@ public final class GameLogic {
     }
 
     public static final float INTERACT_ANGLE = (float) Math.toRadians(80);
+    /** Rodada 09: passo lógico fixo da exploração e do combate (s). O desenho interpola entre dois passos. */
+    public static final float TICK = 1f / 120f;
+    static final double TICK_D = 1.0 / 120.0;
     public static final float EMOTE_TIME = 1.55f;
 
     public State state = State.SELECT;
@@ -60,6 +63,23 @@ public final class GameLogic {
     public boolean quit, openCreator, showHelp = true, started;
     public String message;
     public float messageUntil;
+    /** Rodada 09: o confronto da cena (null = cena sem combate). */
+    public final Combat combat;
+    /** Rodada 09.1: som do combate (só lê o confronto depois de cada passo); null = sem som (testes, roteiros mudos). */
+    public CombatAudio audio;
+    /** Rodada 09.1: passos (som discreto no pouso de cada pé); null = sem som. */
+    public Footsteps steps;
+    /** Tempo acumulado ainda não simulado e fração do passo para o desenho (0..1). */
+    public double acc;
+    public float alpha = 1f;
+    private boolean pendingAttack, pendingDodge, pendingJump;
+    private final Hero.Intent intent = new Hero.Intent();
+    /** Rodada 09.2: mira opcional (livre por padrão) e preferências do jogador. */
+    public final Targeting targeting = new Targeting();
+    /** Rodada 09.2 — medição: ns na câmera (passo fixo) e passos medidos. */
+    public long camNanos, camTicks;
+    public Prefs prefs;
+    private boolean victoryShown;
     /** Avisado quando a aparência escolhida muda (o Game compõe o modelo). */
     public Consumer<Appearance> onAppearance = a -> { };
 
@@ -67,10 +87,35 @@ public final class GameLogic {
         this.scene = scene;
         this.collision = collision;
         for (SceneDef.Interactive i : scene.interactives) npcs.add(new Npc(i));
+        prefs = scene.combat != null
+                ? new Prefs(Prefs.defaultFile(), scene.combat.barDefault, scene.combat.feelDefault, scene.combat.encounterDefault).load()
+                : new Prefs(null, "dano", "A", "um");
+        if (System.getProperty("vx.sensacao") != null) prefs.feel = System.getProperty("vx.sensacao");
+        if (System.getProperty("vx.encontro") != null) prefs.encounter = System.getProperty("vx.encontro");
+        if (System.getProperty("vx.barras") != null) prefs.bars = Prefs.valid(System.getProperty("vx.barras"), prefs.bars);
+        combat = scene.combat != null ? new Combat(scene.combat, collision, scene.assets, prefs.encounter) : null;
+        if (combat != null) {
+            combat.player = player;
+            prefs.encounter = combat.encounter;
+            applyFeel(prefs.feel);
+            player.applyJump(combat.def);
+        }
         player.place(scene.startX, scene.startZ, (float) Math.toRadians(scene.startYawDeg), collision);
         cam.yaw = player.yaw + (float) Math.PI;                           // atrás do herói, olhando para onde ele olha
         frameSelect();
     }
+
+    /** Rodada 09.2 — perfil de sensação (A = 09.1, B, C) no corpo e no golpe. */
+    public void applyFeel(String name) {
+        if (combat == null) return;
+        CombatDef.Feel f = combat.def.feels.get(name);
+        if (f == null) f = combat.def.feels.get(combat.def.feelDefault);
+        player.applyFeel(f);
+        combat.hero.feel = f;
+        prefs.feel = f.name();
+    }
+
+    public CombatDef.Feel feel() { return combat == null ? null : combat.hero.feel; }
 
     /** Escolha de aparência: herói de frente (3/4), deslocado para a esquerda do painel. */
     void frameSelect() {
@@ -126,6 +171,7 @@ public final class GameLogic {
 
     public void update(float dt, Input in) {
         time += dt;
+        if (state != State.EXPLORE) { player.snapshot(); cam.snapshot(); alpha = 1f; acc = 0f; }
         switch (state) {
             case SELECT -> {
                 if (in.hit(GLFW_KEY_DOWN, GLFW_KEY_S)) select(nextValid(selected, 1));
@@ -163,13 +209,77 @@ public final class GameLogic {
         cam.look(in.mdx, in.mdy);
         if (in.wheel != 0) cam.zoom(in.wheel);
         float[] ax = in.moveAxes();
-        float fx = cam.forwardX(), fz = cam.forwardZ();
-        // intenção relativa à câmera: frente = para onde ela olha; direita = (−fz, fx)
-        float ix = fx * ax[1] - fz * ax[0], iz = fz * ax[1] + fx * ax[0];
-        player.update(dt, ix, iz, in.running(), collision);
-        cam.update(dt, player.x, player.visualY, player.z, collision);
-        candidate = findCandidate();
+        boolean run = in.running(), locked = combat != null && !combat.hero.alive();
+        if (in.leftPressed > 0) pendingAttack = true;                  // o aperto vale para o próximo passo, mesmo sem passo neste quadro
+        if (in.hit(GLFW_KEY_LEFT_ALT) || in.middlePressed > 0) pendingDodge = true;   // rodada 09.2: esquiva
+        if (in.hit(GLFW_KEY_SPACE)) pendingJump = true;                              // rodada 09.2: salto
+        if (combat != null && !locked) {                                             // rodada 09.2: mira opcional
+            float fy = (float) Math.atan2(cam.forwardX(), cam.forwardZ());
+            if (in.hit(GLFW_KEY_Q)) { targeting.toggle(player, combat, fy); combat.log(targeting.locked() ? "mira: travada em " + targetName() : "mira: livre"); }
+            if (in.hit(GLFW_KEY_TAB)) {
+                Enemy before = targeting.target;
+                targeting.cycle(in.held(GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT) ? -1 : 1, player, combat, fy);
+                if (targeting.target != before) combat.log("mira: alvo " + targetName());
+            }
+        }
+        acc += dt;                                                      // double: sem deriva em milhares de quadros
+        while (acc >= TICK_D - 1e-9) {                                  // passos fixos: nada depende da taxa de quadros
+            acc -= TICK_D;
+            player.snapshot();
+            cam.snapshot();
+            // intenção relativa à câmera DESTE passo: frente = para onde ela olha; direita = (−fz, fx). Rodada 09.2: a
+            // referência é o rumo do mouse + o desvio automático com giro limitado (FollowCamera.inputYaw)
+            float fx = cam.inputForwardX(), fz = cam.inputForwardZ();
+            float ix = fx * ax[1] - fz * ax[0], iz = fz * ax[1] + fx * ax[0];
+            if (combat != null) {
+                float len = Math.min(1f, (float) Math.hypot(ix, iz)), max = run ? player.run : player.walk, k = len > 1e-6f ? len / (float) Math.hypot(ix, iz) : 0f;
+                intent.set(locked ? 0f : ix * k * max, locked ? 0f : iz * k * max, !locked && len > 0.01f, !locked && pendingAttack,
+                        !locked && in.rightDown, (float) Math.atan2(fx, fz));
+                intent.run = run;
+                intent.dodge = !locked && pendingDodge;
+                intent.jump = !locked && pendingJump;
+                intent.target = locked ? null : targeting.target;
+                pendingAttack = pendingDodge = pendingJump = false;
+                combat.tick(TICK, intent, player);
+                targeting.update(TICK, player, combat, (float) Math.atan2(cam.forwardX(), cam.forwardZ()));
+                if (audio != null) audio.afterTick(combat);                  // depois do passo: o som não muda a lógica
+            } else {
+                if (pendingJump) player.requestJump();
+                pendingJump = false;
+                player.update(TICK, ix, iz, run, collision);
+            }
+            if (steps != null) steps.afterTick(player);
+            if (combat != null) {
+                Enemy t = targeting.target;
+                cam.lockOn(t != null, t != null ? t.x : 0f, t != null ? t.y + 0.4f * t.scale : 0f, t != null ? t.z : 0f);
+                if (t != null) { cam.combatFocus(t.x, t.y, t.z, 1f); cam.freeFight(0f); }   // travada: enquadra o alvo
+                else if (FollowCamera.combatAssist) {                       // rodada 09.1 (só para comparar): ajuste automático
+                    Enemy e = combat.enemy;
+                    boolean near = combat.engaged() && Math.hypot(e.x - player.x, e.z - player.z) < 4.5f;
+                    cam.combatFocus(e.x, e.y, e.z, near ? 1f : 0f);
+                } else {                                                    // livre: composição e busca de vista da luta,
+                    Enemy n = nearestEngaged(4.5f);                         // sem giro nem inclinação automáticos
+                    cam.freeFight(n != null ? 1f : 0f);
+                    if (n != null) cam.combatFocus(n.x, n.y, n.z, 1f); else cam.combatFocus(0f, 0f, 0f, 0f);
+                }
+            }
+            long c0 = System.nanoTime();
+            cam.update(TICK, player.x, player.visualY, player.z, collision);   // câmera no passo fixo: o rumo entra na lógica
+            camNanos += System.nanoTime() - c0;
+            camTicks++;
+        }
+        acc = Math.max(0.0, acc);
+        alpha = (float) Math.clamp(acc / TICK_D, 0.0, 1.0);
+        candidate = combat != null && combat.engaged() ? null : findCandidate();   // sem conversa no meio da luta
         if (candidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) startDialog(candidate);
+        if (combat != null) {
+            if (combat.outcome == Combat.Outcome.VICTORY && !victoryShown) {
+                victoryShown = true;
+                message(combat.enemies.size() == 1 ? combat.def.enemyName + " derrotado! R recomeça o confronto"
+                        : "Grupo derrotado! R recomeça o confronto", 6f);
+            }
+            if (combat.outcome != Combat.Outcome.NONE && in.hit(GLFW_KEY_R)) action("recomecar");
+        }
     }
 
     /** NPC mais perto dentro do alcance e mais ou menos à frente do herói. */
@@ -253,11 +363,96 @@ public final class GameLogic {
             case "continuar" -> { if (state == State.PAUSE) state = State.EXPLORE; }
             case "trocar-aparencia" -> { state = State.SELECT; frameSelect(); }
             case "criador" -> openCreator = true;
+            case "recomecar" -> {                                      // rodada 09: recomeça o confronto
+                if (combat == null) return;
+                targeting.clear();
+                cam.lockOn(false, 0, 0, 0);
+                combat.restart(player);
+                if (audio != null) audio.reset(combat);                      // nada preso tocando do confronto anterior
+                victoryShown = false;
+                pendingAttack = false;
+                player.snapshot();
+                state = State.EXPLORE;
+                cam.yaw = player.yaw + (float) Math.PI;
+            }
+            case "voltar-vila" -> {
+                if (combat == null) return;
+                targeting.clear();
+                cam.lockOn(false, 0, 0, 0);
+                combat.restart(player);
+                if (audio != null) audio.reset(combat);
+                victoryShown = false;
+                player.place(scene.startX, scene.startZ, (float) Math.toRadians(scene.startYawDeg), collision);
+                player.snapshot();
+                state = State.EXPLORE;
+                cam.yaw = player.yaw + (float) Math.PI;
+            }
             case "sair" -> quit = true;
+            case "barras" -> prefs.cycleBars();                       // rodada 09.2: barras de inimigos comuns
+            case "sensacao" -> {                                       // rodada 09.2: próximo perfil de sensação
+                if (combat == null) return;
+                List<String> ks = new ArrayList<>(combat.def.feels.keySet());
+                applyFeel(ks.get((ks.indexOf(prefs.feel) + 1) % ks.size()));
+                prefs.save();
+            }
+            case "encontro" -> {                                       // rodada 09.2: próximo encontro da arena
+                if (combat == null) return;
+                List<String> ks = new ArrayList<>(combat.def.encounters.keySet());
+                setEncounter(ks.get((ks.indexOf(combat.encounter) + 1) % ks.size()));
+            }
             default -> {
                 if (id.startsWith("escolha:")) select(Integer.parseInt(id.substring(8)));
+                else if (id.startsWith("sensacao:")) { applyFeel(id.substring(9)); prefs.save(); }
+                else if (id.startsWith("encontro:")) setEncounter(id.substring(9));
+                else if (id.startsWith("barras:")) { prefs.bars = Prefs.valid(id.substring(7), prefs.bars); prefs.save(); }
             }
         }
+    }
+
+    /** Rodada 09.2 — troca o encontro da arena (inimigos novos em casa, mira solta, som do confronto esquecido). */
+    public void setEncounter(String name) {
+        if (combat == null) return;
+        targeting.clear();
+        cam.lockOn(false, 0, 0, 0);
+        combat.setEncounter(name);
+        combat.restart(player);
+        if (audio != null) audio.reset(combat);
+        victoryShown = false;
+        prefs.encounter = combat.encounter;
+        prefs.save();
+    }
+
+    /**
+     * Rodada 09.2 — barra pequena sobre um inimigo COMUM (regra testável; o desenho também confere visibilidade e tela):
+     * nunca; "dano" = levou dano há menos de {@code show} s ou é o alvo travado; "sempre" = engajado ou ferido. Chefe
+     * nunca tem a barra pequena (tem a grande).
+     */
+    public static boolean smallBar(String mode, Enemy e, Enemy target, float show) {
+        if (!e.alive() || e.boss() || mode.equals("nunca")) return false;
+        if (mode.equals("sempre")) return e.engaged() || e.hp < e.def.enemyHp;
+        return e.hurtT < show || e == target;
+    }
+
+    /** Rodada 09.2 — barra grande no topo: só para inimigo classificado como chefe, vivo, engajado ou ferido. */
+    public static boolean bossBar(Enemy e) {
+        return e != null && e.boss() && e.alive() && (e.engaged() || e.hp < e.def.enemyHp);
+    }
+
+    /** O inimigo vivo e engajado mais perto do herói, a menos de r u (ou null). */
+    Enemy nearestEngaged(float r) {
+        Enemy best = null;
+        float bd = r;
+        for (Enemy e : combat.enemies) {
+            if (!e.alive() || !e.engaged()) continue;
+            float d = (float) Math.hypot(e.x - player.x, e.z - player.z);
+            if (d < bd) { bd = d; best = e; }
+        }
+        return best;
+    }
+
+    String targetName() {
+        Enemy t = targeting.target;
+        return t == null ? "-" : t.name() + "#" + t.id;
     }
 
     public void message(String m, float secs) {
