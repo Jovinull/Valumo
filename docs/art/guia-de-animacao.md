@@ -44,6 +44,12 @@ massa única (H2) e não deve virar mola.
 |---|---|---|
 | Gestos HIT/EMOTE coreografados | moves `hit`/`emote` em cada perfil; `Animator` (gesture → move) | reação a dano e comemoração com a arma sem cruzar a cabeça; validados por `--check` (`clip:HIT`, `clip:EMOTE`) |
 | Canal `lift` | `Choreo.LIFT` | sobe o corpo (voxels) — pulo do emote |
+| Canal `spin` (09.2) | `Choreo.SPIN` | giro do corpo inteiro (graus) em torno do centro da bola (`spinCenter`) — rolamento; caminho mais curto (termine em 360) |
+| Canal `footY` (09.2) | `Choreo.FOOTY` | pés recolhidos (voxels, esq./dir.) sem erguer o quadril — rolamento, recuo |
+| Campo `cutFade` do gesto (09.2) | `Choreo.Move.cutFade` | transição mais curta quando o gesto entra cortando outro (esquiva: 0,12 s) |
+| Pernas sob a ação (09.2) | `Motion.legW/legClip/legT/legDir` | golpe andando: pernas na passada real, tronco/braços/arma do golpe (validar com `--check golpe-andando`) |
+| Rumo da passada (09.2) | `Motion.locoDir` | andar de lado/de costas (coxa abre); rumo 0 + passada 1 = idêntico ao anterior |
+| Salto (09.2) | `Motion.air/land` | pés recolhidos no ar; quadril cede ao pousar |
 | Peso no golpe | `hip`, `rootZ`, `feet`, `torso` mais amplos; chave `stop` repetida segura a antecipação | espada: agacha (0,83), avança até 2,6 e gira o tronco −46° na preparação |
 | Lâmina longa L1→L2→L3 | `longblade.json` | transferência de peso contínua (rootZ −0,4 → +2,2 → +2,8) |
 | Guarda de duas mãos | `guard_two_hands` (`lMode: "grip"`, `lGrip`, `lGripW`) | **substituída na rodada 05.1** (a passagem pela lâmina em pé diante do rosto e o repouso sobre o ombro escondiam a lâmina) |
@@ -207,12 +213,92 @@ Regras: sutil (|ângulos| ≤ 8°, andamento 0,75–1,3 — `VilaNpcTest.actingI
 cache nunca muda (cópia por personagem); rode `viewer --check` depois (andamento mais rápido aumenta o passo
 da ponta nas transições, ainda dentro da tolerância). Vídeos: `output/visual-review/round-06-1/videos/`.
 
+## Combate (rodada 09): interrupções, guarda e derrota
+
+Detalhes em [combate.md](../architecture/combate.md) e na skill `combat`.
+
+### Janelas de interrupção
+
+Cada golpe jogável tem, no perfil, a regra de corte por fase:
+
+```json
+"interrupt": [
+  {"until": 0.50, "rate": -2},
+  {"until": 0.60, "rate": 1, "exits": {"hit": "hit_cross_h"}},
+  {"until": 9, "rate": 1}
+]
+```
+
+- **Instante:** cortado em t, vale a primeira janela com t ≤ `until`.
+- **Ritmo:** o golpe anda pela própria trajetória no ritmo `rate` (negativo = rebobina) enquanto a reação assume.
+- **Saída:** em `exits`, a reação vira a saída autorada daquela fase.
+- **Sem janelas:** vale a regra da 05.1 (rebobina na preparação; `"interrupt": "forward"` faz o embalo depois).
+- **Ritmo das reações:** as reações (`hit`, saídas e `guard_hold`) seguem em frente quando cortadas.
+
+### Saídas autoradas
+
+`hit_cross_h` e `hit_cross_d` são usadas logo depois da execução, quando a espada está do outro lado do corpo:
+1. começam na pose de continuação do corte (`h_follow`, `d_follow`);
+2. recuam pelo corpo (cabeça −14°, quadril e raiz). O tronco quase não inclina, porque inclinar levava os ombros e as
+   mãos não alcançavam;
+3. param em `stop`;
+4. voltam pela recuperação do próprio golpe (`h_settle` ou `d_settle`, depois a guarda).
+
+Os parâmetros saíram de busca com as duas exigências do validador (o golpe sozinho e todos os cortes da janela), num
+ponto cujos vizinhos também passam.
+
+### Origem dupla
+
+Um corte durante outra transição de corte (por exemplo, dano enquanto o encadeamento ainda mistura) usa
+`Motion.fromMove2`: a origem é a própria mistura, então não há salto no segundo corte. O `Sequencer` e a camada do jogo
+fazem o mesmo.
+
+### Golpes do combate
+
+- **`guard_hold`:** guarda do jogo (ergue, segura, impacto, segura, baixa). Os pontos de espera e de pulo estão em platôs
+  parados da curva.
+- **`defeat`:** ajoelha com a espada fincada ao lado, e segue a reação.
+- **Equipamento:** os dois só existem nos perfis de espada.
+
+### Criatura de combate
+
+O `anim` `brawler` (fungo-cardo) usa:
+- EMOTE como alerta;
+- ATTACK em tempo normalizado (preparação, golpe e recuperação);
+- HIT como recuo;
+- DEATH como queda.
+
+A preparação termina num tremor curto: é o aviso da cabeçada.
+
+## Esquiva e salto (rodada 09.3)
+
+- **Canais de perfil novos:**
+  - `rollZ` (graus): inclinação lateral do corpo inteiro; + = esquerda. O corpo sobe junto, para a canela não afundar.
+  - `feetX` [esq, dir] (voxels): afastamento lateral dos pés.
+  - `spinPivot` [altura, frente] (voxels): centro do `spin`.
+  - `spinAxis` (graus): desvia o eixo do `spin` do sagital, para um rolamento diagonal pelo ombro.
+  - `fadeIn` (s, no gesto): entrada a partir da locomoção (esquivas 0,08).
+- **Esquiva atual: R2** (`dodge_f/l/r`, sem `spin`). Os canais de giro ficam para uma esquiva futura; as poses dos
+  rolamentos rejeitados estão em `docs/historico/esquivas-09-3/`.
+- **Rolamento com cabeça grande (2,4 cabeças), lição da 09.3:** a cabeça vira a superfície da "bola" sempre que o corpo inverte; o
+  que se controla é a COLUNA (altura do corpo no meio do giro) e a cabeça não afundar. Medido na 09.3: eixo lateral
+  apoia o corpo na espada; rolar pelo lado do escudo deixa a cabeça mais tempo embaixo; recolher as pernas rende pouco
+  (IK). Gire em diagonal (`spinAxis` −25 a −40),
+  com o tronco dobrado e o pivô baixo. A lâmina vai por cima, com o pomo para trás e longe das pernas.
+  `DodgeJumpPolishTest.theR1RollTouchesTheGroundWithTheBodyInsteadOfFloating` exige o corpo no chão no meio do giro.
+- **Salto:**
+  - `Motion.takeoff` (0→1 nos primeiros 0,10 s do voo) agacha e empurra.
+  - `Motion.fall` (0→1 nos últimos 0,14 s) estende as pernas à frente.
+  - `Motion.land` × `landRun` decide a profundidade do pouso.
+  - Prévia sem o jogo: `snap mode=char,…,salto=parado|andando|correndo|antigo-parado…,myaw=90`.
+
 ## Limitações conhecidas
 
 - Heróis da E (e rigs de estudo r4): braços por IK na camada de ação, **inclusive HIT e EMOTE**, que são
   gestos coreografados do perfil (moves `hit`/`emote`, rodada 05). Direções A–D e variantes V1–V3 não têm
   perfil de arma: nelas HIT e EMOTE continuam nos clipes FK antigos (`Animator.biped`), só para comparação.
 - Desnível entre os pés acima de 0,131 u: o pé alto fica no ar (sem animação de subir; tabela "Pés").
-- Combate não é funcional: a flecha e o orbe voam como efeito, sem colisão nem dano.
+- **Combate (rodada 09):** só espada e broquel. A flecha e o orbe continuam efeitos, sem colisão nem dano. A lâmina longa
+  não é jogável (interrupção 18/47 aberta).
 - A capa articulada só existe na variante V3; nenhuma física de pano (por decisão).
 - Clipes de transição (parar, virar) não existem; a troca é por mistura simples.

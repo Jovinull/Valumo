@@ -81,6 +81,7 @@ Partes com outros nomes são desenhadas, mas ficam rígidas em relação ao pai.
 | `biped` | `torso` (raiz; pivô no quadril), `head`, `arm_l`, `arm_r` (pivô no ombro), `farm_l`, `farm_r` (antebraço; filhos do braço, pivô no cotovelo), `leg_l`, `leg_r` (pivô no quadril, **sem pai**), `shin_l`, `shin_r` (canela; filhas da perna, pivô no joelho), `arrow` (filha de `bow`), `weapon` (filha de `arm_r` ou, com articulação, de `farm_r`, modelada na VERTICAL com o punho no pivô — o animador a inclina), `cape`, `tail` (rabo de cavalo/trança; filha de `head`), `skirt`, `hat` |
 | `quadruped` | `body`, `head`, `leg_fl`, `leg_fr`, `leg_bl`, `leg_br`, `tail`, `ear_l`, `ear_r` |
 | `hopper` | `body` (ou qualquer raiz), `head`, `ear_l`, `ear_r`, `tail`, `arm_l`, `arm_r`, `leg_l`, `leg_r`, `cap` |
+| `brawler` (rodada 09) | as do `hopper` (locomoção saltitante) mais a atuação de combate: `cap` é a arma da cabeçada e o ponto da hitbox (`combate_e.json`); `ATTACK` usa o tempo normalizado (preparação [0,1), golpe [1,2), recuperação [2,3)), `EMOTE` = alerta, `HIT` = recuo, `DEATH` = queda e some encolhendo. Só a variante de combate `creatures/e/fungo_cardo` |
 | `floater` | `core` (pulsa), `ring` (gira em Y), `wing_l`, `wing_r`, `tail`, `leaf_l`, `leaf_r` |
 | `flutter` (rodada 06) | `body` (raiz, tórax), `head`, `abdomen`, `wing_fl`, `wing_fr` (asas da frente), `wing_bl`, `wing_br` (de trás, atrasadas 0,7 rad); asas modeladas PLANAS na horizontal com a articulação no pivô — o animador as ergue em V e inclina a corda. Batida ≤ 2,6 Hz (sem cintilação) |
 
@@ -236,3 +237,32 @@ Testes novos: `AssetContractTest.consolidatedHeroesHaveElbowsAndKnees`,
 
 Estudos novos: `characters/r4/adventurer_shield`, `characters/r4/adventurer_longblade` (`tools/chars_e_study.py`).
 A flecha da exploradora passou a 15 voxels (proporção chibi da puxada). Testes: `ChoreoTest` (14 casos).
+
+## 10. Efeitos sonoros (rodada 09.1)
+
+| Onde | O quê | Regra |
+|---|---|---|
+| `assets/audio/*.wav` | efeitos GERADOS por `tools/audio_e.py` (fora do git) | PCM 16 bits, **mono** (posicionáveis), 48 kHz, pico em −3 dBFS (±0,1), sem DC, sem estalo nas bordas |
+| `assets/audio/variantes.json` | gerado: efeito → arquivos (variações) | todo efeito da mistura tem som gerado, e todo som gerado é usado |
+| `assets/audio/analise.json` | gerado: números de revisão por arquivo | duração, pico, RMS, crista, DC, cortes, centroide |
+| `assets/scenes/sons_e.json` | **escrito à mão**: mistura por efeito | `ganho` 0–1, `espacial`, `tom` (variação ±), `vozes`, `intervalo` (s); volumes iniciais |
+| nomes | efeitos em português, `snake_case` | `golpe_ar_h`, `golpe_acerto`, `escudo_bloqueio`, `fungo_preparo`… (o diretor em `CombatAudio` os usa) |
+
+Origem: só síntese (nenhuma amostra de terceiros, nenhum gerador por IA); a proveniência por efeito está em
+[audio.md](../architecture/audio.md) §4. Teste: `CombatAudioTest.everyEffectIsGeneratedCleanAndEveryGeneratedFileIsUsed`.
+
+## 11. Rodada 09.2 — perfis de arma, combate e colisão
+
+- **Perfis (`assets/anim/*.json`):**
+  - canais `spin` (graus) e `footY` ([esq, dir], voxels) nas poses;
+  - campo `spinCenter` (voxels, padrão 13) no perfil;
+  - campo `cutFade` (s) no gesto.
+  - Gestos novos em `sword.json`: `roll` (0,56 s) e `backstep` (0,40 s), com poses `roll_*` e `bs_*`. Em
+    `sword_shield.json`, `merge` da mão esquerda (broquel).
+  - Golpes existentes NÃO mudaram.
+- **`assets/scenes/combate_e.json`:** blocos `sensacao`, `esquiva` (com `janelas` medidas), `salto`, `mira`, `grupo`,
+  `variantes`, `encontros` e `interface`. Sem eles, o comportamento é o da 09.1.
+- **`assets/scenes/colisao_e.json`:** `"pisavel": true` faz o topo da forma virar chão para quem pula em cima.
+- **`assets/scenes/sons_e.json`:** `esquiva_rolar`, `esquiva_recuo`, `salto`, `pouso`, `fungo_desfaz`.
+- **`output/preferencias.json`** (gerado pelo jogo, fora do git): `barrasInimigos`, `sensacao`, `encontro`.
+

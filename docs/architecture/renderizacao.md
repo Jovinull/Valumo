@@ -119,3 +119,13 @@ Para investigar um defeito parecido, compare as três malhas na mesma câmera:
 - **Sombra Poisson** de 12 amostras (`uShadowTaps = 4`), metade do custo do PCF 5 × 5.
 - **Silhueta** (`uSilhouette`) e **argila** (`uClay`) para QA.
 - Valores por preset em [../art/presets-graficos.md](../art/presets-graficos.md).
+
+## Lampejo de impacto (rodada 09)
+
+- **O que é:** `Renderer.Draw.flash` (0–1, por desenho) → `uFlash` no `scene.frag`. A cor fica até 35% mais clara, com
+  um leve acréscimo quente, antes da névoa.
+- **Quem usa:** o `Actor.flash` aplica o valor às peças de um personagem. O jogo usa isso por 0,14 s em quem foi atingido.
+- **Padrão 0:** as 22 referências se reproduzem a 0/255 com a mudança.
+- **Sem flash agressivo:** a primeira versão (mistura para branco) lavava o herói inteiro e foi reprovada nas capturas da
+  rodada 09.
+
