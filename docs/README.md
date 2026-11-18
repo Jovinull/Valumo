@@ -25,9 +25,16 @@
 | [processo/commits.md](processo/commits.md) | commits, histórico e repositório público (regras do proprietário) |
 | [validation/problemas-conhecidos.md](validation/problemas-conhecidos.md) | abertos, corrigidos, limitações aceitas, fora do escopo |
 | [validation/matriz-de-problemas.md](validation/matriz-de-problemas.md) | rastreabilidade de todos os problemas (rodadas 01–05.1) com evidência verificada |
+| [architecture/combate.md](architecture/combate.md) | o combate (rodada 09; câmera refeita na 09.1; mobilidade, esquiva, mira, grupos, morte voxel e barras na 09.2 §14–19): tempo e ordem, herói, golpes e janelas de dano, inimigo e IA, interrupções, vida, defesa, câmera de luta e sua medição, retorno visual e sonoro, testes |
+| [architecture/audio.md](architecture/audio.md) | o som (rodada 09.1): OpenAL, diretor que só lê a lógica, regras de reprodução, síntese e proveniência dos efeitos, mistura por nível, sincronia e latência medidas |
 | [architecture/jogo.md](architecture/jogo.md) | o jogo: módulos, estados, controle do herói, colisão, câmera, cena, interação, aparência, interface, testes |
 | [validation/roteiro-de-teste-fisico.md](validation/roteiro-de-teste-fisico.md) | roteiro de teste com teclado e mouse físicos (criador e jogo) para o proprietário |
-| [validation/relatorio-rodada-08-1.md](validation/relatorio-rodada-08-1.md) | relatório da rodada atual (08.1: malha conforme — fim do tremor — e dentes) |
+| [validation/relatorio-rodada-09-3.md](validation/relatorio-rodada-09-3.md) | relatório da rodada atual (09.3: esquiva R1/R2 com a mesma função, salto com impulso e pouso, herói pontilhado perto da câmera) |
+| [validation/relatorio-rodada-09-2.md](validation/relatorio-rodada-09-2.md) | relatório da 09.2 ( mobilidade, esquiva, salto, mira opcional, grupos, ensaio de chefe, morte voxel, barras) |
+| [validation/relatorio-rodada-09-1.md](validation/relatorio-rodada-09-1.md) | relatório da rodada 09.1 (câmera de luta e primeiro som) |
+| [validation/relatorio-rodada-09.md](validation/relatorio-rodada-09.md) | relatório da rodada 09 (primeiro combate) |
+| [validation/roteiro-de-teste-fisico-combate.md](validation/roteiro-de-teste-fisico-combate.md) | teste físico do combate com câmera e som (12–15 min, para o proprietário) |
+| [validation/relatorio-rodada-08-1.md](validation/relatorio-rodada-08-1.md) | relatório da rodada 08.1 (malha conforme — fim do tremor — e dentes) |
 | [validation/relatorio-rodada-08.md](validation/relatorio-rodada-08.md) | relatório da rodada 08 (primeira exploração jogável) |
 | [validation/relatorio-rodada-07-2.md](validation/relatorio-rodada-07-2.md) | relatório da rodada 07.2 (criador de personagens do jogador) |
 | [validation/relatorio-rodada-07.md](validation/relatorio-rodada-07.md) | relatório da rodada 07 (personalização modular em tempo de execução) |
