@@ -110,12 +110,26 @@ def looped_session(mmp: Path, out: Path) -> tuple[int, int, float]:
     return lp0, lp1, bpm
 
 
+# clique da sonda de calibração: síntese própria (sem banco de amostras), ataque imediato e queda de 15 ms
+def _click() -> str:
+    import sintese as S
+    ins, el = S._inst([{"wave": S.SQUARE, "vol": 100}], {"att": 0, "dec": S.t(0.015), "sus": 0.0, "rel": S.t(0.005)})
+    return ins + el
+
+
+CLICK = None
+
+
 def calibrate(mmp: Path, td: Path, ticks: list[int]) -> list[int]:
     """Posição real (amostra) de cada tick no render do LMMS: sonda com o MESMO cabeçalho (andamento e
     compasso) e cliques curtos (bloco de madeira GM) no tick 0 e nos ticks pedidos. Amostra = início do
-    clique − início do clique do tick 0 (a latência do instrumento se cancela)."""
+    clique − início do clique do tick 0 (a latência do instrumento se cancela). O clique é síntese própria
+    (quadrada com queda de 15 ms); com o banco de amostras, a sonda ficava MUDA sem o banco instalado e o limiar caía a
+    zero — todas as posições saíam 50 ms adiantadas sem aviso (achado na integração da 09.4). Agora sonda muda = erro."""
     import numpy as np
     import soundfile as sf
+    global CLICK
+    CLICK = CLICK or _click()
     head = ET.parse(mmp).getroot().find("head")
     allt = [0] + ticks
     notes = "".join(f'<note pos="{t}" len="6" key="64" vol="100" pan="0"/>' for t in allt)
@@ -124,9 +138,8 @@ def calibrate(mmp: Path, td: Path, ticks: list[int]) -> list[int]:
            f'type="song" version="1.0"><head bpm="{head.get("bpm")}" timesig_numerator="{head.get("timesig_numerator")}" '
            f'timesig_denominator="{head.get("timesig_denominator")}" mastervol="100" masterpitch="0"/><song>'
            '<trackcontainer type="song"><track muted="0" type="0" name="sonda" solo="0"><instrumenttrack fxch="0" '
-           'basenote="57" vol="100" pan="0" pitchrange="1" pitch="0" usemasterpitch="1"><instrument name="sf2player">'
-           '<sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="128" patch="0" gain="1" reverbOn="0" '
-           'chorusOn="0"/></instrument><eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/><fxchain enabled="0" '
+           'basenote="57" vol="100" pan="0" pitchrange="1" pitch="0" usemasterpitch="1">'
+           + CLICK + '<fxchain enabled="0" '
            f'numofeffects="0"/></instrumenttrack><pattern muted="0" type="1" steps="16" name="s" pos="0">{notes}'
            f'<note pos="{end}" len="1" key="57" vol="0" pan="0"/></pattern></track></trackcontainer>'
            '<fxmixer><fxchannel num="0" name="Master" volume="1" muted="0" soloed="0"><fxchain enabled="0" '
@@ -135,6 +148,8 @@ def calibrate(mmp: Path, td: Path, ticks: list[int]) -> list[int]:
     lmms_render(td / "sonda.mmp", td / "sonda.wav")
     x, sr = sf.read(str(td / "sonda.wav"), always_2d=True)
     a = np.abs(x).max(1)
+    if a.max() < 1e-3:
+        raise SystemExit("calibração: a sonda saiu muda — as posições do laço seriam chutadas")
     thr = a.max() * 0.05
     framepertick = sr * 60.0 / (float(head.get("bpm")) * 48)
     pos = []
