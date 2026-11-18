@@ -56,6 +56,14 @@ public final class Composer {
     }
 
     static final String[] EXPRS = {"neutral", "joy", "determined", "surprise"};
+    /**
+     * Rodada 09 — equipamento de combate (pasta de um rig com as peças de item, ex.: "characters/r4/adventurer_shield").
+     * Troca SÓ as peças de item (arma, escudo, arco, flecha), o perfil de animação e os volumes de item do validador; corpo,
+     * rosto, cabelo, cobertura e cores ficam os da aparência. null = sem troca (criador, presets canônicos, gate 0 pixel).
+     */
+    public volatile String kit;
+    static final java.util.Set<String> ITEM_PARTS = java.util.Set.of("weapon", "shield", "bow", "arrow");
+    static final java.util.Set<String> ITEM_TAGS = java.util.Set.of("blade", "handle", "shield", "bow", "arrow", "staff");
     private final Path assets;
     public final ComponentCatalog catalog;
     private final Map<String, VoxGrid> gridCache = new HashMap<>();          // arquivos já lidos (imutáveis)
@@ -163,8 +171,44 @@ public final class Composer {
             r.meta.addProperty("bodyHeightVoxels", hairTop + 1);
         }
         r.meta.addProperty("appearance", a.signature());
+        String k = kit;
+        if (k != null) equip(r, k);
         r.composeNanos = System.nanoTime() - t0;
         return r;
+    }
+
+    /** Troca as peças de item pelas do rig {@code kitDir} (mesmos pivôs de braço nos três corpos; ver jogo.md). */
+    void equip(ComposedRig r, String kitDir) {
+        JsonObject kd = rigDoc(kitDir);
+        java.util.Set<String> gone = new java.util.HashSet<>(ITEM_PARTS);
+        boolean more = true;
+        while (more) {                                                     // e o que pende deles (cordas do arco)
+            more = false;
+            for (Piece p : r.pieces) if (!gone.contains(p.name) && p.parent != null && gone.contains(p.parent)) { gone.add(p.name); more = true; }
+        }
+        r.pieces.removeIf(p -> gone.contains(p.name));
+        for (JsonElement pe : kd.getAsJsonArray("parts")) {
+            JsonObject p = pe.getAsJsonObject();
+            String n = p.get("name").getAsString();
+            if (!ITEM_PARTS.contains(n)) continue;
+            Piece piece = new Piece();
+            piece.name = n;
+            piece.parent = p.get("parent").getAsString();
+            piece.pivot = floats(p.getAsJsonArray("pivot"));
+            piece.grid = load(p, kitDir);
+            r.pieces.add(piece);
+        }
+        JsonObject km = kd.getAsJsonObject("meta");
+        r.meta.add("weaponProfile", km.get("weaponProfile"));
+        r.meta.addProperty("weaponMode", "sword");
+        r.meta.remove("weaponRest");
+        com.google.gson.JsonArray vols = new com.google.gson.JsonArray();
+        for (JsonElement v : r.meta.getAsJsonArray("volumes"))
+            if (!ITEM_TAGS.contains(v.getAsJsonObject().get("tag").getAsString())) vols.add(v);
+        for (JsonElement v : km.getAsJsonArray("volumes"))
+            if (ITEM_TAGS.contains(v.getAsJsonObject().get("tag").getAsString())) vols.add(v);
+        r.meta.add("volumes", vols);
+        r.name = r.name + " + " + kitDir;
     }
 
     /**
