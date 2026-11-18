@@ -14,6 +14,7 @@
 Funciona com a sessão editada à mão no LMMS: só depende dos marcadores de laço e das notas da sessão.
 """
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -33,9 +34,24 @@ def run(*cmd, **kw):
     return r
 
 
+def lmms_command() -> list[str]:
+    """Como chamar o LMMS 1.2.2 nesta máquina: VX_LMMS (comando completo, separado por espaços), `lmms` no PATH (pacote do
+    sistema, Ubuntu na rodada 09.4) ou o Flatpak io.lmms.LMMS (Fedora, instalado com --user, sem privilégio). No Flatpak
+    o sandbox tem /tmp próprio: as permissões abrem o disco e o /tmp do sistema para ler a sessão e gravar o WAV."""
+    if os.environ.get("VX_LMMS"):
+        return os.environ["VX_LMMS"].split()
+    if shutil.which("lmms"):
+        return ["lmms"]
+    if shutil.which("flatpak") and subprocess.run(["flatpak", "info", "io.lmms.LMMS"], capture_output=True).returncode == 0:
+        return ["flatpak", "run", "--filesystem=host", "--filesystem=/tmp", "--command=lmms", "io.lmms.LMMS"]
+    raise SystemExit("LMMS não encontrado: instale o pacote lmms, ou `flatpak install --user flathub io.lmms.LMMS`, "
+                     "ou aponte VX_LMMS para o comando")
+
+
 def lmms_render(mmp: Path, wav: Path):
-    run("lmms", "render", str(mmp), "-f", "wav", "-s", str(SR), "-a", "-i", "sincbest", "-o", str(wav),
-        env={"QT_QPA_PLATFORM": "offscreen", "HOME": str(Path.home()), "PATH": "/usr/bin:/bin"})
+    run(*lmms_command(), "render", str(mmp), "-f", "wav", "-s", str(SR), "-a", "-i", "sincbest", "-o", str(wav),
+        env={"QT_QPA_PLATFORM": "offscreen", "HOME": str(Path.home()), "PATH": "/usr/bin:/bin",
+             "XDG_RUNTIME_DIR": os.environ.get("XDG_RUNTIME_DIR", ""), "DBUS_SESSION_BUS_ADDRESS": os.environ.get("DBUS_SESSION_BUS_ADDRESS", "")})
 
 
 def loudness(wav: Path) -> tuple[float, float]:
