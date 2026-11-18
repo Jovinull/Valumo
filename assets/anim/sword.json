@@ -635,7 +635,7 @@
    "r": [
     -10.2,
     26.0,
-    8.0
+    9.0
    ],
    "rDir": [
     -0.1,
@@ -1042,18 +1042,18 @@
   "emote_up": {
    "base": "rest",
    "r": [
-    -11.5,
-    27.0,
-    2.0
+    -13.0,
+    26.5,
+    1.0
    ],
    "rDir": [
-    -0.15,
-    0.95,
-    0.12
+    -0.48,
+    0.87,
+    -0.1
    ],
    "rEdge": [
     0,
-    0.1,
+    0.08,
     1
    ],
    "rElbow": [
@@ -1092,14 +1092,14 @@
   "emote_land": {
    "base": "emote_crouch",
    "r": [
-    -10.5,
-    22.0,
-    3.0
+    -12.5,
+    21.5,
+    1.5
    ],
    "rDir": [
-    -0.2,
-    0.9,
-    0.3
+    -0.55,
+    0.81,
+    -0.18
    ],
    "l": [
     8.0,
@@ -1827,6 +1827,15 @@
     -0.98,
     -0.19
    ]
+  },
+  "cv_drive": {
+   "_doc": "combo (vitrine do visualizador, não jogável): o v_drive com a mão 1,5 voxel mais à frente — no ritmo do combo a curva passa mais baixa e roçava o topo de penteados altos",
+   "base": "v_drive",
+   "r": [
+    -10.2,
+    25.2,
+    10.5
+   ]
   }
  },
  "moves": {
@@ -2132,7 +2141,7 @@
     },
     {
      "t": 0.99,
-     "pose": "v_drive",
+     "pose": "cv_drive",
      "snap": 1.2
     },
     {
