@@ -126,6 +126,9 @@ public final class World {
         return best;
     }
 
+    /** Rodada 09: centro do lago (fonte posicional da água no jogo). */
+    public static float[] pondCenter() { return new float[]{POND_X, WATER_LEVEL, POND_Z}; }
+
     private static float pondDistance(float x, float z) {
         float dx = x - POND_X, dz = (z - POND_Z) * 1.2f;
         return (float) Math.sqrt(dx * dx + dz * dz) + noise(x * 0.6f, z * 0.6f) * 0.35f;
@@ -344,6 +347,15 @@ public final class World {
         int b = Math.clamp(Math.round((rgb & 0xFF) * f), 0, 255);
         return (r << 16) | (g << 8) | b;
     }
+
+    /** Superfícies do relevo (índices de {@link #surfaceAt}). */
+    public static final int SURF_GRASS = 0, SURF_FOREST = 1, SURF_PATH = 2, SURF_SAND = 3, SURF_ROCK = 4;
+
+    /**
+     * Rodada 09 — classe de superfície no ponto do relevo da E (a mesma que escolhe a cor do chão): 0 grama,
+     * 1 floresta, 2 caminho, 3 areia, 4 rocha. Gancho genérico para o jogo (som de passo), sem regra de jogo.
+     */
+    public static int surfaceAt(float x, float z) { return surfaceClass(x, z, height(x, z, false)); }
 
     /** Classe de superfície: 0 grama, 1 floresta, 2 caminho, 3 areia, 4 rocha. */
     private static int surfaceClass(float wx, float wz, float h) {
