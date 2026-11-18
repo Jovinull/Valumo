@@ -254,6 +254,12 @@ class DodgeJumpPolishTest {
         hood.cover = "capuz.c3";
         looks.add(hat);
         looks.add(hood);
+        for (String pr : new String[]{"aventureiro", "maga"}) {               // "Preso" fora da exploradora: rabo centrado (09.4)
+            Appearance tied = Appearance.preset(pr);
+            tied.hair = "cabelo.rabo";
+            tied.cover = Appearance.NO_COVER;
+            looks.add(tied);
+        }
         List<String> bad = new ArrayList<>();
         for (Appearance a : looks) {
             CharacterModel m = comp.build(comp.compose(a), false);
