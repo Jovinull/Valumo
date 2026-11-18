@@ -1,6 +1,6 @@
 ---
 name: weapon-animation
-description: Criar ou alterar animações com equipamento (espada, escudo, lâmina longa, arco, cajado ou arma nova) na direção E — perfis de arma em assets/anim/*.json, poses por trajetória (mão + direção da ponta + fio), IK de braço, fases do golpe, transições, validação espacial (viewer --check), revisão multiângulo e testes. Use antes de mexer em qualquer golpe, guarda, transporte de arma ou item segurado.
+description: Criar ou alterar animações com equipamento (espada, escudo, lâmina longa, arco, cajado ou arma nova) na direção E — perfis de arma em assets/anim/*.json, poses por trajetória (mão + direção da ponta + fio), IK de braço, fases do golpe, transições, validação espacial (viewer --check), revisão multiângulo e testes. Use antes de mexer em qualquer golpe, guarda, transporte de arma ou item segurado. Rodada 09.2: canais spin e footY (rolamento), cutFade por gesto, golpe validado com as pernas andando (--check golpe-andando), esquiva (--check esquiva) e pranchas com pernas no viewer (pernas=walk:fase:rumo:passada).
 ---
 
 # Animação de armas (direção E, rodadas 04–05.1)
@@ -122,3 +122,99 @@ unilaterais: mochila só se afasta, cachecol só vai para a frente). Acessório 
 - **Continua aberto (não corrigido):** interrupção por HIT atravessa o corpo em 7/21 cortes da espada e 18/47
   da lâmina longa (`viewer --check interrupcao`). Não produza armas novas com animação de combate nem inimigos
   que interrompam golpes até a rodada de combate.
+
+## Rodada 09 — golpes que o jogo interrompe
+
+- Golpe jogável = janelas `"interrupt"` no perfil (ritmo por fase + saídas autoradas) e 0 cortes inseguros em
+  `viewer --check interrupcao-fina` (passo 0,01 s). Nunca torne o golpe imune a dano para esconder recorte.
+- **Saída autorada:** começa na pose da fase cortada e volta pela recuperação já validada.
+  - Ajuste por busca, com as duas exigências: o golpe sozinho e todos os cortes da janela.
+  - Prefira um ponto cujos vizinhos passam.
+  - Inclinar o tronco para trás leva os ombros: recue cabeça, quadril e raiz.
+- **Pulos de tempo dentro de um golpe** (guarda segurada, impacto): só em platôs parados, a ≥ 0,09 s de uma chave em
+  movimento. Senão, o movimento secundário salta.
+- **Corte durante outra transição:** `Motion.fromMove2` (origem dupla), no `Sequencer` e no jogo.
+- **Procedimento completo** (janela de dano, instantes medidos, testes): skill `combat`.
+
+## Rodada 09.2 — gestos de corpo inteiro e golpe andando
+
+- **Canais novos do Choreo:**
+  - `spin` (graus): giro do corpo inteiro em torno do centro da bola (`spinCenter` do perfil). É interpolado pelo
+    caminho mais curto: termine o gesto em 360 para sair sem desenrolar.
+  - `footY` (voxels, 2 valores): pés recolhidos sem erguer o quadril.
+- **O giro visível é `spin` + inclinação do tronco:** desconte o tronco ao autorar o `spin`.
+- **Contato:** enquanto gira, o `Animator` mantém o ponto mais baixo dos volumes do rig no chão (`rollContact`). Não
+  compense a altura à mão.
+- **Espada num rolamento:** alinhada ao eixo do giro (para o lado). Nunca apontando para fora no plano do giro (afunda
+  no chão) nem cruzando o tronco.
+- **Antes de o punho virar:** a mão sai para o lado (pose `roll_pre`), senão o cabo atravessa o tronco.
+- **`cutFade` (s) num gesto:** encurta a transição quando ele entra cortando outro. Esquivas usam 0,12; a padrão de
+  0,30 s misturava golpe × bola demais.
+- **Golpe andando:** as pernas vêm da passada (`Motion.legW`, `legClip`, `legT`, `legDir`).
+  - Valide com `viewer --check golpe-andando` (quatro rumos × quatro fases, andar e correr).
+  - Revise com prancha: `tools/snap.sh "mode=char,...,seq=idle:0.1+slash_h+idle:0.4,pernas=walk:0:90:1.05,t=0.45,tt=0"`.
+  - **Use `tt=0`:** no modo personagem a câmera gira com o tempo.
+- **Rumo da passada (`locoDir`):** de lado a coxa abre (`rz`); com rumo 0 e passada 1 a pose é a de sempre (gate dos
+  presets).
+- **Arma nova com mobilidade:** basta o perfil ter fases e o golpe passar em `--check`, `--check golpe-andando` e (se
+  jogável) nas janelas de `--check esquiva`. Nada de mobilidade é específico da espada.
+
+## Rodada 09.3 — canais de esquiva e salto
+
+- **Esquiva atual:** R2 (`dodge_f/l/r`, sem giro). Os rolamentos saíram; as lições abaixo valem para uma esquiva
+  com giro no futuro.
+
+- **Canais novos:** `rollZ`, `feetX`, `spinPivot`, `spinAxis` e o `fadeIn` do gesto. Ver o guia de animação, seção
+  "Esquiva e salto".
+- **Rolamento:** use giro diagonal (`spinAxis`) com o pivô baixo. Meça a coluna (altura no meio do giro) e a folga da cabeça
+  (`theR1RollStaysLowerThanThe092RollAndTheHeadNeverSinks`); com 2,4 cabeças, a cabeça encosta quando o corpo inverte.
+  A lâmina passa
+  por cima, com o pomo longe das pernas.
+- **Clipping:** a Maga (robe) e o kit `adventurer_shield` são os piores casos de pomo × perna. Valide os presets com
+  `DodgeJumpPolishTest.appearancesWith…`; não basta o modelo canônico.
+- **Pranchas:** gesto em perfil, frente, três quartos e costas
+  (`snap mode=char,…,seq=dodge_f+idle:0.6,myaw=90|0|40|180`). Para o salto, `salto=` (o `antigo-` é a 09.2).
+
+### Receitas (09.3)
+
+1. **Esquiva autorada:**
+   - Crie poses `xx_load/push/air/land` no perfil e um gesto com `phases` (prep/exec/follow/recover).
+   - Use os mesmos `cutFade` 0,12 e `fadeIn` 0,08 das esquivas, e a mesma duração da esquiva lógica (0,56 s). O
+     `Sequencer` estica o gesto, mas a duração igual evita surpresa.
+   - Registre o gesto em `combate_e.json` → `esquiva` (`rolar.golpe`, `recuo.golpe` ou `lados`) e em `Check.DODGES`.
+2. **Contato visual com o chão:**
+   - No rolamento, o contato é o volume mais baixo do rig (`rollContact`). Prefira ombro, costas e quadril; com a cabeça grande ela
+     encosta por um instante quando o corpo inverte (aceito se não afundar).
+   - O contato é o mais baixo de TUDO, itens incluídos: se a espada ficar por baixo, o corpo flutua apoiado nela.
+     Role pelo lado oposto à mão da arma só se o item não for o mais baixo (medir).
+   - Inclinação lateral (`rollZ`) levanta o corpo inteiro.
+   - Meça com o `PoseProbe` do `DodgeJumpPolishTest`: corpo encostado (folga mediana < 0,02 u), cabeça sem afundar e
+     altura do corpo no meio do giro (a coluna). Antes de afirmar "a cabeça não é o contato", sonde a peça mais baixa
+     a cada passo.
+3. **Pivôs de rotação:**
+   - `spinPivot` [altura, frente] em voxels: centro do giro baixo e à frente (perto do ombro de contato).
+   - `spinAxis` desvia o eixo para a diagonal.
+   - Pivô alto vira "roda gigante"; eixo puramente sagital vira "bananeira".
+4. **Variantes direcionais:**
+   - Um gesto por lado (`dodge_l`/`dodge_r`) com `rollZ` e `feetX` espelhados. O lado do escudo e o lado da espada
+     podem pedir mãos diferentes (o `dodge_r` precisou da lâmina mais à frente).
+   - O jogo escolhe o gesto pelo ângulo ao alvo (`Hero.startDodge`).
+5. **Preservar a física:**
+   - Animação nunca altera distância, invulnerabilidade, recarga, altura, tempo no ar, coyote ou buffer.
+   - O desenho lê fases (`Motion.takeoff/fall/land/landRun`) calculadas da física. Os testes de paridade conferem.
+6. **Antecipação e pouso:**
+   - Antecipação por cima do movimento já começado (a física sobe no primeiro passo; o corpo agacha nos primeiros
+     0,10 s).
+   - O pouso escala com o impacto e encurta correndo. O mesmo vale para golpes: antecipação nunca atrasa o comando.
+7. **Validar acessórios:** compose os presets e as aparências com chapéu e capuz pelo `Composer` (kit
+   `characters/r4/adventurer_shield`) e rode o `WeaponCheck` nos gestos e nas sequências de entrada e saída. A Maga (robe
+   largo) é o pior caso de pomo × perna.
+8. **Comparar movimentos:**
+   - Mesmo estado e mesma câmera, lado a lado (`review93.sh animacao`: visualizador em 1× e 0,25×).
+   - O mesmo roteiro em dois binários (`review93.sh antes`).
+   - Para o teste físico, deixe as variantes trocáveis por propriedade só enquanto o proprietário compara. Escolhida
+     uma, retire as outras e arquive-as em `docs/historico/` (foi o que aconteceu com a esquiva na 09.3).
+9. **Evitar clipping nas transições:**
+   - Valide as entradas (idle, walk, run → gesto), os cortes (golpe → gesto a cada 0,01 s) e as saídas (gesto → golpe,
+     reação, guarda), todos em `--check esquiva`.
+   - Quando um gesto não cabe em todo corte, dê janelas próprias e um substituto. Nunca aumente tolerância.

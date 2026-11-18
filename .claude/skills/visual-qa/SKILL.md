@@ -1,6 +1,6 @@
 ---
 name: visual-qa
-description: Revisar visualmente qualquer mudança do jogo com capturas reais do viewer — comparação controlada no modo LINHA, silhueta, argila, luz neutra, tamanho reduzido, close de rosto, cena, vídeo de animação (MP4/GIF), pacote --review2, revisão de interface por roteiro de entrada (tools/review72.sh) e checklist de aceitação. Use sempre que algo visual mudar, antes de declarar pronto.
+description: Revisar visualmente qualquer mudança do jogo com capturas reais do viewer — comparação controlada no modo LINHA, silhueta, argila, luz neutra, tamanho reduzido, close de rosto, cena, vídeo de animação (MP4/GIF), pacote --review2, revisão de interface por roteiro de entrada (tools/review72.sh) e checklist de aceitação. Use sempre que algo visual mudar, antes de declarar pronto. Rodada 09.2: vídeos de combate com som da aplicação (tools/review92.sh), comparações no mesmo roteiro (binário 09.1 × 09.2, perfil A × C, morte antiga × D1 × D2 lado a lado), capturas em 1080p e 720p e pranchas de animação com pernas.
 ---
 
 # QA visual (rodada 02 em diante)
@@ -147,3 +147,55 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
    (commit, data, motivo).
 5. Rode de novo o gate e a comparação (0/255).
 
+
+## Rodada 09.1 — câmera de luta e som
+
+**Câmera (antes × depois honesto):**
+- **Mesmo roteiro, mesmo instante lógico, dois binários:** o binário da rodada anterior fica guardado em
+  `output/tmp/game-09/`. A IA não depende da câmera, então o mundo é o mesmo nos dois.
+- **Números do antes no binário novo:** use o diagnóstico (`debug camera-09 on`) e confira pixel a pixel que ele
+  reproduz o binário antigo (`tools/review91.sh camera` faz e registra).
+- **Não escolha só posições boas:**
+  - inclua os piores casos da varredura (`CombatCameraTest`);
+  - rode o roteiro exato que mostrou o defeito (`tools/combate/camera.txt`).
+- **Junto de cada captura:** imprima `enquadramento` (herói % da tela, fungo % visível) e olhe a imagem. O medidor é
+  aproximado.
+
+**Som:**
+- **Vídeo com som = som gravado pela aplicação:** `-Dvx.som=loopback` grava `audio.wav` no relógio do jogo. Nunca
+  monte trilha por cima do vídeo e chame isso de sincronia.
+- **Sincronia:** `tools/audio_sync.py` mede por correlação do envelope; sons sobrepostos não entram na conta.
+- **Sons isolados:** `tools/audio_board.py` dá forma de onda + espectrograma + números. Linhas verticais no
+  espectrograma são estalos.
+- **O ouvido é do proprietário:** a revisão por números não aprova timbre.
+- **Dispositivo real sem barulho:** coletor nulo temporário (`pactl load-module module-null-sink` + `set-default-sink`),
+  captura com `parec`, e restaure o padrão no fim. `PULSE_SINK` não é respeitado pelo OpenAL Soft.
+
+**Zip:** só capturas, pranchas e documentos. Sem MP4, sem WAV e sem imagens de regressão (resumos em texto).
+
+## Rodada 09.2 — o que revisar e como (`tools/review92.sh`)
+
+- **Movimento se julga em vídeo contínuo, não em prancha.** As pranchas 4×4 servem para achar o trecho; a decisão é no
+  MP4.
+- **Antes × depois no MESMO roteiro:**
+  - binário da 09.1 guardado (`output/tmp/game-091`, com `output/tmp/assets-091`) × atual;
+  - perfil A × C no mesmo binário (`-Dvx.sensacao`);
+  - morte antiga × D1 × D2 lado a lado (`-Dvx.morte`).
+- **Animação de perto:** use o viewer com câmera fixa (`tt=0`, `myaw=90`), não a câmera do jogo. Ela segue o herói e
+  desvia de obstáculos, então de trás não dá para julgar as pernas.
+  - Pranchas: rolamento, recuo, golpes com pernas (`review92.sh animacao`).
+- **Capturas** em 1920×1080 e 1280×720 nos mesmos instantes (`review92.sh capturas`; o tamanho é trocado no roteiro).
+- **Casos difíceis entram no pacote:** carvalho e pedra (22), encurralado, fungo colado, giro rápido.
+  - A câmera é medida com `CameraModesTest` (livre × travada × 09.1).
+- **Som:** os vídeos usam o loopback da aplicação. Nunca toque teste nos alto-falantes.
+
+## Rodada 09.3 — comparação de gestos
+
+- **`tools/review93.sh animacao`:** grava o visualizador com a câmera fixa, em 1× e 0,25×.
+  - Gestos da esquiva R2 e o recuo (perfil, três quartos, frente, costas). Na entrega da 09.3 houve 09.2 × R1 × R2 lado
+    a lado: compare variantes assim antes de escolher.
+  - Salto antes × depois (parado, andando, correndo).
+  - Pranchas de 12 instantes.
+- **`antes`:** os mesmos roteiros do jogo no binário da 09.2 guardado, lado a lado com a 09.3.
+- **Quadros soltos enganam no rolamento:** veja o vídeo lento. Procure cabeça no chão, perna atravessando o pomo e
+  subida mecânica.
