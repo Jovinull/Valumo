@@ -1,7 +1,7 @@
-# Evolução da personalização — proposta (rodada 09)
+# Evolução da personalização — proposta (rodada 09.4)
 
 Estado: o primeiro passo do §1 (formato dos olhos) e a peça experimental do §2 (botas) foram **[IMPLEMENTADOS]** na
-própria rodada 09 (ver [personalizacao.md](personalizacao.md)); o resto continua **[PLANEJADO]**. Base: [personalizacao.md](personalizacao.md) (o que existe)
+própria rodada 09.4 (ver [personalizacao.md](personalizacao.md)); o resto continua **[PLANEJADO]**. Base: [personalizacao.md](personalizacao.md) (o que existe)
 e a skill `character-customization` (regras que não mudam: presets idênticos, cabeça como grade única, variante
 só remove, canal semântico pela sonda, save só com IDs e cores).
 
@@ -34,7 +34,7 @@ sonda que já separa cabelo e rosto.
 `migrar_1_para_2` (função pura): `"rosto": "rosto.X"` → objeto com os traços do herói X (tabela gerada pelo
 exportador). Saves v1 continuam abrindo; o jogo grava v2. IDs nunca reaproveitados (§6 de personalizacao.md).
 
-**Primeiro passo [IMPLEMENTADO — rodada 09]:** `olhos.redondos|amendoados|inclinados` (as 3 formas do pintor), com a
+**Primeiro passo [IMPLEMENTADO — rodada 09.4]:** `olhos.redondos|amendoados|inclinados` (as 3 formas do pintor), com a
 atuação do rosto-base. Implementado de forma mais simples que os carimbos: o exportador regenera cada rosto com só o
 `eye` trocado e grava as 4 expressões da variante dentro do rosto (`variantesOlhos`); o nativo são os arquivos
 originais. Persistência v2 com `migrate1to2`. Observação: na atuação `cool` (exploradora) o "alegre" fecha os olhos —
@@ -65,7 +65,7 @@ Regras propostas (mesma filosofia do cabelo):
 - Aceite: `viewer --check`, `--occlusion`, `--grip` sem alerta nos três perfis de arma + vídeo em 4 ângulos de
   correr, golpe e HIT. Roupa bonita parada que atravessa o corpo correndo não está pronta.
 
-**Peça experimental [IMPLEMENTADA — rodada 09]: botas "viajante"** (forro de lã creme virado em sino + tira com
+**Peça experimental [IMPLEMENTADA — rodada 09.4]: botas "viajante"** (forro de lã creme virado em sino + tira com
 fivela). Achado: a canela JÁ é a bota inteira (joelho em y = 7/8), então "cano alto" exigiria a coxa dobrando com o
 joelho; a peça ficou na canela e se distingue pelo desenho (o forro claro lê na câmera de jogo). A recomendação era: Motivo: a canela já
 é parte própria com pivô no joelho, o pé tem IK testado (`AnimationQaTest`), e a bota não interage com armas
@@ -73,7 +73,7 @@ nem com cabelo — é a região com menos risco para provar `ocupa`/`substitui` 
 
 ## 3. Criador do jogador
 
-Medido nesta rodada (capturas em `round-09/personalizacao/criador/`): seis miniaturas de penteado cabem na grade
+Medido nesta rodada (capturas em `round-09-4/personalizacao/criador/`): seis miniaturas de penteado cabem na grade
 em 1080p e em 720p sem "…" (`CreatorTest` verde). O criador aguenta o catálogo atual; precisará de mudança quando:
 - um slot passar de ~12 opções → rolagem por categoria já existe; falta **filtro** (ex.: comprimento do cabelo);
 - houver rosto por partes → subcategorias (Rosto ▸ Olhos / Sobrancelha / Boca);

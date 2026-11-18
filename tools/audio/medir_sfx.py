@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — medidas por grupo de efeitos fatiados (duração, pico, centroide, energia grave, variação).
+"""Rodada 09.4 — medidas por grupo de efeitos fatiados (duração, pico, centroide, energia grave, variação).
     .venv/bin/python tools/audio/medir_sfx.py PASTA   (PASTA com fatias.json do render_sfx)"""
 import json, sys
 import numpy as np, soundfile as sf

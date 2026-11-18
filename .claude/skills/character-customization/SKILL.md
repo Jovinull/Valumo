@@ -1,6 +1,6 @@
 ---
 name: character-customization
-description: Personalização modular dos protagonistas em tempo de execução (Java) — catálogo de componentes gerado por tools/components_e.py, compositor (Composer) com grade fundida por peça, recoloração por canal semântico que preserva a rampa, variantes de cabelo sob chapéu/capuz com assento, presets idênticos ao canônico, Appearance versionada (salvar/carregar), criador do jogador (07.2) e modo PERSONALIZACAO técnico, gate pixel a pixel; rodada 09: formato dos olhos (olhos.*), botas por região (pes), Appearance v2 com migração, regra X real e arma × cabelo voxel a voxel (--check-cabelos). Use ao criar cabelo, chapéu, cor, rosto, olhos, roupa ou preset, ao mexer no compositor ou ao validar combinações.
+description: Personalização modular dos protagonistas em tempo de execução (Java) — catálogo de componentes gerado por tools/components_e.py, compositor (Composer) com grade fundida por peça, recoloração por canal semântico que preserva a rampa, variantes de cabelo sob chapéu/capuz com assento, presets idênticos ao canônico, Appearance versionada (salvar/carregar), criador do jogador (07.2) e modo PERSONALIZACAO técnico, gate pixel a pixel; rodada 09.4: formato dos olhos (olhos.*), botas por região (pes), Appearance v2 com migração, regra X real e arma × cabelo voxel a voxel (--check-cabelos). Use ao criar cabelo, chapéu, cor, rosto, olhos, roupa ou preset, ao mexer no compositor ou ao validar combinações.
 ---
 
 # Personalização de personagens (direção E)
@@ -78,7 +78,7 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
    `tools/review72.sh capturas`; olhe a miniatura nova em tamanho real.
 6. Gate de rodadas seguintes sem sobrescrever a 07: `R=output/visual-review/<rodada>/regressao tools/review7.sh gate`.
 
-## Rodada 09 — estudos de cabelo, olhos, botas e arma × cabelo
+## Rodada 09.4 — estudos de cabelo, olhos, botas e arma × cabelo
 
 - **Cabelo novo**: função própria em `chars_e.py` (ex.: `hair_crespo`, `hair_coque`) chamada por `HAIR_STUDIES_R09`, sem
   mexer nos ramos existentes; exporte como o `curto` com `"experimental": true`. Partes que não são cabelo (amarração
@@ -98,7 +98,7 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
   câmera de jogo (v1 com o tom claro da própria bota não lia; v2 com forro creme lê).
 - **Aparência v2** (`aparencia.olhos`, `equipamento_visual.pes`); v1 abre por `Appearance.migrate1to2`. Campo novo →
   copy, reset, assinatura, JSON, validate, `Main` (chave de captura), criador (layout, miniatura, controlador, nome).
-- Captura: chaves `olhos=` e `pes=` além das antigas. Pacote: `tools/review9.sh cabelos|olhos|botas|armas`.
+- Captura: chaves `olhos=` e `pes=` além das antigas. Pacote: `tools/review94.sh cabelos|olhos|botas|armas`.
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |

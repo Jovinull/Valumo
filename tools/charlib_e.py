@@ -569,7 +569,7 @@ def arm(sleeve, glove, cuff=None, puff=2.5, skin_hand=None, bell=False, sleeve_t
 
 def leg(pants, boot, cuff, sole, tall=False, cx=3.5, boot_style=None):
     """Perna esquerda (x>0): coxa curta e bota grande de bico redondo. Devolve (esquerda, direita).
-    Rodada 09: boot_style="viajante" (personalização) = forro de lã creme virado em sino + tira com fivela no peito do pé, tudo
+    Rodada 09.4: boot_style="viajante" (personalização) = forro de lã creme virado em sino + tira com fivela no peito do pé, tudo
     dentro da canela (mesmo pivô de joelho, mesma sola e tornozelo: o IK do pé não muda). None = a bota canônica."""
     l = Vox()
     cz = 0.5

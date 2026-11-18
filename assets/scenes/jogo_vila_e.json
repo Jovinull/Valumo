@@ -1,5 +1,5 @@
 {
- "_doc": "Rodada 08 — primeira cena JOGÁVEL: cópia controlada da vila (vila_e.json não muda) com obstáculos e o mobiliário da estalagem para testar movimentação, câmera e colisão. A Kelyra sai de 'npcs' (decorativas) e vira interativa em 'jogo.interativos'. A colisão de cada tipo de prop está em colisao_e.json (separada da malha). Abrir com ./gradlew jogo.",
+ "_doc": "Rodada 08 — primeira cena JOGÁVEL: cópia controlada da vila (vila_e.json não muda) com obstáculos e o mobiliário da estalagem para testar movimentação, câmera e colisão. A Kelyra sai de 'npcs' (decorativas) e vira interativa em 'jogo.interativos'. A colisão de cada tipo de prop está em colisao_e.json (separada da malha). Abrir com ./gradlew jogo. Rodada 09: os nove últimos props (pedra grande, carvalho, toco, tronco, cogumelos, samambaia) mobíliam a arena do combate ao sul (combate_e.json).",
  "hero": [
   0.6,
   4.4,
@@ -220,6 +220,57 @@
    "n": "mushroom_red",
    "x": -8.4,
    "z": 1.6
+  },
+  {
+   "n": "rock_l",
+   "x": -4.6,
+   "z": 11.6,
+   "r": 25
+  },
+  {
+   "n": "tree_oak3",
+   "x": 1.3,
+   "z": 13.2,
+   "r": 40
+  },
+  {
+   "n": "stump",
+   "x": -3.5,
+   "z": 9.4
+  },
+  {
+   "n": "log",
+   "x": -3.9,
+   "z": 13.9,
+   "r": 70
+  },
+  {
+   "n": "mushroom_big",
+   "x": -5.2,
+   "z": 13.5,
+   "r": 20
+  },
+  {
+   "n": "mushroom_red",
+   "x": -2.7,
+   "z": 14.1
+  },
+  {
+   "n": "mushroom_red",
+   "x": 0.4,
+   "z": 14.5,
+   "r": 60
+  },
+  {
+   "n": "grass_tuft",
+   "x": -0.6,
+   "z": 10.6
+  },
+  {
+   "n": "fern",
+   "x": 2.0,
+   "z": 11.4,
+   "r": 20
   }
  ],
  "npcs": [
@@ -303,7 +354,7 @@
   ]
  ],
  "jogo": {
-  "_doc": "início do herói [x, z, rumo em graus], limite jogável (círculo), personagens interativos e falas (originais).",
+  "_doc": "início do herói [x, z, rumo em graus], limite jogável (círculo), personagens interativos e falas (originais). Rodada 09: 'combate' aponta o arquivo do confronto (arena unida ao limite).",
   "inicio": [
    0.6,
    4.4,
@@ -343,6 +394,7 @@
      }
     ]
    }
-  ]
+  ],
+  "combate": "combate_e"
  }
 }

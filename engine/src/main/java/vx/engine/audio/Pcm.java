@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Rodada 09 — áudio PCM 16 bits intercalado em memória (efeitos curtos). O leitor de WAV é próprio (sem
+ * Rodada 09.4 — áudio PCM 16 bits intercalado em memória (efeitos curtos). O leitor de WAV é próprio (sem
  * dependência): aceita PCM 16 bits, 1 ou 2 canais, cabeçalho RIFF/WAVE com blocos extras (LIST etc.).
  */
 public record Pcm(short[] data, int channels, int rate) {

@@ -1,0 +1,18 @@
+# 01 — golpe parado (mesmo roteiro no binário da 09.1 e no da 09.2): três cortes encadeados sem mexer no WASD
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.0 7.6 0
+camera-recompor
+wheel 2
+wait 0.6
+record on
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.6
+atacar
+wait 1.4

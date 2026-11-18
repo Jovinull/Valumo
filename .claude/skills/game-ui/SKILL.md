@@ -52,7 +52,7 @@ Decisão: `docs/decisions/0012-interface-do-jogo.md`.
 4. Teste de fumaça da janela real: `viewer --editor --demo 400` (abre, desenha, imprime FPS).
 5. Documente no doc da tela; atualize o checklist "Interface do jogador".
 
-## Rodada 09
+## Rodada 09.4
 
 - Fileira "rótulo … [−] valor [+]" (`Game.stepperRow`): rótulo com `textPx` (escala inteira que cabe à esquerda dos
   botões) e valor centrado; usada por sensibilidade e volumes. Em 720p o rótulo antigo era atravessado pelo "−".

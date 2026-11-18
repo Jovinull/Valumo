@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Rodada 09 — todo penteado EXPERIMENTAL do catálogo, em cada corpo armado, não pode ser atravessado pela arma
+ * Rodada 09.4 — todo penteado EXPERIMENTAL do catálogo, em cada corpo armado, não pode ser atravessado pela arma
  * mais que o penteado do próprio preset (aprovado). Medição exata, voxel a voxel ({@link HairWeaponCheck}).
  */
 class HairWeaponTest {

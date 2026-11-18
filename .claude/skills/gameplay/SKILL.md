@@ -1,6 +1,6 @@
 ---
 name: gameplay
-description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade.
+description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade. Rodada 09.2: perfis de sensação (velocidade/passada/aceleração), salto com coyote e buffer, props pisáveis (colisao_e.json "pisavel"), referência do WASD com giro limitado e preferências do jogador (Prefs).
 ---
 
 # Gameplay (rodada 08 em diante)
@@ -24,7 +24,12 @@ Teste físico do proprietário: `docs/validation/roteiro-de-teste-fisico.md`.
 - **Câmera:**
   - encosta na hora quando algo bloqueia e volta devagar;
   - desvia junto a paredes;
-  - nunca muda o rumo escolhido pelo jogador.
+  - nunca muda o rumo escolhido pelo jogador;
+  - **meça o que o jogador vê, não só a geometria** (rodada 09.1): `CameraFraming` projeta herói e alvo e diz quanto da
+    tela o herói ocupa e quanto do alvo aparece. Uma câmera pode estar fora da parede e ainda assim inútil. A câmera
+    de luta e a sua validação estão na skill `combat`.
+- **Linha de visão (`Collision.rayClear`):** testa só as formas perto do raio (filtro exato, com teste de 4.000 raios).
+  Se mexer em `Shape.contains`, mantenha o raio envolvente (`bound`) coerente, ou o filtro passa a errar.
 - **Cenas jogáveis são cópias controladas** (`jogo_*.json`, com a seção `jogo`); a clareira canônica e a vila não
   mudam para acomodar gameplay.
 - **Fora do escopo** até ser pedido: combate, dano, IA hostil, inventário, missões, progressão. As interrupções
@@ -79,7 +84,7 @@ diálogo até ser pedido.
 cena, testes e zip. Olhe os quadros em tamanho real: pés no chão em degraus, herói na água, câmera dentro de
 parede ou da cabeça, indicação de interação sobre a NPC certa.
 
-## Rodada 09 — som no jogo
+## Rodada 09.4 — som no jogo
 
 - Fatos do jogo → eventos do catálogo em `GameAudio` (pisada pela fase de contato do pé + superfície; `GameLogic.onAction`
   para a interface; música, vento, lago, ouvinte). Nunca caminho de arquivo nem `Audio` dentro das regras.
@@ -97,3 +102,42 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 | Câmera nunca voltava à distância pedida | folga descontada mesmo com vista livre | folga só quando bloqueia |
 | Escolha mostrava as costas do herói | primeiro quadro não nascia no enquadramento | `first` usa o enquadramento pedido |
 | Poste de lanterna tapando a escolha / a rota | prop na linha de visão do enquadramento fixo | conferir capturas da escolha e das rotas ao mexer na cena |
+| (09.1) Cabeça tomando a tela junto ao carvalho na luta | a busca de desvio avaliava a vista SEM os ajustes somados depois (giro e inclinação de combate) | avaliar cada candidato como a vista FINAL vai ficar |
+| (09.1) Comparação antes/depois enganosa nas capturas | `posicionar` não zera a distância suavizada: a captura herdava a câmera encostada da anterior | `camera-recompor` na montagem, ou esperar assentar; e comparar no MESMO instante lógico nos dois binários |
+
+## Rodada 09 — combate e passo fixo
+
+- **Passo fixo:** a exploração anda em passos fixos de `GameLogic.TICK` (1/120 s).
+  - **Câmera:** anda no mesmo passo, porque o rumo dela entra na intenção.
+  - **Desenho:** interpola (`Player.rx/rz/rVisualY/rYaw`, `FollowCamera.apply(cam, alpha)`).
+  - **Regra:** nunca ponha regra no desenho nem use `dt` de quadro na lógica.
+- **Ajuste de combate da câmera** (`combatFocus`): não é trava de mira e some fora da luta. Detalhes e números em
+  `docs/architecture/combate.md` §9.
+- **Combate:** ataque, dano, defesa e inimigo seguem a skill `combat`.
+
+## Rodada 09.2 — velocidade, salto e preferências (`jogo.md` §12)
+
+- **Velocidade:** é do perfil de sensação (`Player.applyFeel`). Mais rápido = mais cadência; a passada fica perto de 1:
+  as pernas do herói têm 0,24 u.
+  - **Pé plantado:** a fase anda por `distância / (velocidade de desenho × passada)`.
+  - **Teste:** `CombatAudioTest.footstepsLand...` calcula o ritmo esperado pelo perfil.
+- **Salto (ADR 0019):** `Player.requestJump` (buffer) + coyote no passo fixo.
+  - **Gravidade:** diferente na subida e na queda.
+  - **Chão:** `Collision.floor` (relevo ou topo de forma `pisavel`). Para um prop novo virar plataforma:
+    `"pisavel": true` no perfil em `colisao_e.json`, nunca no código.
+  - **Validar:** `MobilityTest` (altura, tempo no ar, coyote/buffer, pisáveis × casa) e o vídeo 11 do pacote 09.2.
+- **WASD:** é relativo a `FollowCamera.inputYaw`, não ao rumo exato da câmera. Desvios automáticos entram a no máximo
+  2,5 rad/s.
+- **Preferências:** `Prefs` grava em `output/preferencias.json`, separado da aparência.
+  - Roteiros e testes usam `-Dvx.prefs=-`: nem leem nem gravam.
+  - Use `-Dvx.sensacao`, `-Dvx.encontro` e `-Dvx.barras` para forçar. `./gradlew jogo -Dvx.X=...` repassa.
+
+## Rodada 09.3 — salto apresentado, herói translúcido perto
+
+- **Física congelada:** altura 0,62 u, ~0,42 s no ar, coyote 0,09 s, buffer 0,12 s. Mude o desenho, não a física.
+  - Impulso, queda e pouso são fases visuais (`Player.takeoffPhase`, `fallPrep`, `landRunning`, `landDur`).
+  - A subida começa no passo do aperto (teste).
+- **Pouso correndo** não freia (`landingWhileRunningDoesNotStopTheRun`): só a absorção encurta.
+- **Câmera:** não imponha giro nem subida automáticos. Contra a câmera colada no herói, use o pontilhado
+  (`Game.nearFade`, `uFade`) em vez de mover a câmera. O ajuste de rumo "aperto" foi testado e piorou o
+  `CameraModesTest` (relatório 09.3).

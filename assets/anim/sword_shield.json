@@ -751,6 +751,215 @@
     0,
     -1
    ]
+  },
+  "down_mid": {
+   "merge": true,
+   "lMode": "ik",
+   "l": [
+    8.8,
+    14.6,
+    4.6
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.6,
+    0,
+    -0.8
+   ],
+   "lElbow": [
+    1,
+    -0.5,
+    -0.8
+   ]
+  },
+  "down_kneel": {
+   "merge": true,
+   "lMode": "ik",
+   "l": [
+    8.6,
+    14.2,
+    5.6
+   ],
+   "lDir": [
+    0,
+    0.95,
+    0.3
+   ],
+   "lEdge": [
+    0.6,
+    0,
+    -0.8
+   ],
+   "lElbow": [
+    1,
+    -0.5,
+    -0.8
+   ]
+  },
+  "bs_air": {
+   "merge": true,
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "l": [
+    7.8,
+    16.5,
+    6.4
+   ]
+  },
+  "bs_land": {
+   "merge": true,
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "l": [
+    8.6,
+    15.0,
+    4.5
+   ]
+  },
+  "r2f_load": {
+   "merge": true,
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "l": [
+    7.8,
+    16.0,
+    6.0
+   ]
+  },
+  "r2l_load": {
+   "merge": true,
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "l": [
+    7.8,
+    16.0,
+    6.0
+   ]
+  },
+  "r2r_load": {
+   "merge": true,
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "l": [
+    7.8,
+    16.0,
+    6.0
+   ]
+  },
+  "r2f_push": {
+   "merge": true,
+   "l": [
+    8.8,
+    15.0,
+    9.0
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
+  },
+  "r2f_air": {
+   "merge": true,
+   "l": [
+    8.8,
+    15.0,
+    8.5
+   ],
+   "lDir": [
+    0,
+    1,
+    0
+   ],
+   "lEdge": [
+    0.8,
+    0,
+    -0.6
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ]
   }
  },
  "moves": {
@@ -850,6 +1059,69 @@
      1.4
     ]
    }
+  },
+  "guard_hold": {
+   "label": "Guarda do jogo (rodada 09): ergue, segura, absorve o impacto e baixa. Esperas e pulos só em platôs parados (pose e movimento secundário iguais)",
+   "phases": {
+    "prep": [
+     0,
+     0.16
+    ],
+    "exec": [
+     0.16,
+     0.5
+    ],
+    "follow": [
+     0.5,
+     1.2
+    ],
+    "recover": [
+     1.2,
+     1.55
+    ]
+   },
+   "keys": [
+    {
+     "t": 0,
+     "pose": "guard",
+     "stop": true
+    },
+    {
+     "t": 0.16,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 0.5,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 0.62,
+     "pose": "shield_brace"
+    },
+    {
+     "t": 0.78,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 1.2,
+     "pose": "shield_block",
+     "stop": true
+    },
+    {
+     "t": 1.55,
+     "pose": "guard",
+     "stop": true
+    }
+   ],
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
   }
  }
 }

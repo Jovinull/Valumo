@@ -14,11 +14,13 @@ dependencies {
     api("org.lwjgl:lwjgl")
     api("org.lwjgl:lwjgl-glfw")
     api("org.lwjgl:lwjgl-opengl")
+    api("org.lwjgl:lwjgl-openal")                 // rodada 09.1: efeitos sonoros (ADR 0016), mesmo projeto e versão do LWJGL
     runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
-    // Rodada 09 — áudio (ADR 0015): OpenAL Soft (mixagem, laço, loopback para testes) e stb_vorbis (OGG).
-    // Módulos do próprio LWJGL, mesma versão do BOM; os natives trazem o OpenAL Soft embutido.
+    // Áudio (ADRs 0016 e 0023): OpenAL Soft (mixagem, vozes posicionais, laço, loopback para testes e gravação) e
+    // stb_vorbis (música em OGG). Módulos do próprio LWJGL, mesma versão do BOM; os natives trazem o OpenAL Soft (LGPL,
+    // biblioteca dinâmica).
     api("org.lwjgl:lwjgl-openal")
     api("org.lwjgl:lwjgl-stb")
     runtimeOnly("org.lwjgl:lwjgl-openal::$lwjglNatives")

@@ -3,10 +3,12 @@
 RPG voxel 3D de fantasia em terceira pessoa, com personagens pequenos e expressivos, em **engine própria**
 (Java 25 + LWJGL 3 + OpenGL 3.3 core, sem game engine pronta).
 
-**Estado: protótipo com a primeira exploração jogável.** Dá para escolher ou criar a aparência do herói, andar e
-correr pela vila com câmera em terceira pessoa e conversar com a Kelyra. O repositório também tem o visualizador
-que fixa a identidade visual, as ferramentas de modelagem por script, a animação procedural com coreografia de
-armas, validadores e cenas de demonstração. Não há combate, inventário, missões, progressão nem mundo aberto.
+**Estado: protótipo com a primeira exploração jogável e combate com som, mobilidade e grupos.** Dá para escolher ou
+criar a aparência do herói, andar, correr e pular pela vila com câmera em terceira pessoa, conversar com a Kelyra e
+lutar numa arena ao sul (espada e escudo): atacar andando, esquivar (salto baixo), travar a mira e trocar de alvo, contra um fungo-cardo,
+três ou um protótipo de chefe com dois menores (rodada 09.2; esquiva R2 e salto polidos na 09.3). O repositório também tem o visualizador que fixa a
+identidade visual, as ferramentas de modelagem e de síntese de som por script, a animação procedural com coreografia
+de armas, validadores e cenas de demonstração. Não há inventário, missões, progressão, música nem mundo aberto.
 
 Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visual-identity.md),
 [contrato de qualidade](docs/art/contrato-de-qualidade.md), [referências canônicas](docs/art/reference/README.md)).
@@ -60,7 +62,8 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 
 `./gradlew jogo`:
 1. escolha a aparência (os três modelos, uma salva pelo criador ou **Criar no editor**) e **Entrar na vila**;
-2. explore e converse.
+2. explore e converse;
+3. desça a trilha para o sul até a clareira da pedra grande e enfrente o **fungo-cardo** (rodada 09).
 
 | Tecla | Ação |
 |---|---|
@@ -69,12 +72,23 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | mouse | girar a câmera |
 | roda | aproximar e afastar |
 | `E` | conversar (perto e de frente para a Kelyra) e avançar as falas |
-| `Esc` | pausa (continuar, trocar aparência, abrir o criador, sensibilidade, inverter vertical, sair) |
+| clique esquerdo | atacar (no ritmo, encadeia horizontal → diagonal → descendente; dá para andar durante o golpe) |
+| botão direito (segurar) | defender com o escudo (só de frente) |
+| `Espaço` | pular (sobe em caixote, barril e pedra pequena) |
+| `Alt` esquerdo / botão do meio | esquivar: com direção, salto baixo (de lado com a mira travada, sem virar o corpo); sem direção, recua |
+| `Q` | travar / soltar a mira no inimigo |
+| `Tab` / `Shift+Tab` | trocar o alvo travado (direita / esquerda na tela) |
+| `R` / `Enter` | recomeçar o confronto (depois de vitória / na tela de derrota) |
+| `Esc` | pausa (continuar, trocar aparência, abrir o criador, sensibilidade, inverter vertical, volume, mudo, barras de inimigos, sensação A/B/C, arena: um fungo / três / chefe + 2, sair) |
+| `M` | liga/desliga o som |
 | `F1` | ajuda dos controles |
 | `F12` | captura em `output/visual-review/manual/` |
 
-Detalhes: [jogo](docs/architecture/jogo.md). Teste com teclado e mouse físicos:
-[roteiro](docs/validation/roteiro-de-teste-fisico.md).
+O som usa o dispositivo padrão do sistema (OpenAL Soft, que vem com o LWJGL); sem dispositivo, o jogo segue mudo e
+avisa no console.
+
+Detalhes: [jogo](docs/architecture/jogo.md), [combate](docs/architecture/combate.md) e [som](docs/architecture/audio.md). Teste com teclado e mouse
+físicos: [exploração](docs/validation/roteiro-de-teste-fisico.md) e [combate](docs/validation/roteiro-de-teste-fisico-combate.md).
 
 ### Criar um personagem
 
@@ -139,6 +153,15 @@ Sem janela: `tools/snap.sh "mode=char,style=e,custom=aventureiro,cabelo=cabelo.c
 ```bash
 ./gradlew test :viewer:installDist                         # testes (engine, malha, contrato, qualidade, NPCs, jogo)
 tools/review81.sh temporal                                 # cintilação em câmera lenta: malha legada × conforme
+tools/review9.sh videos                                    # combate: vídeos reais (roteiros em tools/combate/)
+tools/review92.sh videos                                   # 09.2: golpe andando, esquiva, salto, mira, grupos, morte (tools/combate92/)
+tools/review93.sh animacao                                 # 09.3: esquiva R2 e recuo, salto antes × depois (tools/combate93/)
+viewer/build/install/viewer/bin/viewer --check golpe-andando   # golpes com as pernas andando: 0 problemas
+viewer/build/install/viewer/bin/viewer --check esquiva         # cortes para esquivar/recuar nas janelas medidas: segura
+tools/review91.sh camera                                   # câmera de luta: antes (binário da 09) × depois, mesmo instante
+tools/review91.sh videos                                   # vídeos com o som gravado pela aplicação + sincronia
+tools/review91.sh sons                                     # catálogo dos efeitos (arquivos, faixa, prancha)
+viewer/build/install/viewer/bin/viewer --check interrupcao-fina   # golpes do combate cortados a cada 0,01 s
 viewer/build/install/viewer/bin/viewer --check             # golpes e gestos sem interseção (0 falhas)
 tools/review7.sh gate                                      # presets recompostos × originais, pixel a pixel (0 diferenças)
 viewer/build/install/viewer/bin/viewer --occlusion         # rosto coberto / arma escondida (exceção conhecida: arco)
@@ -173,8 +196,10 @@ Comece por [docs/README.md](docs/README.md).
 
 ## Limitações conhecidas
 
-- Protótipo: exploração de uma vila pequena e uma conversa; sem combate, IA, inventário, missões nem progressão.
-- Interromper um golpe por dano ainda atravessa o corpo em algumas janelas (espada, lâmina longa).
+- Protótipo: uma vila pequena, uma conversa e um confronto (espada e escudo contra um inimigo). Sem inventário,
+  experiência, classes, missões, som nem progressão.
+- A lâmina longa não é jogável: interrompê-la por dano ainda atravessa o corpo em algumas janelas (a espada foi
+  resolvida na rodada 09).
 - NPCs e assets da rodada 06 são candidatos; NPCs têm só um gesto compartilhado.
 - A aparência não define classe nem equipamento; a validação com mouse e teclado físicos é do proprietário.
 - Capturas, vídeos e pacotes de revisão (`output/`) não são versionados; os relatórios em `docs/validation/`

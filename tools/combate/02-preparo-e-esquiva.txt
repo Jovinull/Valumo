@@ -1,0 +1,22 @@
+# Rodada 09 — demonstrações 4–5: a preparação da cabeçada é visível; correndo de lado depois que a mira trava (60% da
+# preparação), a cabeçada erra — para um lado e depois para o outro.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 IDLE
+wait 0.3
+record on
+wait 0.4
+inimigo -1.8 10.45 180 WINDUP
+wait 0.43
+combate
+esquivar direita 0.6
+esperar-inimigo RECOVER 2 0.3
+combate
+esperar-inimigo WINDUP 5 0.43
+esquivar esquerda 0.6
+esperar-inimigo RECOVER 2 0.6
+combate
+record off

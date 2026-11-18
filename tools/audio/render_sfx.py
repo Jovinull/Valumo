@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — renderiza uma sessão de efeitos do LMMS e fatia cada som em seu arquivo.
+"""Rodada 09.4 — renderiza uma sessão de efeitos do LMMS e fatia cada som em seu arquivo.
 
     .venv/bin/python tools/audio/render_sfx.py fontes/audio/sfx/passos/passos.mmp SAIDA [--pico -6]
 

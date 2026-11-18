@@ -39,7 +39,7 @@ ADV_HAIR = "h2"          # escolhido no estudo da rodada 03 (docs/historico/expe
 def adventurer_hair(sk, hair, style):
     """Cabelo do aventureiro. r02 = versão da rodada 02 (pontas da coroa liam como antenas);
     h1 natural assimétrico; h2 topete refinado (escolhido); h3 recorte de vento com rabinho.
-    Rodada 09: 'crespo' e 'coque' são ESTUDOS de personalização (funções próprias abaixo; os ramos
+    Rodada 09.4: 'crespo' e 'coque' são ESTUDOS de personalização (funções próprias abaixo; os ramos
     existentes não mudam — os heróis canônicos saem idênticos)."""
     if style in HAIR_STUDIES_R09:
         return HAIR_STUDIES_R09[style](sk, hair)
@@ -108,7 +108,7 @@ def adventurer_hair(sk, hair, style):
     return h, head_top, tail
 
 
-# ----------------------------------------------------------------------------- rodada 09: estudos de cabelo
+# ----------------------------------------------------------------------------- rodada 09.4: estudos de cabelo
 
 def _lobe_notches(h, hair, lobes, gap=0.10):
     """Contorno dos cachos (v2): na SUPERFÍCIE, a célula na fronteira entre dois lóbulos (distâncias normalizadas

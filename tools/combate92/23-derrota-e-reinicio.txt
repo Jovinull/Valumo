@@ -1,0 +1,15 @@
+# 23 — derrota do herói (montagem: vida 1) e reinício pelo painel
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 10.4 0
+camera-recompor
+vida-heroi 1
+wait 0.2
+record on
+esperar-resultado 8
+wait 0.8
+key ENTER
+wait 1.0
+estado

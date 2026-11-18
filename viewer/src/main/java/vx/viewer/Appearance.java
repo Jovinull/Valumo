@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 /**
  * Rodada 07 — aparência de um personagem jogável (contrato {@value #CONTRACT}, versão {@value #VERSION}).
- * Rodada 09: versão 2 acrescenta o formato dos olhos ({@code aparencia.olhos}); arquivos v1 abrem por
+ * Rodada 09.4: versão 2 acrescenta o formato dos olhos ({@code aparencia.olhos}); arquivos v1 abrem por
  * {@link #migrate1to2} (função pura; a v1 não tinha olhos, então o formato fica o do rosto). Também na v2:
  * {@code equipamento_visual.pes} (botas; ausente = as do modelo).
  * Guarda só IDs e parâmetros, nunca geometria: o {@link Composer} reconstrói o modelo a partir do catálogo de
@@ -34,8 +34,8 @@ public final class Appearance {
     public String hairColor;         // #rrggbb ou null
     public String skin;              // #rrggbb ou null
     public String iris;              // #rrggbb ou null
-    public String eyes;              // olhos.<formato> ou null (o do rosto) — rodada 09
-    public String feet;              // botas.<id> ou null (as do modelo) — rodada 09, equipamento visual "pes"
+    public String eyes;              // olhos.<formato> ou null (o do rosto) — rodada 09.4
+    public String feet;              // botas.<id> ou null (as do modelo) — rodada 09.4, equipamento visual "pes"
     public String cover;             // chapeu.maga | capuz.c3 | "nenhum" | null
     public String name;              // identidade (opcional, não afeta a geometria)
 

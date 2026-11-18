@@ -227,7 +227,7 @@ Os testes da rodada 07 (identidade dos presets) continuam iguais. O gate pixel a
 `tools/review7.sh gate`; para não sobrescrever o pacote da 07, use
 `R=output/visual-review/round-07-2/regressao tools/review7.sh gate`.
 
-## 9.1 Rodada 09
+## 9.1 Rodada 09.4
 
 - **Categoria Roupa** (ícone de bota em pixel): seção "Botas" com miniaturas reais enquadradas nos pés
   (enquadramento `pes` do `App.renderThumb`); "Do modelo" é o componente nativo `botas.originais`.

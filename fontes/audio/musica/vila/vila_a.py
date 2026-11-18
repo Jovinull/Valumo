@@ -1,4 +1,4 @@
-"""Vila — versão A: "Exploração acolhedora" (estudo da rodada 09; NÃO canônica).
+"""Vila — versão A: "Exploração acolhedora" (estudo da rodada 09.4; NÃO canônica).
 
 Hipótese artística: a vila é um lugar seguro de onde se parte. Calor de violão dedilhado e madeiras
 (flauta e clarinete) em 6/8, que balança como um passo tranquilo, com um único momento de "maravilha":

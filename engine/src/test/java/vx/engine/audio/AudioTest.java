@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Rodada 09 — áudio sem dispositivo: laço exato, regras de reprodução, catálogo real e mixagem por loopback. */
+/** Rodada 09.4 — áudio sem dispositivo: laço exato, regras de reprodução, catálogo real e mixagem por loopback. */
 class AudioTest {
     static final Path ASSETS = Path.of("assets");
 

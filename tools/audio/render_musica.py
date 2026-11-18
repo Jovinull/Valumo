@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — renderiza uma sessão de música do LMMS e prepara as versões de escuta e de jogo.
+"""Rodada 09.4 — renderiza uma sessão de música do LMMS e prepara as versões de escuta e de jogo.
 
     python3 tools/audio/render_musica.py fontes/audio/musica/vila/vila_a/vila_a.mmp SAIDA [--runtime assets/audio/musica/vila_a]
 

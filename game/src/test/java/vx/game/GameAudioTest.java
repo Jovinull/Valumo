@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Rodada 09 — o som do jogo sai dos fatos certos: pisada no instante do pé, superfície e ações. */
+/** Rodada 09.4 — o som do jogo sai dos fatos certos: pisada no instante do pé, superfície e ações. */
 class GameAudioTest {
     static Collision flat() {
         Collision c = new Collision((x, z) -> 0f);

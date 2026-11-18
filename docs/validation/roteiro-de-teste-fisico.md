@@ -47,7 +47,7 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
    - durante a conversa o herói não anda.
 5. **Pausa:**
    - `Esc` pausa e solta o cursor; **Continuar** volta ao mesmo lugar;
-   - em **Sensibilidade do mouse** (− e +), teste se a mudança se sente;
+   - em **Sensibilidade** (− e +, a do mouse), teste se a mudança se sente;
    - experimente **Inverter vertical**.
 6. **Trocar aparência / Abrir o criador:** abra o criador pela pausa, mude o cabelo, clique em **Pronto** e
    **Levar para a vila**. O herói da vila deve ter a aparência nova.
@@ -61,10 +61,10 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
    - degraus que deveriam subir e não sobem;
    - a velocidade do mouse estranha.
 
-## C. Rodada 09 — o que só você pode validar (escuta e decisões)
+## C. Rodada 09.4 — o que só você pode validar (escuta e decisões)
 
 Nenhum som desta rodada foi avaliado por escuta. Use fones e depois a caixa; o pacote local
-`output/visual-review/round-09/LEIA-ME.md` lista os arquivos na ordem (regenerável com `tools/review9.sh tudo`).
+`output/visual-review/round-09-4/LEIA-ME.md` lista os arquivos na ordem (regenerável com `tools/review94.sh tudo`).
 
 1. **Música da vila** — ouça `musica/vila_a/vila_a-escuta.wav` e `musica/vila_b/vila_b-escuta.wav`, depois jogue
    (`./gradlew jogo` toca a A; a B: `JAVA_OPTS=-Dvx.musica=vila_b game/build/install/game/bin/game`).
@@ -95,4 +95,4 @@ Responda o que soar mal com o arquivo e o instante; a correção volta às fonte
 | Criador | testes `CreatorTest` (eventos sintéticos) |
 | Janela real abre, desenha e fecha | teste de fumaça (`--demo N`) |
 | Fluxo completo | vídeos por roteiro de entrada (`tools/review8.sh`, `tools/review72.sh`) |
-| Áudio (rodada 09) | `AudioTest` (laço exato, regras, catálogo, mixagem real e atenuação por distância no loopback do OpenAL), `GameAudioTest`, mistura do jogo gravada em sincronia com os quadros (`tools/review9.sh contexto ambiente`), QA técnico (`tools/audio/audio_qa.py`) — medição, não escuta |
+| Áudio (rodada 09.4) | `AudioTest` (laço exato, regras, catálogo, mixagem real e atenuação por distância no loopback do OpenAL), `GameAudioTest`, mistura do jogo gravada em sincronia com os quadros (`tools/review94.sh contexto ambiente`), QA técnico (`tools/audio/audio_qa.py`) — medição, não escuta |

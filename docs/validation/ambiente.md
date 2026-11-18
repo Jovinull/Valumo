@@ -86,10 +86,10 @@ A biblioteca Pillow (10.2.0) existente na máquina foi usada apenas para montar 
 durante a iteração; não é dependência do projeto (as pranchas de entrega são montadas pelo viewer).
 
 
-## Áudio e ferramentas da rodada 09
+## Áudio e ferramentas da rodada 09.4
 
 Instalados nesta máquina (Ubuntu 24.04.4, PipeWire 1.0.5): LMMS 1.2.2, FluidR3 GM 3.1 (`fluid-soundfont-gm`, MIT),
 Audacity 3.4.2 (sem `mod-script-pipe`), sox 14.4.2, ffmpeg/ffprobe 6.1.1, vorbis-tools, plugins LADSPA (swh, tap,
 caps), xvfb + xdotool + imagemagick (inspeção de interfaces), Goxel 0.13.0 (Flatpak de usuário). `.venv` recriada com
-numpy, Pillow, imageio, soundfile e scipy. Áudio do jogo: OpenAL Soft embutido nos natives do LWJGL 3.4.3 (ADR 0015).
-Detalhes e verificações: `docs/validation/relatorio-rodada-09.md` §2 e as skills de áudio.
+numpy, Pillow, imageio, soundfile e scipy. Áudio do jogo: OpenAL Soft embutido nos natives do LWJGL 3.4.3 (ADR 0023).
+Detalhes e verificações: `docs/validation/relatorio-rodada-09-4.md` §2 e as skills de áudio.

@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export JAVA_HOME="${JAVA_HOME:-$HOME/.sdkman/candidates/java/current}"
-R=output/visual-review/round-07-2
+R=${R:-output/visual-review/round-07-2}   # R= muda a pasta (regressões das rodadas seguintes)
 V=viewer/build/install/viewer/bin/viewer
 what="${1:-tudo}"
 if [ -n "${REBUILD:-}" ] || [ ! -x "$V" ]; then ./gradlew -q :viewer:installDist; fi

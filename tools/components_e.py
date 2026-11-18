@@ -33,7 +33,7 @@ PRESETS = {
     "exploradora": (E.ranger, {}, "characters/e/ranger", "rabo", "#e3a64a", "#3d8fd8", "#e8b185"),
     "maga": (E.mage, {}, "characters/e/mage", "chanel", "#e2d4f2", "#8a58c8", "#f9d8ba"),
 }
-# rodada 09 — formato dos olhos como componente (primeiro passo do rosto por partes). O traço depende da ATUAÇÃO do
+# rodada 09.4 — formato dos olhos como componente (primeiro passo do rosto por partes). O traço depende da ATUAÇÃO do
 # rosto (bold/cool/soft), então cada rosto guarda as suas variantes, geradas pelo próprio pintor (paint_face) com só
 # o parâmetro "eye" trocado; o formato nativo continua sendo os arquivos originais (preset idêntico).
 NATIVE_FACE = {"aventureiro": E.ADV_FACE, "exploradora": E.RNG_FACE, "maga": E.MAGE_FACE}
@@ -210,7 +210,7 @@ def build(out):
                                  "faixa": {"cor": f"#{lin[0]:02x}{lin[1]:02x}{lin[2]:02x}", "linhas": [L.NECK + 13, L.NECK + 14],
                                            "zMin": -7, "zMax": 5},
                                  "cabelo": {"rabo": "faixa", "*": "faixa",
-                                            # rodada 09: no volume do crespo o nó e as fitas ficam enterrados
+                                            # rodada 09.4: no volume do crespo o nó e as fitas ficam enterrados
                                             "crespo": "X"}}
         if pid == "maga":                                                    # chapéu: hat.vox canônico
             hat_doc = next(p for p in json.load(open(os.path.join(out, canon, "rig.json")))["parts"] if p["name"] == "hat")
@@ -234,12 +234,12 @@ def build(out):
                                    "iris": iris_hex, "cabeca": "chapeu.maga" if pid == "maga" else ("capuz.c3" if pid == "exploradora" else None),
                                    "mascarasDoCorpo": masks}
 
-    # rodada 09: primeira peça de roupa por região — botas (slot "pes"). Ocupa só as canelas (shin_l/shin_r), com o
+    # rodada 09.4: primeira peça de roupa por região — botas (slot "pes"). Ocupa só as canelas (shin_l/shin_r), com o
     # pivô do joelho do corpo; "botas.originais" = as do modelo (o compositor não troca nada).
     comps["botas.originais"] = {"versao": 1, "slot": "pes", "nativo": True, "ocupa": ["perna.canela"],
                                 "origem": "botas canônicas de cada corpo"}
     boots = {"versao": 1, "slot": "pes", "experimental": True, "ocupa": ["perna.canela"], "substitui": ["shin_l", "shin_r"],
-             "origem": "tools/charlib_e.py leg(boot_style='viajante') (rodada 09)", "porCorpo": {}}
+             "origem": "tools/charlib_e.py leg(boot_style='viajante') (rodada 09.4)", "porCorpo": {}}
     for pid in PRESETS:
         rig_b, _ = _gen(pid, boot_style="viajante")
         rp = _rig_parts(rig_b)
@@ -247,7 +247,7 @@ def build(out):
                                              for n in ("shin_l", "shin_r")]}
     comps["botas.viajante"] = boots
 
-    for oid, eye in EYES.items():                                      # rodada 09: slot "olhos" (formato)
+    for oid, eye in EYES.items():                                      # rodada 09.4: slot "olhos" (formato)
         comps[oid] = {"versao": 1, "slot": "olhos", "forma": eye, "origem": f"tools/charlib_e.py paint_face eye={eye}",
                       "nota": "o desenho de cada expressão mora no rosto (variantesOlhos), porque depende da atuação"}
 
@@ -266,10 +266,10 @@ def build(out):
     e["cabeca"]["mascara"] = _mask(out, "cabelo.curto/hair.mask.vox", {"cabelo": _diff(hair, pnh["hair"])})
     comps["cabelo.curto"] = e
 
-    # rodada 09: estudos EXPERIMENTAIS (aprovação do proprietário pendente) — mesmo procedimento do 'curto'.
+    # rodada 09.4: estudos EXPERIMENTAIS (aprovação do proprietário pendente) — mesmo procedimento do 'curto'.
     # Partes que não são cabelo (a amarração de couro do coque) ficam fora da máscara pela sonda: não recolorem.
-    for style, origem in (("crespo", "tools/chars_e.py hair_crespo (rodada 09)"),
-                          ("coque", "tools/chars_e.py hair_coque (rodada 09)")):
+    for style, origem in (("crespo", "tools/chars_e.py hair_crespo (rodada 09.4)"),
+                          ("coque", "tools/chars_e.py hair_coque (rodada 09.4)")):
         _, ps_ = _gen("aventureiro", hair_style=style)
         ms_ = _merged(ps_)
         hair = Vox()

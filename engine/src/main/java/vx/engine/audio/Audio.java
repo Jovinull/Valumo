@@ -4,12 +4,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Rodada 09 — ponto único do áudio no processo (jogo e criador usam o mesmo). Enquanto ninguém chamar
+ * Rodada 09.4 — ponto único do áudio no processo (jogo e criador usam o mesmo). Enquanto ninguém chamar
  * {@link #start}, tudo é mudo e sem custo: capturas, testes e roteiros não abrem dispositivo nenhum.
  * <pre>
  *   -Dvx.audio=dispositivo|loopback|mudo     (padrão: o que o chamador pedir)
  *   -Dvx.vol.geral=0..1  -Dvx.vol.musica=…  -Dvx.vol.efeitos=…  -Dvx.vol.interface=…  -Dvx.vol.ambiente=…
- *   -Dvx.musica=vila_a|vila_b|nenhuma         (estudos da rodada 09; nenhuma é canônica)
+ *   -Dvx.musica=vila_a|vila_b|nenhuma         (estudos da rodada 09.4; nenhuma é canônica)
  *   -Dvx.audio.gravar=arquivo.wav             (com loopback) grava a mixagem do jogo, {@code dt} a {@code dt},
  *                                             em sincronia com os quadros de um roteiro
  * </pre>
@@ -79,6 +79,16 @@ public final class Audio {
     }
 
     public static SoundSystem get() { return sys; }
+
+    /**
+     * A saída OpenAL aberta (dispositivo ou loopback), ou null (mudo, sem catálogo). Outros conjuntos de vozes do processo
+     * (os efeitos do combate, {@code OpenAlBackend.shared}) tocam no MESMO contexto: um só dispositivo, uma só mistura e
+     * uma só gravação (ADR 0023).
+     */
+    public static OpenAlOut output() { return al != null && sys != null && sys.out() == al ? al : null; }
+
+    /** O catálogo aberto tem este evento? (false sem áudio.) */
+    public static boolean has(String id) { return sys != null && sys.has(id); }
 
     /** Saída loopback (gravação sincronizada), ou null. */
     public static OpenAlOut loopback() { return al != null && sys != null && sys.out() == al && isLoopback() ? al : null; }

@@ -36,15 +36,16 @@ subprojects {
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
         workingDir = rootDir   // os testes de assets leem assets/ a partir da raiz
+        systemProperty("vx.prefs", "-")   // rodada 09.2: testes nunca leem nem gravam as preferências do jogador
         jvmArgs("--enable-native-access=ALL-UNNAMED")
     }
 }
 
-// Regenera os assets GERADOS (.vox, rig.json, props.json, texturas, componentes) a partir dos scripts em tools/.
+// Regenera os assets GERADOS (.vox, rig.json, props.json, texturas, componentes, efeitos sonoros .wav) a partir dos scripts em tools/.
 // Eles não vão para o git: o viewer, os testes e o installDist dependem desta tarefa, então um clone novo gera
 // tudo sozinho. Entradas = scripts Python; saídas = pastas geradas — se nada em tools/ mudou e as saídas estão
 // intactas, o Gradle pula a tarefa (UP-TO-DATE). Requer python3 no PATH.
-val generatedAssets = listOf("characters", "creatures", "environment", "textures", "studies", "components")
+val generatedAssets = listOf("characters", "creatures", "environment", "textures", "studies", "components", "audio/sintese")
 val assetsTask = tasks.register<Exec>("assets") {
     group = "assets"
     description = "Gera assets/ a partir dos scripts Python em tools/ (determinístico)."

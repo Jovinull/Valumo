@@ -1,7 +1,7 @@
 package vx.engine.audio;
 
 /**
- * Rodada 09 — saída de áudio de baixo nível (buffers, vozes, fluxo). A regra de quando e o que tocar fica em
+ * Rodada 09.4 — saída de áudio de baixo nível (buffers, vozes, fluxo). A regra de quando e o que tocar fica em
  * {@link SoundSystem}; aqui só o dispositivo. Implementações: {@link OpenAlOut} (dispositivo real ou loopback
  * para gravar/testar) e {@link SilentOut} (sem dispositivo: o jogo segue sem som).
  */

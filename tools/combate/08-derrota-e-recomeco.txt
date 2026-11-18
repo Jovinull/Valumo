@@ -1,0 +1,17 @@
+# Rodada 09 — demonstrações 13–14: sem defender, o herói cai; tela de derrota; "Tentar de novo" recomeça na entrada.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+vida-heroi 2
+wait 0.3
+record on
+esperar-resultado 12
+wait 0.8
+combate
+click recomecar
+wait 2.0
+combate
+record off

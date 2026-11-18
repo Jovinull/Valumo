@@ -1,6 +1,6 @@
-# Rodada 09 — áudio em contexto: música da escolha, começar (confirmar), passos na terra do caminho e na grama,
+# Rodada 09.4 — áudio em contexto: música da escolha, começar (confirmar), passos na terra do caminho e na grama,
 # andando e correndo, pausa (abrir/cancelar) e conversa com a Kelyra. Grave com loopback para ouvir o que o jogo
-# mistura, em sincronia com os quadros: tools/review9.sh contexto
+# mistura, em sincronia com os quadros: tools/review94.sh contexto
 size 1280 720
 wait 0.5
 record on

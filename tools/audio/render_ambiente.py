@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — renderiza uma camada de ambiente do LMMS como laço sem emenda.
+"""Rodada 09.4 — renderiza uma camada de ambiente do LMMS como laço sem emenda.
 
     .venv/bin/python tools/audio/render_ambiente.py fontes/audio/ambiente/vento.mmp SAIDA [--runtime assets/audio/ambiente/vento]
 

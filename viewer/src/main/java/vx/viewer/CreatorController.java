@@ -26,7 +26,7 @@ public final class CreatorController {
     private final Consumer<Appearance> compose;
     public final CreatorCamera cam;
     public Path saveDir = Path.of("output/aparencias");
-    /** Rodada 09 — som da interface: recebe eventos semânticos ("ui.selecionar"…); o Creator liga ao áudio. */
+    /** Rodada 09.4 — som da interface: recebe eventos semânticos ("ui.selecionar"…); o Creator liga ao áudio. */
     public java.util.function.Consumer<String> sound = e -> { };
     public CreatorLayout layout;
     public String hover, pressed;
@@ -186,8 +186,8 @@ public final class CreatorController {
             case "skin" -> a.skin = hex("pele", v);
             case "iris" -> a.iris = hex("iris", v);
             case "face" -> a.face = v;
-            case "eyes" -> a.eyes = v;                                   // rodada 09
-            case "feet" -> a.feet = v;                                   // rodada 09
+            case "eyes" -> a.eyes = v;                                   // rodada 09.4
+            case "feet" -> a.feet = v;                                   // rodada 09.4
             case "cover" -> a.cover = v;
             case "expr" -> { st.expr = v.equals("neutral") ? null : v; sound.accept("ui.selecionar"); return; }
             case "pose" -> { st.pose = Animator.Clip.valueOf(v); sound.accept("ui.selecionar"); return; }

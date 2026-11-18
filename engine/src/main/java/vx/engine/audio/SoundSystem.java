@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.SplittableRandom;
 
 /**
- * Rodada 09 — regras de reprodução, sem conhecer buffers nem dispositivo (testável com uma saída falsa).
+ * Rodada 09.4 — regras de reprodução, sem conhecer buffers nem dispositivo (testável com uma saída falsa).
  * <ul>
  *   <li><b>Eventos</b>: variação escolhida sem repetir a anterior (gerador com semente: o mesmo roteiro toca a
  *       mesma sequência), tom e ganho variando dentro da faixa do catálogo;</li>
@@ -92,6 +92,9 @@ public final class SoundSystem implements AutoCloseable {
     }
 
     public AudioOut out() { return out; }
+
+    /** O catálogo tem este evento? */
+    public boolean has(String id) { return cat.events.containsKey(id); }
 
     public float time() { return time; }
 

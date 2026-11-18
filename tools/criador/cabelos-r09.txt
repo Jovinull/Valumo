@@ -1,5 +1,5 @@
-# Rodada 09 — os dois estudos de cabelo no criador do jogador (miniaturas reais, nomes, cor, cobertura) e uma
-# sessão gravada (vídeo + áudio por loopback: tools/review9.sh criador).
+# Rodada 09.4 — os dois estudos de cabelo no criador do jogador (miniaturas reais, nomes, cor, cobertura) e uma
+# sessão gravada (vídeo + áudio por loopback: tools/review94.sh criador).
 size 1920 1080
 saves limpar
 click cat:CABELO

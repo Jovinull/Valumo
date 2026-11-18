@@ -130,7 +130,7 @@ public final class WeaponCheck {
         return out;
     }
 
-    static boolean isItem(String tag) {
+    public static boolean isItem(String tag) {
         return switch (tag) {
             case "blade", "handle", "staff", "bow", "arrow", "shield" -> true;
             default -> false;
@@ -138,7 +138,7 @@ public final class WeaponCheck {
     }
 
     /** Tolerância do par (item, corpo) ou NaN se o par não é verificado (contato legítimo). */
-    static float pairTol(CharacterModel m, Vol item, Vol body) {
+    public static float pairTol(CharacterModel m, Vol item, Vol body) {
         String it = item.tag, bt = body.tag;
         // item × item: só a arma do braço direito contra o escudo do esquerdo (a lâmina não atravessa o broquel)
         if (isItem(bt)) return (bt.equals("shield") && (it.equals("blade") || it.equals("handle"))) ? TOL_ARM : Float.NaN;
@@ -170,7 +170,7 @@ public final class WeaponCheck {
     // ------------------------------------------------------------------ geometria
 
     /** Distância entre dois segmentos (cápsulas); b == null vira ponto (esfera). */
-    static float segDist(Vector3f p1, Vector3f q1, Vector3f p2, Vector3f q2) {
+    public static float segDist(Vector3f p1, Vector3f q1, Vector3f p2, Vector3f q2) {
         if (q1 == null) q1 = p1;
         if (q2 == null) q2 = p2;
         Vector3f d1 = new Vector3f(q1).sub(p1), d2 = new Vector3f(q2).sub(p2), r = new Vector3f(p1).sub(p2);
@@ -202,7 +202,7 @@ public final class WeaponCheck {
         return c1.distance(c2);
     }
 
-    static float penetration(Vol x, Vol y) {
+    public static float penetration(Vol x, Vol y) {
         return x.r + y.r - segDist(x.a, x.b, y.a, y.b);
     }
 
@@ -240,6 +240,17 @@ public final class WeaponCheck {
         Matrix4f id = new Matrix4f();
         List<Vol> bind = volumes(m);
         Report rep = new Report(m.name + " / " + what);
+        // rodada 09.2: "...|pernas=walk:fase:rumo°:passada" avalia com as PERNAS andando por baixo da ação (golpe andando)
+        Animator.Clip legClip = null;
+        float legPh = 0f, legDir = 0f, legStride = 1f;
+        if (what.contains("|pernas=")) {
+            String[] lg = what.substring(what.indexOf("|pernas=") + 8).split(":");
+            what = what.substring(0, what.indexOf("|pernas="));
+            legClip = Animator.Clip.valueOf(lg[0].toUpperCase());
+            legPh = lg.length > 1 ? Float.parseFloat(lg[1]) : 0f;
+            legDir = lg.length > 2 ? (float) Math.toRadians(Float.parseFloat(lg[2])) : 0f;
+            legStride = lg.length > 3 ? Float.parseFloat(lg[3]) : 1f;
+        }
         Sequencer seq = what.startsWith("seq:") ? new Sequencer(what.substring(4), an) : null;
         Animator.Clip clip = what.startsWith("clip:") ? Animator.Clip.valueOf(what.substring(5)) : null;
         float dur = seq != null ? seq.total : clip != null ? an.duration(clip) : an.moveDuration(what);
@@ -264,6 +275,15 @@ public final class WeaponCheck {
                 mo.move = what;
                 mo.moveT = t;
                 mo.weight = 1f;
+            }
+            if (legClip != null) {                                  // passada contínua (fase pela distância na velocidade de desenho)
+                float cad = legClip == Animator.Clip.RUN ? Animator.RUN_CADENCE : Animator.WALK_CADENCE;
+                mo.stride = legStride;
+                mo.legW = 1f;
+                mo.legClip = legClip;
+                mo.legT = legPh / cad + t;
+                mo.legDir = legDir;
+                mo.locoDir = legDir;
             }
             an.evaluate(mo, pose, id, null);
             an.compose(pose, id, mats);

@@ -11,18 +11,22 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 /**
- * Rodada 09 — preferências de volume do jogador (música e efeitos), independentes. Multiplicam o equilíbrio do
+ * Rodada 09.4 — preferências de volume do jogador (música e efeitos), independentes. Multiplicam o equilíbrio do
  * catálogo (assets/audio/sons.json), nunca o substituem: "efeitos" vale para os barramentos de efeitos, de
- * interface e de ambiente. Gravadas em {@code output/preferencias/audio.json} (contrato {@code valumo.preferencias} v1); arquivo
- * ausente ou inválido → padrão (100%), nunca exceção.
+ * interface e de ambiente (e para os efeitos do combate). Gravadas em {@code -Dvx.prefs.audio} (padrão
+ * {@code output/preferencias/audio.json}, contrato {@code valumo.preferencias} v1); arquivo ausente ou inválido → padrão
+ * (100%), nunca exceção. {@code -Dvx.prefs=-} (roteiros e testes) = nem lê nem grava, como as outras preferências.
  */
 public final class AudioPrefs {
-    public static final Path FILE = Path.of(System.getProperty("vx.prefs", "output/preferencias/audio.json"));
+    /** null = não lê nem grava ({@code -Dvx.prefs=-}). */
+    public static final Path FILE = "-".equals(System.getProperty("vx.prefs")) ? null
+            : Path.of(System.getProperty("vx.prefs.audio", "output/preferencias/audio.json"));
     public static final float STEP = 0.1f;
     public float music = 1f, effects = 1f;
 
     public static AudioPrefs load(Path f) {
         AudioPrefs p = new AudioPrefs();
+        if (f == null) return p;
         try {
             if (Files.isRegularFile(f)) {
                 JsonObject o = JsonParser.parseString(Files.readString(f, StandardCharsets.UTF_8)).getAsJsonObject();
@@ -38,6 +42,7 @@ public final class AudioPrefs {
     }
 
     public void save(Path f) {
+        if (f == null) return;
         try {
             if (f.getParent() != null) Files.createDirectories(f.getParent());
             Files.writeString(f, String.format(Locale.ROOT,

@@ -14,7 +14,7 @@ import static org.lwjgl.stb.STBVorbis.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 /**
- * Rodada 09 — OGG Vorbis por stb_vorbis (LWJGL), lido em pedaços. O arquivo comprimido fica em memória
+ * Rodada 09.4 — OGG Vorbis por stb_vorbis (LWJGL), lido em pedaços. O arquivo comprimido fica em memória
  * (≈ 2 MB por música); o PCM é decodificado só à medida que toca.
  */
 public final class VorbisSource implements PcmSource {

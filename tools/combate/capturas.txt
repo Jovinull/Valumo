@@ -1,0 +1,42 @@
+# Rodada 09 — capturas do combate (1920×1080): arena, alerta, preparação, cabeçada, guarda, golpe, sequência, derrota,
+# vitória, visão técnica das hitboxes.
+size 1920 1080
+click comecar
+wait 1.0
+eventos on
+posicionar 0.4 6.6 350
+wait 0.6
+shot 01-trilha-para-a-arena
+ir -1.0 9.0
+esperar-inimigo ALERT 4 0.3
+shot 02-alerta
+esperar-inimigo WINDUP 4 0.45
+shot 03-preparo-da-cabecada
+esperar-inimigo ATTACK 2 0.1
+shot 04-cabecada
+esperar-inimigo WINDUP 5 0.15
+defesa on
+esperar-inimigo ATTACK 2 0.12
+shot 05-guarda-bloqueia
+esperar-inimigo RECOVER 2 0.3
+defesa off
+encarar 0.1
+atacar
+wait 0.36
+shot 06-corte-horizontal-acerta
+atacar
+wait 0.62
+shot 07-corte-diagonal
+wait 1.5
+debug golpes on
+esperar-inimigo WINDUP 5 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.3
+defesa off
+encarar 0.1
+atacar
+wait 0.38
+shot 08-tecnico-lamina-na-janela-de-dano
+debug golpes off
+wait 2.0
+combate

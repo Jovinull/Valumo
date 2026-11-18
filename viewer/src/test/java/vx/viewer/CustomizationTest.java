@@ -201,7 +201,7 @@ class CustomizationTest {
         Appearance a = custom("maga", "cabelo.rabo", "#5f8a5a", "#8f5c3e", "capuz.c3");
         a.iris = "#c08a2a";
         a.face = "rosto.aventureiro";
-        a.eyes = "olhos.redondos";                                       // rodada 09: formato dos olhos (v2)
+        a.eyes = "olhos.redondos";                                       // rodada 09.4: formato dos olhos (v2)
         a.name = "Lia";
         Appearance b = Appearance.fromJson(a.toJson(), C.catalog);
         assertEquals(a, b, "round-trip");
@@ -235,7 +235,7 @@ class CustomizationTest {
             try (var fs = Files.list(A.resolve(dir))) {
                 for (Path p : fs.toList()) before.put(p.toString(), Arrays.toString(Files.readAllBytes(p)).hashCode() + "");
             }
-        // rodada 09: o catálogo passou a ter uma regra "X" (crespo × capuz C3, a cobertura da exploradora); a
+        // rodada 09.4: o catálogo passou a ter uma regra "X" (crespo × capuz C3, a cobertura da exploradora); a
         // premissa antiga "toda combinação compõe" deixou de valer. Compõe toda combinação válida e exige que a
         // incompatível seja RECUSADA (nunca composta pela metade).
         int composed = 0, refused = 0;
@@ -255,7 +255,7 @@ class CustomizationTest {
             assertEquals(e.getValue(), Arrays.toString(Files.readAllBytes(Path.of(e.getKey()))).hashCode() + "", e.getKey());
     }
 
-    // ------------------------------------------------------------------ rodada 09: formato dos olhos
+    // ------------------------------------------------------------------ rodada 09.4: formato dos olhos
 
     @Test
     void version1FilesStillOpenThroughTheMigration() {
@@ -303,7 +303,7 @@ class CustomizationTest {
             }
     }
 
-    // ------------------------------------------------------------------ rodada 09: botas (primeira peça por região)
+    // ------------------------------------------------------------------ rodada 09.4: botas (primeira peça por região)
 
     @Test
     void bootsReplaceOnlyTheShinsKeepPivotsAndSole() {

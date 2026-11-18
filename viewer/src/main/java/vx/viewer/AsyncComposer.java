@@ -65,16 +65,20 @@ public final class AsyncComposer implements AutoCloseable {
 
     public ComponentCatalog catalog() { return worker.catalog; }
 
+    /** Rodada 09: equipamento de combate aplicado a toda composição deste compositor (ver {@link Composer#kit}). */
+    public void kit(String rigDir) { worker.kit = rigDir; uploader.kit = rigDir; }
+
     /** Pede o personagem principal; devolve true se já estava pronto no cache (troca instantânea). */
     public synchronized boolean request(Appearance a) {
         String sig = a.signature();
         wanted = sig;
         long gen = mainGen.incrementAndGet();
-        int pending = queue.size();
-        queue.removeIf(j -> j.main);                                          // pedidos antigos nem começam
-        discarded += pending - queue.size();                                  // rodada 09: também são descartes (antes não
-                                                                              // contavam: com a CPU cheia a thread de trabalho só
-                                                                              // acordava depois dos cliques e o teste falhava)
+        // pedidos antigos nem começam — e contam como descartados (rodada 09; antes sumiam da conta). Só conta o que
+        // queue.remove CONFIRMA ter tirado (atômico): medir o tamanho antes/depois, ou contar no filtro do removeIf (que no
+        // LinkedBlockingDeque roda fora da trava), contava em dobro um pedido que a thread de composição pegasse no meio —
+        // corrida apanhada pela invariante do CreatorTest sob carga.
+        for (Job old : queue.toArray(new Job[0]))
+            if (old.main && queue.remove(old)) discarded++;
         if (models.get(sig) != null) {                                        // get: renova a posição no LRU
             shown = sig;
             return true;

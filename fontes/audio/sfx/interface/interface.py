@@ -1,4 +1,4 @@
-"""Interface — família de efeitos da rodada 09 (estudo; NÃO canônico).
+"""Interface — família de efeitos da rodada 09.4 (estudo; NÃO canônico).
 
 Eventos reais (CreatorController.action e GameLogic.action): selecionar uma opção, confirmar (Concluir,
 Começar, Restaurar confirmado), cancelar (Esc, fechar diálogo), abrir um painel/diálogo e salvar a aparência.
@@ -82,7 +82,7 @@ TR = {
     "Caixa de música": (L.sf2(10, gain=2.0), [L.fx_eq(hp=400)], 100),
 }
 song = L.Song(
-    title="Valumo — interface (rodada 09)", bpm=BPM, num=4, den=4,
+    title="Valumo — interface (rodada 09.4)", bpm=BPM, num=4, den=4,
     tracks=[L.Track(n, TR[n][0], T[n], vol=TR[n][2], fx=TR[n][1], channel=9 if n == "Bloco de madeira" else i,
                     program=0) for i, n in enumerate(TR)],
     buses=[L.Bus("Sala", [L.fx_reverb(size=0.55, color=9000, wet=1.0)], volume=0.5)],

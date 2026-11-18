@@ -1,0 +1,36 @@
+# 06 — saltos: parado, andando, correndo (o pouso não para a corrida), para cima da pedra pequena e na encosta
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar 1.46 4.6 0
+camera-recompor
+mirar 7.0 5.0 0.3
+wait 0.6
+record on
+pular
+wait 0.9
+segurar W
+wait 0.3
+pular
+wait 0.8
+soltar W
+segurar W+SHIFT
+wait 0.3
+pular
+wait 0.9
+soltar W+SHIFT
+posicionar 1.46 5.3 0
+camera-recompor
+wait 0.3
+segurar W
+wait 0.58
+pular
+wait 0.2
+soltar W
+wait 0.7
+estado
+segurar W
+wait 0.6
+soltar W
+wait 0.4

@@ -3,7 +3,7 @@ name: audio-qa
 description: Validar áudio do Valumo tecnicamente e em contexto — medição de arquivos (tools/audio/audio_qa.py - taxa, pico real, saturação, LUFS, ataque, cauda, DC, emenda do laço comparada à passagem natural), testes sem dispositivo (AudioTest - laço exato, regras, catálogo, mixagem real por loopback do OpenAL Soft), gravação da mixagem do jogo em sincronia com os quadros de um roteiro, medição do atraso evento → som, ambiente posicional (atenuação medida por loopback) e distinção entre superfícies de passo. Use antes de declarar pronto qualquer som, música ou mudança no subsistema de áudio.
 ---
 
-# QA de áudio (rodada 09 em diante)
+# QA de áudio (rodada 09.4 em diante)
 
 **Análise de forma de onda não é escuta.** O agente mede e registra; quem aprova é o proprietário, ouvindo. Se o
 agente não ouviu (não tem saída de som acessível), o relatório diz isso com essas palavras.
@@ -78,12 +78,12 @@ ffmpeg -framerate 30 -i TMP/quadros/q_%05d.png -i SAIDA/mix.wav -c:v libx264 -c:
 Pacote `output/visual-review/round-NN/` com `musica/`, `efeitos-sonoros/`, `integracao/` (vídeo com som, mistura,
 eventos), tabelas de QA e o que foi **ouvido por quem**.
 
-## Rodada 09 (2ª parte)
+## Rodada 09.4 (2ª parte)
 
 - `audio_qa.py` tipo `ambiente` (−28 a −20 LUFS; emenda fim → começo ≤ 3×) e `--catalogo` inclui `ambientes`.
 - `tools/audio/superficies.py PASTA grama_a terra_a areia pedra`: distinção entre superfícies de passo.
 - `AudioTest` prova a posição pelo loopback (lago a 2 u × 12 u: longe < metade do RMS) e as camadas de ambiente
   (entram em rampa, não reiniciam, só o lago tem posição, barramento próprio).
-- Jogo indo ao lago e se afastando: `tools/review9.sh ambiente` (marulho ~8 dB mais baixo longe; passos de areia
+- Jogo indo ao lago e se afastando: `tools/review94.sh ambiente` (marulho ~8 dB mais baixo longe; passos de areia
   registrados na margem). Preferências de volume: `GameAudioTest.volumePreferences…`; os roteiros usam
   `-Dvx.prefs=` temporário para não mexer nas preferências do proprietário.

@@ -118,6 +118,10 @@ public final class App implements AutoCloseable {
         public boolean metrics = false;
         /** Rig específico (ex.: "characters/variants/v2") no lugar do personagem do estilo. */
         public String heroDir = null;
+        /** Rodada 09.2 — pernas por baixo do roteiro: "walk|run:fase:rumo°:passada" (golpe andando, de lado, de costas). */
+        public String legs;
+        /** Rodada 09.3 — salto do jogo para revisão: "parado", "andando" ou "correndo" (salta em 0,3 s). */
+        public String jump;
         /** Rodada 07: aparência composta em tempo de execução (modo PERSONALIZACAO, cena e capturas). */
         public Appearance appearance = null;
         public int customRow = 0;
@@ -526,14 +530,64 @@ public final class App implements AutoCloseable {
         return worlds.computeIfAbsent(style.key + "#" + tm + "#" + World.layout, k -> new World(assets, style, tm));
     }
 
+    // ------------------------------------------------------------------ rodada 09.3: salto para revisão (mesma física do jogo)
+
+    /** Salto do jogo (combate_e.json → salto e Player): altura, gravidades, impulso e preparação do pouso. */
+    static final float J_H = 0.62f, J_GU = 24f, J_GD = 34f, J_START = 0.3f;
+    static final float J_V0 = (float) Math.sqrt(2 * J_GU * J_H), J_UP = J_V0 / J_GU, J_AIR = J_UP + (float) Math.sqrt(2 * J_H / J_GD);
+
+    /** Altura do corpo no tempo do roteiro (salto em J_START s). */
+    static float jumpY(State st) {
+        float a = (st.time - st.clipStart) * st.timeScale - J_START;
+        if (a <= 0f || a >= J_AIR) return 0f;
+        return a < J_UP ? J_V0 * a - 0.5f * J_GU * a * a : J_H - 0.5f * J_GD * (a - J_UP) * (a - J_UP);
+    }
+
+    /** Locomoção + campos do salto da Motion, como o Player do jogo os produz ("parado", "andando" ou "correndo"). */
+    static Animator.Motion jumpMotion(State st, Animator.Motion mo) {
+        float tt = (st.time - st.clipStart) * st.timeScale, a = tt - J_START;
+        boolean old = st.jump.startsWith("antigo-");                     // a apresentação da 09.2 (comparação)
+        String kind = old ? st.jump.substring(7) : st.jump;
+        boolean run = kind.equals("correndo"), walk = kind.equals("andando");
+        mo.set(run ? Animator.Clip.RUN : walk ? Animator.Clip.WALK : Animator.Clip.IDLE, tt);
+        mo.stride = 1.05f;
+        if (a > 0f && a < J_AIR) {
+            mo.air = Math.min(1f, a / 0.08f);
+            mo.takeoff = a < 0.10f && !old ? a / 0.10f : -1f;
+            if (a > J_UP && !old) {
+                float vy = J_GD * (a - J_UP), y = J_H - 0.5f * J_GD * (a - J_UP) * (a - J_UP);
+                mo.fall = Math.clamp(1f - y / Math.max(0.3f, vy) / 0.14f, 0f, 1f);
+            }
+        } else if (a >= J_AIR) {
+            float impact = Math.clamp(J_GD * (J_AIR - J_UP) / (J_V0 * 1.2f), 0.25f, 1f);
+            float runK = run ? 1f : walk ? 0.17f : 0f;
+            float dur = old ? 0.16f : 0.16f * (0.75f + 0.5f * impact) * (1f - 0.35f * runK), u = (a - J_AIR) / dur;
+            if (u < 1f) mo.land = impact * (float) Math.sin(Math.PI * Math.min(1f, u * 1.4f)) * (1f - u * 0.3f);
+            mo.landRun = old ? 0f : runK;
+        }
+        return mo;
+    }
+
     /** Motion do herói no tempo atual: roteiro (seq), golpe em laço (act) ou só o clipe. */
     static Animator.Motion motionFor(State st, Actor a) {
         Animator.Motion mo = new Animator.Motion();
         float tt = (st.time - st.clipStart) * st.timeScale;
         Animator an = a.animator();
+        if (st.jump != null) return jumpMotion(st, mo);
         if (st.seq != null && an.prof != null) {
             try {
-                return Sequencer.of(st.seq, an).eval(tt, mo);
+                Sequencer.of(st.seq, an).eval(tt, mo);
+                if (st.legs != null) {                                  // rodada 09.2: pernas andando por baixo da ação
+                    String[] lg = st.legs.split(":");
+                    Animator.Clip c = Animator.Clip.valueOf(lg[0].toUpperCase());
+                    float cad = c == Animator.Clip.RUN ? Animator.RUN_CADENCE : Animator.WALK_CADENCE;
+                    mo.legClip = c;
+                    mo.legW = 1f;
+                    mo.stride = lg.length > 3 ? Float.parseFloat(lg[3]) : 1.05f;
+                    mo.legT = (lg.length > 1 ? Float.parseFloat(lg[1]) : 0f) / cad + tt;
+                    mo.legDir = mo.locoDir = lg.length > 2 ? (float) Math.toRadians(Float.parseFloat(lg[2])) : 0f;
+                }
+                return mo;
             } catch (IllegalArgumentException e) {
                 return mo.set(st.clip, tt);                     // este herói não tem o golpe: só o clipe
             }
@@ -709,7 +763,7 @@ public final class App implements AutoCloseable {
                         lab.submit(f);
                         a.submit(f, new Matrix4f(), motionFor(st, a), blend, st.expr, lab::height);
                     } else
-                    a.submit(f, new Matrix4f().rotateY(yaw), motionFor(st, a), blend, st.expr, null);
+                    a.submit(f, new Matrix4f().translate(0f, st.jump != null ? jumpY(st) : 0f, 0f).rotateY(yaw), motionFor(st, a), blend, st.expr, null);
                 }
                 f.shadowFocus.set(0, 0.5f, 0);
                 f.shadowRadius = Math.max(2.2f, extent * 1.6f);
@@ -816,8 +870,8 @@ public final class App implements AutoCloseable {
      *  penteado) ou "cobertura" (cabeça com folga em cima, lateral). */
     public void renderThumb(CharacterModel m, Framebuffer target, String framing) {
         boolean head = !framing.equals("corpo"), cover = framing.equals("cobertura"), hair = framing.equals("cabelo");
-        boolean eyes = framing.equals("olhos");                         // rodada 09: close na linha dos olhos
-        boolean feetF = framing.equals("pes");                          // rodada 09: botas
+        boolean eyes = framing.equals("olhos");                         // rodada 09.4: close na linha dos olhos
+        boolean feetF = framing.equals("pes");                          // rodada 09.4: botas
         float yaw = cover ? 1.05f : 0.38f;
         if (thumbRenderer == null) thumbRenderer = new Renderer();
         StyleProfile style = StyleProfile.of(4, 0);
@@ -1129,7 +1183,7 @@ public final class App implements AutoCloseable {
     public void runInteractive(State st, int demoFrames) {
         double last = window.time();
         int shot = 0, frame = 0;
-        Animator.Clip[] clips = Animator.Clip.values();
+        Animator.Clip[] clips = Animator.Clip.BASIC;
         String[] exprs = {null, "neutral", "joy", "determined", "surprise"};
         List<String> sets = new ArrayList<>(LINEUPS.keySet());
         double[] modeTime = new double[Mode.values().length];

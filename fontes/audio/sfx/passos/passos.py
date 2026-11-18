@@ -1,4 +1,4 @@
-"""Passos do herói — família de efeitos da rodada 09 (estudo; NÃO canônico).
+"""Passos do herói — família de efeitos da rodada 09.4 (estudo; NÃO canônico).
 
 Evento real: o Player do jogo planta um pé a cada meia passada (fase da locomoção pela distância percorrida;
 ver docs/architecture/audio.md). Superfícies que o relevo da vila classifica (World.surfaceClass):
@@ -57,7 +57,7 @@ GRAINS = {
         [(0, 100), (3, 60), (6, 40)],
         [(0, 92), (2, 72), (6, 46), (10, 22)],
     ],
-    # rodada 09 (2ª parte): areia — grãos densos e longos, ataque macio (chff); pedra — quase nada de material
+    # rodada 09.4 (2ª parte): areia — grãos densos e longos, ataque macio (chff); pedra — quase nada de material
     "areia": [
         [(0, 54), (1, 70), (2, 82), (3, 80), (5, 70), (7, 58), (9, 46), (12, 34), (15, 22), (19, 12)],
         [(0, 50), (1, 66), (2, 80), (4, 78), (6, 64), (8, 52), (11, 40), (14, 26), (18, 14)],
@@ -134,7 +134,7 @@ VOL = {"Pisada macia": 100, "Pisada leve": 100, "Pisada firme": 80, "Grama A (ma
        "Terra A (batida)": 200, "Terra B (cascalho)": 200, "Pisada abafada": 100, "Pisada dura": 90, "Areia": 200,
        "Pedra": 120}
 song = L.Song(
-    title="Valumo — passos (rodada 09)", bpm=BPM, num=4, den=4,
+    title="Valumo — passos (rodada 09.4)", bpm=BPM, num=4, den=4,
     tracks=[L.Track(n, TR[n][0], notes[n], vol=VOL[n], fx=TR[n][1], channel=i) for i, n in enumerate(TR)],
     tail_bars=1, notes_md=__doc__,
 )

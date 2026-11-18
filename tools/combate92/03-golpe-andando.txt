@@ -1,0 +1,20 @@
+# Rodada 09.2 — golpe andando para a frente (perfil C): os três cortes em sequência sem parar de andar, câmera perto
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.0 7.6 0
+camera-recompor
+wheel 4
+wait 0.6
+record on
+segurar W
+wait 0.7
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.2
+soltar W
+wait 0.6

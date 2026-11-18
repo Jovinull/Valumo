@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — medidas dos estilos de cabelo do catálogo de personalização (sem GPU).
+"""Rodada 09.4 — medidas dos estilos de cabelo do catálogo de personalização (sem GPU).
 
     python3 tools/hair_metrics.py [saida.md]
 

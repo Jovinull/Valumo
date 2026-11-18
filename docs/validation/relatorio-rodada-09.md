@@ -1,259 +1,314 @@
-# Relatório — Rodada 09: direção sonora, primeiros estudos de áudio, integração e dois estudos de cabelo
+# Relatório — Rodada 09: primeiro combate funcional
 
-Pacote local (fora do git): `output/visual-review/round-09/` (`LEIA-ME.md`). Regenerável com
-`tools/review9.sh tudo` (as tomadas de efeitos sonoros NÃO são re-renderizadas: ver §4).
+**Pacote local** (fora do git): `output/visual-review/round-09/` (`LEIA-ME.md`) e o zip
+`output/visual-review/rodada-09-imagens-e-documentos.zip` (sem os MP4). Regenerável com
+`tools/review9.sh tudo`.
 
-> **Nada desta rodada está aprovado.** Música, efeitos e cabelos são estudos. **O agente não ouviu nenhum som**:
-> tudo o que se diz sobre áudio aqui é medição (forma de onda, espectro, sonoridade, sincronia), não escuta.
-> A avaliação artística do áudio depende do proprietário.
+**Documentos:**
+- sistema: [combate.md](../architecture/combate.md);
+- decisão: [ADR 0015](../decisions/0015-combate-por-trajetoria-e-passo-fixo.md);
+- teste físico: [roteiro-de-teste-fisico-combate.md](roteiro-de-teste-fisico-combate.md).
+
+**Sem commit nem push nesta rodada.** A tag `playable-foundation-v0.1` não foi tocada.
 
 ## Como executar
 
 ```bash
 export JAVA_HOME=~/.sdkman/candidates/java/current
-./gradlew jogo                      # jogo com som (música da vila A; -Dvx.musica=vila_b|nenhuma)
-./gradlew editor                    # criador com sons da interface e música
-./gradlew test                      # 149 testes
-tools/review9.sh tudo               # pacote: áudio, contexto (vídeo com som), criador, cabelos, gate, testes
+./gradlew jogo                     # escolher a aparência → vila → descer a trilha para o sul → arena da pedra grande
+./gradlew jogo -Ptecnico           # idem; F3 mostra hitboxes, hurtboxes e estados
+./gradlew editor                   # criador (sem mudanças)
+./gradlew test                     # testes
+viewer/build/install/viewer/bin/viewer --check                    # golpes, reações, saídas, derrota
+viewer/build/install/viewer/bin/viewer --check interrupcao-fina   # cortes a cada 0,01 s nos golpes jogáveis
+viewer/build/install/viewer/bin/viewer --occlusion
+tools/review7.sh gate              # presets idênticos ao canônico
+tools/review9.sh tudo              # evidências: capturas, hitboxes, câmera, vídeos, 4 ângulos, interrupções,
+                                   # validadores, regressão, desempenho, testes, zip
 ```
 
-Para ouvir sem abrir o jogo: `output/visual-review/round-09/musica/vila_{a,b}/*-escuta.wav`,
-`efeitos-sonoros/*/contexto-proposta-*.wav` e `integracao/jogo-contexto-com-som.mp4`.
+## 1. Linha de base (auditoria)
 
-## 1. Estado inicial (linha de base)
+- **Git:**
+  - raiz do repositório local, `main` em sincronia com `origin/main` (`24e83df`), tag
+    `playable-foundation-v0.1`;
+  - remoto `Jovinull/Valumo`;
+  - árvore limpa.
+- **Validação:**
+  - **124/124** testes (o número da 08.1 confirmou);
+  - `--check` TODOS OK;
+  - oclusão só com a exceção conhecida;
+  - 22 referências a 0/255.
+- **Interrupção** (passo 0,05 s):
+  - espada **14/21** seguros (7 inseguros);
+  - lâmina longa **29/47** (18 inseguros).
+- **Registro:** `round-09/linha-de-base/`.
 
-- **Git:** `main` em `24e83df`, árvore limpa, remoto `Jovinull/Valumo`. Sem `output/` e sem assets gerados (clone
-  limpo). Rodada mais recente: **08.1**. Não havia combate, esquiva, inimigos nem chefes (a rodada 09.2 citada no
-  pedido não existe neste clone).
-- **Linha de base** (`round-09/validacao/01–05`): 124 testes verdes (engine 15, viewer 88, game 21);
-  `viewer --check` TODOS OK; `--occlusion` só a exceção conhecida (`bow_shot`); gate dos presets 51 pares, 0 pixel;
-  auditoria dos heróis sem voxels soltos.
-- **Áudio:** inexistente — nenhuma classe, recurso, arquivo, dependência ou evento. A visão listava áudio como fora
-  do escopo.
-- **Ambiente:** Ubuntu 24.04.4, 8 núcleos, 15 GB, PipeWire 1.0.5 (saída padrão: caixa Bluetooth). Divergências com
-  `ambiente.md`/ADR 0008: Goxel e `.venv` não estavam instalados nesta máquina.
+## 2. O que foi implementado
 
-## 2. Ferramentas
+Detalhes em [combate.md](../architecture/combate.md).
+- **Arena:** na borda sul da vila, alcançada pela trilha; o limite jogável é a união da vila com a arena. Obstáculos
+  postos à mão: pedra grande, carvalho, toco, tronco caído e cogumelos.
+- **Herói:** espada e broquel em qualquer aparência (kit do compositor; os três corpos passam no validador).
+  - Corte horizontal; encadeia o diagonal e o descendente.
+  - Guarda frontal.
+  - Reação a dano com atordoamento e invulnerabilidade.
+  - Derrota (ajoelha) com tela de recomeço.
+- **Inimigo:** o fungo-cardo, uma variante de combate do fungo canônico, que continua idêntico.
+  - Máquina de estados: repouso → alerta → persegue → prepara → golpe → recupera, mais atingido, morto e volta.
+  - Percepção por distância, campo e linha de visão.
+  - Coleira.
+  - Contorno de obstáculo.
+  - Cabeçada telegrafada.
+- **Dano pela trajetória:** a hitbox da lâmina e a do chapéu são avaliadas pela animação em subamostras de 1/480 s,
+  separadas da hurtbox e da colisão.
+- **Interrupções:** janelas autoradas por fase no perfil, com saídas autoradas. O jogo e o validador usam a mesma
+  semântica.
+- **Passo fixo:** 1/120 s para exploração, combate e câmera, com o desenho interpolado.
+- **Retorno visual:** pausa de impacto, lampejo, acento de pixel, recuo e vinheta. Sem som (seção 12).
+- **Interface:** corações, broquel aceso na guarda, barra do inimigo, dica de controles, vitória e derrota.
+- **Câmera:** ajuste de combate (não é trava de mira).
 
-| Ferramenta | Origem | Situação | Verificação |
+## 3. O inimigo escolhido
+
+- **Variante, não substituição:** o fungo canônico era manso, e transformá-lo em inimigo mudaria a função dele na vila.
+  Por isso a rodada criou uma variante, `fungo_cardo` em `tools/creatures_e.py`.
+- **Quatro mudanças**, todas para ler ameaça a 4–6 u:
+  - chapéu carmim escuro;
+  - coroa de 5 espinhos;
+  - olhos em fenda inclinada;
+  - mãos de nó de espinhos.
+- **Mantém:** proporção, corpo, pés e boca do canônico.
+- **Conferências:**
+  - o hash do fungo canônico é o mesmo;
+  - auditoria: os braços têm o mesmo fragmento diagonal do canônico, sem defeito novo.
+- **Animação própria (`brawler`):** alerta, preparação com tremor, cabeçada, recuperação cambaleante, recuo e queda.
+
+## 4. IA (resumo)
+
+| Regra | Valor |
+|---|---|
+| vê | até 5,2 u, campo de 140° (ou até 1,6 u em qualquer direção), sem sólido na linha de visão |
+| desiste | 2,5 s sem ver ou herói fora da coleira (4,4 u de casa); volta e recupera a vida |
+| persegue | 1,15 u/s, anda para onde olha, giro ≤ 4,5 rad/s |
+| ataca | a ≤ 1,05 u e ≤ 25° de frente: prepara 0,70 s (mira só nos primeiros 60%), golpe 0,26 s com avanço, recupera 0,85 s |
+| cambaleia | 0,45 s; não na cabeçada (compromete); imune 0,8 s depois; espera o intervalo antes de atacar de novo |
+| obstáculo | sem progresso 0,7 s: contorna pelo lado livre; preso 3 vezes: desiste (não há busca de caminho) |
+
+## 5. Como os golpes causam dano
+
+1. **A cada passo de 1/120 s**, se o golpe está na sua **janela de dano** (`ativo`):
+   - **onde:** dentro da execução do perfil, só com a ponta na metade da frente;
+   - **como:** a pose do herói vem da própria animação em 4 subamostras (1/480 s), com a raiz interpolada no passo.
+2. **Teste da lâmina:**
+   - a cápsula ao longo da peça `weapon` (do fim do punho à ponta, raio 0,05 u) e o rastro da ponta entre subamostras
+     são testados contra a cápsula da hurtbox do inimigo;
+   - a ponta anda até cerca de 0,1 u por subamostra, menos que o raio da hurtbox; o teste com alvo de 2 cm mostra que
+     nada é pulado.
+3. **Contato:** precisa de nada sólido entre o peito do herói e o ponto de contato.
+4. **Um acerto por golpe por alvo.**
+5. **Danos:** horizontal e diagonal tiram 1, o descendente tira 2.
+6. **Cabeçada:** usa a mesma regra, com a esfera presa ao chapéu, avaliada pela animação do fungo.
+
+**Medido** (`CombatTest`, `CombatAnimationTest`):
+- não fere fora do alcance, atrás nem ao lado;
+- não fere fora da janela;
+- não atravessa a pedra;
+- não conta duas vezes;
+- não depende da taxa de quadros nem da janela.
+
+## 6. Escudo
+
+- **Bloqueia:** só de frente (±65°), só com a guarda erguida (0,12 s de subida) e em guarda.
+- **Bloqueado:** sem dano, recuo curto, impacto no broquel e o fungo ricocheteia (recuperação de 1,25 s).
+- **Não bloqueia:** pelas costas nem erguido tarde demais (testes).
+- **Em guarda:** anda a 45% e vira para onde a câmera olha.
+- **Sem extras:** não há aparar nem vigor.
+
+## 7. Reações a impacto
+
+**Herói:**
+- reação coreografada (ou a saída autorada da fase);
+- recuo de 2,2 u/s;
+- lampejo de 0,14 s, pausa de 0,05 s e vinheta curta;
+- atordoamento de 0,42 s, ou 0,60/0,70 s se a reação for a saída autorada;
+- invulnerável por 0,75 s.
+
+**Fungo:**
+- recuo e chapéu chacoalhando;
+- lampejo e pausa de 0,07 s;
+- acento de pixel no ponto de contato.
+
+**Sem tremor de câmera.** O primeiro lampejo (mistura para branco) lavava o herói inteiro nas capturas; foi trocado por
+um clareamento quente de até 35%.
+
+## 8. A interrupção da espada
+
+| | Antes (08.1) | Depois (09) |
+|---|---|---|
+| espada, passo 0,05 s (`--check interrupcao`) | 14/21 seguros | **21/21** |
+| espada e broquel, passo 0,01 s, todos os golpes jogáveis (`--check interrupcao-fina`) | 7 inseguros só no horizontal | **0 inseguros** em `slash_h`, `slash_d`, `slash_v`, `shield_block`, `guard_hold` |
+| transições produzidas pelo jogo (encadear, dano no encadeamento, liberar, agir depois da reação, segundo dano, derrota) | não existiam | **todas válidas** (`CombatAnimationTest`) |
+
+**Como:**
+- a regra de corte é autorada por fase no perfil: rebobina na preparação e na execução, segue em frente na recuperação;
+- logo após a execução do horizontal e do diagonal, quando nenhuma das duas serve, entra uma **saída autorada**
+  (`hit_cross_h`, `hit_cross_d`): o corpo recua com a espada do lado onde o corte terminou e volta pela recuperação
+  autorada;
+- os parâmetros saíram de busca com as duas exigências do validador.
+
+**Instantes medidos pelo validador**, nunca chutados:
+- encadear: h → d a partir de 0,62 s (usado 0,64); d → v a partir de 0,58 s;
+- liberar: h 0,78, d 0,92, v 0,62 (usados com folga);
+- agir depois da saída: 0,56 e 0,66 s (atordoamento de 0,60 e 0,70 s).
+
+**Regras de interrupção** (explícitas e testadas):
+- dano sempre interrompe (o herói não tem armadura);
+- golpe só cancela golpe pelo encadeamento ou depois de `libera`;
+- a guarda não cancela golpe;
+- dentro da invulnerabilidade não há corte novo, então nunca há três transições sobrepostas.
+
+**Evidência:**
+- `round-09/interrupcoes/` (relatórios do validador);
+- `round-09/angulos/` (sequência, dano após o corte h e d, dano no encadeamento, guarda, derrota, em 4 ângulos);
+- vídeo `06-interrupcao` (visão técnica).
+
+## 9. A lâmina longa continua pendente
+
+**Sim.** Não é jogável nesta rodada e continua com **18/47** cortes inseguros: o mesmo número, fixado por
+`AnimationQaTest.longBladeKeepsItsHistoricalInterruptionRecordUntilItBecomesPlayable`.
+
+Para habilitá-la, ela precisa das mesmas janelas e saídas da espada.
+
+## 10. Defeitos encontrados e corrigidos nesta rodada
+
+| Defeito | Como apareceu | Correção |
+|---|---|---|
+| janela de dano = execução inteira feria quem estava atrás e ao lado | teste "atrás do herói" | janela autorada por golpe, só com a ponta na frente (teste na animação) |
+| encadear h → d aos 0,60 s cruzava a lâmina na frente da cabeça | `CombatAnimationTest` | instante medido (0,64) |
+| liberar o diagonal aos 0,82 s passava o cabo pelo tronco | idem | 0,94 |
+| reação cortada por golpe ou guarda rebobinava e atravessava cabeça e tronco | idem | reações seguem em frente; atordoamento ≥ instante seguro |
+| saltos de pose ao pular dentro da guarda | teste de platôs | `guard_hold` com esperas e pulos só em platôs |
+| segundo corte durante uma transição saltava a pose | análise do `Sequencer` | origem dupla (`fromMove2`) no `Animator`, `Sequencer` e jogo |
+| o desenho suavizava a pose do herói por cima (deformaria trajetórias validadas) | revisão | herói desenhado com a pose exata |
+| fim natural de golpe adiantado meio passo | teste camada × `Sequencer` | o tempo além do fim conta na saída |
+| luta mudava com o FPS: a direção vinha da câmera suavizada por quadro | teste de FPS | câmera no passo fixo, desenho interpolado |
+| fungo escondido atrás do herói na câmera de exploração | capturas | ajuste de combate da câmera (giro pela linha de vista) |
+| lampejo lavava o herói de branco | capturas | clareamento quente sutil |
+| alvo da câmera de combate entrava na pedra | teste da câmera | deslocamento limitado pela linha livre |
+| custo da câmera dobrou no passo fixo (p95 da lógica 2,07 → 3,82 ms) | medição | busca de desvio a 60 Hz de tempo de jogo (2,25 ms) |
+| a sequência de três cortes nunca completava contra o fungo (imunidade longa + ataque logo depois de cambalear) | vídeos | intervalo depois de cambalear e imunidade de 0,8 s: a sequência completa cabe depois de uma defesa |
+| `CreatorTest` intermitente (08.1) | análise | contagem de descartes da fila + invariante sem tempo |
+| a 1ª e a 2ª versões dessa correção contavam em dobro sob carga (corrida com a thread de composição) | a própria invariante, sob carga total (1 falha em 8) | contar só o que `queue.remove` confirma (atômico) |
+| peças de arco órfãs ao vestir o kit na exploradora | teste do kit nos três corpos | remove também o que pende dos itens |
+| `review72.sh` sobrescreveria a entrega da 07.2 | revisão | pasta configurável (`R=`) |
+
+## 11. Testes adicionados
+
+**Total:** 156 testes, 0 falhas. Eram 124 na linha de base.
+
+| Classe | Testes novos | O que cobre |
+|---|---|---|
+| `CombatTest` | 21 | janela de dano e acerto único; alcance, atrás e ao lado; alvo fino entre quadros; pedra barra o golpe; encadeamento e buffer; percepção (frente, costas, audição, pedra); telegrafia e esquiva para trás; esquiva lateral; coleira e volta curado; obstáculo; escudo (frente, costas, tarde); reação, atordoamento e invulnerabilidade; saída autorada; morte e recomeço (inimigo, herói); FPS; conversa × luta; moradoras; câmera de combate (separa e solta; não piora obstáculos) |
+| `CombatAnimationTest` | 8 | encadeamentos e dano no encadeamento; liberações; depois da reação, segundo dano e derrota; platôs da guarda; janelas só na frente; kit nos três corpos; camada ao vivo = `Sequencer` |
+| `AnimationQaTest` | 3 | golpes jogáveis seguros a cada 0,01 s; escolha da saída; lâmina longa histórica |
+| `CreatorTest` | 1 asserção | invariante de descartes (sem tempo) |
+
+**Sob carga** (`round-09/testes/creator-sob-carga.txt`): o `CreatorTest` corrigido passou **20/20** com todos os núcleos
+ocupados e nada compilando em paralelo. As duas primeiras versões da correção falharam 1 vez cada nessas condições;
+foi assim que a contagem dupla por corrida apareceu.
+
+## 12. Desempenho
+
+Medido em 1920×1080, qualidade padrão, Iris Xe, aquecido (7 s), 60 quadros/s de simulação, `glFinish` por quadro.
+Linha de base 08.1: exploração com mediana 9,40, p95 11,51, 478 mil triângulos, 74,6 MB e 94 draws.
+
+| | Exploração 08.1 | Exploração 09 | **Combate 09** |
 |---|---|---|---|
-| LMMS 1.2.2 | apt | **DAW adotada** | abre a sessão real (`ferramentas/lmms-sessao-vila-a.png`); render por linha de comando; amostras idênticas em dois renders |
-| FluidR3 GM 3.1 | apt (`fluid-soundfont-gm`, MIT) | instrumentos do sf2player | afinação conferida (A4 = 440 Hz) |
-| ffmpeg 6.1.1 / ffprobe, sox 14.4.2, vorbis-tools | apt | medida, limitador, OGG | usados no pipeline |
-| Audacity 3.4.2 | apt | instalado | **sem** `mod-script-pipe` no pacote; abertura com interface NÃO verificada |
-| Goxel 0.13.0 | Flatpak de usuário | reinstalado | exporta o `hair.vox` do crespo sem erro |
-| xvfb, xdotool, imagemagick | apt | inspeção de interface | capturas da interface do LMMS |
-| numpy, Pillow, imageio, soundfile, scipy | `.venv` | QA | — |
+| quadro: mediana / p95 / p99 / 1% pior | 9,40 / 11,51 / 12,37 / 13,37 | 10,09 / 12,12 / 13,14 / 13,82 | **9,59 / 11,05 / 12,15 / 12,36** |
+| lógica: mediana / p95 | 0,30 / 2,07 | 0,44 / 2,25 | 0,62 / 1,19 |
+| desenho: mediana / p95 | 9,05 / 10,26 | 9,58 / 10,75 | 8,94 / 10,16 |
+| draws / triângulos | 94 / 478 000 | 95 / 478 680 | 87 / 481 624 |
+| memória de vértices | 74,6 MB | 75,2 MB | 75,2 MB |
+| quadros > 20 ms | 0 | 0 | 0 |
 
-Não instalados, com motivo: **Ardour** (montar sessão sem interface exigiria Lua headless com estado de plugin —
-risco alto para a primeira rodada), **Surge XT** (o LMMS 1.2 no Linux não hospeda LV2/VST3), **Hydrogen** (a
-percussão leve coube no LMMS). Configuração do LMMS: `~/Documents/lmms/` e `~/.lmmsrc.xml` (`configured="1"`).
+**Custo do combate** (por passo lógico de 1/120 s):
 
-Correção registrada: `lmms upgrade` só reescreve o XML (não carrega os modelos), então NÃO serve como prova de
-ida e volta; a prova é a sessão aberta na interface e o render.
-
-Defeitos do LMMS 1.2.2 encontrados e contornados (detalhes na skill `music-composition`): notas fora de ordem
-param o padrão; sf2player dispara na grade de 256 quadros; o Delay escrito em XML não produz eco; o Mallets (STK)
-desafina e travou o render; o Kicker só soa enquanto a nota está ligada; o ruído do Kicker muda a cada render.
-
-## 3. Música
-
-Dois estudos da atmosfera da vila, com **decisões diferentes** (não a mesma melodia com outro instrumento).
-Ambos usam o *motivo do Valumo* (5̣ → 3, 2, 1, 2), tratado de modo diferente em cada um.
-
-| | A — exploração acolhedora | B — fantasia misteriosa |
-|---|---|---|
-| Compasso, andamento | 6/8, semínima pontuada ≈ 67 | 4/4, semínima 75 |
-| Harmonia | Ré maior funcional; Mi maior (II lídio) como momento de "maravilha" | Ré lídio sobre pedal; seção central em Si menor com Fá# maior |
-| Textura | violão dedilhado + flauta; clarinete e baixo na B; cordas, glockenspiel e chocalho na A' | harpa em ostinato, celesta com o motivo aumentado, violoncelo em pedal, cordas, flauta de pã só na seção central, sino grave, cristal |
-| Forma | introdução 4 + A 8 + B 8 + A' 8 (laço = 24 compassos) | introdução 2 + A 8 + B 8 + A'' 4 (laço = 20) |
-| Escuta / laço | 57,6 s / corpo de 43,2 s | 86,4 s / corpo de 64,0 s |
-
-Fontes: `fontes/audio/musica/vila/vila_{a,b}.py` (partitura com as decisões escritas) → `vila_{a,b}/*.mmp` (sessão
-editável: faixas, notas, mixer com EQ, retorno de reverberação, automação de volume nas cordas da A) + `.mid`.
-Runtime: `assets/audio/musica/vila_{a,b}.ogg` (1,7 e 2,6 MB).
-
-Iterações (cada uma por um problema medido):
-1. Stems: glockenspiel e chocalho 25–35 dB abaixo do resto → +17 e +21 dB.
-2. Arpejo quantizado → atraso determinístico de até 2 ticks no violão e nas madeiras.
-3. Espectro: 120–250 Hz pesado e acima de 4 kHz ~8 dB escuro → −3 dB a 250 Hz no violão, prateleira de +2,5 dB a
-   6 kHz no master (A); 4–8 kHz de −25,5 para −22,8 dB.
-4. Laço: violão mudo na 2ª passada (notas fora de ordem) → reordenação; passadas diferentes (grade de buffer) →
-   andamento 99 → 100 (A), 75 (B).
-5. B: celesta (o motivo) abaixo da harpa → +5 dB; flauta de pã −3 dB; sinos +9/+11 dB; eco escrito no lugar do
-   Delay; vibrafone e "FX cristal" no lugar do Mallets.
-
-QA final (`musica/*/qa-*.md`): −18,0 LUFS na escuta, pico real ≤ −3,2 dBFS, 0 saturação; laço com salto igual ao da
-passagem natural (A 0,21×; B 2,91× = o mesmo ataque do tempo forte), fim da 2ª passada a ≤ 0,62 dB e ≤ 0,93 dB de
-envelope por oitava do fim da 1ª. A métrica do laço foi corrigida duas vezes, com o motivo escrito no
-`audio_qa.py` (correlação de forma de onda não serve com reverberação modulada); nenhum limite foi afrouxado para passar.
-
-## 4. Efeitos sonoros
-
-Famílias com eventos reais no clone: **passos** (pisada do herói; grama e terra pela superfície do relevo) e
-**interface** (criador e menus do jogo: selecionar, confirmar, cancelar, abrir, salvar). Combate não existe no clone.
-
-- **Passos:** camada de peso (Kicker, tom com queda) + camada de material (grãos de ruído escritos à mão + EQ de
-  banda). Quatro propostas (Grama A macia × B seca; Terra A batida × B cascalho), 4 variações × andar/correr.
-  Escolha: **Grama A + Terra A**. Grama A + Terra B teriam o mesmo centroide (2,2 kHz) e o jogador não distinguiria
-  as superfícies; Grama A × Terra A dá 2,8 × 0,9 kHz. A Terra A foi refinada (+2 dB de rangido).
-- **Interface:** A "madeira e papel" (bloco de madeira, kalimba, grãos de papel; sininho só no salvar) ×
-  B "vidro e dourado" (celesta, caixa de música). Recomendada a **A**, por coerência com a madeira e o pergaminho da
-  interface e porque o selecionar toca dezenas de vezes por minuto. Tudo em Ré maior, sem variação de tom.
-- Defeitos corrigidos no caminho:
-  - passo "baque" sem material (95% da energia abaixo de 300 Hz);
-  - clique no fim (Kicker cortado pelo note-off);
-  - variação 15 dB mais fraca no mesmo grupo;
-  - cauda cortada;
-  - DC;
-  - pico real acima de 0 dBFS.
-- Runtime: `assets/audio/sfx/` (16 passos + 7 interface, mono 48 kHz 16 bits, 520 KB). Propostas e sequências de
-  contexto (cadência real do jogo; sessão de cliques) em `round-09/efeitos-sonoros/`.
-- QA do catálogo inteiro: **25 arquivos, 0 alertas**. A Grama B (não escolhida) teve pico real −0,8 dBFS.
-- Cada render do ruído é uma tomada diferente: as tomadas avaliadas são as versionadas; não re-renderize depois
-  do QA.
-
-## 5. Personalização
-
-Dois estudos, **experimentais** (`"experimental": true` no catálogo), escolhidos por silhueta e por risco baixo de
-atravessar o corpo:
-- **Crespo**: nuvem de cachos em lóbulos, a silhueta mais LARGA (26 voxels; os outros 20–23).
-- **Coque alto**: casca rente, coque redondo com espiral e amarração de couro (fora do canal do cabelo: não
-  recolore), mechas que emolduram o rosto, a silhueta mais ALTA (22 voxels acima do pescoço).
-
-Longos e tranças ficaram fora: fundidos à cabeça, atravessariam ombros e mochila (só `tail` e `hat` articulam).
-
-| Versão | O que se viu | O que mudou |
-|---|---|---|
-| v1 | crespo: têmpora careca, costas com pontos escuros soltos, franja em "viseira"; coque: têmpora careca, coque em andares, nuca chapada | — |
-| v2 | têmporas cobertas; contorno dos cachos por entalhe geométrico; 13 lóbulos maiores; coque esférico; `hair_strands` nas costas | escolhida |
-| v2.1 | hipótese: a borda da testa do coque lia como tiara | 40 voxels mudados sem diferença visível → **revertida** |
-
-Medidas (`personalizacao/medidas-cabelos.md`): Jaccard de volume máximo do crespo 0,41 e do coque 0,50 contra
-qualquer outro estilo (os estilos aprovados chegam a 0,63); critério do `CustomizationTest` < 0,80. Cabeça fundida:
-1 componente e 0 voxels soltos nas 4 expressões.
-
-Compatibilidade:
-- 10 cores com a rampa preservada. No preto, os entalhes do crespo perdem contraste.
-- 4 expressões legíveis.
-- Chapéu de aba ok nos dois estilos.
-- Capuz C3 ok no coque. No crespo o nó fica **enterrado** → regra `X` no catálogo (primeira regra de
-  incompatibilidade real): opção indisponível com cadeado e motivo.
-- Escala de jogo: os três penteados (topete, crespo, coque) se distinguem pela silhueta.
-- Vídeos de correr e golpe em 4 ângulos: nada atravessa mochila, cachecol ou ombros.
-
-**Risco (fechado na parte 2, §10):** no golpe vertical o punho e a lâmina passam rente à lateral do crespo, com folga visivelmente
-menor que no topete (`comparacoes/golpe-vertical-vista-de-cima-crespo-x-topete.png`). O `viewer --check` mede a
-arma contra os volumes do rig canônico, não contra o cabelo personalizado. Não comprovado nem descartado.
-
-Criador:
-- nomes "Crespo" e "Coque alto";
-- 6 miniaturas em 2 colunas empurravam "Cor do cabelo" para fora do painel em 1080p e 720p (o clique em "loiro"
-  caía num controle recortado) → **3 colunas quando houver mais de 4 penteados**;
-- a dica de penteado indisponível dizia "penteado atual" → "Não combina com o chapéu atual".
-
-A captura do estado com defeito foi sobrescrita pela nova rodada de capturas; o defeito foi visto e descrito, mas
-a imagem não foi preservada.
-
-Proposta de evolução (rosto por partes com migração `valumo.aparencia` v2, roupas por região, peça experimental
-recomendada = botas): [personalizacao-evolucao.md](../architecture/personalizacao-evolucao.md) — só planejamento.
-
-## 6. Integração
-
-Arquitetura: [audio.md](../architecture/audio.md); decisão: [ADR 0015](../decisions/0015-audio-openal-stb-vorbis.md)
-(dependências novas: `lwjgl-openal`, `lwjgl-stb`).
-
-| Arquivo | Mudança |
+| Parte | Custo |
 |---|---|
-| `engine/build.gradle.kts` | módulos OpenAL e stb do LWJGL |
-| `engine/.../audio/*` (novo) | `Audio`, `SoundCatalog`, `SoundSystem`, `AudioOut`, `OpenAlOut`, `SilentOut`, `Pcm`, `PcmSource`, `VorbisSource`, `LoopingReader` |
-| `game/.../GameAudio.java` (novo), `Game.java`, `GameMain.java` | pisadas, ações e música; áudio aberto no jogo interativo, mudo nos roteiros; gravação sincronizada |
-| `game/.../Player.java` | contador de pisadas na fase de contato do pé |
-| `game/.../GameLogic.java` | ouvinte `onAction` |
-| `viewer/.../World.java` | `surfaceAt` (gancho genérico) |
-| `viewer/.../CreatorController.java`, `Creator.java`, `Main.java` | eventos semânticos da interface, áudio no `--editor`, roteiro mudo com loopback opcional |
-| `viewer/.../CreatorState.java`, `CreatorLayout.java` | nomes, ordem, 3 colunas, texto da dica |
-| `assets/audio/` (novo) | `sons.json` (à mão), OGG e WAV |
-| `tools/chars_e.py`, `tools/components_e.py` | `hair_crespo`, `hair_coque`, exportação, regra `X` |
+| herói (estado + corpo + lâmina) | 0,036 ms |
+| inimigo (IA + corpo + cabeçada) | 0,034 ms |
+| só a detecção de golpe | 0,019 ms |
+| animação no desenho | 0,034 ms por avaliação |
+| coleta de lixo durante a luta | 0 |
 
-Contexto real (`integracao/`):
-- o jogo por roteiro com o loopback do OpenAL gravou 27,00 s para 810 quadros a 30 FPS, em sincronia exata;
-- eventos: 21 passos de grama andando e 12 correndo, todos sobre grama; 13 de terra, todos sobre o caminho;
-  confirmar, abrir ×2, cancelar ×2, selecionar ×3;
-- atraso evento → som: −32,3 ± 0,8 ms em 54 eventos, constante, igual a 1 quadro de deslocamento do `t0` do roteiro;
-  latência real ≈ 1 ms;
-- mistura do jogo: −24,2 LUFS (alvo usual de console);
-- criador: sessão de 16,17 s com som.
+**Leitura:**
+- **Combate:** custa menos de 0,15 ms por quadro a 60 FPS.
+- **Exploração:** ficou cerca de 0,6 ms mais lenta na mediana.
+  - **A arena nova** (9 props: +4 draws, +6,8 mil triângulos de cena, +10,8 mil de sombra) explica cerca de 0,4 ms.
+    Confirmado pelo bench do viewer na mesma cena, sem lógica: mediana de 9,90 para 10,28 ms.
+  - **O passo fixo** (câmera e corpo a 120 Hz) explica o resto. A busca de desvio da câmera foi limitada a 60 Hz de
+    tempo de jogo depois de a medição mostrar que dobrava.
+  - Variação entre execuções: ±0,15 ms.
+- **A malha conforme não foi reaberta.**
 
-## 7. Validação
+## 13. Regressões
 
-| Comando | Resultado |
+| Verificação | Resultado |
 |---|---|
-| `./gradlew test` | **141/141** (engine 28 = 15 + 13 de áudio; viewer 88; game 25 = 21 + 4 de áudio) |
-| `tools/review7.sh gate` (`R=…/round-09/validacao/regressao`) | 51 pares, **0** com diferença |
-| hashes de `assets/characters/e` e `assets/components` | idênticos à linha de base, salvo os arquivos novos e o `catalog.json` |
-| `viewer --check` | TODOS OK |
-| `viewer --occlusion` | só a exceção conhecida (`bow_shot`) |
-| `audio_qa.py --catalogo` | 25 arquivos, 0 alertas |
-| `CreatorTest.rapidRequestsEndOnTheLastChoice` (já aberto) | falhou 1× com a máquina em carga 4,8; depois, 5/5 na rodada 09 e 5/5 no commit base num worktree, na mesma faixa de carga (`validacao/flaky-*.txt`) |
+| Testes | 156 / 0 falhas |
+| `--check` | TODOS OK (inclui `hit_cross_h`, `hit_cross_d`, `guard_hold`, `defeat`) |
+| `--occlusion` | só a exceção conhecida (`bow_shot`), igual à linha de base |
+| Gate dos presets | 51 pares, 0 com diferença |
+| 22 referências canônicas | 22/22 a 0/255 (o lampejo novo no shader não muda nada com valor 0) |
+| Criador (capturas da 07.2) | 33/33 idênticas ao código publicado da 08.1 (clone limpo de `24e83df`); contra as capturas da 07.2 todas diferem nas bordas da cena 3D de fundo, efeito da malha conforme da 08.1 (já aprovada), não desta rodada |
+| Geração determinística | 1.073 arquivos, hash idêntico em duas gerações |
+| Auditoria de assets | heróis (51) e NPCs (64) sem fragmentos; criaturas 10 arquivos marcados = os 8 da linha de base (fungo, pompom, tortuga) + os 2 braços do fungo-cardo (mesmo fragmento diagonal herdado do canônico) |
+| Exploração e conversa da 08 | `GameplayTest` 21/21 + capturas dos roteiros da 08 em `round-09/regressao/jogo-08/` |
+| Fungo canônico | hash idêntico (a variante é outro asset) |
 
-Testes alterados, com o motivo: `AudioTest` e `GameAudioTest` são novos. No `CustomizationTest.canonicalAssetsAreNotTouchedByComposition`,
-a premissa implícita "toda combinação compõe" deixou de valer com a regra `X`. O teste agora compõe toda
-combinação válida e EXIGE que exatamente uma seja recusada (ficou mais estrito, não mais frouxo). No `AudioTest`,
-o "silêncio" do loopback admite ±2 LSB porque o OpenAL Soft aplica dither na saída de 16 bits.
+## 14. O que falta validar fisicamente
 
-## 8. Crítica artística (do agente, sem escuta)
+O roteiro de 10–15 minutos ([roteiro-de-teste-fisico-combate.md](roteiro-de-teste-fisico-combate.md)) cobre:
+- mouse e teclado reais (os roteiros injetam na mesma fila da janela; Wayland impede automação do sistema);
+- a latência sentida do clique;
+- o ritmo dos golpes e da sequência;
+- se a preparação é justa;
+- se a defesa é útil sem ser trivial;
+- se a câmera ajuda perto da pedra e do carvalho;
+- a dificuldade.
 
-**Fortes**
-- O processo é editável de verdade: partitura com decisões → sessão LMMS → render → QA.
-- Os dois estudos de música diferem em compasso, harmonia, textura e forma.
-- A integração é sincronizada por construção.
-- O crespo tem identidade clara, a silhueta mais distinta do catálogo.
-- O contraste entre os passos de grama e de terra foi escolhido por medida.
+**Divertido ou não é decisão do proprietário.** O que a rodada garante é que é tecnicamente correto, legível nos vídeos
+e sem recorte nas transições.
 
-**Fracos ou incertos**
-- Os timbres do FluidR3 tendem a soar "de banco GM": o maior risco de a música parecer genérica.
-- Não sei se as melodias funcionam; só a escuta dirá.
-- O farfalhar dos passos é feito de grãos de ruído de 13 ms e pode soar sintético.
-- O coque tem a coroa em degraus (comum aos domos do catálogo) e a costa ainda simples.
-- O crespo perde definição no preto e tem o risco do golpe vertical.
+## 15. Problemas que continuam
 
-**Precisa de revisão do proprietário:** música A × B, interface A × B, passos (as duas superfícies), crespo e coque
-no criador e no jogo.
+- **Sem som** (golpe, defesa, dano). Exige o módulo OpenAL do LWJGL, um ADR e uma direção de áudio.
+- **Lâmina longa:** interrupção 18/47; não jogável.
+- **Câmera colada num obstáculo:** por alguns quadros, a câmera entra nele. É limite da rodada 08: o ajuste de combate
+  não piora e, no carvalho, melhora.
+- **Sem busca de caminho:** o inimigo contorna ou desiste.
+- **Clique em taxa baixa:** a menos de 30 FPS o clique é lido até um quadro depois (regra igual; chegada diferente).
+- **Exploradora e maga** usam a trajetória lógica do rig de referência do kit: mesmos pivôs de braço e quadril; joelho
+  da exploradora 1 voxel acima.
+- **Demonstrações:** os roteiros usam montagem técnica (`posicionar`, `inimigo`, `vida-heroi`) para começar cada vídeo
+  no ponto que demonstra. A luta em si é só entrada de jogo.
+- **A interface de combate é mínima:** corações e barra, sem números.
 
-## 9. Próximas rodadas (prioridade) — ver a revisão na §10
+## 16. Pronto para aprofundar?
 
-1. **Escuta do proprietário** (fones e caixa) dos estudos; decidir direção musical e timbres antes de produzir mais.
-2. Estender o `WeaponCheck` com o volume do cabelo composto (risco do crespo) e capturar os golpes em 4 ângulos com
-   cada penteado.
-3. Se a escuta pedir timbres melhores: avaliar outro banco livre de qualidade ou síntese própria no LMMS (e, se
-   for o caso, Ardour com sessão montada à mão pelo proprietário).
-4. Ambiente da vila (vento, água, pássaros) como camada posicional; menu de volume.
-5. Rosto por partes, começando por `olhos.*` com migração v2 (proposta pronta).
-6. Primeira peça de roupa por região (botas), com validação de pé, IK e animação.
+**Tecnicamente, sim.**
+- A base é a que um aprofundamento precisa:
+  - passo fixo determinístico;
+  - dano pela trajetória;
+  - interrupções autoradas;
+  - instantes medidos;
+  - a mesma semântica de animação no jogo e no validador.
+- O roteiro para adicionar um golpe ou um inimigo está na skill `combat`.
 
-## 10. Parte 2 — pendências fechadas na mesma rodada
+**Antes de aprofundar:**
+1. o teste físico do proprietário (sensação, ritmo e dificuldade);
+2. a decisão sobre som;
+3. só então, um segundo inimigo ou um segundo golpe.
 
-Pedido do proprietário: fechar as pendências apontadas e deixar documentação e skills redondas. A escuta continua
-sendo dele (o agente segue sem ouvir).
-
-| Pendência | O que foi feito | Prova |
-|---|---|---|
-| Arma × crespo (risco aberto) | `viewer --check-cabelos` + `HairWeaponTest`: voxels da arma × cabeça COMPOSTA em todo golpe/gesto, cada preset × penteado. Nenhum estudo é atravessado mais que o penteado do preset (aventureiro 21 = 21; exploradora 0 × 7; maga 34 × 47; coque 4/0/19) | `validacao/09-arma-x-cabelos.md` |
-| Achado novo | o EMOTE do aventureiro atravessa o TOPETE canônico (21 voxels, t = 0,77 s; visível no perfil); o validador antigo não via (cápsula de raio 8,6). Registrado; corrigir muda coreografia aprovada | `comparacoes/`, problemas conhecidos |
-| Teste instável do criador | causa real: `request()` tirava pedidos obsoletos da fila sem contá-los; com a CPU cheia a thread de trabalho só acordava depois dos cliques. Corrigido na contagem (um gancho de latência foi testado, não resolvia, e foi removido) | 3/3 com carga 6,7–10,2 (`validacao/10-*`) |
-| Passos de areia e pedra | duas superfícies novas no mesmo gerador; distinção medida (`tools/audio/superficies.py`: pares ≥ 3,8 dB; areia × terra 97 × 48 ms); `GameAudio` mapeia areia → areia, rocha → pedra | `efeitos-sonoros/passos-superficies/`, 4 passos de areia no jogo |
-| Volume do jogador | pausa com Música e Efeitos (0–100%), `AudioPrefs` em `output/preferencias/audio.json`; fileiras com rótulo que cabe (o "Sensibilidade do mouse" era atravessado pelo "−" em 720p — corrigido junto) | `integracao/pausa/`, `GameAudioTest` |
-| Ambiente com posição | vento (cama estéreo, 24 s) e lago (mono posicional no centro do lago, 16 s) compostos no LMMS por síntese; laço por crossfade; fluxo posicional e ouvinte no OpenAL | loopback: lago a 12 u < metade do RMS a 2 u (`AudioTest`); no jogo o marulho cai ~8 dB longe (`integracao/ambiente/`) |
-| Rosto por partes — 1º passo | slot `olhos` (redondos, amendoados, inclinados) gerado pelo próprio pintor por rosto; Appearance **v2** com `migrate1to2`; criador com miniaturas no enquadramento novo `olhos` (o de cabeça cortava os olhos) e botões na variante B | `personalizacao/olhos/`, 3 testes novos |
-| Primeira roupa por região | botas "viajante" (slot `pes`, só as canelas, mesmo pivô e sola). v1 com o tom claro da bota não lia na câmera de jogo → v2 com forro de lã creme, que lê; categoria "Roupa" no criador | `personalizacao/botas/`, `bootsReplaceOnlyTheShins…` |
-
-Validação final: **149/149** testes (engine 29, viewer 94, game 26); gate 51 pares, 0 pixel; hashes dos heróis
-canônicos idênticos; `--check` TODOS OK; `--occlusion` só `bow_shot`; `--check-cabelos` sem estudo pior que a
-referência; QA do catálogo de áudio 43 arquivos, 0 alertas; contexto do jogo 810 quadros ↔ 27,00 s.
-
-Próximas rodadas (revisadas):
-1. Escuta do proprietário (música A × B, interface A × B, passos nas 4 superfícies, ambiente).
-2. Decidir o EMOTE do aventureiro (mão mais para fora) e rodar `--check-cabelos` como portão de golpes.
-3. Timbres melhores se a escuta pedir; efeitos curtos posicionais quando houver NPC/criatura que soe.
-4. Rosto por partes: sobrancelha e boca (mesma técnica dos olhos); roupas: calças/mangas com dobra de joelho/cotovelo.
+A rodada 10 não foi iniciada.

@@ -45,14 +45,14 @@ public final class CreatorState {
         NAMES.put("cabelo.curto", "Curto");
         NAMES.put("cabelo.chanel", "Médio");
         NAMES.put("cabelo.rabo", "Preso");
-        NAMES.put("cabelo.crespo", "Crespo");               // rodada 09: estudo experimental (catálogo: "experimental")
-        NAMES.put("cabelo.coque", "Coque alto");            // rodada 09: estudo experimental
+        NAMES.put("cabelo.crespo", "Crespo");               // rodada 09.4: estudo experimental (catálogo: "experimental")
+        NAMES.put("cabelo.coque", "Coque alto");            // rodada 09.4: estudo experimental
         NAMES.put("rosto.aventureiro", "Destemido");
         NAMES.put("rosto.exploradora", "Atento");
         NAMES.put("rosto.maga", "Gentil");
-        NAMES.put("botas.originais", "Do modelo");          // rodada 09: botas (primeira peça de roupa)
+        NAMES.put("botas.originais", "Do modelo");          // rodada 09.4: botas (primeira peça de roupa)
         NAMES.put("botas.viajante", "Viajante");
-        NAMES.put("olhos.redondos", "Redondos");            // rodada 09: formato dos olhos
+        NAMES.put("olhos.redondos", "Redondos");            // rodada 09.4: formato dos olhos
         NAMES.put("olhos.amendoados", "Amendoados");
         NAMES.put("olhos.inclinados", "Inclinados");
         NAMES.put(Appearance.NO_COVER, "Sem chapéu");

@@ -3,9 +3,9 @@ name: sound-design
 description: Criar efeitos sonoros do Valumo (passos, interface, futuros combate/ambiente) por síntese e camadas deliberadas no LMMS 1.2.2 — sessão com uma faixa por camada e um som por compasso, Kicker (tom com queda + ruído) e sf2player, EQ por camada, fatiamento calibrado, consistência entre variações, duração desenhada, mono 48 kHz 16 bits, catálogo de eventos semânticos (assets/audio/sons.json) e integração por eventos no jogo; superfícies de passo (grama, terra, areia, pedra) e camadas de ambiente em laço (vento, lago posicional). Use ao criar, alterar ou integrar qualquer efeito sonoro ou ambiente.
 ---
 
-# Sound design (rodada 09 em diante)
+# Sound design (rodada 09.4 em diante)
 
-Arquitetura: `docs/architecture/audio.md`; decisão: ADR 0015. Música: skill `music-composition`. QA: `audio-qa`.
+Arquitetura: `docs/architecture/audio.md`; decisão: ADR 0023. Música: skill `music-composition`. QA: `audio-qa`.
 
 ## Princípios
 
@@ -17,7 +17,7 @@ Arquitetura: `docs/architecture/audio.md`; decisão: ADR 0015. Música: skill `m
 - **Coerência com a música**: sons tonais da interface em Ré maior (sem variação de tom no catálogo).
 - **Proibido:** geradores por IA, pacotes de terceiros, `sfxr`/aleatórios de "botão mágico".
 
-## Construção que funcionou (rodada 09)
+## Construção que funcionou (rodada 09.4)
 
 | Camada | Instrumento do LMMS | Notas |
 |---|---|---|
@@ -72,7 +72,7 @@ Sessão: um som por compasso a 240 bpm (1 tick ≈ 5,2 ms; compasso = 1 s), uma 
 | catálogo de eventos | `assets/audio/sons.json` | sim (à mão) |
 | propostas, medidas, contexto | `output/visual-review/round-NN/efeitos-sonoros/` | não |
 
-## Rodada 09 (2ª parte) — superfícies e ambiente
+## Rodada 09.4 (2ª parte) — superfícies e ambiente
 
 - **Areia e pedra** no mesmo `passos.py` (pisada abafada + "chff" longo; pisada dura com clique + estalo). Distinção
   medida por `tools/audio/superficies.py` (espectro em 1/3 de oitava, duração, fator de crista): todos os pares ≥ 3,8 dB;

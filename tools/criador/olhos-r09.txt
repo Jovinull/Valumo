@@ -1,4 +1,4 @@
-# Rodada 09 — formato dos olhos no criador (variante A em 1080p e 720p; variante B).
+# Rodada 09.4 — formato dos olhos no criador (variante A em 1080p e 720p; variante B).
 size 1920 1080
 click cat:ROSTO
 click eyes:olhos.redondos

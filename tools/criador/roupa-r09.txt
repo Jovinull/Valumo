@@ -1,4 +1,4 @@
-# Rodada 09 — categoria Roupa (botas) no criador, 1080p e 720p.
+# Rodada 09.4 — categoria Roupa (botas) no criador, 1080p e 720p.
 size 1920 1080
 click cat:ROUPA
 click feet:botas.viajante

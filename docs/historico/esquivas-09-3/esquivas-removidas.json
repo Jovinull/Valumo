@@ -1,0 +1,882 @@
+{
+ "sword": {
+  "poses": {
+   "roll_dive": {
+    "_doc": "rodada 09.2 — rolamento: mergulho (corpo dobra para a frente, espada vai para o lado, alinhada ao eixo do giro). O giro visível é spin + inclinação do tronco: spin desconta o tronco (60°, 150°, 260°, 330°, 360° no total)",
+    "base": "rest",
+    "r": [
+     -11.0,
+     13.0,
+     8.0
+    ],
+    "rDir": [
+     -0.55,
+     0.0,
+     0.83
+    ],
+    "rEdge": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "rElbow": [
+     -1.0,
+     -0.5,
+     -0.4
+    ],
+    "lMode": "ik",
+    "l": [
+     8.5,
+     14.0,
+     6.0
+    ],
+    "lElbow": [
+     1.0,
+     -0.6,
+     -0.3
+    ],
+    "torso": [
+     35,
+     0,
+     0
+    ],
+    "head": [
+     20,
+     0,
+     0
+    ],
+    "hip": 0.62,
+    "feet": [
+     3.0,
+     -3.0
+    ],
+    "rootZ": 1.0,
+    "spin": 25
+   },
+   "roll_tuck": {
+    "_doc": "bola: tronco e cabeça enrolados, joelhos no peito, pés recolhidos",
+    "base": "roll_dive",
+    "r": [
+     -12.0,
+     9.5,
+     8.0
+    ],
+    "l": [
+     9.0,
+     11.0,
+     6.0
+    ],
+    "torso": [
+     75,
+     0,
+     0
+    ],
+    "head": [
+     40,
+     0,
+     0
+    ],
+    "hip": 0.5,
+    "feet": [
+     5.0,
+     4.0
+    ],
+    "footY": [
+     6.0,
+     6.0
+    ],
+    "rootZ": -6.0,
+    "spin": 75,
+    "rDir": [
+     -0.85,
+     0.15,
+     -0.5
+    ],
+    "rEdge": [
+     0.5,
+     0.0,
+     -0.85
+    ]
+   },
+   "roll_tuck2": {
+    "base": "roll_tuck",
+    "spin": 185
+   },
+   "roll_open": {
+    "_doc": "abre: pernas descem para pousar",
+    "base": "roll_tuck",
+    "torso": [
+     50,
+     0,
+     0
+    ],
+    "head": [
+     25,
+     0,
+     0
+    ],
+    "hip": 0.55,
+    "feet": [
+     3.0,
+     -1.0
+    ],
+    "footY": [
+     2.0,
+     3.0
+    ],
+    "rootZ": -3.0,
+    "spin": 280,
+    "r": [
+     -12.0,
+     11.5,
+     6.5
+    ]
+   },
+   "roll_rise": {
+    "_doc": "levanta: espada voltando ao repouso",
+    "base": "rest",
+    "r": [
+     -11.0,
+     13.6,
+     4.0
+    ],
+    "rDir": [
+     -0.6,
+     -0.1,
+     0.79
+    ],
+    "rEdge": [
+     0.0,
+     -0.99,
+     -0.1
+    ],
+    "lMode": "ik",
+    "l": [
+     8.0,
+     14.5,
+     5.0
+    ],
+    "lElbow": [
+     1.0,
+     -0.6,
+     -0.3
+    ],
+    "torso": [
+     22,
+     0,
+     0
+    ],
+    "head": [
+     10,
+     0,
+     0
+    ],
+    "hip": 0.72,
+    "feet": [
+     2.5,
+     -2.5
+    ],
+    "rootZ": 0.5,
+    "spin": 338
+   },
+   "roll_end": {
+    "_doc": "repouso com o giro completo (360° = 0°: a saída não desenrola a cambalhota)",
+    "base": "rest",
+    "spin": 360
+   },
+   "roll_pre": {
+    "_doc": "rolamento: a mão sai para o lado antes de a lâmina virar (o punho não passa pelo tronco)",
+    "base": "rest",
+    "r": [
+     -11.0,
+     13.2,
+     4.5
+    ],
+    "torso": [
+     12,
+     0,
+     0
+    ],
+    "hip": 0.82,
+    "feet": [
+     2.0,
+     -2.0
+    ]
+   },
+   "r1_load": {
+    "_doc": "rodada 09.3 R1 — carrega: joelhos dobram, tronco inclina, a mão da espada desce para o lado",
+    "base": "rest",
+    "r": [
+     -11.8,
+     15.0,
+     5.5
+    ],
+    "rDir": [
+     -0.15,
+     0.95,
+     0.27
+    ],
+    "rEdge": [
+     0.98,
+     0.15,
+     0.0
+    ],
+    "lMode": "ik",
+    "l": [
+     8.0,
+     13.5,
+     6.0
+    ],
+    "lElbow": [
+     1.0,
+     -0.6,
+     -0.3
+    ],
+    "torso": [
+     22,
+     0,
+     0
+    ],
+    "head": [
+     8,
+     0,
+     0
+    ],
+    "hip": 0.7,
+    "feet": [
+     3.4,
+     -2.6
+    ],
+    "rootZ": 1.2,
+    "spin": 0,
+    "spinPivot": [
+     11,
+     2
+    ],
+    "spinAxis": 0
+   },
+   "r1_reach": {
+    "_doc": "mergulho baixo: ombro esquerdo vai ao chão, cabeça encolhida de lado (o queixo no peito), espada colada ao lado",
+    "base": "r1_load",
+    "r": [
+     -11.0,
+     14.5,
+     4.8
+    ],
+    "rDir": [
+     -0.55,
+     0.35,
+     -0.76
+    ],
+    "rEdge": [
+     0.81,
+     0.0,
+     -0.59
+    ],
+    "rElbow": [
+     -1.0,
+     -0.6,
+     -0.2
+    ],
+    "l": [
+     8.5,
+     10.0,
+     8.0
+    ],
+    "torso": [
+     55,
+     0,
+     -4
+    ],
+    "head": [
+     24,
+     -30,
+     -20
+    ],
+    "hip": 0.56,
+    "feet": [
+     1.0,
+     -4.6
+    ],
+    "footY": [
+     0,
+     2.5
+    ],
+    "rootZ": 0.6,
+    "spin": 22,
+    "spinPivot": [
+     9,
+     5
+    ],
+    "spinAxis": -38
+   },
+   "r1_shoulder": {
+    "_doc": "apoio no ombro: o corpo passa por cima do ombro, pernas recolhendo",
+    "base": "r1_reach",
+    "torso": [
+     60,
+     -10,
+     -12
+    ],
+    "head": [
+     30,
+     -35,
+     -25
+    ],
+    "hip": 0.5,
+    "feet": [
+     4.0,
+     1.5
+    ],
+    "footY": [
+     4.5,
+     3.0
+    ],
+    "rootZ": -2.0,
+    "spin": 90,
+    "spinPivot": [
+     10,
+     3
+    ],
+    "spinAxis": -40
+   },
+   "r1_back": {
+    "_doc": "sobre as costas: bola baixa, joelhos no peito",
+    "base": "r1_shoulder",
+    "torso": [
+     58,
+     -8,
+     -10
+    ],
+    "head": [
+     30,
+     -30,
+     -20
+    ],
+    "feet": [
+     5.0,
+     4.0
+    ],
+    "footY": [
+     6.0,
+     5.5
+    ],
+    "rootZ": -4.0,
+    "spin": 185,
+    "spinPivot": [
+     11,
+     0
+    ],
+    "spinAxis": -38
+   },
+   "r1_feet": {
+    "_doc": "pés descendo para o chão, um à frente",
+    "base": "r1_back",
+    "torso": [
+     52,
+     0,
+     -4
+    ],
+    "head": [
+     26,
+     -12,
+     -5
+    ],
+    "hip": 0.54,
+    "feet": [
+     4.5,
+     -0.5
+    ],
+    "footY": [
+     1.5,
+     4.0
+    ],
+    "rootZ": -2.0,
+    "spin": 285,
+    "spinPivot": [
+     10,
+     -2
+    ],
+    "r": [
+     -12.0,
+     12.8,
+     5.0
+    ],
+    "rDir": [
+     -0.8,
+     0.0,
+     -0.6
+    ],
+    "rEdge": [
+     0.6,
+     0.0,
+     -0.8
+    ],
+    "spinAxis": -25
+   },
+   "r1_kneel": {
+    "_doc": "recupera com um pé plantado à frente e o joelho de trás baixo",
+    "base": "rest",
+    "r": [
+     -11.0,
+     15.5,
+     3.5
+    ],
+    "rDir": [
+     -0.2,
+     0.96,
+     -0.2
+    ],
+    "rEdge": [
+     0.98,
+     0.2,
+     0.0
+    ],
+    "lMode": "ik",
+    "l": [
+     8.0,
+     13.5,
+     6.0
+    ],
+    "lElbow": [
+     1.0,
+     -0.6,
+     -0.3
+    ],
+    "torso": [
+     28,
+     0,
+     0
+    ],
+    "head": [
+     10,
+     0,
+     0
+    ],
+    "hip": 0.62,
+    "feet": [
+     4.2,
+     -3.6
+    ],
+    "footY": [
+     0,
+     0.8
+    ],
+    "rootZ": 0.6,
+    "spin": 352,
+    "spinPivot": [
+     10,
+     0
+    ],
+    "spinAxis": -6
+   },
+   "r1_end": {
+    "_doc": "repouso com o giro completo (360 = 0)",
+    "base": "rest",
+    "spin": 360,
+    "spinPivot": [
+     10,
+     0
+    ],
+    "spinAxis": 0
+   },
+   "r1_rise": {
+    "_doc": "levanta: a lâmina volta à frente por cima (o pomo passa atrás, longe das pernas e do robe)",
+    "base": "rest",
+    "r": [
+     -10.5,
+     15.0,
+     4.5
+    ],
+    "rDir": [
+     -0.25,
+     0.75,
+     0.61
+    ],
+    "rEdge": [
+     0.97,
+     0.2,
+     0.15
+    ],
+    "lMode": "ik",
+    "l": [
+     8.0,
+     13.5,
+     6.0
+    ],
+    "lElbow": [
+     1.0,
+     -0.6,
+     -0.3
+    ],
+    "torso": [
+     12,
+     0,
+     0
+    ],
+    "head": [
+     5,
+     0,
+     0
+    ],
+    "hip": 0.82,
+    "feet": [
+     2.6,
+     -2.2
+    ],
+    "spin": 360,
+    "spinPivot": [
+     10,
+     0
+    ]
+   }
+  },
+  "moves": {
+   "roll": {
+    "label": "Rolamento (rodada 09.2): mergulho, bola com a espada no eixo do giro, levanta",
+    "cutFade": 0.12,
+    "keys": [
+     {
+      "t": 0,
+      "pose": "rest",
+      "stop": true
+     },
+     {
+      "t": 0.03,
+      "pose": "roll_pre"
+     },
+     {
+      "t": 0.07,
+      "pose": "roll_dive"
+     },
+     {
+      "t": 0.17,
+      "pose": "roll_tuck"
+     },
+     {
+      "t": 0.27,
+      "pose": "roll_tuck2"
+     },
+     {
+      "t": 0.36,
+      "pose": "roll_open"
+     },
+     {
+      "t": 0.45,
+      "pose": "roll_rise"
+     },
+     {
+      "t": 0.56,
+      "pose": "roll_end",
+      "stop": true
+     }
+    ],
+    "phases": {
+     "prep": [
+      0,
+      0.07
+     ],
+     "exec": [
+      0.07,
+      0.36
+     ],
+     "follow": [
+      0.36,
+      0.45
+     ],
+     "recover": [
+      0.45,
+      0.56
+     ]
+    },
+    "interrupt": [
+     {
+      "until": 9,
+      "rate": 1
+     }
+    ]
+   },
+   "roll_r1": {
+    "label": "Rolamento R1 (rodada 09.3): baixo e articulado — carrega, mergulha no ombro, rola pelas costas, pousa com um pé à frente",
+    "cutFade": 0.12,
+    "fadeIn": 0.08,
+    "keys": [
+     {
+      "t": 0,
+      "pose": "rest",
+      "stop": true
+     },
+     {
+      "t": 0.05,
+      "pose": "r1_load"
+     },
+     {
+      "t": 0.12,
+      "pose": "r1_reach"
+     },
+     {
+      "t": 0.2,
+      "pose": "r1_shoulder"
+     },
+     {
+      "t": 0.29,
+      "pose": "r1_back"
+     },
+     {
+      "t": 0.37,
+      "pose": "r1_feet"
+     },
+     {
+      "t": 0.45,
+      "pose": "r1_kneel"
+     },
+     {
+      "t": 0.51,
+      "pose": "r1_rise"
+     },
+     {
+      "t": 0.56,
+      "pose": "r1_end",
+      "stop": true
+     }
+    ],
+    "phases": {
+     "prep": [
+      0,
+      0.05
+     ],
+     "exec": [
+      0.05,
+      0.37
+     ],
+     "follow": [
+      0.37,
+      0.45
+     ],
+     "recover": [
+      0.45,
+      0.56
+     ]
+    },
+    "interrupt": [
+     {
+      "until": 9,
+      "rate": 1
+     }
+    ]
+   }
+  }
+ },
+ "sword_shield": {
+  "poses": {
+   "roll_dive": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.0,
+     13.8,
+     5.0
+    ]
+   },
+   "roll_tuck": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.4,
+     11.0,
+     5.5
+    ]
+   },
+   "roll_open": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.4,
+     11.5,
+     5.0
+    ]
+   },
+   "roll_rise": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.2,
+     13.6,
+     3.0
+    ]
+   },
+   "roll_pre": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.4,
+     13.4,
+     2.4
+    ]
+   },
+   "r1_load": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.0,
+     13.8,
+     4.0
+    ]
+   },
+   "r1_reach": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.4,
+     10.5,
+     6.0
+    ]
+   },
+   "r1_kneel": {
+    "merge": true,
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ],
+    "l": [
+     9.0,
+     13.8,
+     4.0
+    ]
+   },
+   "r1_rise": {
+    "merge": true,
+    "l": [
+     9.0,
+     13.8,
+     4.0
+    ],
+    "lDir": [
+     0,
+     1,
+     0
+    ],
+    "lEdge": [
+     0,
+     0,
+     -1
+    ],
+    "lElbow": [
+     1,
+     -0.5,
+     -1
+    ]
+   }
+  },
+  "moves": {}
+ }
+}

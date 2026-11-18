@@ -35,6 +35,10 @@ public final class Renderer implements AutoCloseable {
         public boolean terrain;
         /** Sobreposição de depuração: desenhado por último, sem teste de profundidade ("raio X"). */
         public boolean overlay;
+        /** Rodada 09: lampejo de impacto deste desenho (0 = nenhum; 1 = cor 35% mais clara e levemente quente). */
+        public float flash;
+        /** Rodada 09.3: pontilhado do desenho (0 = opaco; ex.: herói com a câmera colada nele). */
+        public float fade;
 
         public Draw overlay() {
             overlay = true;
@@ -277,7 +281,7 @@ public final class Renderer implements AutoCloseable {
                 lastTriangles += d.mesh.vertexCount / 3;
                 boolean tex = d.texture != null && tg.textures;
                 if (tex) d.texture.bind(1);
-                scene.set("uUseTex", tex).set("uModel", d.model).set("uOutlineWeight", d.outline);
+                scene.set("uUseTex", tex).set("uModel", d.model).set("uOutlineWeight", d.outline).set("uFlash", d.flash).set("uFade", d.fade);
                 boolean far = d.terrain && f.style.terrainFarEnd > 0 && f.toggles.terrainFar;
                 scene.set("uTerrainFarStart", f.style.terrainFarStart).set("uTerrainFarEnd", far ? f.style.terrainFarEnd : 0f);
                 d.mesh.draw();

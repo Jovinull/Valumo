@@ -1,4 +1,4 @@
-"""Ambiente da vila — rodada 09 (estudo; NÃO canônico). Duas camadas, cada uma numa sessão LMMS própria.
+"""Ambiente da vila — rodada 09.4 (estudo; NÃO canônico). Duas camadas, cada uma numa sessão LMMS própria.
 
 VENTO (cama, sem posição, estéreo, laço de 24 s): o mundo é grande e aberto — ar sempre presente, discreto.
   - "Ar": ruído contínuo, passa-baixa 650 Hz (o corpo do vento), nível fixo e baixo.

@@ -3,9 +3,9 @@ name: music-composition
 description: Compor e produzir música do Valumo (direção E, "Fábula Voxel") de forma deliberada — partitura de origem em Python (nota a nota, com as decisões escritas), sessão editável do LMMS 1.2.2 (.mmp, piano roll, mixer, automação), instrumentos do sf2player (FluidR3 GM, MIT) e do próprio LMMS, render por linha de comando, laço sem emenda para o jogo (2ª passada), masterização por ganho único e OGG de runtime. Use ao criar, alterar ou revisar qualquer música ou estudo musical.
 ---
 
-# Composição musical (rodada 09 em diante)
+# Composição musical (rodada 09.4 em diante)
 
-Arquitetura e decisão: `docs/decisions/0015-audio-openal-stb-vorbis.md`, `docs/architecture/audio.md`.
+Arquitetura e decisão: `docs/decisions/0023-audio-openal-stb-vorbis.md`, `docs/architecture/audio.md`.
 QA técnico: skill `audio-qa`. Efeitos: skill `sound-design`.
 
 ## O que é permitido
@@ -17,7 +17,7 @@ QA técnico: skill `audio-qa`. Efeitos: skill `sound-design`.
 - **Proibido:** geradores de música por IA, algoritmo que "inventa" notas, PCM escrito por código como música,
   cópia de temas de outros jogos.
 
-## Identidade (estudo da rodada 09 — não aprovada)
+## Identidade (estudo da rodada 09.4 — não aprovada)
 
 - Sensação: *um pequeno aventureiro num mundo grande e convidativo*. Nada de épico genérico nem demo de sintetizador.
 - **Motivo do Valumo**: 5̣ → 3 (sexta maior ascendente), 2, 1, 2 — "olhar para longe e dar um passo". Comum às
@@ -26,11 +26,11 @@ QA técnico: skill `audio-qa`. Efeitos: skill `sound-design`.
 - Cor "mágica": o 4º grau aumentado (Sol#, lídio) — como acorde de passagem (A) ou permanente sobre pedal (B).
 - Textura cresce por seção e volta ao mínimo no começo do laço: o ponto mais denso fica no fim do laço.
 
-## Ferramentas instaladas e verificadas (rodada 09)
+## Ferramentas instaladas e verificadas (rodada 09.4)
 
 | Ferramenta | Versão | Uso | Verificação |
 |---|---|---|---|
-| LMMS | 1.2.2 (apt) | DAW: sessão `.mmp`, render | abre o projeto escrito à mão (captura em `round-09/ferramentas/`); render por CLI determinístico (amostras idênticas em dois renders) |
+| LMMS | 1.2.2 (apt) | DAW: sessão `.mmp`, render | abre o projeto escrito à mão (captura em `round-09-4/ferramentas/`); render por CLI determinístico (amostras idênticas em dois renders) |
 | FluidR3 GM | 3.1 (apt) | instrumentos do sf2player | afinação conferida (A4 = 440 Hz) |
 | ffmpeg / ffprobe | 6.1 (apt) e build em `~/bin` | medida, limitador, OGG | `ebur128`, `alimiter`, `libvorbis` |
 | sox | 14.4.2 (apt) | utilidades | — |
@@ -84,7 +84,7 @@ o `~/.lmmsrc.xml` precisa de `<app configured="1" …/>`.
 Técnico (skill `audio-qa`) **e** escuta do proprietário. O agente não declara música aprovada, e não diz que
 ouviu se só mediu.
 
-## Ambiente (rodada 09)
+## Ambiente (rodada 09.4)
 
 Camadas de ambiente seguem o mesmo princípio (partitura/desenho explícito → sessão LMMS → render): ver skill
 `sound-design` (vento e lago) e `tools/audio/render_ambiente.py`. Música e ambiente têm barramentos próprios.

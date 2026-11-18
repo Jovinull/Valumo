@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Rodada 09 — catálogo de sons ({@code assets/audio/sons.json}, contrato {@code valumo.sons} v1, escrito à mão).
+ * Rodada 09.4 — catálogo de sons ({@code assets/audio/sons.json}, contrato {@code valumo.sons} v1, escrito à mão).
  * O jogo pede EVENTOS semânticos ("passo.grama.andar", "ui.confirmar"); arquivos, ganhos, variação, limites e
  * barramento ficam aqui. Nenhum caminho de arquivo no código de jogo.
  */

@@ -98,6 +98,47 @@ class AnimationQaTest {
     }
 
     @Test
+    void playableSwordAndShieldMovesAreSafeWhenInterruptedAtAnyInstant() {
+        // Rodada 09: o combate interrompe golpes de verdade. Cada golpe jogável é cortado a cada 0,01 s e a reação a
+        // dano assume pela regra autorada do perfil (rebobina na preparação/execução, embalo depois, saída autorada
+        // logo após a execução do horizontal e do diagonal). Nenhum corte pode atravessar o corpo nem teleportar.
+        CharacterModel m = rig("characters/r4/adventurer_shield");
+        List<String> bad = new ArrayList<>();
+        for (String mv : Check.PLAYABLE) bad.addAll(Check.unsafeCuts(m, mv, 0.01f, null));
+        assertTrue(bad.isEmpty(), bad.size() + " cortes inseguros:\n" + String.join("\n", bad));
+    }
+
+    @Test
+    void interruptionWindowsPickTheAuthoredExitOnlyRightAfterTheCut() {
+        Animator an = new Animator(rig("characters/r4/adventurer_shield"), 1f);
+        Choreo.Move h = an.prof.moves.get("slash_h");
+        assertTrue(h.cutRate(0.20f) < 0, "na preparação o golpe rebobina");
+        assertTrue(h.cutRate(0.40f) < 0, "na execução o golpe rebobina (embalo atravessaria o corpo)");
+        assertTrue(h.cutRate(0.80f) > 0, "na recuperação o golpe segue em frente até a guarda");
+        assertNull(h.exitFor("hit", 0.40f));
+        assertEquals("hit_cross_h", h.exitFor("hit", 0.55f), "logo após o corte: saída autorada do lado da espada");
+        assertNull(h.exitFor("hit", 0.80f));
+        assertEquals("hit_cross_d", an.prof.moves.get("slash_d").exitFor("hit", 0.56f));
+        // o Sequencer (validador e vídeos) usa a mesma regra que o jogo
+        Sequencer seq = new Sequencer("idle:0.3,slash_h!0.55,hit,idle:0.5", an);
+        Animator.Motion mo = seq.eval(0.3f + 0.55f + 0.20f, new Animator.Motion());
+        assertEquals("hit_cross_h", mo.move);
+    }
+
+    @Test
+    void longBladeKeepsItsHistoricalInterruptionRecordUntilItBecomesPlayable() {
+        // Rodada 09: a lâmina longa NÃO é arma jogável; o problema histórico continua medido e documentado
+        // (problemas-conhecidos.md). Se alguém mexer no combo, este número muda e o documento precisa mudar junto.
+        CharacterModel m = rig("characters/r4/adventurer_longblade");
+        Animator an = new Animator(m, 1f);
+        float d = an.moveDuration("long_combo");
+        int unsafe = 0;
+        for (float c = 0.05f; c < d - 0.05f; c += 0.05f)
+            if (!WeaponCheck.validate(m, String.format(java.util.Locale.ROOT, "seq:idle:0.3,long_combo!%.2f,hit,idle:0.5", c)).ok()) unsafe++;
+        assertEquals(18, unsafe, "cortes inseguros da lâmina longa (histórico: 18/47)");
+    }
+
+    @Test
     void secondaryPartsMoveDuringActionsDeterministically() {
         CharacterModel m = rig("characters/e/adventurer");
         Animator an = new Animator(m, 1f);

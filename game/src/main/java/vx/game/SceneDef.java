@@ -28,8 +28,14 @@ public final class SceneDef {
     public record Interactive(String rig, String name, String title, float x, float z, float yawDeg, float range, List<Line> lines) { }
 
     public final String layout;
+    /** Raiz dos assets (o combate carrega os esqueletos de lá). */
+    public Path assets;
     public float startX, startZ, startYawDeg;
     public float limitX, limitZ, limitR = 12f;
+    /** Rodada 09: círculos jogáveis a mais (arena do combate), unidos ao limite da vila. */
+    public final List<float[]> extraLimits = new ArrayList<>();
+    /** Rodada 09: combate da cena (null = cena sem combate). */
+    public CombatDef combat;
     public final List<Interactive> interactives = new ArrayList<>();
     /** Props escritos à mão na cena (o espalhamento procedural fica de fora: ele está além do limite jogável). */
     public final List<World.Placement> handPlaced = new ArrayList<>();
@@ -40,6 +46,7 @@ public final class SceneDef {
 
     public static SceneDef load(Path assets, String layout) {
         SceneDef d = new SceneDef(layout);
+        d.assets = assets;
         JsonObject doc;
         try {
             doc = JsonParser.parseString(Files.readString(assets.resolve("scenes/" + layout + ".json"))).getAsJsonObject();
@@ -56,6 +63,10 @@ public final class SceneDef {
         d.limitX = lim.getAsJsonArray("centro").get(0).getAsFloat();
         d.limitZ = lim.getAsJsonArray("centro").get(1).getAsFloat();
         d.limitR = lim.get("raio").getAsFloat();
+        if (game.has("combate")) {                                         // rodada 09: arena unida ao limite
+            d.combat = CombatDef.load(assets, game.get("combate").getAsString());
+            d.extraLimits.add(new float[]{d.combat.arenaX, d.combat.arenaZ, d.combat.arenaR});
+        }
         for (JsonElement el : game.getAsJsonArray("interativos")) {
             JsonObject o = el.getAsJsonObject();
             List<Line> lines = new ArrayList<>();

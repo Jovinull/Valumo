@@ -45,7 +45,7 @@ class AssetContractTest {
         for (Path dir : dirs) {
             JsonObject doc = JsonParser.parseString(Files.readString(dir.resolve("rig.json"))).getAsJsonObject();
             assertTrue(doc.get("voxelSize").getAsFloat() > 0, dir + ": voxelSize");
-            assertTrue(Set.of("biped", "quadruped", "hopper", "floater", "flutter").contains(doc.get("anim").getAsString()), dir + ": anim");
+            assertTrue(Set.of("biped", "quadruped", "hopper", "floater", "flutter", "brawler").contains(doc.get("anim").getAsString()), dir + ": anim");
             boolean cuboid = "cuboid".equals(doc.get("type").getAsString());
             Set<String> seen = new HashSet<>();
             JsonArray parts = doc.getAsJsonArray("parts");

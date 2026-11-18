@@ -1,4 +1,4 @@
-# Rodada 09 — pausa com os volumes (música e efeitos) em 1080p e 720p; clique nos botões de volume.
+# Rodada 09.4 — pausa com os volumes (música e efeitos) em 1080p e 720p; clique nos botões de volume.
 size 1920 1080
 click comecar
 wait 1.0

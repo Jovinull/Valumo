@@ -55,9 +55,9 @@ Provas:
 |---|---|---|---|
 | `rosto` | `rosto.aventureiro`, `rosto.exploradora`, `rosto.maga` | rosto de cada herói (olho, sobrancelha, boca, atuação) | 4 expressões por rosto |
 | `cabelo` | `cabelo.topete`, `cabelo.curto`, `cabelo.chanel`, `cabelo.rabo` | topete h2 do aventureiro; **curto** (novo, rodada 07); cabelo da maga; cabelo da exploradora com o rabo (parte `tail`) | o `natural` (h1) ficou fora: tinha 82% do mesmo volume do topete |
-| `cabelo` (rodada 09, **experimental**) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"experimental": true` no catálogo; aprovação do proprietário pendente |
-| `olhos` (rodada 09) | `olhos.redondos`, `olhos.amendoados`, `olhos.inclinados` | parâmetro `eye` do pintor (`paint_face`); o desenho de cada expressão mora no ROSTO (`variantesOlhos`), porque depende da atuação | o nativo de cada rosto = arquivos originais (preset idêntico) |
-| `pes` (rodada 09, **experimental**) | `botas.originais` (nativo), `botas.viajante` | `charlib_e.leg(boot_style="viajante")`, uma versão por corpo (`porCorpo`) | ocupa/substitui só `shin_l`/`shin_r`; mesmo pivô e mesma sola |
+| `cabelo` (rodada 09.4, **experimental**) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"experimental": true` no catálogo; aprovação do proprietário pendente |
+| `olhos` (rodada 09.4) | `olhos.redondos`, `olhos.amendoados`, `olhos.inclinados` | parâmetro `eye` do pintor (`paint_face`); o desenho de cada expressão mora no ROSTO (`variantesOlhos`), porque depende da atuação | o nativo de cada rosto = arquivos originais (preset idêntico) |
+| `pes` (rodada 09.4, **experimental**) | `botas.originais` (nativo), `botas.viajante` | `charlib_e.leg(boot_style="viajante")`, uma versão por corpo (`porCorpo`) | ocupa/substitui só `shin_l`/`shin_r`; mesmo pivô e mesma sola |
 | `cabeca` | `chapeu.maga`, `capuz.c3` | `hat.vox` canônico da maga; nó, fitas e pena da exploradora, mais a regra da faixa | |
 | corpo | dos rigs `characters/e/*` | arquivos canônicos | máscara de pele só onde há pele (mãos da maga) |
 
@@ -109,7 +109,7 @@ recolorem.
 | `chapeu.maga` × outros | `sob_aba` | ver passos abaixo |
 | `capuz.c3` × qualquer cabelo | `faixa` | o nó, as fitas e a pena se fundem à cabeça; a faixa é pintada sobre o cabelo pela mesma regra do gerador |
 | `chapeu.maga` × `capuz.c3` | — | o mesmo slot, então são exclusivos por construção |
-| `capuz.c3` × `crespo` | `"X"` (rodada 09) | o nó e as fitas ficam enterrados no volume dos cachos; indisponível com motivo no criador |
+| `capuz.c3` × `crespo` | `"X"` (rodada 09.4) | o nó e as fitas ficam enterrados no volume dos cachos; indisponível com motivo no criador |
 | incompatível | `"X"` no catálogo | `InvalidAppearance` com mensagem; o viewer pula a opção e informa |
 
 Passos da variante `sob_aba`:
@@ -145,7 +145,7 @@ Teste: `hatSitsOnEveryHairStyleWithoutPokingThroughOrLeavingAGap`.
 }
 ```
 
-Versão 2 (rodada 09): `aparencia.olhos` e `equipamento_visual.pes`, ambos opcionais (ausente = o do rosto / as botas
+Versão 2 (rodada 09.4): `aparencia.olhos` e `equipamento_visual.pes`, ambos opcionais (ausente = o do rosto / as botas
 do modelo). Arquivos v1 abrem pela migração pura `Appearance.migrate1to2` e são gravados de volta em v2.
 
 - Só se salva o que difere do preset (campo ausente significa "do preset"). `"cabeca": "nenhum"` tira a
@@ -192,17 +192,17 @@ do modelo). Arquivos v1 abrem pela migração pura `Appearance.migrate1to2` e s�
 
 ## 8. Limites conhecidos
 
-- Os rostos são os três dos heróis; o FORMATO DOS OLHOS é componente desde a rodada 09; sobrancelha e boca avulsas
+- Os rostos são os três dos heróis; o FORMATO DOS OLHOS é componente desde a rodada 09.4; sobrancelha e boca avulsas
   ainda não (proposta em [personalizacao-evolucao.md](personalizacao-evolucao.md)).
 - As orelhas de fantasia e os NPCs não entram no sistema (o esqueleto é outro).
-- Roupas por região: **[IMPLEMENTADO — primeira peça, rodada 09]** botas (`pes`, substitui as canelas). Mangas,
+- Roupas por região: **[IMPLEMENTADO — primeira peça, rodada 09.4]** botas (`pes`, substitui as canelas). Mangas,
   calças, tronco, capa e armaduras: **[PLANEJADO]** ([personalizacao-evolucao.md](personalizacao-evolucao.md)).
 - Criador de personagens do jogador: **[IMPLEMENTADO — 07.2]** ([criador de personagens](criador-de-personagens.md)).
   Inventário, atributos e classes: **[NÃO IMPLEMENTADO]**.
 
 ## 9. QA de componentes
 
-Arma × cabeça composta, voxel a voxel (rodada 09): `viewer --check-cabelos [saida.md]` e `HairWeaponTest` — penteado
+Arma × cabeça composta, voxel a voxel (rodada 09.4): `viewer --check-cabelos [saida.md]` e `HairWeaponTest` — penteado
 EXPERIMENTAL não pode ser atravessado pela arma mais que o penteado do preset (o `WeaponCheck` mede a cabeça como uma
 cápsula de raio 8,6 e não vê o cabelo além dela).
 

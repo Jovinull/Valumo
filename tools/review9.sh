@@ -1,155 +1,168 @@
 #!/usr/bin/env bash
-# Rodada 09 — pacote de revisão: áudio (música, efeitos, contexto real no jogo e no criador) e os dois estudos de
-# cabelo (crespo, coque). Nada é imagem ou som conceitual: tudo sai do viewer, do jogo e do LMMS reais.
+# Rodada 09 — pacote de revisão do primeiro combate.
 #
-#   tools/review9.sh [audio|contexto|ambiente|criador|cabelos|armas|olhos|botas|pausa|gate|testes|tudo]  (padrão: tudo)
-#
-# Saída: output/visual-review/round-09/ (fora do git). REBUILD=1 recompila viewer e jogo antes.
-# Os roteiros ficam MUDOS no alto-falante: o som é gravado pelo loopback do OpenAL (sincronia por quadro).
+# Uso:  tools/review9.sh [capturas|hitboxes|camera|videos|angulos|interrupcoes|validadores|regressao|desempenho|testes|zip|tudo]   (padrão: tudo)
+# Saída: output/visual-review/round-09/ (fora do git). REBUILD=1 recompila antes.
+# Os roteiros (tools/combate/*.txt) entram na MESMA fila de eventos da janela que o GLFW preenche e passam pelo mesmo
+# código do jogo interativo (não é automação do sistema operacional). "posicionar"/"inimigo" são montagem técnica de
+# cena, para cada vídeo começar no ponto que demonstra; a luta em si é só entrada de jogo.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export JAVA_HOME="${JAVA_HOME:-$HOME/.sdkman/candidates/java/current}"
-R=output/visual-review/round-09
-V=viewer/build/install/viewer/bin/viewer
+R=${R:-output/visual-review/round-09}
 G=game/build/install/game/bin/game
-PY=.venv/bin/python
-SEL="${1:-tudo}"; want() { [ "$1" = "$SEL" ] || [ "$SEL" = tudo ]; }
-if [ -n "${REBUILD:-}" ] || [ ! -x "$V" ] || [ ! -x "$G" ]; then ./gradlew -q :viewer:installDist :game:installDist; fi
-mkdir -p "$R" output/tmp
-enc=(-c:v libx264 -crf 20); ffmpeg -hide_banner -encoders 2>/dev/null | grep libx264 > /dev/null || enc=(-c:v libopenh264 -b:v 8M)
-snap() { tools/snap.sh "$@" > /dev/null; }
-sheet() { $PY tools/sheet.py grid "$@" > /dev/null; }
+V=viewer/build/install/viewer/bin/viewer
+what="${1:-tudo}"
+if [ -n "${REBUILD:-}" ] || [ ! -x "$G" ] || [ ! -x "$V" ]; then ./gradlew -q :game:installDist :viewer:installDist; fi
+mkdir -p "$R"
+enc=(-c:v libopenh264 -b:v 6M)
+ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libx264 && enc=(-c:v libx264 -crf 18)
 
-if want audio; then
-  # música: render das sessões (LMMS), laço calibrado, master, OGG de runtime, QA, espectrogramas
-  for x in a b; do
-    python3 fontes/audio/musica/vila/vila_$x.py
-    $PY tools/audio/render_musica.py fontes/audio/musica/vila/vila_$x/vila_$x.mmp "$R/musica/vila_$x" --runtime assets/audio/musica/vila_$x > /dev/null
-    L=$(python3 -c "import json;d=json.load(open('$R/musica/vila_$x/vila_$x-render.json'));print(f\"{d['laco_inicio_amostra']},{d['laco_fim_amostra']}\")")
-    $PY tools/audio/audio_qa.py --tipo musica --laco "$L" --imagens "$R/musica/vila_$x/img" --md "$R/musica/vila_$x/qa-jogo.md" \
-      "$R/musica/vila_$x/vila_$x-jogo.wav" assets/audio/musica/vila_$x.ogg > /dev/null || true
-    $PY tools/audio/audio_qa.py --tipo musica --imagens "$R/musica/vila_$x/img" --md "$R/musica/vila_$x/qa-escuta.md" "$R/musica/vila_$x/vila_$x-escuta.wav" > /dev/null || true
+if [ "$what" = capturas ] || [ "$what" = tudo ]; then
+  rm -rf "$R/capturas"
+  mkdir -p "$R/capturas"; $G --roteiro tools/combate/capturas.txt "$R/capturas" 30 2>&1 | grep -E "^jogo|^combate" > "$R/capturas.registro.txt" || true; mv "$R/capturas.registro.txt" "$R/capturas/registro.txt"
+  echo "capturas: $(ls "$R/capturas"/*.png | wc -l)"
+fi
+
+if [ "$what" = hitboxes ] || [ "$what" = tudo ]; then
+  rm -rf "$R/hitboxes"; mkdir -p "$R/hitboxes"
+  $G --roteiro tools/combate/hitboxes.txt "$R/hitboxes" 30 >/dev/null 2>&1 || true
+  ffmpeg -loglevel error -y -pattern_type glob -i "$R/hitboxes/*.png" -vf "scale=640:-1,tile=2x4" -frames:v 1 "$R/hitboxes/prancha.png" || true
+  echo "hitboxes: $(ls "$R"/hitboxes/[hc]-*.png | wc -l) capturas"
+fi
+
+if [ "$what" = camera ] || [ "$what" = tudo ]; then
+  rm -rf "$R/camera"; mkdir -p "$R/camera"
+  $G --roteiro tools/combate/camera.txt "$R/camera" 30 >/dev/null 2>&1 || true
+  ls "$R"/camera/*.png | sed 's/[^/]*$//' | head -0
+  python3 - "$R/camera" <<'PY'
+import sys, glob
+from PIL import Image, ImageDraw
+d = sys.argv[1]
+fs = sorted(glob.glob(d + "/0*.png"))
+ims = [Image.open(f).resize((640, 360)) for f in fs]
+out = Image.new("RGB", (1280, 360 * ((len(ims) + 1) // 2)), "white")
+for i, im in enumerate(ims):
+    out.paste(im, ((i % 2) * 640, (i // 2) * 360))
+    ImageDraw.Draw(out).text(((i % 2) * 640 + 8, (i // 2) * 360 + 50), fs[i].split("/")[-1][:-4], fill=(255, 255, 255))
+out.save(d + "/prancha-sem-x-com-ajuste.png")
+PY
+  echo "câmera: $(ls "$R"/camera/0*.png | wc -l) capturas"
+fi
+
+if [ "$what" = videos ] || [ "$what" = tudo ]; then
+  mkdir -p "$R/videos" "$R/pranchas"
+  for f in tools/combate/${2:-[0-9][0-9]}*.txt; do                 # 2º argumento: só os roteiros que começam assim
+    s=$(basename "$f" .txt)
+    tmp="$(mktemp -d output/tmp/r9video.XXXXXX)"
+    $G --roteiro "$f" "$tmp" 30 2>&1 | grep -E "^combate|quadros gravados" > "$R/videos/$s-registro.txt" || true
+    ffmpeg -loglevel error -y -framerate 30 -i "$tmp/quadros/q_%05d.png" "${enc[@]}" -pix_fmt yuv420p "$R/videos/$s.mp4"
+    n=$(ls "$tmp/quadros" | wc -l)
+    ffmpeg -loglevel error -y -framerate 30 -i "$tmp/quadros/q_%05d.png" \
+      -vf "select='not(mod(n\,$(( (n + 15) / 16 ))))',scale=480:-1,tile=4x4" -frames:v 1 "$R/pranchas/$s.png"
+    rm -rf "$tmp"
+    echo "video: $R/videos/$s.mp4 ($n quadros)"
   done
-  # efeitos: NÃO re-renderiza as tomadas (o ruído do Kicker muda a cada render); mede as versionadas
-  $PY tools/audio/audio_qa.py --catalogo assets/audio/sons.json --md "$R/efeitos-sonoros/qa-catalogo.md" > /dev/null || true
-  tail -1 "$R/efeitos-sonoros/qa-catalogo.md"
 fi
 
-if want ambiente; then
-  # camadas de ambiente (LMMS → laço com crossfade → OGG) + jogo indo à margem do lago e se afastando (loopback)
-  python3 fontes/audio/ambiente/ambiente.py > /dev/null
-  for n in vento lago; do $PY tools/audio/render_ambiente.py fontes/audio/ambiente/$n.mmp "$R/ambiente" --runtime assets/audio/ambiente/$n > /dev/null; done
-  tmp="$(mktemp -d output/tmp/r9amb.XXXXXX)"; D=$R/integracao/ambiente; mkdir -p "$D"
-  JAVA_OPTS="-Dvx.audio=loopback -Dvx.musica=nenhuma -Dvx.audio.log=true -Dvx.prefs=$PWD/output/tmp/prefs-revisao.json -Dvx.audio.gravar=$PWD/$D/ambiente-mixagem.wav" \
-    $G --roteiro tools/jogo/09-ambiente.txt "$tmp" 30 2>&1 | grep -E '^som|^estado|gravad' > "$D/ambiente-eventos.txt" || true
-  ffmpeg -loglevel error -y -framerate 30 -i "$tmp/quadros/q_%05d.png" -i "$D/ambiente-mixagem.wav" "${enc[@]}" -pix_fmt yuv420p \
-    -c:a aac -b:a 192k -shortest "$D/ambiente-com-som.mp4"; rm -rf "$tmp"
-  grep -c 'passo.areia' "$D/ambiente-eventos.txt" | xargs echo "passos na areia:"
-fi
-
-if want pausa; then
-  JAVA_OPTS="-Dvx.prefs=$PWD/output/tmp/prefs-revisao.json" $G --roteiro tools/jogo/08-pausa-volume.txt "$R/integracao/pausa" 30 2>&1 | grep -E '^jogo' || true
-fi
-
-if want armas; then
-  # arma × cabeça composta, voxel a voxel (estudos não podem ser piores que o penteado do preset)
-  $V --check-cabelos "$R/validacao/09-arma-x-cabelos.md" | tail -1
-fi
-
-if want olhos; then
-  T=output/tmp/r9o; D=$R/personalizacao/olhos; mkdir -p "$T" "$D"; specs=()
-  for p in aventureiro exploradora maga; do for o in redondos amendoados inclinados; do for e in neutral joy determined surprise; do
-    specs+=("mode=char,style=e,custom=$p,olhos=olhos.$o,cobertura=nenhum,yaw=6,pitch=4,dist=1.5,ty=0.9,expr=$e,preset=dia,size=260x260,nohud=1,out=$T/${p}_${o}_$e.png"); done; done; done
-  snap "${specs[@]}"
-  for p in aventureiro exploradora maga; do sheet "$D/$p-formatos-x-expressoes.png" 4 $(for o in redondos amendoados inclinados; do for e in neutral joy determined surprise; do echo $T/${p}_${o}_$e.png; done; done); done
-  $V --editor-script tools/criador/olhos-r09.txt "$D/criador" 2>&1 | grep -cE '^criador' | xargs echo "capturas do criador:"
-fi
-
-if want botas; then
-  T=output/tmp/r9b; D=$R/personalizacao/botas; mkdir -p "$T" "$D/videos"; specs=()
-  for p in aventureiro exploradora maga; do for f in botas.originais botas.viajante; do for v in "f:20:12" "p:90:8" "c:200:12"; do IFS=: read -r vn yaw pitch <<<"$v"
-    specs+=("mode=char,style=e,custom=$p,pes=$f,yaw=$yaw,pitch=$pitch,dist=1.3,ty=0.18,preset=dia,size=260x260,nohud=1,out=$T/${p}_${f}_$vn.png"); done; done; done
-  snap "${specs[@]}"
-  sheet "$D/01-botas-tres-corpos.png" 6 $(for p in aventureiro exploradora maga; do for v in f p c; do echo $T/${p}_botas.originais_$v.png $T/${p}_botas.viajante_$v.png; done; done)
-  for p in aventureiro exploradora; do for c in "perfil:90" "frente:15"; do IFS=: read -r cn yaw <<<"$c"
-    tools/anim.sh "$D/videos/$p-viajante-correr-$cn" "mode=char,style=e,custom=$p,pes=botas.viajante,clip=run,yaw=$yaw,pitch=6,dist=1.6,ty=0.3,preset=dia,size=360x360,nohud=1" 36 30 > /dev/null; done; done
-  $V --editor-script tools/criador/roupa-r09.txt "$D/criador" 2>&1 | grep -cE '^criador' | xargs echo "capturas do criador:"
-fi
-
-if want contexto; then
-  # jogo real: loopback grava a mistura em sincronia com os quadros; registro de eventos com superfície
-  tmp="$(mktemp -d output/tmp/r9ctx.XXXXXX)"; mkdir -p "$R/integracao"
-  JAVA_OPTS="-Dvx.audio=loopback -Dvx.audio.log=true -Dvx.audio.gravar=$PWD/$R/integracao/jogo-contexto-mixagem.wav" \
-    $G --roteiro tools/jogo/07-audio.txt "$tmp" 30 2>&1 | grep -E '^som|gravad|^estado' > "$R/integracao/jogo-contexto-eventos.txt" || true
-  ffmpeg -loglevel error -y -framerate 30 -i "$tmp/quadros/q_%05d.png" -i "$R/integracao/jogo-contexto-mixagem.wav" \
-    "${enc[@]}" -pix_fmt yuv420p -c:a aac -b:a 192k -shortest "$R/integracao/jogo-contexto-com-som.mp4"
-  rm -rf "$tmp"; grep -E 'gravad' "$R/integracao/jogo-contexto-eventos.txt"
-fi
-
-if want criador; then
-  tmp="$(mktemp -d output/tmp/r9cr.XXXXXX)"; mkdir -p "$R/personalizacao/criador"
-  JAVA_OPTS="-Dvx.audio=loopback -Dvx.audio.gravar=$PWD/$R/personalizacao/criador/sessao-mixagem.wav" \
-    $V --editor-script tools/criador/cabelos-r09.txt "$tmp" 30 2>&1 | grep -E '^criador|gravad' || true
-  cp "$tmp"/*.png "$R/personalizacao/criador/"
-  ffmpeg -loglevel error -y -framerate 30 -i "$tmp/quadros/q_%05d.png" -i "$R/personalizacao/criador/sessao-mixagem.wav" \
-    "${enc[@]}" -pix_fmt yuv420p -c:a aac -b:a 192k -shortest "$R/personalizacao/criador/sessao-com-som.mp4"
-  rm -rf "$tmp"
-fi
-
-if want cabelos; then
-  D=$R/personalizacao; T=output/tmp/r9c; mkdir -p "$D" "$T"
-  ALL="topete curto chanel rabo crespo coque"; NEW="crespo coque"
-  # 1. seis estilos: frente, perfil, costas (luz neutra) + silhuetas, mesma câmera
-  specs=(); for h in $ALL; do for v in "f:20:6" "p:90:4" "c:180:4"; do IFS=: read -r vn yaw pitch <<<"$v"
-    specs+=("mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=nenhum,yaw=$yaw,pitch=$pitch,dist=1.7,ty=0.85,preset=neutra,size=360x360,nohud=1,out=$T/hs_${h}_$vn.png"
-            "mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=nenhum,yaw=$yaw,pitch=$pitch,dist=1.7,ty=0.85,sil=1,size=360x360,nohud=1,out=$T/hsil_${h}_$vn.png"); done; done
-  snap "${specs[@]}"
-  sheet "$D/01-seis-estilos-frente-perfil-costas.png" 6 $(for v in f p c; do for h in $ALL; do echo $T/hs_${h}_$v.png; done; done)
-  sheet "$D/02-seis-estilos-silhuetas.png" 6 $(for v in f p c; do for h in $ALL; do echo $T/hsil_${h}_$v.png; done; done)
-  # 2. close (luz de dia e de tarde), 3. as 10 cores, 4. coberturas frente/costas, 5. expressões, 6. presets
-  specs=(); for h in $NEW; do for L in dia tarde; do for v in "f:15:8" "p:100:6" "c:200:8"; do IFS=: read -r vn yaw pitch <<<"$v"
-    specs+=("mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=nenhum,yaw=$yaw,pitch=$pitch,dist=1.25,ty=0.95,preset=$L,size=480x480,nohud=1,out=$T/cl_${h}_${L}_$vn.png"); done; done
-    for c in c2582c e3a64a e2d4f2 6b4630 2e2632 e9c768 a83a2a a3a0ab 5f8a5a 4a5a9a; do
-      specs+=("mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,corCabelo=$c,cobertura=nenhum,yaw=25,pitch=8,dist=1.5,ty=0.9,preset=dia,size=300x300,nohud=1,out=$T/cor_${h}_$c.png"); done
-    for cv in chapeu.maga capuz.c3; do for v in "f:20:6" "c:180:4" "p:90:4"; do IFS=: read -r vn yaw pitch <<<"$v"
-      specs+=("mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=$cv,yaw=$yaw,pitch=$pitch,dist=1.7,ty=0.9,preset=dia,size=360x360,nohud=1,out=$T/cob_${h}_${cv}_$vn.png"); done; done
-    for e in neutral joy determined surprise; do
-      specs+=("mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=nenhum,yaw=8,pitch=4,dist=1.5,ty=0.9,expr=$e,preset=dia,size=360x360,nohud=1,out=$T/ex_${h}_$e.png"); done
-    for p in exploradora maga; do
-      specs+=("mode=char,style=e,custom=$p,cabelo=cabelo.$h,cobertura=nenhum,yaw=25,pitch=6,dist=1.9,ty=0.8,preset=dia,size=360x360,nohud=1,out=$T/pr_${h}_$p.png"); done
+if [ "$what" = angulos ] || [ "$what" = tudo ]; then
+  # golpes e interrupções do herói de espada e broquel em 4 ângulos (viewer, mesmo Sequencer do validador)
+  mkdir -p "$R/angulos"
+  HERO="hero=characters/r4/adventurer_shield"
+  for spec in \
+      "sequencia|idle:0.4+slash_h!0.64+slash_d!0.64+slash_v+idle:0.6" \
+      "dano-apos-corte-h|idle:0.4+slash_h!0.55+hit+idle:0.6" \
+      "dano-apos-corte-d|idle:0.4+slash_d!0.57+hit+idle:0.6" \
+      "dano-no-encadeamento|idle:0.4+slash_h!0.64+slash_d!0.12+hit+idle:0.6" \
+      "guarda-impacto|idle:0.4+guard_hold+idle:0.4" \
+      "derrota|idle:0.3+hit!0.84+defeat+idle:0.3"; do
+    name=${spec%%|*}; seq=${spec#*|}
+    for yaw in 0 90 180 270; do
+      tools/anim.sh "$R/angulos/$name-$yaw" "mode=char,style=e,$HERO,seq=$seq,yaw=$yaw,pitch=10,size=540x540,nohud=1" 100 30 >/dev/null 2>&1 || true
+    done
+    ffmpeg -loglevel error -y -i "$R/angulos/$name-0.mp4" -i "$R/angulos/$name-90.mp4" -i "$R/angulos/$name-180.mp4" -i "$R/angulos/$name-270.mp4" \
+      -filter_complex "[0][1][2][3]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0" "${enc[@]}" -pix_fmt yuv420p "$R/angulos/$name-4angulos.mp4"
+    ffmpeg -loglevel error -y -i "$R/angulos/$name-4angulos.mp4" -vf "select='not(mod(n\,8))',scale=360:-1,tile=6x2" -frames:v 1 "$R/angulos/$name-prancha.png"
+    for yaw in 0 90 180 270; do rm -f "$R/angulos/$name-$yaw.mp4" "$R/angulos/$name-$yaw.gif"; done
+    echo "ângulos: $name"
   done
-  snap "${specs[@]}"
-  for h in $NEW; do
-    sheet "$D/03-$h-close-dia-tarde.png" 3 $T/cl_${h}_dia_{f,p,c}.png $T/cl_${h}_tarde_{f,p,c}.png
-    sheet "$D/04-$h-dez-cores.png" 5 $T/cor_${h}_*.png
-    sheet "$D/05-$h-coberturas.png" 3 $T/cob_${h}_chapeu.maga_{f,c,p}.png $T/cob_${h}_capuz.c3_{f,c,p}.png
-    sheet "$D/06-$h-expressoes.png" 4 $T/ex_${h}_{neutral,joy,determined,surprise}.png
-    sheet "$D/07-$h-em-outros-corpos.png" 2 $T/pr_${h}_exploradora.png $T/pr_${h}_maga.png
-  done
-  # 8. escala de jogo (câmera de exploração, baixa resolução ampliada sem filtro) e costas na cena
-  specs=(); for h in topete crespo coque; do
-    specs+=("mode=scene,style=e,custom=aventureiro,cabelo=cabelo.$h,t=1.3,nohud=1,hx=1.0,hz=2.5,hyaw=200,yaw=18,pitch=13,dist=6.4,size=480x270,out=$T/esc_${h}.png"
-            "mode=scene,style=e,custom=aventureiro,cabelo=cabelo.$h,t=1.3,nohud=1,hx=1.0,hz=2.5,hyaw=20,yaw=18,pitch=13,dist=6.4,size=480x270,out=$T/escc_${h}.png"); done
-  snap "${specs[@]}"
-  for f in $T/esc_*.png $T/escc_*.png; do ffmpeg -loglevel error -y -i "$f" -vf scale=iw*3:ih*3:flags=neighbor "${f%.png}-x3.png"; done
-  sheet "$D/08-escala-de-jogo-topete-crespo-coque.png" 3 $T/esc_{topete,crespo,coque}-x3.png $T/escc_{topete,crespo,coque}-x3.png
-  # 9. animação: correr e golpe em 4 câmeras (vídeos), cabelo fundido à cabeça não pode atravessar o corpo
-  for h in $NEW; do for c in "frente:0" "perfil:90" "costas:180" "tres-quartos:35"; do IFS=: read -r cn yaw <<<"$c"
-    tools/anim.sh "$D/videos/$h-correr-$cn" "mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=nenhum,clip=run,yaw=$yaw,pitch=6,dist=2.4,ty=0.7,preset=dia,size=480x480,nohud=1" 48 30 > /dev/null
-    tools/anim.sh "$D/videos/$h-golpe-$cn" "mode=char,style=e,custom=aventureiro,cabelo=cabelo.$h,cobertura=nenhum,clip=attack,yaw=$yaw,pitch=6,dist=2.4,ty=0.7,preset=dia,size=480x480,nohud=1" 40 30 > /dev/null
-  done; done
-  # 10. medidas estruturais (Jaccard de volume, caixa, voxels) — mesmo mapeamento do leitor Java
-  python3 tools/hair_metrics.py "$D/medidas-cabelos.md" > /dev/null
 fi
 
-if want gate; then
-  # presets idênticos ao canônico, sem sobrescrever a rodada 07
-  R=$R/validacao/regressao tools/review7.sh gate | tail -1
+if [ "$what" = interrupcoes ] || [ "$what" = tudo ]; then
+  mkdir -p "$R/interrupcoes"
+  $V --check interrupcao-fina > "$R/interrupcoes/fina-depois.txt" 2>/dev/null || true
+  $V --check interrupcao > "$R/interrupcoes/historico-passo-005.txt" 2>/dev/null || true
+  grep -E "cortes inseguros|interrupcao-fina" "$R/interrupcoes/fina-depois.txt"
+  grep -E " / " "$R/interrupcoes/historico-passo-005.txt"
 fi
 
-if want testes; then
-  { ./gradlew test --console=plain 2>&1 | grep -E 'FAILED|tests completed|BUILD'; } > "$R/validacao/testes.txt" || true
-  $V --check 2>&1 | tail -1 > "$R/validacao/viewer-check.txt"
-  $V --occlusion 2>&1 | grep -E '^\S.* / ' | grep -v ' OK$' > "$R/validacao/viewer-occlusion.txt" || true
-  cat "$R/validacao/testes.txt" "$R/validacao/viewer-check.txt" "$R/validacao/viewer-occlusion.txt"
+if [ "$what" = validadores ] || [ "$what" = tudo ]; then
+  mkdir -p "$R/validadores"
+  $V --check > "$R/validadores/check.txt" 2>/dev/null || true
+  $V --occlusion > "$R/validadores/occlusion.txt" 2>/dev/null || true
+  tail -1 "$R/validadores/check.txt"; grep -E "COBERTO|ESCONDIDA|occlusion:" "$R/validadores/occlusion.txt"
+fi
+
+if [ "$what" = regressao ] || [ "$what" = tudo ]; then
+  # o que já existia continua igual: presets (gate 0 pixel), 22 referências, criador da 07.2, assets determinísticos
+  G9="$R/regressao"; rm -rf "$G9"; mkdir -p "$G9"
+  R="$G9/presets" tools/review7.sh gate 2>&1 | grep -E "^gate" | tee "$G9/gate.txt" || true
+  rm -rf output/tmp/ref09 && tools/reference.sh output/tmp/ref09 >/dev/null 2>&1
+  R="$G9/criador" tools/review72.sh capturas >/dev/null 2>&1 || true
+  python3 - "$G9" <<'PY' | tee "$G9/comparacoes.txt"
+import glob, sys, numpy as np
+from PIL import Image
+def cmp(a_glob, b_dir, nome):
+    fs = sorted(glob.glob(a_glob)); bad = 0
+    for f in fs:
+        g = b_dir + "/" + f.split("/")[-1]
+        a = np.asarray(Image.open(f).convert("RGB"), dtype=int); b = np.asarray(Image.open(g).convert("RGB"), dtype=int)
+        d = int(np.abs(a - b).max()) if a.shape == b.shape else 999
+        if d: bad += 1; print(f"  DIFERE {f.split('/')[-1]} (máx {d}/255)")
+    print(f"{nome}: {len(fs)} imagens, {bad} diferentes")
+cmp("docs/art/reference/*.png", "output/tmp/ref09", "referências canônicas × reprodução")
+# o criador da 07.2 foi capturado com a malha anterior à 08.1 (malha conforme muda as bordas da cena 3D de fundo): a
+# comparação que isola ESTA rodada é contra o código publicado da 08.1 (CRIADOR_BASE = capturas geradas num clone de 24e83df)
+import os
+base = os.environ.get("CRIADOR_BASE")
+if base: cmp(base + "/*.png", sys.argv[1] + "/criador/capturas", "criador: 08.1 publicada (clone limpo) × rodada 09")
+cmp("output/visual-review/round-07-2/capturas/*.png", sys.argv[1] + "/criador/capturas", "criador: 07.2 (malha antiga, diferença esperada nas bordas 3D) × rodada 09")
+PY
+  { python3 tools/asset_audit.py assets/characters/e | head -1; python3 tools/asset_audit.py assets/characters/npc | head -1;
+    python3 tools/asset_audit.py assets/creatures/e | head -1; } | tee "$G9/auditoria.txt"
+  h1=$(find assets/characters assets/creatures assets/environment assets/components -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum)
+  python3 tools/build_assets.py >/dev/null 2>&1
+  h2=$(find assets/characters assets/creatures assets/environment assets/components -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum)
+  n=$(find assets/characters assets/creatures assets/environment assets/components -type f | wc -l)
+  [ "$h1" = "$h2" ] && echo "geração determinística: $n arquivos, hash idêntico em duas gerações" | tee "$G9/determinismo.txt" \
+    || echo "geração NÃO determinística" | tee "$G9/determinismo.txt"
+  # a exploração e a conversa da rodada 08 (roteiros da 08 na cena com a arena)
+  R="$G9/jogo-08" tools/review8.sh capturas >/dev/null 2>&1 || true
+  echo "jogo 08: $(ls "$G9"/jogo-08/capturas/*.png 2>/dev/null | wc -l) capturas"
+fi
+
+if [ "$what" = desempenho ] || [ "$what" = tudo ]; then
+  rm -rf "$R/desempenho"; mkdir -p "$R/desempenho"
+  $G --roteiro tools/combate/desempenho.txt "$R/desempenho" 60 2>&1 | grep -vE "WARNING|libdecor|^jogo|^combate\[" > "$R/desempenho/combate.txt" || true
+  $G --roteiro tools/jogo/desempenho.txt "$R/desempenho" 60 2>&1 | grep -vE "WARNING|libdecor|^jogo" > "$R/desempenho/exploracao.txt" || true
+  cat "$R/desempenho/combate.txt" "$R/desempenho/exploracao.txt"
+fi
+
+if [ "$what" = testes ] || [ "$what" = tudo ]; then
+  ./gradlew -q test 2>&1 | grep -vE "WARNING" | tail -5 || true
+  python3 - <<'PY' | tee "$R/testes.txt"
+import glob, xml.etree.ElementTree as ET
+t=f=0
+for x in sorted(glob.glob('*/build/test-results/test/*.xml')):
+    r=ET.parse(x).getroot(); n=int(r.get('tests')); e=int(r.get('failures'))+int(r.get('errors')); t+=n; f+=e
+    print(f"{r.get('name')}: {n} testes, {e} falhas")
+print(f"total: {t} testes, {f} falhas")
+PY
+fi
+
+if [ "$what" = zip ] || [ "$what" = tudo ]; then
+  # só capturas, pranchas e documentos: sem MP4 (ficam na pasta) e sem as imagens de regressão (só os resumos .txt/.md)
+  (cd output/visual-review && rm -f rodada-09-imagens-e-documentos.zip && \
+   zip -qr rodada-09-imagens-e-documentos.zip round-09 -x '*.mp4' 'round-09/regressao/*.png')
+  ls -la output/visual-review/rodada-09-imagens-e-documentos.zip
 fi

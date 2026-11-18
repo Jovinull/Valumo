@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Rodada 09 — {@code viewer --check-cabelos [saida.md]}: arma × cabeça COMPOSTA (crânio + cabelo personalizado),
+ * Rodada 09.4 — {@code viewer --check-cabelos [saida.md]}: arma × cabeça COMPOSTA (crânio + cabelo personalizado),
  * voxel a voxel. O {@link WeaponCheck} usa uma cápsula de raio 8,6 para a cabeça — nenhum penteado é medido além
  * dela (o topete aprovado vai a ±11,5; o crespo a ±13). Aqui, a cada 1/120 s de cada golpe do perfil, os voxels reais
  * da arma são levados ao espaço da cabeça e comparados com as células reais da cabeça composta:
@@ -27,7 +27,7 @@ import java.util.Map;
  *   <li><b>OK</b>: penetração ≤ max(TOL, referência);</li>
  *   <li><b>REPROVA</b>: penteado EXPERIMENTAL (estudo) penetra mais que a referência — sai com 1;</li>
  *   <li><b>PRÉ-EXISTENTE</b>: penteado já aprovado acima da referência (relatado, não reprova: a primeira medição,
- *       na rodada 09, achou o gesto EMOTE do aventureiro atravessando o topete canônico — ver problemas conhecidos).</li>
+ *       na rodada 09.4, achou o gesto EMOTE do aventureiro atravessando o topete canônico — ver problemas conhecidos).</li>
  * </ul>
  */
 final class HairWeaponCheck {

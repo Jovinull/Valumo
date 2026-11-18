@@ -1,0 +1,27 @@
+# 07 — salto no combate: pula de lado com a mira travada, clica no ar (o golpe sai no pouso), salta e ataca de novo
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -2.0 9.8 0
+camera-recompor
+wait 0.3
+mira
+record on
+esperar-inimigo WINDUP 6 0.3
+segurar A
+pular
+wait 0.25
+atacar
+wait 0.7
+soltar A
+pular
+wait 0.3
+atacar
+wait 1.0
+esquiva
+wait 0.8
+atacar
+wait 0.35
+atacar
+wait 1.0

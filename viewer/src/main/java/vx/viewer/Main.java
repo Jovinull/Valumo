@@ -48,7 +48,7 @@ public final class Main {
             System.exit(GripProbe.run(args) ? 0 : 1);
             return;
         }
-        if (args.length > 0 && args[0].equals("--check-cabelos")) { // rodada 09: arma × cabeça composta, voxel a voxel
+        if (args.length > 0 && args[0].equals("--check-cabelos")) { // rodada 09.4: arma × cabeça composta, voxel a voxel
             System.exit(HairWeaponCheck.run(args.length > 1 ? args[1] : null) ? 0 : 1);
             return;
         }
@@ -80,7 +80,7 @@ public final class Main {
                     st.quality = App.Quality.ALTA;       // inspeção; P alterna
                     if (hasArg(args, "--editor")) {      // rodada 07.2: criador do jogador
                         Path assets = Path.of(System.getProperty("vx.assets", "assets"));
-                        // rodada 09: som da interface (e a música da vila) no criador do jogador; teste de fumaça mudo
+                        // rodada 09.4: som da interface (e a música da vila) no criador do jogador; teste de fumaça mudo
                         vx.engine.audio.Audio.start(assets, demo == 0 ? vx.engine.audio.Audio.Mode.DEVICE : vx.engine.audio.Audio.Mode.OFF);
                         vx.engine.audio.Audio.music(vx.engine.audio.Audio.musicChoice("vila_a"));
                         try (Creator c = new Creator(app, window, assets)) {
@@ -107,7 +107,7 @@ public final class Main {
                     if (args[i].equals("--bench")) app.bench(i + 1 < args.length ? args[i + 1] : "");
                     if (args[i].equals("--editor-script")) {                                   // rodada 07.2
                         Path assets = Path.of(System.getProperty("vx.assets", "assets"));
-                        // rodada 09: mudo por padrão; -Dvx.audio=loopback -Dvx.audio.gravar=x.wav grava a sessão
+                        // rodada 09.4: mudo por padrão; -Dvx.audio=loopback -Dvx.audio.gravar=x.wav grava a sessão
                         vx.engine.audio.Audio.start(assets, vx.engine.audio.Audio.Mode.OFF);
                         vx.engine.audio.Audio.music(vx.engine.audio.Audio.musicChoice("vila_a"));
                         try (Creator c = new Creator(app, window, assets)) {
@@ -170,6 +170,8 @@ public final class Main {
                 case "lab" -> st.lab = v;
                 case "far" -> st.terrainFar = v.equals("1");
                 case "seq" -> st.seq = v.replace('+', ',');
+                case "pernas" -> st.legs = v;
+                case "salto" -> st.jump = v;
                 case "speed" -> st.timeScale = Float.parseFloat(v);
                 case "hold" -> st.actHold = Float.parseFloat(v);
                 case "dbg" -> Actor.debug = v.equals("1");
@@ -178,8 +180,8 @@ public final class Main {
                 // rodada 07: personagem composto em tempo de execução (preset + escolhas; null = do preset)
                 case "custom" -> { st.appearance = Appearance.preset(v); if (st.mode == App.Mode.CHARACTER) st.mode = App.Mode.CUSTOMIZE; }
                 case "rosto" -> st.appearance.face = v;
-                case "olhos" -> st.appearance.eyes = v;                  // rodada 09
-                case "pes" -> st.appearance.feet = v;                    // rodada 09
+                case "olhos" -> st.appearance.eyes = v;                  // rodada 09.4
+                case "pes" -> st.appearance.feet = v;                    // rodada 09.4
                 case "cabelo" -> st.appearance.hair = v;
                 case "corCabelo" -> st.appearance.hairColor = "#" + v;
                 case "pele" -> st.appearance.skin = "#" + v;

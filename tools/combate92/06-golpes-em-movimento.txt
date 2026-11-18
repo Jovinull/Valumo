@@ -1,0 +1,27 @@
+# 06 — três golpes em movimento: corre (Shift), ataca, muda de direção entre os cortes
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.0 5.0 0
+camera-recompor
+wait 0.6
+record on
+segurar W+SHIFT
+wait 0.9
+atacar
+wait 0.3
+soltar SHIFT
+segurar D
+atacar
+wait 0.35
+soltar W
+atacar
+wait 0.6
+soltar D
+segurar A+W
+wait 0.4
+atacar
+wait 1.0
+soltar A+W
+wait 0.5

@@ -1,0 +1,19 @@
+# Rodada 09 — demonstração 11: o herói ataca virado para o lado errado (90° do fungo: a assistência de mira só gira até 55°),
+# o corte varre o vazio e a cabeçada chega logo depois do próprio corte e reage sem a espada atravessar o corpo (saída autorada hit_cross_h).
+# Visão técnica ligada: hitboxes e estados na tela.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+debug golpes on
+posicionar -1.8 9.45 270
+inimigo -1.8 10.45 180 IDLE
+wait 0.3
+record on
+wait 0.3
+inimigo -1.8 10.45 180 WINDUP
+wait 0.22
+atacar
+wait 1.6
+combate
+record off

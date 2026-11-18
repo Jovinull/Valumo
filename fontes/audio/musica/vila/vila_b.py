@@ -1,4 +1,4 @@
-"""Vila — versão B: "Fantasia misteriosa" (estudo da rodada 09; NÃO canônica).
+"""Vila — versão B: "Fantasia misteriosa" (estudo da rodada 09.4; NÃO canônica).
 
 Hipótese artística: a vila fica na borda de um mundo grande e um pouco encantado. Em vez de "lar seguro"
 (versão A), a música sugere curiosidade: o que há além da trilha? Mais espaço e silêncio, harmonia modal

@@ -20,7 +20,7 @@ import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.openal.SOFTLoopback.*;
 
 /**
- * Rodada 09 — saída OpenAL Soft (LWJGL). Dois modos:
+ * Rodada 09.4 — saída OpenAL Soft (LWJGL). Dois modos:
  * <ul>
  *   <li><b>dispositivo</b>: o padrão do sistema (PipeWire/Pulse/ALSA pelo OpenAL Soft);</li>
  *   <li><b>loopback</b> (ALC_SOFT_loopback): sem dispositivo; a mixagem é puxada com {@link #render(int)}. Serve
@@ -268,6 +268,12 @@ public final class OpenAlOut implements AudioOut {
         for (Stream s : streams.values()) s.update();
         reclaim();
     }
+
+    /** O dispositivo (outros conjuntos de vozes no MESMO contexto, como os efeitos do combate, consultam o relógio). */
+    public long device() { return device; }
+
+    /** Saída loopback (nada no alto-falante; a mistura vem de {@link #render}). */
+    public boolean isLoopback() { return loopback; }
 
     /** Fontes ocupadas agora (vozes + fluxos) — testes e métricas. */
     public int busySources() { return sources.length - free.size(); }

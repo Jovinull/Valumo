@@ -1,4 +1,17 @@
-# Jogo — protótipo de exploração (rodada 08)
+# Jogo — protótipo de exploração (rodada 08), combate (rodada 09) e mobilidade (rodada 09.2)
+
+> **Rodada 09:**
+> - **Combate:** a cena ganhou uma arena ao sul e o primeiro combate. Sistema completo em [combate.md](combate.md).
+> - **Passo fixo:** a exploração passou a andar em passos lógicos fixos de 1/120 s, com o desenho interpolado e a câmera
+>   no mesmo passo. O movimento e a câmera da rodada 08 não mudaram; os 21 testes continuam.
+>
+> **Rodada 09.1:**
+> - **Câmera de luta:** refeita (viés contínuo, inclinação com o fungo colado, busca de desvio que vê a vista final);
+>   detalhes em [combate.md §9](combate.md#9-câmera-durante-a-luta-refeita-na-091). Fora da luta, a câmera é idêntica
+>   (teste passo a passo).
+> - **Linha de visão:** só testa as formas perto do raio. O resultado é o mesmo (teste com 4.000 raios); a lógica da
+>   exploração ficou ~3× mais barata no p95.
+> - **Som:** efeitos e passos ([audio.md](audio.md)); volume e mudo na pausa, tecla M.
 
 Primeira experiência jogável:
 1. escolher a aparência (preset, salva pelo criador ou feita na hora);
@@ -149,6 +162,7 @@ Para acrescentar um prop novo à colisão, dê a ele uma linha em `colisao_e.jso
   - sem desvio possível (corredor fechado), encosta, com mínimo de 0,9 u.
 - **Enquadramento de conversa:** alvo entre os dois, de lado e um pouco atrás do herói, do lado em que a câmera
   já estava; transição suave.
+- **Na luta (rodada 09, refeita na 09.1):** ajuste de combate por cima desta câmera. Ver [combate.md §9](combate.md).
 
 ## 6. Cena jogável
 
@@ -222,7 +236,12 @@ Percursos usados nos vídeos e testes:
   - `close()` libera o compositor, o renderer, o FBO de captura e o `UiKit`;
   - abrir e fechar o criador libera o `App` e o `Creator` dele.
 
-## 9.1 Áudio e volume (rodada 09)
+## 9.1 Áudio e volume (rodada 09.4)
+
+> Integração com a 09.3: um dispositivo só (ADR 0023). Na pausa ficam "Música", "Efeitos" (combate, passos,
+> interface e ambiente) e "Som: ligado/mudo (M)", e as opções de combate em fileiras inteiras ("Barras", "Sensação",
+> "Arena"). O rótulo da sensibilidade do mouse virou "Sensibilidade", para caber em 720p. Detalhes em
+> [audio.md](audio.md).
 
 - `GameAudio` traduz fatos do jogo em eventos do catálogo de som: pisada (`Player.steps`, na fase de contato do pé)
   com a superfície (`World.surfaceAt`: grama, terra, areia, pedra), ações do `GameLogic` (`onAction`), música da vila
@@ -269,5 +288,77 @@ Regressão das peças compartilhadas:
 - **Roteiros:** `tools/jogo/*.txt` (comandos documentados em `Game.script`). A entrada passa pela fila da janela,
   não pelo sistema operacional. O roteiro de teste com teclado e mouse físicos para o proprietário está em
   [roteiro-de-teste-fisico.md](../validation/roteiro-de-teste-fisico.md).
-- **Problemas abertos:** [problemas-conhecidos.md](../validation/problemas-conhecidos.md). As interrupções por
-  HIT da espada e da lâmina longa continuam abertas, e o combate não existe.
+- **Problemas abertos:** [problemas-conhecidos.md](../validation/problemas-conhecidos.md).
+  - Rodada 09: a interrupção da espada foi resolvida.
+  - A lâmina longa continua aberta e fora do jogo.
+  - O combate está em [combate.md](combate.md).
+
+## 12. Rodada 09.2 — velocidade, salto, controles e preferências
+
+### Velocidade (perfil de sensação)
+
+`Player` deixou de usar constantes fixas: andar, correr, aceleração, frenagem, giro, passada e controle no ar vêm do
+perfil (`combate_e.json → sensacao`; ver [combate.md](combate.md) §14).
+
+- **Perfil padrão C:** andar 1,75 u/s, correr 3,50 u/s, aceleração 22, frenagem 24, giro 15 rad/s.
+- **Perfil A:** os números da rodada 08/09.1.
+- **Pé plantado:** a fase da passada avança por `distância / (velocidade de desenho × passada)`. Mais rápido = mais
+  cadência e o pé continua plantado.
+- **Passos (som):** acompanham a mesma fase.
+
+### Salto ([ADR 0019](../decisions/0019-salto.md))
+
+| | |
+|---|---|
+| tecla | Espaço (exploração e luta; não no meio de golpe, guarda ou esquiva) |
+| altura / tempo no ar | 0,62 u / ~0,42 s (gravidade 24 u/s² subindo, 34 caindo) |
+| coyote / buffer | 0,09 s depois de sair da borda / aperto até 0,12 s antes de pousar |
+| controle no ar | 55% da aceleração (perfil C) |
+| chão | `Collision.floor`: relevo ou topo de forma `"pisavel"` (caixote, tronco caído, toco, pedras pequena e média, barril) |
+| parede no ar | desnível maior que um degrau bloqueia também no ar (sem teleporte para cima de borda) |
+| golpe no ar | não existe nesta rodada: o clique no ar sai ao pousar |
+| animação | pés recolhidos e corpo inclinado no ar (`Motion.air`); quadril cede ao pousar (`Motion.land`) |
+
+### Controles (todos do módulo game; o criador e o viewer não mudaram)
+
+| Entrada | Ação |
+|---|---|
+| WASD | mover (relativo à câmera; travado, relativo ao alvo pela própria câmera) |
+| Shift | correr |
+| Espaço | pular |
+| Alt esquerdo / botão do meio | esquivar (com direção: salto baixo R2; sem: recuo) |
+| Clique esquerdo | atacar (de novo, encadeia) |
+| Clique direito segurado | defender |
+| Q | travar / soltar a mira |
+| Tab / Shift+Tab | próximo alvo à direita / à esquerda na tela |
+| Mouse | câmera (travado: ajuste de ±0,40 rad e inclinação) |
+| E | conversar |
+| Esc | pausa (volume, mudo, barras de inimigos, sensação, arena) |
+| M | mudo |
+| F1 | ajuda |
+
+As teclas ficam em um só lugar: `GameLogic.explore` (entrada → intenção) e `Input` (botão do meio).
+
+### Preferências
+
+`Prefs` grava barras de inimigos, perfil de sensação e encontro da arena em `output/preferencias.json`
+(`-Dvx.prefs=ARQUIVO`; `-` = nenhum). É separado da aparência do personagem. Arquivo ausente ou ilegível = padrões.
+Roteiros e testes usam sempre os padrões e não gravam.
+
+### Referência do WASD
+
+`FollowCamera.inputYaw`: o rumo do mouse na hora, mais o desvio automático da câmera (parede, mira) seguido no máximo a
+2,5 rad/s. A câmera pode desviar de uma parede sem virar o controle de uma vez.
+
+
+## 13. Rodada 09.3 — salto apresentado e herói translúcido perto da câmera
+
+- **Salto:** a física é a da 09.2. O desenho ganhou impulso nos primeiros 0,10 s, preparação de queda nos últimos 0,14 s
+  e pouso proporcional ao impacto, mais curto correndo. Ver o adendo do [ADR 0019](../decisions/0019-salto.md).
+  `Player.takeoffPhase()`, `fallPrep()` e `landRunning()` alimentam `Motion.takeoff`, `fall` e `landRun`.
+- **Herói perto da câmera** (`Game.nearFade`): mede a distância do olho ao eixo do corpo, do quadril ao alto da cabeça.
+  - Abaixo de 0,9 u, o herói se dissolve em pontilhado ordenado Bayer 4×4 (`uFade` no `scene.frag`, `discard`), até 75%
+    a 0,45 u.
+  - A posição da câmera não muda: os números do `CameraModesTest` são os da 09.2.
+  - O pontilhado não usa transparência real. Com isso não há ordenação nem custo de mistura, e as referências e o gate
+    não mudam (só o herói do jogo recebe `fade`).

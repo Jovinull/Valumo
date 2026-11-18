@@ -29,12 +29,17 @@ public final class Collision {
     public static final class Shape {
         public final String name;
         public final boolean circle, body, camera;
+        /** Rodada 09.2: o topo é chão (dá para pousar em cima com um salto; perfil "pisavel"). */
+        public boolean stand;
         public final float cx, cz, r, hx, hz, cos, sin, y0, y1;
+        /** Raio do círculo que envolve a forma no plano (filtro rápido do raio da câmera). */
+        public final float bound;
 
         Shape(String name, boolean circle, float cx, float cz, float r, float hx, float hz, float cos, float sin,
               float y0, float y1, boolean body, boolean camera) {
             this.name = name; this.circle = circle; this.cx = cx; this.cz = cz; this.r = r; this.hx = hx; this.hz = hz;
             this.cos = cos; this.sin = sin; this.y0 = y0; this.y1 = y1; this.body = body; this.camera = camera;
+            this.bound = circle ? r : (float) Math.hypot(hx, hz);
         }
 
         static Shape circle(String n, float x, float z, float r, float y0, float y1, boolean body, boolean cam) {
@@ -89,6 +94,8 @@ public final class Collision {
     public final List<Shape> shapes = new ArrayList<>();
     public float waterLevel = World.WATER_LEVEL;
     public float limitX, limitZ, limitR = Float.MAX_VALUE;
+    /** Rodada 09: círculos jogáveis a mais (a arena), unidos ao limite da vila: {x, z, r}. */
+    public final List<float[]> extraLimits = new ArrayList<>();
     public Collision(Animator.Ground ground) { this.ground = ground; }
 
     // ------------------------------------------------------------------ montagem a partir dos perfis
@@ -123,12 +130,17 @@ public final class Collision {
         float yaw = (float) Math.atan2(m.m20(), m.m00());                 // rotateY: m00 = cos, m20 = sin
         float w = b[3] - b[0], d = b[5] - b[2], h = b[4] - b[1], y0 = c.y, y1 = c.y + h * num(pr, "altura", 1f);
         boolean cam = !pr.has("camera") || pr.get("camera").getAsBoolean();
+        boolean stand = pr.has("pisavel") && pr.get("pisavel").getAsBoolean();
         switch (kind) {
             case "caixa" -> {
                 float k = num(pr, "escala", 1f);
                 shapes.add(Shape.box(p.name(), c.x, c.z, w / 2 * k, d / 2 * k, yaw, y0, y1, true, cam));
+                shapes.getLast().stand = stand;
             }
-            case "circulo" -> shapes.add(Shape.circle(p.name(), c.x, c.z, num(pr, "raio", Math.min(w, d) / 2), y0, y1, true, cam));
+            case "circulo" -> {
+                shapes.add(Shape.circle(p.name(), c.x, c.z, num(pr, "raio", Math.min(w, d) / 2), y0, y1, true, cam));
+                shapes.getLast().stand = stand;
+            }
             case "tronco" -> {
                 // o corpo bate no tronco; a copa só existe para a câmera (o herói passa por baixo dela)
                 shapes.add(Shape.circle(p.name(), c.x, c.z, num(pr, "raio", 0.3f), y0, y1, true, cam));
@@ -158,16 +170,57 @@ public final class Collision {
         c.limitX = scene.limitX;
         c.limitZ = scene.limitZ;
         c.limitR = scene.limitR;
+        c.extraLimits.addAll(scene.extraLimits);
         return c;
     }
 
     // ------------------------------------------------------------------ consultas
 
+    /**
+     * Rodada 09.2 — altura do chão sob um corpo de raio {@code rad} com os pés em {@code y}: o relevo ou o topo de uma
+     * forma PISÁVEL (perfil "pisavel": caixote, tronco caído, toco, pedras baixas) que o centro do corpo esteja sobre e
+     * cujo topo não passe de um degrau acima dos pés. Outras formas nunca viram plataforma.
+     */
+    public float floor(float x, float z, float y, float rad) {
+        float g = ground.height(x, z);
+        for (Shape s : shapes) {
+            if (!s.stand || s.y1 <= g || s.y1 > y + Player.STEP) continue;
+            if (s.contains(x, s.y1, z, 0f)) g = s.y1;
+        }
+        return g;
+    }
+
     /** Chão pisável: dentro do limite e fora da água. */
     public boolean walkable(float x, float z) {
-        float dx = x - limitX, dz = z - limitZ;
-        if (dx * dx + dz * dz > limitR * limitR) return false;
+        if (!insideLimit(x, z)) return false;
         return ground.height(x, z) >= waterLevel + 0.06f;           // a faixa rente à água (−0,375 na E) já é margem molhada
+    }
+
+    /** Dentro do limite jogável (vila ∪ círculos extras). */
+    public boolean insideLimit(float x, float z) {
+        float dx = x - limitX, dz = z - limitZ;
+        if (dx * dx + dz * dz <= limitR * limitR) return true;
+        for (float[] l : extraLimits) {
+            float ex = x - l[0], ez = z - l[1];
+            if (ex * ex + ez * ez <= l[2] * l[2]) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Rodada 09 — algo SÓLIDO entre a e b? Relevo acima da linha ou forma de corpo (parede, tronco, pedra, pessoa)
+     * cortando o segmento. Copas e formas só de câmera não contam. Usado para golpes não atravessarem obstáculos e
+     * para a linha de visão do inimigo. Amostra a cada 0,05 u.
+     */
+    public String solidBetween(Vector3f a, Vector3f b) {
+        float len = a.distance(b);
+        int n = Math.max(2, (int) Math.ceil(len / 0.05f));
+        for (int i = 1; i < n; i++) {
+            float t = (float) i / n, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t, z = a.z + (b.z - a.z) * t;
+            if (y < ground.height(x, z) - 0.02f) return "relevo";
+            for (Shape s : shapes) if (s.body && s.contains(x, y, z, 0f)) return s.name;
+        }
+        return null;
     }
 
     /**
@@ -197,22 +250,66 @@ public final class Collision {
      * Linha de visão da câmera de {@code from} até {@code to}: fração livre (0–1). Bloqueiam o relevo (com
      * folga) e as formas marcadas para a câmera (paredes, troncos, copas), infladas por {@code margin}.
      */
-    public float rayClear(Vector3f from, Vector3f to, float margin) {
+    public float rayClear(Vector3f from, Vector3f to, float margin) { return rayClear(from, to, margin, false); }
+
+    /** {@code all}: testa todas as formas, sem o filtro (só para o teste de equivalência do filtro). */
+    float rayClear(Vector3f from, Vector3f to, float margin, boolean all) {
+        int near = all ? allCamera() : nearSegment(from, to, margin);       // rodada 09.1: só as formas perto do raio
         final int n = 48;
         float lastFree = 0;
         for (int i = 1; i <= n; i++) {
             float t = (float) i / n;
-            if (blocked(from, to, t, margin)) {
+            if (blocked(from, to, t, margin, near)) {
                 float lo = lastFree, hi = t;                              // refina a borda
                 for (int k = 0; k < 6; k++) {
                     float mid = (lo + hi) / 2;
-                    if (blocked(from, to, mid, margin)) hi = mid; else lo = mid;
+                    if (blocked(from, to, mid, margin, near)) hi = mid; else lo = mid;
                 }
                 return lo;
             }
             lastFree = t;
         }
         return 1f;
+    }
+
+    /**
+     * Rodada 09.1 — formas de câmera que podem tocar o segmento (círculo envolvente no plano + faixa de altura). Só
+     * corta trabalho: o resultado de {@link #rayClear} é o mesmo de testar todas (a busca de desvio lança dezenas de
+     * raios por passo e a vila tem centenas de formas).
+     */
+    private int nearSegment(Vector3f a, Vector3f b, float m) {
+        float ylo = Math.min(a.y, b.y) - m, yhi = Math.max(a.y, b.y) + m;
+        float dx = b.x - a.x, dz = b.z - a.z, len2 = dx * dx + dz * dz;
+        int k = 0;
+        for (Shape s : shapes) {
+            if (!s.camera || s.y1 < ylo || s.y0 > yhi) continue;
+            float t = len2 < 1e-9f ? 0f : Math.clamp(((s.cx - a.x) * dx + (s.cz - a.z) * dz) / len2, 0f, 1f);
+            float ox = a.x + dx * t - s.cx, oz = a.z + dz * t - s.cz, rr = s.bound + m * (s.circle ? 1f : 1.4143f) + 1e-3f;   // caixa inflada por eixo: canto a m·√2
+            if (ox * ox + oz * oz > rr * rr) continue;
+            if (k == scratch.length) scratch = java.util.Arrays.copyOf(scratch, k * 2);
+            scratch[k++] = s;
+        }
+        return k;
+    }
+
+    private int allCamera() {
+        int k = 0;
+        for (Shape s : shapes) {
+            if (!s.camera) continue;
+            if (k == scratch.length) scratch = java.util.Arrays.copyOf(scratch, k * 2);
+            scratch[k++] = s;
+        }
+        return k;
+    }
+
+    /** Lista reaproveitada (sem alocar por raio: a lógica do combate roda sem coleta de lixo). Uma thread por colisão. */
+    private Shape[] scratch = new Shape[16];
+
+    /** Rodada 09.1: o olho da câmera está dentro do relevo ou de uma forma que bloqueia a câmera (sem folga). */
+    public boolean cameraInside(Vector3f eye) {
+        if (eye.y < ground.height(eye.x, eye.z)) return true;
+        for (Shape s : shapes) if (s.camera && s.contains(eye.x, eye.y, eye.z, 0f)) return true;
+        return false;
     }
 
     /** O que corta a linha de visão (depuração e relatório): "relevo", nome da forma ou null. */
@@ -225,10 +322,10 @@ public final class Collision {
         return null;
     }
 
-    private boolean blocked(Vector3f a, Vector3f b, float t, float m) {
+    private boolean blocked(Vector3f a, Vector3f b, float t, float m, int near) {
         float x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t, z = a.z + (b.z - a.z) * t;
         if (y < ground.height(x, z) + 0.22f) return true;
-        for (Shape s : shapes) if (s.camera && s.contains(x, y, z, m)) return true;
+        for (int i = 0; i < near; i++) if (scratch[i].contains(x, y, z, m)) return true;
         return false;
     }
 

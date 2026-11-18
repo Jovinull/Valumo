@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — QA técnico de áudio (música e efeitos). Mede; NÃO julga a arte (isso é escuta humana).
+"""Rodada 09.4 — QA técnico de áudio (música e efeitos). Mede; NÃO julga a arte (isso é escuta humana).
 
     .venv/bin/python tools/audio/audio_qa.py [--tipo musica|efeito] [--md SAIDA.md] [--imagens PASTA]
                                              [--laco INICIO,FIM] [--duracao MIN,MAX] arquivo...

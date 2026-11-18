@@ -1,4 +1,4 @@
-"""Rodada 09 — escritor de sessões LMMS 1.2 (.mmp) e MIDI a partir de uma partitura escrita à mão.
+"""Rodada 09.4 — escritor de sessões LMMS 1.2 (.mmp) e MIDI a partir de uma partitura escrita à mão.
 
 Este módulo NÃO compõe nada: só transcreve notas decididas pelo compositor (as peças em fontes/audio/musica/)
 para os formatos de uma ferramenta musical real. A sessão .mmp abre no LMMS (piano roll, mixer, automação)
@@ -91,7 +91,7 @@ def kicker(start=140.0, end=60.0, decay_ms=80.0, noise=0.0, click=0.0, gain=1.0,
 
 def noise_osc(vol=100) -> str:
     """TripleOscillator só com ruído branco no oscilador 1 (sustentado enquanto a nota dura; L e R descorrelacionados,
-    medido na rodada 09). Para camas de ambiente (vento, água) com EQ e automação de volume."""
+    medido na rodada 09.4). Para camas de ambiente (vento, água) com EQ e automação de volume."""
     o = []
     for i, (v, w) in enumerate(((vol, 6), (0, 0), (0, 0))):
         o.append(f'vol{i}="{v}" pan{i}="0" coarse{i}="0" finel{i}="0" finer{i}="0" phoffset{i}="0" stphdetun{i}="0" '
@@ -99,7 +99,7 @@ def noise_osc(vol=100) -> str:
     return f'<instrument name="tripleoscillator"><tripleoscillator {" ".join(o)}/></instrument>'
 
 
-# Mallets (STK) do LMMS 1.2.2: NÃO use. Testado na rodada 09: altura errada (C5 → pico em 5,5 kHz na marimba,
+# Mallets (STK) do LMMS 1.2.2: NÃO use. Testado na rodada 09.4: altura errada (C5 → pico em 5,5 kHz na marimba,
 # 375 Hz no vidro), "madeira" vira clique de 11 ms e a tigela tibetana derrubou o render (QThread destruída).
 
 
@@ -132,7 +132,7 @@ def fx_eq(hp=None, lp=None, low_shelf=None, high_shelf=None, peaks=(), out_gain=
             f'syncmode="0"><Eq {attrs}/></effect>')
 
 
-# Delay do LMMS: NÃO use. Escrito em XML ele não produz eco no LMMS 1.2.2 (testado na rodada 09 com quatro
+# Delay do LMMS: NÃO use. Escrito em XML ele não produz eco no LMMS 1.2.2 (testado na rodada 09.4 com quatro
 # nomes de nó e autoquit 0/1). Eco = notas escritas na partitura (written_echo).
 
 

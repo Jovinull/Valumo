@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rodada 09 — distinção entre superfícies de passo (o jogador precisa reconhecer em que pisa).
+"""Rodada 09.4 — distinção entre superfícies de passo (o jogador precisa reconhecer em que pisa).
 
     .venv/bin/python tools/audio/superficies.py PASTA [--md SAIDA.md] grama_a terra_a areia pedra
 

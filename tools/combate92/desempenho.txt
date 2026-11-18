@@ -1,0 +1,51 @@
+# Rodada 09.2 — medição de combate (60 quadros/s, depois do aquecimento): o encontro vem de -Dvx.encontro (um | grupo | chefe).
+# Mesma sequência de entradas nos três: luta com golpes andando, esquiva, salto, mira travada e troca de alvo. Vida 2 nos
+# inimigos (montagem) para as mortes em fragmentos entrarem na medição.
+size 1920 1080
+click comecar
+wait 1.0
+posicionar -1.6 9.6 0
+aquecer 7
+vida-inimigo 2 #0
+vida-inimigo 2 #1
+vida-inimigo 2 #2
+perf on
+wait 0.6
+segurar W
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 0.6
+soltar W
+mira
+segurar A
+wait 0.6
+esquiva
+wait 0.7
+soltar A
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 0.8
+pular
+wait 0.6
+trocar
+segurar D
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 0.8
+soltar D
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.5
+perf off desempenho.txt

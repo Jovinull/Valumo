@@ -61,12 +61,17 @@ public final class Actor {
         submit(frame, world, new Animator.Motion().set(clip, t), blend, expression, ground);
     }
 
+    /** Rodada 09: lampejo de impacto aplicado aos desenhos deste ator no próximo submit (0 = nenhum). */
+    public float flash;
+    /** Rodada 09.3: pontilhado aplicado aos desenhos deste ator no próximo submit (0 = opaco). */
+    public float fade;
+
     /** Rodada 04: avalia locomoção + camada de ação do perfil de arma. */
     public void submit(Renderer.Frame frame, Matrix4f world, Animator.Motion motion, float blend, String expression,
                        Animator.Ground ground) {
         // expressão pelo tipo de gesto: golpe recebido = surpresa, comemoração = alegria, ataque = determinação
         Animator.Clip clip = motion.move != null && motion.weight > 0.5f
-                ? (motion.move.equals("hit") ? Animator.Clip.HIT : motion.move.equals("emote") ? Animator.Clip.EMOTE : Animator.Clip.ATTACK)
+                ? (motion.move.startsWith("hit") || motion.move.equals("defeat") ? Animator.Clip.HIT : motion.move.equals("emote") ? Animator.Clip.EMOTE : Animator.Clip.ATTACK)
                 : motion.clip;
         long t0 = System.nanoTime();
         animator.evaluate(motion, target, world, ground);
@@ -84,7 +89,10 @@ public final class Actor {
             String ex = expression == null ? autoExpression(clip) : expression;
             vx.engine.Mesh mesh = ex != null && p.alts.containsKey(ex) ? p.alts.get(ex) : p.mesh;
             if (Math.abs(mats[i].determinant()) < 1e-12f) continue;          // parte escondida (escala 0)
-            frame.draws.add(new Renderer.Draw(mesh, new Matrix4f(mats[i]), model.atlas, false, true));
+            Renderer.Draw dr = new Renderer.Draw(mesh, new Matrix4f(mats[i]), model.atlas, false, true);
+            dr.flash = flash;
+            dr.fade = fade;
+            frame.draws.add(dr);
         }
         for (Animator.Fx f : animator.fx) {
             Matrix4f m = new Matrix4f(world).mul(f.m);

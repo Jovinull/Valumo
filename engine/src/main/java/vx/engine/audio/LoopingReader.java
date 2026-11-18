@@ -1,7 +1,7 @@
 package vx.engine.audio;
 
 /**
- * Rodada 09 — leitura com laço EXATO na amostra: toca do início até {@code loopEnd} e, a partir daí, volta a
+ * Rodada 09.4 — leitura com laço EXATO na amostra: toca do início até {@code loopEnd} e, a partir daí, volta a
  * {@code loopStart} sem pular nem repetir nenhum quadro. A música do jogo é renderizada com introdução + duas
  * passadas do corpo; o laço é a 2ª passada, que já começa com a cauda da 1ª (tools/audio/render_musica.py).
  * Sem OpenGL nem OpenAL: testável com uma fonte sintética.

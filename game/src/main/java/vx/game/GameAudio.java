@@ -4,14 +4,15 @@ import vx.engine.audio.Audio;
 import vx.viewer.World;
 
 /**
- * Rodada 09 — o que o jogo faz soar. Só traduz fatos do jogo em EVENTOS semânticos do catálogo
+ * Rodada 09.4 — o que o jogo faz soar. Só traduz fatos do jogo em EVENTOS semânticos do catálogo
  * (assets/audio/sons.json); arquivos, variação, limites e volumes ficam no {@code vx.engine.audio}.
  * <ul>
  *   <li>pisada: cada vez que um pé começa o apoio ({@link Player#steps}), com a superfície sob o herói
  *       (grama/floresta → grama; caminho → terra; areia → areia; rocha → pedra) e o passo (andar/correr);</li>
  *   <li>interface: ações do {@link GameLogic} (começar, pausar, conversar, escolher…);</li>
  *   <li>música: a da vila desde a escolha de aparência, sem reiniciar; abafada na pausa e na conversa;</li>
- *   <li>ambiente: vento (cama) e água do lago (posicional, no centro do lago); ouvinte no herói, olhando com a câmera.</li>
+ *   <li>ambiente: vento (cama) e água do lago (posicional, no centro do lago); ouvinte na CÂMERA, olhando para o herói —
+ *       o mesmo dos efeitos do combate (um ouvinte só por contexto, ADR 0023).</li>
  * </ul>
  */
 final class GameAudio {
@@ -21,6 +22,7 @@ final class GameAudio {
     private final String music = Audio.musicChoice(DEFAULT_MUSIC);
     private final boolean log = Boolean.getBoolean("vx.audio.log");     // relatório: o que tocou, quando e onde
     String lastEvent;                                                    // testes
+    private final org.joml.Vector3f eye = new org.joml.Vector3f();
 
     GameAudio(GameLogic logic) {
         this.logic = logic;
@@ -70,10 +72,13 @@ final class GameAudio {
             emit(stepEvent(World.surfaceAt(p.x, p.z), p.stepRun));
         }
         Audio.music(music);
-        // ambiente: cama de vento + água do lago no lugar do lago; o ouvinte é o herói, olhando para onde a câmera olha
+        // ambiente: cama de vento + água do lago no lugar do lago; ouvinte na câmera, olhando para o pivô (o herói)
         Audio.ambient("vento", null);
         Audio.ambient("lago", World.pondCenter());
-        Audio.listener(p.x, p.visualY + 1.0f, p.z, logic.cam.forwardX(), 0f, logic.cam.forwardZ());
+        FollowCamera c = logic.cam;
+        c.position(eye);
+        float fx = c.pivot.x - eye.x, fy = c.pivot.y - eye.y, fz = c.pivot.z - eye.z, l = (float) Math.sqrt(fx * fx + fy * fy + fz * fz);
+        if (l > 1e-5f) Audio.listener(eye.x, eye.y, eye.z, fx / l, fy / l, fz / l);
         Audio.duck(switch (logic.state) {
             case PAUSE -> 0.45f;
             case DIALOG -> 0.7f;

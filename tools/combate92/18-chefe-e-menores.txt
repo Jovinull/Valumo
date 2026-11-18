@@ -1,0 +1,34 @@
+# 18 — ensaio de chefe (protótipo ampliado) com dois fungos: trava no chefe, solta, rola para longe dos menores, ataca livre, trava num menor, troca, volta ao chefe
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+encontro chefe
+posicionar -1.6 10.0 0
+camera-recompor
+wait 1.6
+record on
+mira
+wait 0.8
+atacar
+wait 0.35
+atacar
+wait 0.6
+mira
+segurar S+D
+esquiva
+wait 0.8
+soltar S+D
+encarar 0.3
+atacar
+wait 0.35
+atacar
+wait 0.6
+trocar
+wait 0.8
+trocar
+wait 0.8
+trocar
+wait 0.8
+grupo
+wait 0.6

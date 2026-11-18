@@ -20,6 +20,10 @@ public final class Input {
     public float mouseX = -1, mouseY = -1, mdx, mdy, wheel;
     public final List<float[]> clicks = new ArrayList<>();         // {x, y} de cliques esquerdos (soltar)
     public boolean rightDown;
+    /** Rodada 09: botão esquerdo APERTADO neste quadro (o golpe sai no aperto, não no soltar). */
+    public int leftPressed;
+    /** Rodada 09.2: botão do meio apertado neste quadro (esquiva alternativa ao Alt). */
+    public int middlePressed;
     private boolean haveMouse;
 
     /** Consome os eventos do quadro (limpa o que é só deste quadro; mantém o que está segurado). */
@@ -27,6 +31,8 @@ public final class Input {
         pressed.clear();
         clicks.clear();
         mdx = mdy = wheel = 0;
+        leftPressed = 0;
+        middlePressed = 0;
         for (InputEvent e : events) {
             switch (e.kind()) {
                 case KEY -> {
@@ -40,7 +46,11 @@ public final class Input {
                     mouseY = e.y();
                     haveMouse = true;
                 }
-                case DOWN -> { if (e.button() == 1) rightDown = true; }
+                case DOWN -> {
+                    if (e.button() == 1) rightDown = true;
+                    if (e.button() == 0) leftPressed++;
+                    if (e.button() == 2) middlePressed++;
+                }
                 case UP -> {
                     if (e.button() == 0) clicks.add(new float[]{e.x(), e.y()});
                     if (e.button() == 1) rightDown = false;
