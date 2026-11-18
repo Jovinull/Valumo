@@ -1,0 +1,33 @@
+# Rodada 09.1 — a mesma medição de combate com a câmera de luta da rodada 09 (debug camera-09 on): separa o custo do
+# código novo (som, filtro de raios) do custo da VISTA nova (outra composição da cena na tela).
+size 1920 1080
+click comecar
+debug camera-09 on
+wait 1.0
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+aquecer 7
+perf on
+esperar-inimigo WINDUP 4 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.3
+defesa off
+atacar
+wait 0.35
+atacar
+wait 1.2
+esperar-inimigo WINDUP 5 0.3
+esquivar esquerda 0.6
+esperar-inimigo RECOVER 2 0.05
+encarar 0.15
+atacar
+wait 0.35
+atacar
+wait 0.45
+atacar
+wait 1.4
+esperar-inimigo WINDUP 5 0.2
+wait 1.0
+hold S 1.0
+wait 3.0
+perf off desempenho-combate.txt

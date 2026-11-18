@@ -1,0 +1,17 @@
+# Rodada 09.1 — derrota com som (loopback): sem defender, o herói cai; sinal de derrota; "Tentar de novo".
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+vida-heroi 2
+wait 0.3
+record on
+esperar-resultado 12
+wait 2.4
+click recomecar
+wait 1.5
+combate
+record off
+sons

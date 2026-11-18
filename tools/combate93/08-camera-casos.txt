@@ -1,0 +1,31 @@
+# 08 — câmera nos casos difíceis (P37 travada junto ao toco, P41 fungo colado na livre, P42 entre pedra grande e encosta)
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -3.0 10.0 30
+camera-recompor
+inimigo -2.0 10.6 210 CHASE
+wait 0.2
+record on
+mira
+segurar S
+wait 1.0
+soltar S
+segurar D
+wait 1.5
+soltar D
+mira
+posicionar -1.6 10.6 0
+inimigo -1.6 11.2 180 CHASE
+wait 1.6
+atacar
+wait 1.0
+posicionar -1.6 12.6 0
+camera-recompor
+segurar D
+wait 1.6
+soltar D
+segurar A
+wait 1.6
+soltar A

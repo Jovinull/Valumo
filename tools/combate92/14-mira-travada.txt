@@ -1,0 +1,30 @@
+# 14 — mira travada contra um fungo: Q trava, anda em volta (A/D), recua (S), ataca, esquiva de lado, Q solta
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 9.4 0
+camera-recompor
+wait 0.6
+record on
+mira
+wait 0.5
+segurar D
+wait 1.2
+atacar
+wait 0.6
+soltar D
+segurar A
+wait 1.0
+esquiva
+wait 0.7
+soltar A
+segurar S
+wait 0.6
+soltar S
+atacar
+wait 0.35
+atacar
+wait 0.8
+mira
+wait 1.2

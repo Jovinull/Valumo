@@ -1,0 +1,18 @@
+# 19 — morte: o mesmo golpe final com a morte antiga, D1 e D2 (rodar com -Dvx.morte=antiga|D1|D2). Montagem: vida 1, fungo
+# parado à frente; um corte horizontal derruba, e a câmera fica perto para ver o corpo se desfazer.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 10.4 0
+camera-recompor
+wheel 2
+look 330 -60 0.2
+inimigo -1.6 11.15 180 RECOVER
+vida-inimigo 1
+wait 0.1
+record on
+wait 0.3
+atacar
+wait 2.4
+grupo

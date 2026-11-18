@@ -1,0 +1,80 @@
+# 09 — DEMONSTRAÇÃO: corre, pula, pousa, ataca andando, esquiva, luta com um fungo, depois três (mira livre e travada), mortes voxel
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -0.4 6.0 0
+camera-recompor
+wait 0.4
+record on
+segurar W+SHIFT
+wait 0.8
+pular
+wait 0.8
+soltar SHIFT
+wait 0.3
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 0.6
+soltar W
+mira
+segurar A
+wait 0.1
+esquiva
+wait 0.7
+soltar A
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 0.8
+vida-inimigo 1
+atacar
+wait 1.8
+encontro grupo
+posicionar -1.6 10.0 0
+camera-recompor
+vida-inimigo 2 #0
+vida-inimigo 2 #1
+vida-inimigo 2 #2
+wait 1.0
+segurar W
+atacar
+wait 0.35
+atacar
+wait 0.5
+soltar W
+segurar S+A
+esquiva
+wait 0.7
+soltar S+A
+encarar 0.3
+mira
+atacar
+wait 0.35
+atacar
+wait 0.6
+trocar
+segurar D
+wait 0.1
+esquiva
+wait 0.7
+soltar D
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.0
+mira
+pular
+wait 0.7
+atacar
+wait 0.35
+atacar
+wait 2.0
+grupo

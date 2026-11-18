@@ -1,0 +1,21 @@
+# Rodada 09 — demonstração 10: escudo erguido de frente bloqueia a cabeçada; o fungo ricocheteia e abre a guarda.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+wait 0.3
+record on
+esperar-inimigo WINDUP 3 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.4
+defesa off
+combate
+encarar 0.1
+atacar
+wait 0.5
+atacar
+wait 1.4
+combate
+record off

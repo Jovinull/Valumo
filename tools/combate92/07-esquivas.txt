@@ -1,0 +1,33 @@
+# Rodada 09.2 — esquivas: rolamento para a frente, para a esquerda, para a direita, para trás e recuo sem direção
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.0 7.0 0
+camera-recompor
+wheel 3
+wait 0.6
+record on
+segurar W
+wait 0.4
+esquiva
+wait 0.7
+soltar W
+segurar A
+wait 0.1
+esquiva
+wait 0.7
+soltar A
+segurar D
+wait 0.1
+esquiva
+wait 0.7
+soltar D
+segurar S
+wait 0.1
+esquiva
+wait 0.8
+soltar S
+wait 0.3
+esquiva
+wait 0.8

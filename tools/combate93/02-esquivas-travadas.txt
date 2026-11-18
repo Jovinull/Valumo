@@ -1,0 +1,36 @@
+# 02 — esquivas com a mira travada no fungo: esquerda, direita (de frente para ele), frente e trás
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 9.2 0
+camera-recompor
+wait 0.6
+mira
+wait 0.5
+record on
+segurar A
+wait 0.1
+esquiva
+wait 0.8
+soltar A
+segurar D
+wait 0.1
+esquiva
+wait 0.8
+soltar D
+segurar D
+wait 0.1
+esquiva
+wait 0.8
+soltar D
+segurar S
+wait 0.1
+esquiva
+wait 0.9
+soltar S
+segurar W
+wait 0.1
+esquiva
+wait 0.9
+soltar W

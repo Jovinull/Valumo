@@ -1,0 +1,45 @@
+# Rodada 09 — câmera durante a luta: o mesmo instante (preparação da cabeçada) sem e com o ajuste de combate, em campo
+# aberto, perto da pedra, perto do carvalho e na encosta.
+size 1280 720
+click comecar
+wait 1.0
+debug camera-combate off
+posicionar -1.8 9.4 0
+inimigo -1.8 10.3 180 WINDUP
+wait 0.62
+shot 01-aberto-sem-ajuste
+debug camera-combate on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.3 180 WINDUP
+wait 0.62
+shot 02-aberto-com-ajuste
+debug camera-combate off
+posicionar -3.0 11.4 270
+inimigo -3.9 12.6 0 WINDUP
+wait 0.62
+shot 03-pedra-sem-ajuste
+debug camera-combate on
+posicionar -3.0 11.4 270
+inimigo -3.9 12.6 0 WINDUP
+wait 0.62
+shot 04-pedra-com-ajuste
+debug camera-combate off
+posicionar 0.4 12.2 250
+inimigo -0.5 11.9 70 WINDUP
+wait 0.62
+shot 05-carvalho-sem-ajuste
+debug camera-combate on
+posicionar 0.4 12.2 250
+inimigo -0.5 11.9 70 WINDUP
+wait 0.62
+shot 06-carvalho-com-ajuste
+debug camera-combate off
+posicionar -1.6 12.9 0
+inimigo -1.6 13.8 180 WINDUP
+wait 0.62
+shot 07-encosta-sem-ajuste
+debug camera-combate on
+posicionar -1.6 12.9 0
+inimigo -1.6 13.8 180 WINDUP
+wait 0.62
+shot 08-encosta-com-ajuste

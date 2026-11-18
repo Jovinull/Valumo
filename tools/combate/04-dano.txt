@@ -1,0 +1,15 @@
+# Rodada 09 — demonstração 9: parado diante da preparação, o herói leva a cabeçada, reage e recupera o controle.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+wait 0.3
+record on
+esperar-inimigo ATTACK 3 0.3
+wait 0.9
+combate
+hold S 0.6
+wait 0.6
+record off

@@ -1,0 +1,30 @@
+# Rodada 09 — validação visual das hitboxes (visão técnica): o corte horizontal quadro a quadro em volta da janela de
+# dano (0,33–0,47 s: lâmina em vermelho só nela) e a cabeçada na fase ativa (esfera laranja). Hurtboxes em verde.
+size 1280 720
+click comecar
+wait 1.0
+debug golpes on
+posicionar -1.8 9.6 0
+inimigo -1.8 10.55 180 IDLE
+encarar 0.2
+wait 0.3
+atacar
+wait 0.233
+shot h-0.27-preparo
+wait 0.067
+shot h-0.33-inicio-da-janela
+wait 0.067
+shot h-0.40-meio
+wait 0.067
+shot h-0.47-fim-da-janela
+wait 0.1
+shot h-0.57-depois
+wait 1.2
+posicionar -1.8 9.6 0
+inimigo -1.8 10.55 180 WINDUP
+wait 0.7
+shot c-0.00-golpe
+wait 0.1
+shot c-0.10-ativa
+wait 0.067
+shot c-0.17-ativa

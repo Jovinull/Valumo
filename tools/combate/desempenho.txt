@@ -1,0 +1,32 @@
+# Rodada 09 — medição do COMBATE: ~22 s de luta na arena (o mesmo tipo de quadro da exploração: 1920×1080, glFinish),
+# 60 quadros/s de simulação, depois do aquecimento. Comparar com tools/jogo/desempenho.txt (exploração, linha de base 08.1).
+size 1920 1080
+click comecar
+wait 1.0
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+aquecer 7
+perf on
+esperar-inimigo WINDUP 4 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.3
+defesa off
+atacar
+wait 0.35
+atacar
+wait 1.2
+esperar-inimigo WINDUP 5 0.3
+esquivar esquerda 0.6
+esperar-inimigo RECOVER 2 0.05
+encarar 0.15
+atacar
+wait 0.35
+atacar
+wait 0.45
+atacar
+wait 1.4
+esperar-inimigo WINDUP 5 0.2
+wait 1.0
+hold S 1.0
+wait 3.0
+perf off desempenho-combate.txt

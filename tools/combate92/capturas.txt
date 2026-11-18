@@ -1,0 +1,42 @@
+# Rodada 09.2 — capturas da aplicação (o tamanho é trocado pelo review92.sh: 1920×1080 e 1280×720)
+size 1920 1080
+click comecar
+wait 1.0
+posicionar -1.6 9.6 0
+camera-recompor
+wait 1.2
+shot 01-um-fungo-livre
+mira
+wait 0.8
+shot 02-um-fungo-travado
+atacar
+wait 0.45
+shot 03-golpe-com-barra-pequena
+mira
+encontro grupo
+posicionar -1.6 10.0 0
+camera-recompor
+wait 1.6
+shot 04-tres-fungos-livre
+mira
+wait 0.8
+shot 05-tres-fungos-travado
+trocar
+wait 0.8
+shot 06-troca-de-alvo
+barras sempre
+wait 0.3
+shot 07-barras-sempre
+barras dano
+mira
+encontro chefe
+posicionar -1.6 10.0 0
+camera-recompor
+wait 1.8
+shot 08-chefe-barra-grande
+mira
+wait 0.8
+shot 09-chefe-travado
+key ESC
+wait 0.3
+shot 10-pausa-opcoes-de-combate

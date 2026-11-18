@@ -1,0 +1,10 @@
+# nome | herói x z rumo° | fungo x z | espera (comando de roteiro que define o instante da captura)
+01-campo-aberto        | -1.8 9.4 0     | -1.8 10.6 | esperar-inimigo WINDUP 5 0.40
+02-carvalho            | 0.4 12.2 250   | -0.6 11.8 | esperar-inimigo WINDUP 5 0.40
+03-pedra               | -3.0 11.4 270  | -3.9 12.6 | esperar-inimigo WINDUP 5 0.40
+04-toco                | -3.0 10.0 60   | -2.0 10.6 | esperar-inimigo WINDUP 5 0.40
+05-encosta             | -1.6 12.9 0    | -1.6 13.8 | esperar-inimigo WINDUP 5 0.40
+06-inimigo-colado      | -1.8 10.5 0    | -1.8 11.05 | esperar-inimigo RECOVER 5 0.20
+07-dano-junto-a-pedra  | -3.4 11.0 90   | -2.3 11.3 | esperar-inimigo ATTACK 5 0.16
+08-pior-caso-a         | -3.2 12.6 0    | -3.2 14.1 | esperar-inimigo WINDUP 5 0.40
+09-pior-caso-b         | -2.6 13.2 0    | -2.6 14.2 | esperar-inimigo WINDUP 5 0.40

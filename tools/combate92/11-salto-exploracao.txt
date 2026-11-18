@@ -1,0 +1,30 @@
+# 11 — salto na exploração: no lugar, para cima da pedra pequena (pisável, 0,63 u), de volta ao chão, correndo; e o toco de 1 u, alto demais (contorna)
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar 1.46 5.3 0
+camera-recompor
+wait 0.6
+record on
+pular
+wait 0.8
+segurar W
+wait 0.58
+pular
+wait 0.2
+soltar W
+wait 0.3
+wait 0.6
+estado
+segurar W
+wait 0.6
+soltar W
+wait 0.4
+estado
+segurar W+SHIFT
+wait 0.4
+pular
+wait 0.8
+soltar W+SHIFT
+wait 0.6

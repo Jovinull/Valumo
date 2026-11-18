@@ -1,0 +1,41 @@
+# 16 — três fungos de uma vez: mira livre, anda, ataca, rola para sair do cerco, ataca de novo
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+encontro grupo
+posicionar -1.6 10.0 0
+camera-recompor
+wait 0.3
+record on
+wait 1.0
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 0.8
+segurar S+A
+esquiva
+wait 0.8
+soltar S+A
+encarar 0.3
+segurar W
+wait 0.3
+atacar
+wait 0.35
+atacar
+wait 0.6
+soltar W
+segurar D
+esquiva
+wait 0.7
+soltar D
+encarar 0.3
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.2
+grupo

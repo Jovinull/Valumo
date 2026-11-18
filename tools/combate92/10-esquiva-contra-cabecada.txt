@@ -1,0 +1,21 @@
+# 10 — esquiva contra a cabeçada: espera a cabeçada sair e rola de lado (janela de invulnerabilidade)
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 10.2 0
+camera-recompor
+wait 0.3
+record on
+esperar-inimigo WINDUP 6 0.55
+segurar A
+esquiva
+wait 0.8
+soltar A
+esperar-inimigo WINDUP 6 0.55
+segurar D
+esquiva
+wait 0.8
+soltar D
+wait 0.6
+grupo

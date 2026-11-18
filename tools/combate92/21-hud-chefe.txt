@@ -1,0 +1,20 @@
+# 21 — barra de chefe: só o protótipo de chefe tem a barra grande no topo; os menores, a pequena
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+encontro chefe
+posicionar -1.6 10.2 0
+camera-recompor
+wait 1.6
+record on
+mira
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.0
+trocar
+atacar
+wait 1.2

@@ -1,0 +1,20 @@
+# 04 — golpe andando de lado (A segurado): o corpo continua indo para a esquerda durante os cortes
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -0.4 7.6 0
+camera-recompor
+wheel 2
+wait 0.6
+record on
+segurar A
+wait 0.5
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.0
+soltar A
+wait 0.5

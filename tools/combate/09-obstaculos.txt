@@ -1,0 +1,30 @@
+# Rodada 09 — demonstração 15: a pedra grande corta a visão do fungo; contornando pelo leste, ele percebe; a luta acontece
+# junto à pedra e ao toco; recuando para o outro lado da pedra, ele a contorna e continua a luta (sem atravessá-la).
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -5.0 9.6 150
+inimigo -3.0 12.8 200 IDLE
+wait 0.3
+record on
+wait 1.5
+combate
+ir -4.0 10.0
+ir -2.5 10.4
+esperar-inimigo ALERT 4 0.3
+combate
+esperar-inimigo WINDUP 5 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.3
+defesa off
+encarar 0.1
+atacar
+wait 0.35
+atacar
+wait 1.3
+ir -4.0 10.0 correndo
+ir -5.0 9.6 correndo
+wait 3.5
+combate
+record off

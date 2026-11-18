@@ -1,0 +1,25 @@
+# 13 — câmera livre contra um fungo: o mouse manda (gira à vontade), nada gira sozinho; ombro de luta
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 9.6 0
+camera-recompor
+wait 0.3
+record on
+wait 1.0
+atacar
+wait 0.35
+atacar
+wait 0.8
+look 260 0 1.0
+segurar W
+wait 0.4
+atacar
+wait 0.6
+soltar W
+look -420 0 1.2
+atacar
+wait 1.0
+look 160 -40 0.6
+wait 0.6

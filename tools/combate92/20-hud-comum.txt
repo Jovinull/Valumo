@@ -1,0 +1,23 @@
+# 20 — barras de inimigos comuns: padrão (ao levar dano / alvo), depois 'sempre', depois 'nunca'
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+encontro grupo
+posicionar -1.6 10.0 0
+camera-recompor
+wait 1.4
+record on
+atacar
+wait 0.35
+atacar
+wait 1.2
+mira
+wait 1.0
+barras sempre
+wait 1.2
+barras nunca
+wait 1.0
+mira
+barras dano
+wait 0.6

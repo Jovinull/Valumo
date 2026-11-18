@@ -1,0 +1,34 @@
+# Rodada 09 — demonstração 12: bloqueia, contra-ataca com a sequência horizontal → diagonal → descendente e derrota o fungo.
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.8 9.4 0
+inimigo -1.8 10.45 180 CHASE
+wait 0.3
+record on
+esperar-inimigo WINDUP 3 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.3
+defesa off
+encarar 0.1
+atacar
+wait 0.35
+atacar
+wait 0.45
+atacar
+wait 1.4
+combate
+esperar-inimigo WINDUP 4 0.2
+defesa on
+esperar-inimigo RECOVER 2 0.3
+defesa off
+encarar 0.1
+atacar
+wait 0.35
+atacar
+wait 0.45
+atacar
+wait 2.4
+combate
+record off

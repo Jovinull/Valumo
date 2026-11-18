@@ -1,0 +1,20 @@
+# 15 — troca de alvo: três fungos; Q trava, Tab para a direita, Tab, Shift+Tab, solta
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+encontro grupo
+posicionar -1.6 10.2 0
+camera-recompor
+wait 1.6
+record on
+mira
+wait 0.9
+trocar
+wait 0.9
+trocar
+wait 0.9
+trocar anterior
+wait 0.9
+mira
+wait 0.8

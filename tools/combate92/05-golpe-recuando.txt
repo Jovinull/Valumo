@@ -1,0 +1,21 @@
+# 05 — golpe recuando: mira travada no fungo e S segurado (de frente para ele, andando para trás)
+size 1280 720
+click comecar
+wait 1.0
+eventos on
+posicionar -1.6 10.0 0
+camera-recompor
+wait 0.8
+mira
+wait 0.4
+record on
+segurar S
+wait 0.3
+atacar
+wait 0.35
+atacar
+wait 0.35
+atacar
+wait 1.0
+soltar S
+wait 0.5
