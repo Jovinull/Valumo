@@ -94,6 +94,16 @@ public final class ComponentCatalog {
     // ------------------------------------------------------------------ resolução (null = valor do preset)
 
     public String face(Appearance a) { return a.face != null ? a.face : presets.get(a.preset).face; }
+
+    /** Botas (rodada 09): a escolhida ou "botas.originais" (as do corpo do preset). */
+    public String feet(Appearance a) { return a.feet != null ? a.feet : "botas.originais"; }
+
+    /** Formato dos olhos (rodada 09): o escolhido ou o nativo do rosto. */
+    public String eyes(Appearance a) {
+        if (a.eyes != null) return a.eyes;
+        JsonObject f = components.get(face(a)).doc;
+        return f.has("olhos") ? f.get("olhos").getAsString() : null;
+    }
     public String hair(Appearance a) { return a.hair != null ? a.hair : presets.get(a.preset).hair; }
     public String hairColor(Appearance a) { return a.hairColor != null ? a.hairColor : presets.get(a.preset).hairColor; }
     public String skin(Appearance a) { return a.skin != null ? a.skin : presets.get(a.preset).skin; }
