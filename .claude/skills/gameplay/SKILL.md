@@ -79,6 +79,14 @@ diálogo até ser pedido.
 cena, testes e zip. Olhe os quadros em tamanho real: pés no chão em degraus, herói na água, câmera dentro de
 parede ou da cabeça, indicação de interação sobre a NPC certa.
 
+## Rodada 09 — som no jogo
+
+- Fatos do jogo → eventos do catálogo em `GameAudio` (pisada pela fase de contato do pé + superfície; `GameLogic.onAction`
+  para a interface; música, vento, lago, ouvinte). Nunca caminho de arquivo nem `Audio` dentro das regras.
+- Pisada: `Player.steps` muda quando `floor(2·animT·cadência)` muda, com o herói no chão e acima de 0,12 u/s
+  (`GameAudioTest`: intervalo 1/(2·cadência), mesma contagem a 30 e 144 FPS, parado não pisa).
+- Superfície nova no relevo → caso novo em `GameAudio.stepEvent` + evento no catálogo + teste.
+- Volume do jogador: `AudioPrefs` (pausa), `output/preferencias/audio.json`; roteiros com `-Dvx.prefs=` temporário.
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |

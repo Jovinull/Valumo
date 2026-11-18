@@ -1,6 +1,6 @@
 ---
 name: character-customization
-description: Personalização modular dos protagonistas em tempo de execução (Java) — catálogo de componentes gerado por tools/components_e.py, compositor (Composer) com grade fundida por peça, recoloração por canal semântico que preserva a rampa, variantes de cabelo sob chapéu/capuz com assento, presets idênticos ao canônico, Appearance versionada (salvar/carregar), criador do jogador (07.2) e modo PERSONALIZACAO técnico, gate pixel a pixel. Use ao criar cabelo, chapéu, cor, rosto ou preset, ao mexer no compositor ou ao validar combinações.
+description: Personalização modular dos protagonistas em tempo de execução (Java) — catálogo de componentes gerado por tools/components_e.py, compositor (Composer) com grade fundida por peça, recoloração por canal semântico que preserva a rampa, variantes de cabelo sob chapéu/capuz com assento, presets idênticos ao canônico, Appearance versionada (salvar/carregar), criador do jogador (07.2) e modo PERSONALIZACAO técnico, gate pixel a pixel; rodada 09: formato dos olhos (olhos.*), botas por região (pes), Appearance v2 com migração, regra X real e arma × cabelo voxel a voxel (--check-cabelos). Use ao criar cabelo, chapéu, cor, rosto, olhos, roupa ou preset, ao mexer no compositor ou ao validar combinações.
 ---
 
 # Personalização de personagens (direção E)
@@ -78,6 +78,27 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
    `tools/review72.sh capturas`; olhe a miniatura nova em tamanho real.
 6. Gate de rodadas seguintes sem sobrescrever a 07: `R=output/visual-review/<rodada>/regressao tools/review7.sh gate`.
 
+## Rodada 09 — estudos de cabelo, olhos, botas e arma × cabelo
+
+- **Cabelo novo**: função própria em `chars_e.py` (ex.: `hair_crespo`, `hair_coque`) chamada por `HAIR_STUDIES_R09`, sem
+  mexer nos ramos existentes; exporte como o `curto` com `"experimental": true`. Partes que não são cabelo (amarração
+  de couro) entram DEPOIS do `hair_finish` (ele descarta tudo que não é a cor do cabelo) e ficam fora da máscara.
+- **Medidas**: `python3 tools/hair_metrics.py` (caixa e Jaccard no espaço do modelo, mesmo mapeamento do Java). Os
+  estudos novos ficaram com Jaccard máx. 0,41/0,50 (os aprovados chegam a 0,63).
+- **Arma × cabelo, voxel a voxel**: `viewer --check-cabelos [saida.md]` e `HairWeaponTest`. Estudo pior que o penteado
+  do preset reprova; aprovado acima da referência aparece como PRÉ-EXISTENTE (achado: EMOTE do aventureiro atravessa
+  o topete canônico — problemas conhecidos).
+- **Regra `X`** quando a cobertura some no volume (crespo × capuz C3): indisponível com motivo; o `CustomizationTest`
+  exige que exatamente as combinações `X` sejam recusadas.
+- **Olhos** (`olhos.*`): o exportador regenera cada rosto com só o `eye` trocado (`NATIVE_FACE`, `EYES` em
+  `components_e.py`) e grava `rosto.*.variantesOlhos`; o nativo são os arquivos originais. Teste: muda só a placa do
+  rosto, 4 expressões distintas, nativo explícito = preset.
+- **Botas** (`pes`): `charlib_e.leg(boot_style=...)` + `porCorpo` no catálogo; só `shin_l`/`shin_r`, mesmo pivô, sola na
+  mesma altura (IK do pé). A canela é a bota inteira (joelho em 7/8): cano alto exigiria a coxa. Peça precisa LER na
+  câmera de jogo (v1 com o tom claro da própria bota não lia; v2 com forro creme lê).
+- **Aparência v2** (`aparencia.olhos`, `equipamento_visual.pes`); v1 abre por `Appearance.migrate1to2`. Campo novo →
+  copy, reset, assinatura, JSON, validate, `Main` (chave de captura), criador (layout, miniatura, controlador, nome).
+- Captura: chaves `olhos=` e `pes=` além das antigas. Pacote: `tools/review9.sh cabelos|olhos|botas|armas`.
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |
@@ -88,3 +109,8 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
 | Ponta do topete flutuando fora da aba | mecha fora das colunas da aba | também cai o que sai acima da aba mais baixa |
 | Estilo "natural" ≈ topete | mesma casca | medir Jaccard antes de entrar no catálogo |
 | Lado da cabeça careca no `curto` v1 | laterais e nuca altas com casca fina | laterais 6, nuca 3, casca 1,5 |
+| Têmpora careca no crespo/coque v1 (09) | franja lateral alta (bang 10–11) | `TEMPLE = 6` nas laterais da frente |
+| Pontos escuros soltos nas costas do crespo v1 | emenda de cachos pintada em voxels 3D | entalhe geométrico na superfície (`_lobe_notches`) |
+| Coque "bolo de andares", nuca chapada (v1) | superelipsoide p 2,3; sem sulcos | coque p 2,0 + `hair_strands` |
+| "Cor do cabelo" fora do painel com 6 penteados | 2 colunas → 3 fileiras | 3 colunas quando houver mais de 4 |
+| Nó/fitas do capuz enterrados no crespo | volume grande cobre a peça | regra `X` |

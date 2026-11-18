@@ -147,3 +147,10 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
    (commit, data, motivo).
 5. Rode de novo o gate e a comparação (0/255).
 
+## Rodada 09
+
+- `tools/review9.sh [audio|contexto|ambiente|criador|cabelos|armas|olhos|botas|pausa|gate|testes|tudo]` →
+  `output/visual-review/round-09/`. Vídeos do jogo saem COM SOM (mistura gravada pelo loopback, em sincronia).
+- Captura de evidência pode ser sobrescrita pela próxima rodada de capturas: copie o "antes" para `comparacoes/`
+  antes de corrigir (na 09 a imagem do defeito de layout se perdeu).
+- `--check-cabelos` (arma × cabeça composta) entra no portão de qualquer mudança de cabelo, rosto ou golpe.

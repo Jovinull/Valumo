@@ -122,3 +122,10 @@ unilaterais: mochila só se afasta, cachecol só vai para a frente). Acessório 
 - **Continua aberto (não corrigido):** interrupção por HIT atravessa o corpo em 7/21 cortes da espada e 18/47
   da lâmina longa (`viewer --check interrupcao`). Não produza armas novas com animação de combate nem inimigos
   que interrompam golpes até a rodada de combate.
+
+## Rodada 09 — arma × cabelo personalizado
+
+O `--check` mede a cabeça como uma cápsula (raio 8,6): cabelo além dela não é visto. `viewer --check-cabelos` mede a
+arma contra a cabeça COMPOSTA (voxels reais) em todo golpe, HIT, EMOTE e locomoção, para cada preset × penteado.
+Achado: o EMOTE do aventureiro põe 21 voxels da espada dentro do topete canônico (t = 0,77 s). Ao mexer em qualquer
+golpe ou gesto, rode também `--check-cabelos` e não aumente a penetração de nenhuma combinação.

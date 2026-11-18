@@ -52,6 +52,16 @@ Decisão: `docs/decisions/0012-interface-do-jogo.md`.
 4. Teste de fumaça da janela real: `viewer --editor --demo 400` (abre, desenha, imprime FPS).
 5. Documente no doc da tela; atualize o checklist "Interface do jogador".
 
+## Rodada 09
+
+- Fileira "rótulo … [−] valor [+]" (`Game.stepperRow`): rótulo com `textPx` (escala inteira que cabe à esquerda dos
+  botões) e valor centrado; usada por sensibilidade e volumes. Em 720p o rótulo antigo era atravessado pelo "−".
+- Miniaturas: enquadramentos `olhos` (close na linha dos olhos) e `pes` (botas) em `App.renderThumb`; escolha pelo
+  prefixo do id em `CreatorThumbs.framing`. Miniatura que corta o que se escolhe é inútil — confira em tamanho real.
+- Conteúdo cresceu → amplie só o necessário: 3 colunas de penteado com mais de 4; na variante B (pouca altura) o
+  formato dos olhos vira botões de alternância sob um título único. O `CreatorTest` (todas as resoluções e variantes)
+  pega o que sai da tela.
+- Roteiros sem `record on` não desenham: use `settle` antes de `click` em botão que acabou de aparecer.
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |
