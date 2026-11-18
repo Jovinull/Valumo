@@ -1,0 +1,47 @@
+{
+  "contrato": "valumo.sons",
+  "versao": 1,
+  "nota": "Rodada 09 — catálogo escrito à mão. Eventos semânticos → arquivos e regras. Todos os sons são ESTUDOS (aprovação do proprietário pendente). Fontes editáveis em fontes/audio/; procedimento na skill sound-design.",
+  "barramentos": {"musica": 0.6, "efeitos": 0.85, "interface": 0.75, "ambiente": 0.7},
+  "eventos": {
+    "passo.grama.andar": {"barramento": "efeitos", "arquivos": ["sfx/passos/grama_andar_1.wav", "sfx/passos/grama_andar_2.wav", "sfx/passos/grama_andar_3.wav", "sfx/passos/grama_andar_4.wav"],
+                          "ganho_db": -4, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.03, 0.2]},
+    "passo.grama.correr": {"barramento": "efeitos", "arquivos": ["sfx/passos/grama_correr_1.wav", "sfx/passos/grama_correr_2.wav", "sfx/passos/grama_correr_3.wav", "sfx/passos/grama_correr_4.wav"],
+                           "ganho_db": -2, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.03, 0.16]},
+    "passo.terra.andar": {"barramento": "efeitos", "arquivos": ["sfx/passos/terra_andar_1.wav", "sfx/passos/terra_andar_2.wav", "sfx/passos/terra_andar_3.wav", "sfx/passos/terra_andar_4.wav"],
+                          "ganho_db": -5, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.03, 0.2]},
+    "passo.terra.correr": {"barramento": "efeitos", "arquivos": ["sfx/passos/terra_correr_1.wav", "sfx/passos/terra_correr_2.wav", "sfx/passos/terra_correr_3.wav", "sfx/passos/terra_correr_4.wav"],
+                           "ganho_db": -3, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.03, 0.16]},
+    "passo.areia.andar": {"barramento": "efeitos", "arquivos": ["sfx/passos/areia_andar_1.wav", "sfx/passos/areia_andar_2.wav", "sfx/passos/areia_andar_3.wav", "sfx/passos/areia_andar_4.wav"],
+                          "ganho_db": -4, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.03, 0.2]},
+    "passo.areia.correr": {"barramento": "efeitos", "arquivos": ["sfx/passos/areia_correr_1.wav", "sfx/passos/areia_correr_2.wav", "sfx/passos/areia_correr_3.wav", "sfx/passos/areia_correr_4.wav"],
+                           "ganho_db": -2, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.03, 0.16]},
+    "passo.pedra.andar": {"barramento": "efeitos", "arquivos": ["sfx/passos/pedra_andar_1.wav", "sfx/passos/pedra_andar_2.wav", "sfx/passos/pedra_andar_3.wav", "sfx/passos/pedra_andar_4.wav"],
+                          "ganho_db": -5, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.02, 0.2]},
+    "passo.pedra.correr": {"barramento": "efeitos", "arquivos": ["sfx/passos/pedra_correr_1.wav", "sfx/passos/pedra_correr_2.wav", "sfx/passos/pedra_correr_3.wav", "sfx/passos/pedra_correr_4.wav"],
+                           "ganho_db": -3, "variacao_tom": 0.5, "variacao_ganho_db": 1.5, "intervalo_min": 0.08, "max_vozes": 3, "prioridade": 1, "duracao": [0.02, 0.16]},
+    "ui.selecionar": {"barramento": "interface", "arquivos": ["sfx/interface/selecionar_1.wav", "sfx/interface/selecionar_2.wav", "sfx/interface/selecionar_3.wav"],
+                      "ganho_db": -6, "variacao_tom": 0, "variacao_ganho_db": 1.0, "intervalo_min": 0.04, "max_vozes": 2, "prioridade": 3, "duracao": [0.05, 0.2]},
+    "ui.confirmar": {"barramento": "interface", "arquivos": ["sfx/interface/confirmar.wav"],
+                     "ganho_db": -2, "intervalo_min": 0.08, "max_vozes": 1, "prioridade": 3, "duracao": [0.2, 0.5]},
+    "ui.cancelar": {"barramento": "interface", "arquivos": ["sfx/interface/cancelar.wav"],
+                    "ganho_db": -3, "intervalo_min": 0.08, "max_vozes": 1, "prioridade": 3, "duracao": [0.2, 0.45]},
+    "ui.abrir": {"barramento": "interface", "arquivos": ["sfx/interface/abrir.wav"],
+                 "ganho_db": 0, "intervalo_min": 0.1, "max_vozes": 1, "prioridade": 3, "duracao": [0.15, 0.4]},
+    "ui.salvar": {"barramento": "interface", "arquivos": ["sfx/interface/salvar.wav"],
+                  "ganho_db": -2, "intervalo_min": 0.2, "max_vozes": 1, "prioridade": 4, "duracao": [0.4, 1.0]}
+  },
+  "musicas": {
+    "vila_a": {"arquivo": "musica/vila_a.ogg", "laco_inicio": 2419200, "laco_fim": 4492800, "ganho_db": 0,
+               "nota": "Vila A — exploração acolhedora (6/8, violão e madeiras). Estudo."},
+    "vila_b": {"arquivo": "musica/vila_b.ogg", "laco_inicio": 3379200, "laco_fim": 6451200, "ganho_db": 0,
+               "nota": "Vila B — fantasia misteriosa (4/4, harpa e celesta, Ré lídio). Estudo."}
+  },
+  "ambientes": {
+    "vento": {"arquivo": "ambiente/vento.ogg", "barramento": "ambiente", "ganho_db": -8, "posicional": false,
+              "nota": "Cama de vento (estéreo, laço de 24 s): ar grave + rajadas desenhadas + folhas nos picos. Estudo."},
+    "lago": {"arquivo": "ambiente/lago.ogg", "barramento": "ambiente", "ganho_db": -2, "posicional": true,
+             "distancia_ref": 2.5, "distancia_max": 14,
+             "nota": "Água do lago (mono, posicional, laço de 16 s): marulho irregular, respingos, gotas. Estudo."}
+  }
+}
