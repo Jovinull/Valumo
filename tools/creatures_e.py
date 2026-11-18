@@ -216,8 +216,25 @@ def lumi():
 def fungo2():
     """Fungo da rodada 03: o chapéu cai sobre o rosto como um capuz (a aba faz a sobrancelha), olhos em
     fenda à sombra da aba, corpo atarracado. Silhueta da espécie = chapéu; o rosto é mínimo."""
+    return _fungo()
+
+
+def fungo_cardo():
+    """Rodada 09 — variante de COMBATE do fungo (não substitui o canônico, que continua manso na vila).
+    Mudanças pequenas e justificadas, todas para leitura de ameaça a 4–6 u da câmera de jogo:
+      - chapéu carmim mais escuro (o canônico é rosado e amigável);
+      - coroa de cinco espinhos no topo (silhueta reconhecível de longe; é a "arma" da cabeçada);
+      - olhos em fenda inclinada para dentro (raiva) em vez da fenda reta sonolenta;
+      - mão de folha vira nó de espinhos (sem vento: material fosco).
+    Proporção, corpo, pés e boca são os do canônico. Animação própria ("brawler") no Animator."""
+    return _fungo(cap_hex="#8e2a40", spikes=((-1, 0, 3), (3, -2, 3), (-4, 3, 2), (4, 3, 2), (0, -5, 2)),
+                  angry=True, thorn_hands=True, name="Fungo-cardo (E, combate)", anim="brawler")
+
+
+def _fungo(cap_hex="#b3475c", spikes=((-1, 0, 2), (3, -2, 2)), angry=False, thorn_hands=False,
+           name="Fungo (E)", anim="hopper"):
     stem = P("#ecdcb8")
-    cap = P("#b3475c")
+    cap = P(cap_hex)
     spot = P("#f6e6c6")
     gill = P("#d9b48e")
     vine = P("#4f6b3e")
@@ -230,6 +247,11 @@ def fungo2():
             decal(b, x, 9, C("#2a1c34"))
             decal(b, x, 10, C("#2a1c34"))
         decal(b, xs[0] if xs[0] > 0 else xs[2], 10, C("#fffaf0"))      # brilho do lado da luz
+    if angry:                                         # fenda inclinada para dentro: some o canto interno de cima
+        for (x, y) in ((1, 10), (-2, 10)):
+            decal(b, x, y, stem)
+        for (x, y) in ((1, 8), (-2, 8)):              # e desce um voxel no canto interno de baixo
+            decal(b, x, y, C("#2a1c34"))
     for (x, y) in ((-2, 6), (-1, 6), (0, 6), (1, 6), (-2, 7), (1, 7)):   # boca em arco para baixo
         if (x, y) in ((-2, 7), (1, 7)):
             continue
@@ -244,19 +266,24 @@ def fungo2():
         for (x, y, z) in list(c.v):
             if (x, y + 1, z) not in c.v and (x + 0.5 - sx) ** 2 + (z + 0.5 - sz) ** 2 <= r * r:
                 c.v[(x, y, z)] = spot
-    for (x, z, h) in ((-1, 0, 2), (3, -2, 2)):        # dois espinhos curtos no topo
+    for (x, z, h) in spikes:                          # espinhos no topo (canônico: dois curtos)
         y0 = max(k[1] for k in c.v if k[0] == x and k[2] == z) + 1
         c.box(x, y0, z, x, y0 + h - 1, z, CB.light(stem))
     c.translate(0, 2, 0)
     arm = Vox()
     for (x, y) in ((5, 9), (6, 9), (7, 8), (8, 7), (8, 6)):
         arm.box(x, y, 0, x, y, 1, vine)
-    arm.box(8, 4, -1, 9, 5, 2, P("#6f9a44", "foliage"))  # mão de folha
+    if thorn_hands:                                   # nó de espinhos (fosco, sem vento)
+        arm.box(8, 4, -1, 9, 5, 2, P("#4f6b3e"))
+        for (x, y, z) in ((10, 5, 0), (9, 6, 1), (8, 3, 0)):
+            arm.set(x, y, z, CB.light(stem))
+    else:
+        arm.box(8, 4, -1, 9, 5, 2, P("#6f9a44", "foliage"))  # mão de folha
     leg = Vox()
     leg.box(1, 0, -2, 4, 1, 3, foot)
     leg.box(2, 0, 4, 3, 0, 4, foot)
     shade(leg)
-    rig = Rig("Fungo (E)", 1 / 32, "hopper", meta={"headsTall": 1.0, "tier": 1, "lean": 0.06})
+    rig = Rig(name, 1 / 32, anim, meta={"headsTall": 1.0, "tier": 1, "lean": 0.06})
     rig.part("body", b, (0, 0, 0))
     rig.part("cap", c, (0, 14.0, 0), "body")
     rig.part("arm_l", arm, (5.0, 9.0, 0.5), "body")
@@ -550,6 +577,7 @@ def mariposa():
 def build(out):
     pompom().save(f"{out}/creatures/e/pompom")
     fungo2().save(f"{out}/creatures/e/fungo")
+    fungo_cardo().save(f"{out}/creatures/e/fungo_cardo")   # rodada 09: variante de combate
     lumi().save(f"{out}/creatures/e/lumi")
     tortuga("s3").save(f"{out}/creatures/e/tortuga")
     mariposa().save(f"{out}/creatures/e/mariposa")     # rodada 06

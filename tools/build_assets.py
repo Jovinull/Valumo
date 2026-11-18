@@ -29,7 +29,9 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            # rodada 06.1: prova técnica de personalização modular (lê assets de chars_e)
            "custom_e",
            # rodada 07: componentes de personalização em tempo de execução (lê assets de chars_e)
-           "components_e"]
+           "components_e",
+           # rodada 09.1: efeitos sonoros do combate (assets/audio/)
+           "audio_e"]
 
 
 def main():
