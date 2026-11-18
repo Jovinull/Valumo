@@ -33,9 +33,9 @@
   },
   "musicas": {
     "vila_a": {"arquivo": "musica/vila_a.ogg", "laco_inicio": 2419200, "laco_fim": 4492800, "ganho_db": 0,
-               "nota": "Vila A — exploração acolhedora (6/8, violão e madeiras). Estudo."},
+               "nota": "Vila A — exploração acolhedora (6/8, violão e madeiras; síntese própria). Padrão do jogo, aprovada."},
     "vila_b": {"arquivo": "musica/vila_b.ogg", "laco_inicio": 3379200, "laco_fim": 6451200, "ganho_db": 0,
-               "nota": "Vila B — fantasia misteriosa (4/4, harpa e celesta, Ré lídio). Estudo."}
+               "nota": "Vila B — fantasia misteriosa (4/4, harpa e celesta, Ré lídio; síntese própria). Alternativa aprovada."}
   },
   "ambientes": {
     "vento": {"arquivo": "ambiente/vento.ogg", "barramento": "ambiente", "ganho_db": -8, "posicional": false,
