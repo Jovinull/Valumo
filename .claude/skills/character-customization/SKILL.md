@@ -81,7 +81,8 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
 ## Rodada 09.4 — estudos de cabelo, olhos, botas e arma × cabelo
 
 - **Cabelo novo**: função própria em `chars_e.py` (ex.: `hair_crespo`, `hair_coque`) chamada por `HAIR_STUDIES_R09`, sem
-  mexer nos ramos existentes; exporte como o `curto` com `"experimental": true`. Partes que não são cabelo (amarração
+  mexer nos ramos existentes; exporte como o `curto` com `"experimental": true` (aprovado pelo proprietário → `"aprovado": "rodada NN"`; os dois continuam
+  protegidos por `HairWeaponCheck.isNew`). Partes que não são cabelo (amarração
   de couro) entram DEPOIS do `hair_finish` (ele descarta tudo que não é a cor do cabelo) e ficam fora da máscara.
 - **Medidas**: `python3 tools/hair_metrics.py` (caixa e Jaccard no espaço do modelo, mesmo mapeamento do Java). Os
   estudos novos ficaram com Jaccard máx. 0,41/0,50 (os aprovados chegam a 0,63).

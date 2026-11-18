@@ -12,8 +12,16 @@ QA técnico: skill `audio-qa`. Efeitos: skill `sound-design`.
 
 - Composição deliberada: cada nota, ritmo, instrumento e forma é decisão escrita. Código só transcreve a partitura
   (`tools/audio/lmms.py` não compõe nada).
-- Instrumentos virtuais tradicionais: sf2player com o banco **FluidR3 GM** (`/usr/share/sounds/sf2/FluidR3_GM.sf2`,
-  pacote `fluid-soundfont-gm`, licença MIT) e sintetizadores do LMMS. Registre o instrumento na faixa.
+- **Instrumentos = síntese própria** nos sintetizadores do LMMS: `tools/audio/sintese.py` (violão, harpa, baixo,
+  flautas, clarinete, cordas, violoncelo, glockenspiel, celesta, vibrafone, cristal, caixa de música, kalimba, chocalho).
+  `instrumento, eldata = S.violao()` e `L.Track(..., instrumento, notas, eldata=eldata)`. Nada de banco de amostras: o
+  FluidR3 GM saiu na 09.4 por decisão do proprietário (regra: nada de terceiros, nem com licença livre).
+- **Tempos do LMMS 1.2.2 (medidos):** ataque, decaimento e soltura ≈ 5 s × valor² (`S.t(segundos)` converte);
+  `sustain` é o NÍVEL. Vibed: o `length` muda a altura e as cordas morrem na hora — não use; corda pinçada = serra/
+  triângulo + envelope de corte.
+- **Equilíbrio:** `tools/audio/nivelar.py PARTITURA "Faixa=dB" ...` renderiza cada faixa sozinha e sugere o `vol=`
+  (alvo por papel: melodia 0, acompanhamento −3/−4, baixo −6, colchão −9/−11, brilhos −12/−14). Automação de volume
+  manda mais que o `vol` da faixa: escale a automação.
 - **Proibido:** geradores de música por IA, algoritmo que "inventa" notas, PCM escrito por código como música,
   cópia de temas de outros jogos.
 
@@ -31,7 +39,6 @@ QA técnico: skill `audio-qa`. Efeitos: skill `sound-design`.
 | Ferramenta | Versão | Uso | Verificação |
 |---|---|---|---|
 | LMMS | 1.2.2 (apt no Ubuntu; Flatpak `io.lmms.LMMS` --user no Fedora, achado por `render_musica.lmms_command`) | DAW: sessão `.mmp`, render | abre o projeto escrito à mão (captura em `round-09-4/ferramentas/`); render por CLI determinístico (amostras idênticas em dois renders) |
-| FluidR3 GM | 3.1 (apt) | instrumentos do sf2player | afinação conferida (A4 = 440 Hz) |
 | ffmpeg / ffprobe | 6.1 (apt) e build em `~/bin` | medida, limitador, OGG | `ebur128`, `alimiter`, `libvorbis` |
 | sox | 14.4.2 (apt) | utilidades | — |
 | Audacity | 3.4.2 (apt) | edição manual pelo proprietário | instalado; **sem** `mod-script-pipe` no pacote do Ubuntu (não dá para automatizar); a abertura com interface não foi verificada nesta rodada |
@@ -72,11 +79,13 @@ o `~/.lmmsrc.xml` precisa de `<app configured="1" …/>`.
 | Defeito | Causa | Correção |
 |---|---|---|
 | Violão sumia na 2ª passada do laço | LMMS 1.2 para de tocar o padrão quando as notas não estão em ordem de posição | `render_musica.looped_session` reordena; ao editar XML, mantenha as notas em ordem |
-| 2ª passada diferente da 1ª | sf2player dispara notas na grade do buffer (256 quadros); corpo fora da grade | andamento alinhado (passo 3) |
+| 2ª passada diferente da 1ª | notas disparam na grade do buffer (256 quadros); corpo fora da grade | andamento alinhado (passo 3) |
+| fim da 2ª passada ≠ da 1ª (QA da emenda, B) | caudas longas alimentando a ReverbSC, que modula as linhas de atraso ao acaso | caudas menores ou menos envio à reverberação (B: harpa 0,30, celesta 0,40) |
+| Posições do laço 50 ms adiantadas sem aviso | sonda de calibração com instrumento de banco: sem o banco ela sai MUDA e o limiar cai a zero | sonda com clique próprio; sonda muda = erro (`render_musica.calibrate`) |
 | Eco do Delay não soa | efeito Delay do LMMS 1.2.2 não funciona escrito em XML (testado: 4 nomes de nó, autoquit 0/1) | eco ESCRITO na partitura (`L.written_echo`) |
-| Mallets (STK) desafinado; travou o render | preset com altura errada (C5 → 5,5 kHz), "madeira" vira clique, tigela derrubou o LMMS | não use; sf2player (vibrafone, FX cristal) |
-| Glockenspiel e chocalho inaudíveis | FluidR3: alguns timbres saem 25–35 dB abaixo | meça stems; `gain` do sf2player (até 5) + volume da faixa |
-| Música abafada (acima de 4 kHz −8 dB de uma curva acústica) | timbres do FluidR3 escuros | EQ do master (prateleira +2,5 dB em 6 kHz), escuta humana decide |
+| Mallets (STK) desafinado; travou o render | preset com altura errada (C5 → 5,5 kHz), "madeira" vira clique, tigela derrubou o LMMS | não use; vibrafone e cristal sintetizados (`sintese.py`) |
+| Chocalho mudo (−53 LUFS) | Kicker tem corpo a 140 Hz e o EQ passa-alta da faixa o tirava | chocalho = ruído com queda de 70 ms (`S.chocalho`) |
+| Música abafada / graves sobrando (síntese) | filtros fechados demais; subgraves somando | compare bandas com a versão anterior; abra os filtros, EQ do master (A: presença +6 dB em 3,2 kHz; B: prateleira −4 dB abaixo de 160 Hz); escuta humana decide |
 | `rendertracks` com NaN/estalo nos primeiros 3 ms de algumas faixas | artefato do modo por faixa | ignore os 10 ms iniciais dos stems; a mistura (`render`) é limpa |
 
 ## Aceite

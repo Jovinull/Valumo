@@ -23,7 +23,7 @@ Arquitetura: `docs/architecture/audio.md`; decisão: ADR 0023. Música: skill `m
 |---|---|---|
 | peso (pisada, toque) | **Kicker** (`L.kicker`, tom com queda de frequência) + EQ passa-baixa | `follow_note=True`: a nota escolhe a frequência inicial (variação de altura) |
 | material (grama, terra, papel) | Kicker com `noise=1` (grão de ~13 ms) + EQ de banda | o desenho está nos TEMPOS e intensidades dos grãos, escritos à mão |
-| tonal (interface) | sf2player: kalimba (108), bloco de madeira (percussão GM 76/77), sininho (112), celesta (8), caixa de música (10) | sala curta (ReverbSC) com envio baixo |
+| tonal (interface) | síntese própria (`tools/audio/sintese.py`): kalimba, sininho, celesta, caixa de música; bloco de madeira = Kicker que segue a nota (agudo Lá6, grave Mi6), clique 0,25 | sala curta (ReverbSC) com envio baixo; o brilho da kalimba vem da parcial aguda (quadrada fraca): acima de ~5 o centroide dobra |
 
 Sessão: um som por compasso a 240 bpm (1 tick ≈ 5,2 ms; compasso = 1 s), uma faixa por camada, e
 `<sessao>.fatias.json` (id, grupo, tick, `max_ms`). Exemplo: `fontes/audio/sfx/passos/passos.py`.

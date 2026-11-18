@@ -226,3 +226,16 @@ O `--check` mede a cabeça como uma cápsula (raio 8,6): cabelo além dela não 
 arma contra a cabeça COMPOSTA (voxels reais) em todo golpe, HIT, EMOTE e locomoção, para cada preset × penteado.
 Achado: o EMOTE do aventureiro põe 21 voxels da espada dentro do topete canônico (t = 0,77 s). Ao mexer em qualquer
 golpe ou gesto, rode também `--check-cabelos` e não aumente a penetração de nenhuma combinação.
+
+### Rodada 09.4 — EMOTE corrigido e o que ele escondia
+
+- **EMOTE** (comemoração): a lâmina erguida (`emote_up`) e a do pouso (`emote_land`) inclinam para FORA (−x) e um pouco
+  para trás; no cajado, o bastão também abre no agachamento (`emote_crouch` do `staff.json`). Inclinar demais leva a
+  ponta de baixo à perna, e abrir a mão demais estoura o alcance: varra poucos pontos e fique com o mais perto do
+  original que passe nos três (cabelo, corpo, alcance).
+- **Um defeito grande esconde os pequenos:** com o EMOTE em 0, o `--check-cabelos` mostrou o roçar do `slash_v` no ápice
+  (1–2 voxels em penteados altos). `v_drive` foi 1 voxel à frente; `combo` tem pose própria (`cv_drive`). Depois de
+  mexer num golpe jogável, rode `--check`, `interrupcao-fina`, `golpe-andando` e `esquiva` (a 1ª tentativa estourou o
+  alcance e quebrou os quatro).
+- Pendente (com autorização): `staff_cast_wide` da maga atravessa o cabelo.
+
