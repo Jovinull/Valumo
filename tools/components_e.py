@@ -234,6 +234,29 @@ def build(out):
                                    "iris": iris_hex, "cabeca": "chapeu.maga" if pid == "maga" else ("capuz.c3" if pid == "exploradora" else None),
                                    "mascarasDoCorpo": masks}
 
+    # integração da 09.4 (pedido do proprietário): o "Preso" (cabelo.rabo) em OUTRO corpo usava a trança da exploradora —
+    # feita para cair à esquerda das costas dela (a aljava fica à direita) e até o meio das costas: nos outros corpos ela
+    # ficava fora do centro, solta da cabeça, com a ponta flutuando. Para eles: rabo de cavalo CENTRADO, amarração de
+    # couro encostada na massa do cabelo (atrás, z = −8 entre y 30 e 36, medido) e a mecha curta até a nuca. A
+    # exploradora continua com a trança canônica (presets idênticos ao original).
+    if "cabelo.rabo" in comps:
+        hair_c = L.P("#e3a64a", ks=0.85, kl=0.5)                         # a mesma cor/rampa do cabelo da exploradora
+        pony = Vox()
+        lobes = [(35.0, -9.2, 2.0), (32.6, -9.4, 2.1), (30.1, -9.2, 2.0), (27.6, -8.8, 1.8), (25.2, -8.4, 1.5)]
+        for i, (y, z, r) in enumerate(lobes):                             # gomos alternados, afinando para a ponta
+            B.sblob(pony, 0.4 if i % 2 else 0.0, y, z, r, 1.9, r, hair_c, p=2.3)
+        B.sblob(pony, 0.2, 23.3, -8.2, 1.1, 1.5, 1.0, hair_c, p=2.2)      # ponta
+        L.shade(pony)
+        pony.paint(lambda x, y, z, c: B.shadow(hair_c, 1.3) if (y - 35) % 3 == 2 else None)
+        hair_cells = set(pony.v)
+        tie = {(x, y, z) for x in range(-2, 3) for y in (36, 37) for z in range(-11, -7)}   # amarração (couro), rente ao cabelo
+        for k in tie:
+            pony.v[k] = L.LEATHER if k[1] == 37 else L.LEATHER_D
+        pe = _save(out, "cabelo.rabo/rabo_centrado.vox", pony)
+        pe.update({"nome": "tail", "pai": "head", "pivo": [0.0, 36.5, -9.0],
+                   "mascara": _mask(out, "cabelo.rabo/rabo_centrado.mask.vox", {"cabelo": hair_cells - tie})})
+        comps["cabelo.rabo"]["porCorpo"] = {pid: {"partes": [pe]} for pid in PRESETS if pid != "exploradora"}
+
     # rodada 09.4: primeira peça de roupa por região — botas (slot "pes"). Ocupa só as canelas (shin_l/shin_r), com o
     # pivô do joelho do corpo; "botas.originais" = as do modelo (o compositor não troca nada).
     comps["botas.originais"] = {"versao": 1, "slot": "pes", "nativo": True, "ocupa": ["perna.canela"],
