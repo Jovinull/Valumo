@@ -237,12 +237,12 @@ public final class Review3 {
     // ------------------------------------------------------------------ animações (quadros; vídeos em videos/)
     private void animacoes() {
         String p = "animacoes/";
-        Animator.Clip[] clips = Animator.Clip.values();
+        Animator.Clip[] clips = Animator.Clip.BASIC;
         for (String hero : HEROES)
             for (Animator.Clip c : clips) {
                 float dur = switch (c) {
                     case IDLE -> 2.9f; case WALK -> 1f / Animator.WALK_CADENCE; case RUN -> 1f / Animator.RUN_CADENCE;
-                    case ATTACK -> hero.equals("ranger") ? 1.6f : hero.equals("mage") ? 1.3f : 1.1f; case HIT -> 0.9f; case EMOTE -> 1.6f;
+                    case ATTACK -> hero.equals("ranger") ? 1.6f : hero.equals("mage") ? 1.3f : 1.1f; case HIT -> 0.9f; case EMOTE -> 1.6f; case DEATH -> 1.2f;
                 };
                 List<BufferedImage> fr = new ArrayList<>();
                 int n = c == Animator.Clip.ATTACK ? 10 : 8;

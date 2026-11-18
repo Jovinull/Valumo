@@ -213,9 +213,9 @@ public final class Review2 {
             }
         save(Review.sheet(eq, 2), p + "equipamentos.png");
         // animações: 6 clipes × 6 quadros, os três heróis lado a lado
-        for (Animator.Clip c : Animator.Clip.values()) {
+        for (Animator.Clip c : Animator.Clip.BASIC) {
             float dur = switch (c) {
-                case IDLE -> 2.9f; case WALK -> 1f / 1.75f; case RUN -> 1f / 2.5f; case ATTACK -> 1.1f; case HIT -> 0.9f; case EMOTE -> 1.6f;
+                case IDLE -> 2.9f; case WALK -> 1f / 1.75f; case RUN -> 1f / 2.5f; case ATTACK -> 1.1f; case HIT -> 0.9f; case EMOTE -> 1.6f; case DEATH -> 1.2f;
             };
             List<BufferedImage> fr = new ArrayList<>();
             for (int i = 0; i < 6; i++) {

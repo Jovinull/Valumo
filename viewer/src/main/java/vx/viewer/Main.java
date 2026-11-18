@@ -154,6 +154,8 @@ public final class Main {
                 case "lab" -> st.lab = v;
                 case "far" -> st.terrainFar = v.equals("1");
                 case "seq" -> st.seq = v.replace('+', ',');
+                case "pernas" -> st.legs = v;
+                case "salto" -> st.jump = v;
                 case "speed" -> st.timeScale = Float.parseFloat(v);
                 case "hold" -> st.actHold = Float.parseFloat(v);
                 case "dbg" -> Actor.debug = v.equals("1");
