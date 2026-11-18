@@ -32,8 +32,11 @@ Pacote local (fora do git): `output/visual-review/round-09-4/` (`LEIA-ME.md`). R
 > 3. **Estudos aprovados:** crespo, coque alto, formatos de olho e botas viajante (`"aprovado": "rodada 09.4"`). Continuam
 >    protegidos pela regra de componente novo.
 > 4. **EMOTE corrigido** na espada e no cajado: 0 voxel em todo penteado. Isso revelou o roçar do corte vertical no ápice
->    (1–2 voxels), corrigido com 1 voxel na mão de `v_drive` e validado por toda a bateria de combate. Ficam registrados
->    o `combo` (vitrine, 1 voxel no chanel) e o `staff_cast_wide` da maga.
+>    (1–2 voxels), corrigido com 1 voxel na mão de `v_drive` e validado por toda a bateria de combate. Depois, também com
+>    autorização, foram corrigidos o `combo` (vitrine) e o cajado da maga, cuja causa era a pose de descanso. Agora há 0
+>    voxel em todo gesto.
+> 5. **"Preso" (rabo) nos outros corpos:** rabo de cavalo centrado e amarrado rente ao cabelo (`porCorpo`). A
+>    exploradora mantém a trança canônica.
 
 ## Como executar
 

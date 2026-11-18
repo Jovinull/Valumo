@@ -278,5 +278,5 @@ Origem: só síntese (nenhuma amostra de terceiros, nenhum gerador por IA); a pr
 - **Componentes** (gerados por `tools/components_e.py`): slot `olhos` (`olhos.*`, parâmetro; o desenho mora em
   `rosto.*.variantesOlhos.<id>.exprs`), slot `pes` (`botas.originais` nativo; `botas.viajante` com
   `porCorpo.<preset>.partes` = `shin_l`/`shin_r` no espaço do modelo, mesmo pivô do corpo), `"experimental": true`
-  nos estudos e `"aprovado": "rodada NN"` depois da aprovação do proprietário (crespo, coque e botas: rodada 09.4). Aparência `valumo.aparencia` v2 (`aparencia.olhos`, `equipamento_visual.pes`).
+  nos estudos e `"aprovado": "rodada NN"` depois da aprovação do proprietário (crespo, coque e botas: rodada 09.4). Um cabelo pode ter partes por corpo: `porCorpo.<preset>.partes` substitui `partes` naquele corpo (`cabelo.rabo`: rabo centrado fora da exploradora). Aparência `valumo.aparencia` v2 (`aparencia.olhos`, `equipamento_visual.pes`).
 

@@ -109,6 +109,7 @@ recolorem.
 | `chapeu.maga` × outros | `sob_aba` | ver passos abaixo |
 | `capuz.c3` × qualquer cabelo | `faixa` | o nó, as fitas e a pena se fundem à cabeça; a faixa é pintada sobre o cabelo pela mesma regra do gerador |
 | `chapeu.maga` × `capuz.c3` | — | o mesmo slot, então são exclusivos por construção |
+| `cabelo.rabo` × corpo | `porCorpo` | o "Preso" usa a trança canônica na exploradora e um rabo de cavalo centrado nos outros corpos (amarração rente ao cabelo; integração da 09.4) |
 | `capuz.c3` × `crespo` | `"X"` (rodada 09.4) | o nó e as fitas ficam enterrados no volume dos cachos; indisponível com motivo no criador |
 | incompatível | `"X"` no catálogo | `InvalidAppearance` com mensagem; o viewer pula a opção e informa |
 
