@@ -61,6 +61,32 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
    - degraus que deveriam subir e não sobem;
    - a velocidade do mouse estranha.
 
+## C. Rodada 09 — o que só você pode validar (escuta e decisões)
+
+Nenhum som desta rodada foi avaliado por escuta. Use fones e depois a caixa; o pacote local
+`output/visual-review/round-09/LEIA-ME.md` lista os arquivos na ordem (regenerável com `tools/review9.sh tudo`).
+
+1. **Música da vila** — ouça `musica/vila_a/vila_a-escuta.wav` e `musica/vila_b/vila_b-escuta.wav`, depois jogue
+   (`./gradlew jogo` toca a A; a B: `JAVA_OPTS=-Dvx.musica=vila_b game/build/install/game/bin/game`).
+   - Soa como o Valumo ou como banco de instrumentos genérico? A, B ou nenhuma?
+   - O laço passa sem emenda depois de ~1 min (A) / ~1 min 10 s (B)? A música cansa em 5 minutos de jogo?
+2. **Interface** — no criador (`./gradlew editor`) clique bastante: "madeira e papel" incomoda depois de muitos
+   cliques? Compare com `efeitos-sonoros/interface/contexto-proposta-B-sessao.wav` (vidro e dourado).
+3. **Passos** — ande e corra na grama, no caminho de terra, na areia da margem do lago e (se alcançar) na pedra das
+   encostas. Leem como superfícies diferentes? O passo coincide com o pé? Fica repetitivo?
+4. **Ambiente** — vento sempre presente e água do lago aumentando ao chegar perto da margem e sumindo ao se afastar.
+   O vento é discreto o bastante? A água soa como água?
+5. **Volume** — Esc → Música e Efeitos (−/+). O equilíbrio padrão (música × passos × interface × ambiente) está bom?
+   As preferências voltam ao reabrir o jogo?
+6. **Personalização** — no criador: cabelos Crespo e Coque alto, Formato dos olhos (Rosto) e botas Viajante
+   (categoria Roupa). Aprovar, pedir ajuste ou recusar cada estudo (todos marcados como experimentais).
+7. **Decisão pendente** — o gesto de comemoração (EMOTE) do aventureiro atravessa o topete canônico (achado pela
+   validação nova `viewer --check-cabelos`). Autorizar a correção da coreografia (muda as referências aprovadas)?
+8. **Ambiente de trabalho** — o Audacity do Ubuntu foi instalado mas não teve a abertura com interface verificada:
+   abra um WAV qualquer da pasta acima e confirme.
+
+Responda o que soar mal com o arquivo e o instante; a correção volta às fontes em `fontes/audio/`.
+
 ## O que já foi verificado sem você (para comparar)
 
 | Item | Como foi verificado |
@@ -69,3 +95,4 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
 | Criador | testes `CreatorTest` (eventos sintéticos) |
 | Janela real abre, desenha e fecha | teste de fumaça (`--demo N`) |
 | Fluxo completo | vídeos por roteiro de entrada (`tools/review8.sh`, `tools/review72.sh`) |
+| Áudio (rodada 09) | `AudioTest` (laço exato, regras, catálogo, mixagem real e atenuação por distância no loopback do OpenAL), `GameAudioTest`, mistura do jogo gravada em sincronia com os quadros (`tools/review9.sh contexto ambiente`), QA técnico (`tools/audio/audio_qa.py`) — medição, não escuta |

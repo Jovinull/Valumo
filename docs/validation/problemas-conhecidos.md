@@ -1,4 +1,4 @@
-# Problemas conhecidos — estado atual (rodada 05.1)
+# Problemas conhecidos — estado atual (rodada 09)
 
 Fonte única do que falta ou não funciona. Severidade: **grave** (bloqueia aprovação de asset ou
 expansão), **média** (visível na câmera de jogo), **baixa** (só de perto / cosmético). Rastreabilidade
@@ -25,7 +25,7 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | Criador (07.2): nenhuma combinação do catálogo atual é incompatível, então "indisponível por incompatibilidade" só aparece nos testes (regra marcada em memória); a captura de opção indisponível mostra Restaurar sem nada a restaurar | — | `CreatorTest`, `round-07-2/capturas/18-*` | aparece sozinho quando o catálogo tiver uma regra `X` |
 | Criador: o laço e a pena do capuz C3 são discretos de frente (o laço fica atrás); a miniatura usa 3/4 lateral para identificá-lo | baixa | `round-07-2/capturas/09-*`, `11-*` | só se o proprietário quiser o C3 mais visível (asset aprovado, não alterado) |
 | Criador: poses Andar e Correr são no lugar (sem deslocamento) | baixa | vídeo `round-07-2/video/` | aceitável para prévia de aparência |
-| `CreatorTest.rapidRequestsEndOnTheLastChoice` depende de tempo: com a CPU ocupada por outra carga (gravação de vídeo + build em paralelo, rodada 08.1), as composições terminaram antes de virarem obsoletas e "descartados > 0" falhou uma vez; sem carga, 3/3 verdes num clone limpo | baixa (teste, não o criador) | `relatorio-rodada-08-1.md` §7 | trocar a asserção de tempo por um compositor com latência controlada no teste |
+| ~~`CreatorTest.rapidRequestsEndOnTheLastChoice` dependia de tempo~~ **RESOLVIDO na 09**: com a CPU cheia a thread de composição só acordava depois dos cliques e `request()` tirava os pedidos obsoletos da fila sem contá-los; agora contam como descartados. 3/3 verdes com carga 6,7–10,2 | — | `round-09/validacao/10-creatortest-sob-carga.txt` | — |
 | Criador: a entrada real foi validada por roteiro na mesma fila de eventos do GLFW e por teste de fumaça da janela; o clique físico e uma tela HiDPI de verdade não foram exercitados nesta máquina (Wayland, sem automação de SO) | média até o proprietário testar à mão | `round-07-2/LEIA-ME.md` | teste manual do proprietário |
 | Criador: em 720p o texto usa a escala 1× da fonte de pixel (pequeno, nítido); a fonte não tem tamanhos intermediários | baixa | `round-07-2/capturas/19-*` | segunda fonte maior, se o proprietário achar pequeno |
 | Criador: abrir leva ≈ 2 s para montar a cena (mesmo custo da clareira) | baixa | `viewer --editor --demo` | tela de abertura, se incomodar |
@@ -45,6 +45,19 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | Pontos escuros/cinza de 1 pixel na borda de baixo da floreira dos fundos da casa: existem também na malha exata sem fusão (geometria do modelo, não fresta) | baixa | `round-08-1/referencias/` (ref. 16) | revisar o modelo da casa se o proprietário notar |
 | Água plana, sombra única sem cascatas, fonte do HUD de depuração sem acentos (a interface do jogador tem fonte própria com acentos desde a 07.2) | baixa | — | dívida técnica; fora da validação de assets |
 | Linhas finas diagonais (frondes da tortuga, samambaia) contam como "voxels isolados" na auditoria | baixa (intencional) | `tools/asset_audit.py` | aceitas por desenho; justificar caso a caso |
+| **Áudio (rodada 09): nada foi ouvido pelo agente.** Músicas e efeitos foram compostos, medidos e integrados; a avaliação artística depende da escuta do proprietário (fones e caixa) | grave para aprovação; nenhum para o código | `round-09/LEIA-ME.md` | escuta do proprietário: A × B da música, propostas de passos e interface |
+| Música da vila: dois estudos (A acolhedora, B misteriosa), nenhum canônico; o jogo toca a A por padrão (`-Dvx.musica=vila_b|nenhuma`) | — | `round-09/musica/` | escolha do proprietário |
+| Timbres do banco FluidR3 GM (MIT) soam escuros e "de banco GM"; a mistura foi corrigida no EQ mas o limite é o banco | média (artística) | espectrogramas em `round-09/musica/*/img` | instrumentos melhores (outro banco livre ou síntese própria) se a escuta pedir |
+| Efeitos com ruído (Kicker do LMMS) mudam a cada render: cada render é uma tomada; as versionadas em `assets/audio/` são as avaliadas | baixa (processo) | `round-09/efeitos-sonoros/` | não re-renderizar depois do QA; se precisar de reprodução exata, trocar o ruído do Kicker por amostra de ruído fixa |
+| LMMS 1.2.2: Delay não funciona escrito em XML; Mallets (STK) desafina e travou o render; `rendertracks` tem estalo/NaN nos 3 ms iniciais de algumas faixas | — (contornado) | skill `music-composition` | eco escrito na partitura; sf2player no lugar do Mallets; ignorar 10 ms dos stems |
+| Audacity instalado (3.4.2, apt) sem `mod-script-pipe`: não automatizável; a abertura com interface não foi verificada | baixa | skill `music-composition` | o proprietário abre à mão quando precisar editar um som |
+| Áudio: efeitos curtos ainda sem posição no mundo (herói e interface são relativos ao ouvinte); ambiente posicional (lago), menu de volume e passos de areia/pedra **feitos na 09**; sem pássaros (risco de soar caricato por síntese) | — (escopo) | `docs/architecture/audio.md` §8 | efeitos posicionais quando houver NPC/criatura que soe |
+| Cabelos `crespo` e `coque` e botas `viajante` (rodada 09) são EXPERIMENTAIS no catálogo e no criador; o risco do golpe vertical rente ao crespo foi medido voxel a voxel (`viewer --check-cabelos`): nenhum estudo é atravessado mais que o penteado do preset; o arquivo só-cabelo do coque tem 25 pedaços (casca fina de 1,3 se liga pelo crânio; a cabeça fundida é 1 peça, 0 voxels soltos) | — | `round-09/personalizacao/` | aprovação do proprietário |
+| **Gesto EMOTE do aventureiro atravessa o topete canônico** (21 voxels da espada dentro do cabelo em t = 0,77 s; visível no perfil). Achado pela medição exata da rodada 09; o `WeaponCheck` não via (cabeça = cápsula de raio 8,6). Também acima da referência: chanel/rabo no corpo do aventureiro (EMOTE) e topete na exploradora (`bow_shot`) | média | `round-09/validacao/09-arma-x-cabelos.md`, `comparacoes/` | autorar o EMOTE com a mão mais para fora (x ≈ −13) — muda coreografia aprovada: precisa do proprietário |
+| Formato dos olhos: na atuação `cool` (exploradora) o "alegre" fecha os olhos, então os três formatos saem iguais nessa expressão | baixa (por desenho) | `round-09/personalizacao/olhos/` | — |
+| Botas viajante: na maga o vestido cobre quase toda a bota (só o bico e o forro aparecem) | baixa | `round-09/personalizacao/botas/01-*` | peça própria para corpos de saia, se o proprietário quiser |
+| Pausa em 720p: o rótulo "Sensibilidade do mouse" cai para a escala 1× para caber (os outros ficam em 2×) | baixa | `round-09/integracao/pausa/02-*` | segunda fonte maior ou rótulo mais curto |
+
 
 ## Corrigidos (resumo; detalhes nos relatórios)
 
