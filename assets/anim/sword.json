@@ -1832,9 +1832,9 @@
    "_doc": "combo (vitrine do visualizador, não jogável): o v_drive com a mão 1,5 voxel mais à frente — no ritmo do combo a curva passa mais baixa e roçava o topo de penteados altos",
    "base": "v_drive",
    "r": [
-    -10.2,
-    25.2,
-    10.5
+    -11.0,
+    24.4,
+    10.0
    ]
   }
  },
