@@ -22,6 +22,7 @@ assets/environment/
 assets/textures/
 assets/studies/
 assets/components/
+assets/audio/
 
 # Capturas, vídeos e pacotes de revisão: locais, regeneráveis pelos scripts (tools/review*.sh, snap.sh, anim.sh)
 output/

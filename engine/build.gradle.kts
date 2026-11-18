@@ -14,9 +14,11 @@ dependencies {
     api("org.lwjgl:lwjgl")
     api("org.lwjgl:lwjgl-glfw")
     api("org.lwjgl:lwjgl-opengl")
+    api("org.lwjgl:lwjgl-openal")                 // rodada 09.1: efeitos sonoros (ADR 0016), mesmo projeto e versão do LWJGL
     runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-openal::$lwjglNatives")   // traz o OpenAL Soft (LGPL, biblioteca dinâmica)
 
     api("org.joml:joml:$jomlVersion")
     api("com.google.code.gson:gson:$gsonVersion")
