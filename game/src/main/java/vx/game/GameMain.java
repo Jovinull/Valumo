@@ -1,6 +1,7 @@
 package vx.game;
 
 import vx.engine.Window;
+import vx.engine.audio.Audio;
 
 import java.nio.file.Path;
 
@@ -26,9 +27,14 @@ public final class GameMain {
                 if (i + 1 < args.length && !args[i + 1].startsWith("--")) fps = Integer.parseInt(args[++i]);
             }
         }
+        // rodada 09: som no jogo interativo; roteiros e o teste de fumaça ficam mudos (nada sai no alto-falante de
+        // quem roda a revisão) — -Dvx.audio=loopback -Dvx.audio.gravar=x.wav grava a mixagem em sincronia
+        Audio.start(assets, script == null && demo == 0 ? Audio.Mode.DEVICE : Audio.Mode.OFF);
         try (Window window = new Window("Valumo", 1600, 900, script == null); Game game = new Game(window, assets)) {
             if (script != null) game.script(Path.of(script), Path.of(out), fps);
             else game.run(demo);
+        } finally {
+            Audio.stop();
         }
     }
 

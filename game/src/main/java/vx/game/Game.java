@@ -64,6 +64,8 @@ public final class Game implements AutoCloseable {
     private final List<Button> buttons = new ArrayList<>();
     private String hover;
     public boolean drawCursor, scripted;
+    final GameAudio gameAudio;
+    final AudioPrefs audioPrefs = AudioPrefs.load(AudioPrefs.FILE);
     private float mouseX = -1, mouseY = -1;
     private final Animator.Motion pMotion = new Animator.Motion(), nMotion = new Animator.Motion();
     // medição
@@ -91,6 +93,8 @@ public final class Game implements AutoCloseable {
         SceneDef scene = SceneDef.load(assetsPath, SCENE);
         Collision col = Collision.build(terrain, Collision.profiles(assetsPath), world.placements(), world.bodies(), scene);
         logic = new GameLogic(scene, col);
+        gameAudio = new GameAudio(logic);
+        audioPrefs.apply();
         async = new AsyncComposer(assetsPath, 8);
         logic.onAppearance = async::request;
         logic.loadChoices(async.catalog(), SAVES);
@@ -115,6 +119,7 @@ public final class Game implements AutoCloseable {
         } else if (window.cursorCaptured()) { window.captureCursor(false); input.resetMouse(); }
         if (logic.state == GameLogic.State.EXPLORE && !window.cursorCaptured() && !scripted) { input.mdx = 0; input.mdy = 0; }
         logic.update(dt, input);
+        gameAudio.tick(dt);
         async.poll();
         String sig = async.shown;
         if (sig != null && !sig.equals(shownSig)) {
@@ -341,9 +346,25 @@ public final class Game implements AutoCloseable {
         return out;
     }
 
+    /**
+     * Fileira "rótulo … [−] valor [+]" da pausa (sensibilidade e volumes, rodada 09). O rótulo cabe no espaço à
+     * esquerda dos botões (escala inteira que cabe, como nos botões: em 720p ele era atravessado pelo "−") e o valor
+     * fica centrado entre − e +.
+     */
+    private void stepperRow(String id, String label, String value, float bx, float bw, float y) {
+        float minusX = bx + bw - 236 * s, plusX = bx + bw - 56 * s, room = minusX - bx - 12 * s;
+        int lp = textPx(label, room, 21);
+        kit.text(bx, y + 25 * s - lp * 0.66f, label, lp, true, UiKit.INK);
+        button(id + "-", minusX, y, 56 * s, 50 * s, "-", false);
+        int vp = textPx("100%", plusX - minusX - 56 * s - 8 * s, 22);
+        float cx = (minusX + 56 * s + plusX) / 2;
+        kit.text(cx - kit.width(value, vp, true) / 2, y + 25 * s - vp * 0.66f, value, vp, true, UiKit.INK);
+        button(id + "+", plusX, y, 56 * s, 50 * s, "+", false);
+    }
+
     private void drawPause(int w, int h) {
         kit.rect(0, 0, w, h, 0x1a1210a0);
-        float pw = 620 * s, ph = 640 * s, x = (w - pw) / 2, y = (h - ph) / 2;
+        float pw = 620 * s, ph = 780 * s, x = (w - pw) / 2, y = (h - ph) / 2;
         kit.panel(x, y, pw, ph, s, true);
         kit.text(x + 40 * s, y + 34 * s, "Pausa", px(40), true, UiKit.INK);
         float bx = x + 40 * s, bw = pw - 80 * s, bh = 62 * s, by = y + 110 * s;
@@ -352,13 +373,12 @@ public final class Game implements AutoCloseable {
         button("criador", bx, by + 152 * s, bw, bh, "Abrir o criador", false);
         // sensibilidade do mouse
         float sy = by + 240 * s;
-        kit.text(bx, sy + 14 * s, "Sensibilidade do mouse", px(21), true, UiKit.INK);
-        String val = String.format("%.1f", logic.cam.sensitivity / 0.0032f);
-        button("sens-", bx + bw - 200 * s, sy, 56 * s, 50 * s, "-", false);
-        kit.text(bx + bw - 130 * s, sy + 25 * s - px(22) * 0.66f, val, px(22), true, UiKit.INK);
-        button("sens+", bx + bw - 56 * s, sy, 56 * s, 50 * s, "+", false);
+        stepperRow("sens", "Sensibilidade do mouse", String.format("%.1f", logic.cam.sensitivity / 0.0032f), bx, bw, sy);
         String inv = logic.cam.invertY ? "Inverter vertical: sim" : "Inverter vertical: não";
         button("inverter", bx, sy + 66 * s, bw, 50 * s, inv, false);
+        // rodada 09: volumes independentes (música; efeitos = passos e interface), gravados nas preferências
+        stepperRow("mus", "Música", AudioPrefs.percent(audioPrefs.music), bx, bw, sy + 132 * s);
+        stepperRow("efe", "Efeitos", AudioPrefs.percent(audioPrefs.effects), bx, bw, sy + 198 * s);
         button("sair", bx, y + ph - 40 * s - bh, bw, bh, "Sair do jogo", false);
     }
 
@@ -401,6 +421,13 @@ public final class Game implements AutoCloseable {
                     case "sens-" -> logic.cam.sensitivity = Math.max(0.0008f, logic.cam.sensitivity - 0.0008f);
                     case "sens+" -> logic.cam.sensitivity = Math.min(0.012f, logic.cam.sensitivity + 0.0008f);
                     case "inverter" -> logic.cam.invertY = !logic.cam.invertY;
+                    case "mus-", "mus+", "efe-", "efe+" -> {
+                        if (audioPrefs.nudge(b.id.startsWith("mus") ? "musica" : "efeitos", b.id.endsWith("+") ? 1 : -1)) {
+                            audioPrefs.apply();
+                            audioPrefs.save(AudioPrefs.FILE);
+                        }
+                        vx.engine.audio.Audio.event("ui.selecionar");             // referência do novo nível
+                    }
                     default -> { }
                 }
             }
@@ -444,6 +471,7 @@ public final class Game implements AutoCloseable {
      */
     public void script(Path file, Path out, int fps) throws IOException {
         scripted = true;
+        vx.engine.audio.Audio.recording(false);                          // rodada 09: áudio gravado = quadros gravados
         drawCursor = true;
         List<String> lines = Files.readAllLines(file);
         Files.createDirectories(out);
@@ -458,7 +486,7 @@ public final class Game implements AutoCloseable {
             String[] t = line.split("\\s+");
             switch (t[0]) {
                 case "size" -> { w = Integer.parseInt(t[1]); h = Integer.parseInt(t[2]); mx = w / 2f; my = h / 2f; }
-                case "record" -> record = t[1].equals("on");
+                case "record" -> { record = t[1].equals("on"); vx.engine.audio.Audio.recording(record); }
                 case "criador" -> {                                        // abre o criador com um roteiro dele (mesma janela)
                     logic.openCreator = false;
                     if (window.cursorCaptured()) window.captureCursor(false);
@@ -468,6 +496,7 @@ public final class Game implements AutoCloseable {
                         cr.recorded = recorded;
                         cr.script(Path.of(t[1]), out, fps);
                         recorded = cr.recorded;
+                        vx.engine.audio.Audio.recording(record);
                         if (cr.cs.finished) logic.useCreated(cr.cs.appearance, cr.cs.name.isBlank() ? "Criada agora" : cr.cs.name.trim());
                     }
                     logic.action("trocar-aparencia");
