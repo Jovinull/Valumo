@@ -32,6 +32,28 @@ class HairWeaponTest {
     }
 
     @Test
+    void experimentalHairIsNeverCutMoreThanThePresetHairWithTheCombatKit() {
+        // integração 09.3 × 09.4: no jogo, toda aparência luta com espada e broquel (cortes, guarda, reação, esquiva R2 e
+        // recuo) — os estudos de cabelo também têm de passar com ESSE equipamento, não só com a arma de cada herói
+        Composer k = new Composer(Path.of("assets"), 2);
+        k.kit = HairWeaponCheck.COMBAT_KIT;
+        int checked = 0;
+        for (String preset : k.catalog.presets.keySet()) {
+            String ref = k.catalog.presets.get(preset).hair;
+            HairWeaponCheck.Result r0 = HairWeaponCheck.measure(k, preset, ref);
+            for (String hair : k.catalog.ids("cabelo")) {
+                if (!k.catalog.components.get(hair).doc.has("experimental")) continue;
+                HairWeaponCheck.Result r = HairWeaponCheck.measure(k, preset, hair);
+                assertTrue(r.worstPen() <= Math.max(HairWeaponCheck.TOL, r0.worstPen()),
+                        "kit de combate: " + preset + " × " + hair + ": " + r.worstPen() + " voxels na cabeça em " + r.worstWhere()
+                                + " (referência " + ref + ": " + r0.worstPen() + ")");
+                checked++;
+            }
+        }
+        assertTrue(checked >= 6, "estudos medidos: " + checked);
+    }
+
+    @Test
     void theMeasureSeesARealContactAndARealGap() {
         // a exceção conhecida do arco (o tiro cobre o rosto) tem de aparecer como contato; o cabelo curto não toca
         assertTrue(HairWeaponCheck.measure(C, "exploradora", "cabelo.rabo").worstPen() > 0, "contato conhecido do arco");
