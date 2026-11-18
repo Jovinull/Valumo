@@ -14,6 +14,14 @@
 | [0010](0010-fxaa-e-margem-anti-fresta.md) | FXAA na qualidade padrão e margem anti-fresta na fusão de faces (rodada 03) |
 | [0011](0011-coreografia-por-trajetorias.md) | Coreografia de armas por trajetórias, IK de braço e validação espacial (rodada 04; limite de duas mãos revisto na 05) |
 | [0014](0014-malha-conforme-sem-t-junctions.md) | Malha conforme: fusão sem T-junctions e sem sobreposição; fim da margem anti-fresta (rodada 08.1) |
+| [0015](0015-combate-por-trajetoria-e-passo-fixo.md) | Combate: passo fixo de 1/120 s, dano pela trajetória da arma, hitbox/hurtbox/colisão separadas, interrupções autoradas (rodada 09) |
+| [0016](0016-audio-openal-e-sons-sintetizados.md) | Áudio: OpenAL Soft pelo LWJGL, som que só lê a lógica, efeitos sintetizados por script, gravação por loopback (rodada 09.1) |
+| [0017](0017-locomocao-durante-o-golpe.md) | Locomoção durante o golpe: teto por fase, pernas na passada real sob a ação, perfis de sensação A/B/C (rodada 09.2) |
+| [0018](0018-esquiva-direcional.md) | Esquiva: rolamento e recuo como gestos do perfil, invulnerabilidade no estado lógico, janelas medidas (rodada 09.2) |
+| [0019](0019-salto.md) | Salto: física no passo fixo, coyote e buffer, props pisáveis por perfil, sem golpe aéreo (rodada 09.2) |
+| [0020](0020-mira-opcional.md) | Mira opcional: livre por padrão, trava com Q, troca com Tab pela ordem na tela (rodada 09.2) |
+| [0021](0021-varios-inimigos.md) | Vários inimigos: uma classe, encontros por dados, coordenação leve, cada alvo uma vez por golpe (rodada 09.2) |
+| [0022](0022-morte-por-desagregacao-voxel.md) | Morte por desagregação voxel: o corpo se desfaz nos próprios blocos (rodada 09.2) |
 | [0013](0013-modulo-game.md) | Módulo `game` sobre o runtime do viewer, sem duplicar renderer nem assets (rodada 08) |
 | [0012](0012-interface-do-jogo.md) | Interface do jogo na engine própria: lote 2D, fonte de pixel própria, fila de eventos, composição assíncrona (rodada 07.2) |
 
