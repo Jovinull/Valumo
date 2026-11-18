@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public final class CreatorState {
     public enum Category {
-        MODELO("Modelo"), CABELO("Cabelo"), ROSTO("Rosto"), PELE("Pele"), CHAPEU("Chapéu");
+        MODELO("Modelo"), CABELO("Cabelo"), ROSTO("Rosto"), PELE("Pele"), CHAPEU("Chapéu"), ROUPA("Roupa");
         public final String label;
         Category(String l) { label = l; }
     }
@@ -45,9 +45,16 @@ public final class CreatorState {
         NAMES.put("cabelo.curto", "Curto");
         NAMES.put("cabelo.chanel", "Médio");
         NAMES.put("cabelo.rabo", "Preso");
+        NAMES.put("cabelo.crespo", "Crespo");               // rodada 09: estudo experimental (catálogo: "experimental")
+        NAMES.put("cabelo.coque", "Coque alto");            // rodada 09: estudo experimental
         NAMES.put("rosto.aventureiro", "Destemido");
         NAMES.put("rosto.exploradora", "Atento");
         NAMES.put("rosto.maga", "Gentil");
+        NAMES.put("botas.originais", "Do modelo");          // rodada 09: botas (primeira peça de roupa)
+        NAMES.put("botas.viajante", "Viajante");
+        NAMES.put("olhos.redondos", "Redondos");            // rodada 09: formato dos olhos
+        NAMES.put("olhos.amendoados", "Amendoados");
+        NAMES.put("olhos.inclinados", "Inclinados");
         NAMES.put(Appearance.NO_COVER, "Sem chapéu");
         NAMES.put("chapeu.maga", "Chapéu de aba");
         NAMES.put("capuz.c3", "Laço e pena");

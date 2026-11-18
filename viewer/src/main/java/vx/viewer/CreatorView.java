@@ -241,6 +241,7 @@ public final class CreatorView implements AutoCloseable {
             "ROSTO", new String[]{"..XXXXX..", ".X.....X.", "X.......X", "X.XX.XX.X", "X.......X", "X.X...X.X", "X..XXX..X", ".X.....X.", "..XXXXX.."},
             "PELE", new String[]{"....X....", "...XXX...", "..XXXXX..", ".XXXXXXX.", ".XXXXXXX.", "XXXXX.XXX", "XXXX.XXXX", ".XXXXXXX.", "..XXXXX.."},
             "CHAPEU", new String[]{"....XX...", "...XXX...", "...XXXX..", "..XXXXX..", "..XXXXXX.", ".XXXXXXX.", "XXXXXXXXX", ".........", "........."},
+            "ROUPA", new String[]{".XXX.....", ".XXX.....", ".XXX.....", ".XXX.....", ".XXXX....", ".XXXXXX..", "XXXXXXXX.", "XXXXXXXXX", "........."},
             "PENA", new String[]{".......XX", "......XXX", ".....XXX.", "....XXX..", "...XXX...", "..XXX....", ".XX......", "X........"});
 
     private void icon(String name, float x, float y, float k, int col) {

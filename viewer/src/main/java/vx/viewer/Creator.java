@@ -65,6 +65,7 @@ public final class Creator implements AutoCloseable {
             bySig.put(a.signature(), a.copy());
             async.request(a);
         });
+        ctl.sound = vx.engine.audio.Audio::event;                        // rodada 09: mudo se ninguém abriu o áudio
         app.overlay = (w, h) -> { if (layout != null) view.draw(layout, ctl, thumbs, async, h); };
     }
 
@@ -78,6 +79,7 @@ public final class Creator implements AutoCloseable {
 
     /** Um quadro de lógica: eventos, resultados prontos, layout e câmera para o tamanho (w, h). */
     public void frame(List<InputEvent> events, float dt, int w, int h) {
+        vx.engine.audio.Audio.update(dt);
         ctl.time += dt;
         st.time += dt;
         if (layout == null || layout.w != w || layout.h != h) layout = build(w, h);
@@ -174,6 +176,7 @@ public final class Creator implements AutoCloseable {
      * {@code saves limpar}. Alvo = id de controle ("hair:cabelo.curto"), "scene", "options" ou "x,y" (0–1).
      */
     public void script(Path file, Path out, int fps) throws IOException {
+        vx.engine.audio.Audio.recording(false);                          // rodada 09: grava áudio só com record on
         List<String> lines = Files.readAllLines(file);
         Files.createDirectories(out);
         int w = 1920, h = 1080;
@@ -209,6 +212,7 @@ public final class Creator implements AutoCloseable {
                 }
                 case "record" -> {
                     record = t[1].equals("on");
+                    vx.engine.audio.Audio.recording(record);                // rodada 09: áudio em sincronia com os quadros
                     st.captureSsaa = record ? 1f : 2f;              // vídeo: como o jogo (FXAA, sem SSAA)
                 }
                 case "settle" -> settle(w, h, dt);

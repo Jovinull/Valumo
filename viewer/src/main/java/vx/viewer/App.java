@@ -816,6 +816,8 @@ public final class App implements AutoCloseable {
      *  penteado) ou "cobertura" (cabeça com folga em cima, lateral). */
     public void renderThumb(CharacterModel m, Framebuffer target, String framing) {
         boolean head = !framing.equals("corpo"), cover = framing.equals("cobertura"), hair = framing.equals("cabelo");
+        boolean eyes = framing.equals("olhos");                         // rodada 09: close na linha dos olhos
+        boolean feetF = framing.equals("pes");                          // rodada 09: botas
         float yaw = cover ? 1.05f : 0.38f;
         if (thumbRenderer == null) thumbRenderer = new Renderer();
         StyleProfile style = StyleProfile.of(4, 0);
@@ -824,9 +826,16 @@ public final class App implements AutoCloseable {
         Renderer.Frame f = new Renderer.Frame();
         Camera c = new Camera();
         c.fovDeg = 22f;
-        c.yaw = yaw;
+        c.yaw = eyes ? 0.12f : yaw;
         c.pitch = head ? 0.06f : 0.10f;
-        if (head) {
+        if (feetF) {
+            c.target.set(0, m.height * 0.13f, 0);
+            c.distance = 1.35f;
+            c.pitch = 0.18f;
+        } else if (eyes) {
+            c.target.set(0, m.height * 0.67f, 0);
+            c.distance = 1.15f;
+        } else if (head) {
             c.target.set(0, m.height * (cover ? 0.86f : hair ? 0.82f : 0.80f), 0);
             c.distance = cover ? 1.9f : hair ? 1.8f : 1.55f;
         } else {
