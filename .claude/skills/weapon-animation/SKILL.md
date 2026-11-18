@@ -237,5 +237,11 @@ golpe ou gesto, rode também `--check-cabelos` e não aumente a penetração de 
   (1–2 voxels em penteados altos). `v_drive` foi 1 voxel à frente; `combo` tem pose própria (`cv_drive`). Depois de
   mexer num golpe jogável, rode `--check`, `interrupcao-fina`, `golpe-andando` e `esquiva` (a 1ª tentativa estourou o
   alcance e quebrou os quatro).
-- Pendente (com autorização): `staff_cast_wide` da maga atravessa o cabelo.
+- **Cajado da maga:** o culpado era a pose de DESCANSO (todo gesto volta a ela). A inclinação do cajado gira em torno da
+  mão: topo para fora leva a ponta de baixo à perna, e abrir a mão estoura o alcance. A saída foi a terceira direção
+  (topo um pouco à frente: a ponta de baixo passa atrás da perna) e a empunhadura um pouco mais alta (mão mais perto do
+  ombro = mais alcance).
+- **Medição por gesto**, não só o pior instante: um gesto grave esconde os outros. A ferramenta de depuração precisa
+  provar que rodou: `Val` com `idle` (em vez de `clip:IDLE`) lança exceção, e "nenhuma linha de FALHA" NÃO é aprovação.
+  Conte as linhas OK.
 

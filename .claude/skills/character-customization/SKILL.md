@@ -115,3 +115,12 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
 | Coque "bolo de andares", nuca chapada (v1) | superelipsoide p 2,3; sem sulcos | coque p 2,0 + `hair_strands` |
 | "Cor do cabelo" fora do painel com 6 penteados | 2 colunas → 3 fileiras | 3 colunas quando houver mais de 4 |
 | Nó/fitas do capuz enterrados no crespo | volume grande cobre a peça | regra `X` |
+
+### Integração da 09.4 — peça de cabelo por corpo
+
+- Uma parte própria do cabelo (o rabo) vem do corpo de origem e fica no pivô DAQUELE corpo. Em outro corpo ela pode
+  ficar fora do centro e flutuar: veja SEMPRE de costas e de lado nos três corpos.
+- Use `porCorpo.<preset>.partes` (o compositor lê como nas botas) para a versão de cada corpo, sem tocar a canônica
+  (o gate exige o preset idêntico). Encoste a amarração na massa do cabelo: meça o z mais atrás da massa no centro
+  (o "Preso" está em z = −8 entre y 30 e 36).
+
