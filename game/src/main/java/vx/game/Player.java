@@ -33,6 +33,12 @@ public final class Player {
     public Animator.Clip clip = Animator.Clip.IDLE, fromClip;
     public float animT, fade = 1f;
 
+    // rodada 09 — pisadas: contador que sobe quando um pé começa o apoio (mesma fase que planta o pé na
+    // animação: frac(t·cadência) ou frac(t·cadência + ½) volta a 0). O som sai disso, então coincide com o pé.
+    public int steps;
+    public boolean stepRun;
+    private long stepPhase = Long.MIN_VALUE;
+
     public void place(float x, float z, float yaw, Collision c) {
         this.x = x;
         this.z = z;
@@ -160,6 +166,16 @@ public final class Player {
         fade = Math.min(1f, fade + dt / LOCO_FADE);
         // fase pela distância: a cadência escala com a velocidade, a passada fica igual → pé plantado
         animT += clip == Animator.Clip.IDLE ? dt : dt * Math.max(0.15f, s / clipSpeed(clip));
+        if ((clip == Animator.Clip.WALK || clip == Animator.Clip.RUN) && grounded && s > 0.12f) {
+            long k = (long) Math.floor(animT * cadence(clip) * 2);
+            if (stepPhase != Long.MIN_VALUE && k != stepPhase) {
+                steps++;
+                stepRun = clip == Animator.Clip.RUN;
+            }
+            stepPhase = k;
+        } else {
+            stepPhase = Long.MIN_VALUE;                                   // parado ou no ar: a próxima pisada recomeça a contagem
+        }
     }
 
     /** Motion para o Animator (locomoção com troca suave). */
