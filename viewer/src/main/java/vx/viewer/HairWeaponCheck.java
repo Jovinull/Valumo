@@ -140,32 +140,24 @@ final class HairWeaponCheck {
         return new Result(preset, hair, worst, worstWhere, gap, gapWhere, samples);
     }
 
+    /** O equipamento de combate do jogo (espada e broquel, o mesmo para toda aparência; ver {@link Composer#kit}). */
+    public static final String COMBAT_KIT = "characters/r4/adventurer_shield";
+
     static boolean run(String out) {
         Path assets = Path.of(System.getProperty("vx.assets", "assets"));
-        Composer comp = new Composer(assets, 2);
-        ComponentCatalog cat = comp.catalog;
-        Map<String, Result> base = new LinkedHashMap<>();
         StringBuilder md = new StringBuilder("# Arma × cabeça composta (voxel a voxel) — viewer --check-cabelos\n\n"
                 + "Penetração = voxels da arma dentro da cabeça no pior instante (critério: 0 e nunca pior que o penteado do\n"
-                + "preset). Folga = menor distância arma–cabeça em voxels (" + (FIELD + 1) + " = mais longe que " + FIELD + ").\n\n"
-                + "| preset | penteado | penetração | pior instante | folga mín. | onde | amostras | situação |\n|---|---|---|---|---|---|---|---|\n");
+                + "preset). Folga = menor distância arma–cabeça em voxels (" + (FIELD + 1) + " = mais longe que " + FIELD + ").\n"
+                + "Duas tabelas: a arma de cada herói (o perfil dele) e o equipamento de COMBATE do jogo (espada e broquel em toda\n"
+                + "aparência: três cortes, guarda, reação, esquiva R2 e recuo).\n");
         boolean ok = true;
-        for (String preset : cat.presets.keySet()) {
-            String ref = cat.presets.get(preset).hair;
-            Result r0 = measure(comp, preset, ref);
-            base.put(preset, r0);
-            for (String hair : cat.ids("cabelo")) {
-                Result r = hair.equals(ref) ? r0 : measure(comp, preset, hair);
-                boolean pass = r.worstPen <= Math.max(TOL, r0.worstPen);
-                boolean experimental = cat.components.get(hair).doc.has("experimental");
-                ok &= pass || !experimental;
-                String verdict = pass ? "OK" : experimental ? "REPROVA" : "PRÉ-EXISTENTE";
-                String line = String.format(Locale.ROOT, "| %s | %s%s | %d | %s | %.2f | %s | %d | %s |", preset, hair,
-                        hair.equals(ref) ? " (referência)" : "", r.worstPen, r.worstWhere, r.minGap(), r.gapWhere, r.samples,
-                        verdict);
-                System.out.println(line);
-                md.append(line).append('\n');
-            }
+        for (String kit : new String[]{null, COMBAT_KIT}) {
+            Composer comp = new Composer(assets, 2);
+            comp.kit = kit;
+            String title = kit == null ? "Arma de cada herói" : "Equipamento de combate (" + kit + ")";
+            System.out.println("== " + title);
+            md.append("\n## ").append(title).append("\n\n| preset | penteado | penetração | pior instante | folga mín. | onde | amostras | situação |\n|---|---|---|---|---|---|---|---|\n");
+            ok &= table(comp, md);
         }
         String end = ok ? "cabelos: nenhum estudo pior que a referência" : "cabelos: ESTUDO ATRAVESSADO PELA ARMA ALÉM DA REFERÊNCIA";
         md.append("\n**").append(end).append("**\n");
@@ -177,6 +169,28 @@ final class HairWeaponCheck {
                 Files.writeString(f, md.toString());
             } catch (IOException e) {
                 System.err.println("não consegui gravar " + out + ": " + e.getMessage());
+            }
+        }
+        return ok;
+    }
+
+    private static boolean table(Composer comp, StringBuilder md) {
+        ComponentCatalog cat = comp.catalog;
+        boolean ok = true;
+        for (String preset : cat.presets.keySet()) {
+            String ref = cat.presets.get(preset).hair;
+            Result r0 = measure(comp, preset, ref);
+            for (String hair : cat.ids("cabelo")) {
+                Result r = hair.equals(ref) ? r0 : measure(comp, preset, hair);
+                boolean pass = r.worstPen <= Math.max(TOL, r0.worstPen);
+                boolean experimental = cat.components.get(hair).doc.has("experimental");
+                ok &= pass || !experimental;
+                String verdict = pass ? "OK" : experimental ? "REPROVA" : "PRÉ-EXISTENTE";
+                String line = String.format(Locale.ROOT, "| %s | %s%s | %d | %s | %.2f | %s | %d | %s |", preset, hair,
+                        hair.equals(ref) ? " (referência)" : "", r.worstPen, r.worstWhere, r.minGap(), r.gapWhere, r.samples,
+                        verdict);
+                System.out.println(line);
+                md.append(line).append('\n');
             }
         }
         return ok;
