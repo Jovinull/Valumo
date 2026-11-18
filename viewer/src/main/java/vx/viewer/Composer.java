@@ -170,8 +170,13 @@ public final class Composer {
             }
             r.pieces.add(piece);
         }
-        if (hairC.doc.has("partes"))                                       // partes próprias do cabelo (rabo)
-            for (JsonElement el : hairC.doc.getAsJsonArray("partes"))
+        // partes próprias do cabelo (rabo); integração da 09.4: o cabelo pode ter partes POR CORPO ("porCorpo", como as
+        // botas) — o "Preso" usa a trança canônica na exploradora e um rabo centrado nos outros corpos
+        JsonArray hairParts = hairC.doc.has("porCorpo") && hairC.doc.getAsJsonObject("porCorpo").has(a.preset)
+                ? hairC.doc.getAsJsonObject("porCorpo").getAsJsonObject(a.preset).getAsJsonArray("partes")
+                : hairC.doc.has("partes") ? hairC.doc.getAsJsonArray("partes") : null;
+        if (hairParts != null)
+            for (JsonElement el : hairParts)
                 r.pieces.add(piece(el.getAsJsonObject(), "cabelo", rgb(hairC.doc.get("base").getAsString()), hairT));
         r.pieces.addAll(coverPieces);
         if (hairC.doc.has("meta")) for (var e : hairC.doc.getAsJsonObject("meta").entrySet()) r.meta.add(e.getKey(), e.getValue());
