@@ -457,8 +457,13 @@ class CreatorTest {
                         x.hairColor = CAT.colors.get("cabelo").get(clicks.size() % 10)[1];
                         clicks.add(x);
                     }
-            for (Appearance x : clicks) { a.request(x); a.poll(); }     // um "quadro" por clique
+            int fromCache = 0;
+            for (Appearance x : clicks) { if (a.request(x)) fromCache++; a.poll(); }     // um "quadro" por clique
             a.drain(20000);
+            // rodada 09: invariante sem tempo — todo pedido termina EXATAMENTE uma vez: mostrado ou descartado (na fila,
+            // ao começar ou ao ficar pronto). Antes, os tirados da fila sumiam da conta e, sob carga (a thread de composição
+            // sem CPU), "descartados > 0" falhava mesmo com o comportamento certo.
+            assertEquals(clicks.size() - fromCache, a.completed + a.discarded, "pedido sem destino ou contado duas vezes");
             Appearance lastClick = clicks.getLast();
             assertEquals(lastClick.signature(), a.wanted);
             assertEquals(lastClick.signature(), a.shown, "o personagem mostrado é o da última escolha");
