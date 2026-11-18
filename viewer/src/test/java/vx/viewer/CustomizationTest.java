@@ -201,6 +201,7 @@ class CustomizationTest {
         Appearance a = custom("maga", "cabelo.rabo", "#5f8a5a", "#8f5c3e", "capuz.c3");
         a.iris = "#c08a2a";
         a.face = "rosto.aventureiro";
+        a.eyes = "olhos.redondos";                                       // rodada 09: formato dos olhos (v2)
         a.name = "Lia";
         Appearance b = Appearance.fromJson(a.toJson(), C.catalog);
         assertEquals(a, b, "round-trip");
@@ -212,7 +213,8 @@ class CustomizationTest {
                 {good.replace("cabelo.rabo", "cabelo.inexistente"), "componente desconhecido"},
                 {good.replace("\"rosto.aventureiro\"", "\"cabelo.topete\""), "não é do slot"},
                 {good.replace("#5f8a5a", "verde"), "inválida"},
-                {good.replace("\"versao\": 1", "\"versao\": 2"), "não suportada"},
+                {good.replace("\"versao\": 2", "\"versao\": 3"), "não suportada"},
+                {good.replace("\"olhos.redondos\"", "\"rosto.maga\""), "não é do slot"},
                 {good.replace("valumo.aparencia", "outro.contrato"), "contrato desconhecido"},
                 {good.replace("\"maga\"", "\"paladino\""), "preset desconhecido"},
                 {"{nao é json", "JSON inválido"}}) {
@@ -233,9 +235,100 @@ class CustomizationTest {
             try (var fs = Files.list(A.resolve(dir))) {
                 for (Path p : fs.toList()) before.put(p.toString(), Arrays.toString(Files.readAllBytes(p)).hashCode() + "");
             }
+        // rodada 09: o catálogo passou a ter uma regra "X" (crespo × capuz C3, a cobertura da exploradora); a
+        // premissa antiga "toda combinação compõe" deixou de valer. Compõe toda combinação válida e exige que a
+        // incompatível seja RECUSADA (nunca composta pela metade).
+        int composed = 0, refused = 0;
         for (String pid : CANON.keySet())
-            for (String h : C.catalog.ids("cabelo")) C.compose(custom(pid, h, "#a3a0ab", "#c98a5e", null));
+            for (String h : C.catalog.ids("cabelo")) {
+                try {
+                    C.compose(custom(pid, h, "#a3a0ab", "#c98a5e", null));
+                    composed++;
+                } catch (Appearance.InvalidAppearance e) {
+                    assertTrue(e.getMessage().contains("incompatível"), e.getMessage());
+                    refused++;
+                }
+            }
+        assertTrue(composed >= CANON.size() * (C.catalog.ids("cabelo").size() - 1), "compôs " + composed);
+        assertEquals(1, refused, "só crespo × capuz C3 é incompatível no catálogo atual");
         for (var e : before.entrySet())
             assertEquals(e.getValue(), Arrays.toString(Files.readAllBytes(Path.of(e.getKey()))).hashCode() + "", e.getKey());
+    }
+
+    // ------------------------------------------------------------------ rodada 09: formato dos olhos
+
+    @Test
+    void version1FilesStillOpenThroughTheMigration() {
+        String v1 = """
+                {"contrato": "valumo.aparencia", "versao": 1, "identidade": {"nome": "Antiga"},
+                 "origem": {"preset": "maga"}, "aparencia": {"rosto": "rosto.exploradora", "cabelo": {"estilo": "cabelo.curto"}},
+                 "equipamento_visual": {"cabeca": "nenhum"}}""";
+        Appearance a = Appearance.fromJson(v1, C.catalog);
+        assertNull(a.eyes, "v1 não tinha olhos: fica o formato do rosto");
+        assertEquals("olhos.amendoados", C.catalog.eyes(a), "o nativo da exploradora");
+        assertTrue(a.toJson().contains("\"versao\": 2"), "grava sempre na versão atual");
+        assertEquals(a, Appearance.fromJson(a.toJson(), C.catalog));
+    }
+
+    @Test
+    void choosingTheNativeEyesChangesNothing() {
+        for (String p : CANON.keySet()) {
+            Appearance a = Appearance.preset(p), b = a.copy();
+            b.eyes = C.catalog.eyes(a);
+            assertEquals(C.compose(a).piece("head").grid.cells(), C.compose(b).piece("head").grid.cells(), p);
+        }
+    }
+
+    @Test
+    void eyeShapesOnlyRepaintTheFacePlateAndKeepFourDistinctExpressions() {
+        for (String p : CANON.keySet())
+            for (String eyes : C.catalog.ids("olhos")) {
+                Appearance base = Appearance.preset(p), a = base.copy();
+                a.eyes = eyes;
+                Composer.Piece h0 = C.compose(base).piece("head"), h1 = C.compose(a).piece("head");
+                assertEquals(h0.grid.cells().keySet(), h1.grid.cells().keySet(), p + " × " + eyes + ": a forma da cabeça não muda");
+                Set<Long> hairCells = new HashSet<>();
+                if (C.catalog.components.get(C.catalog.hair(base)).doc.has("cabeca")) hairCells.addAll(hairCells(C.catalog.hair(base)));
+                int changed = 0;
+                for (var e : h1.grid.cells().entrySet()) {
+                    if (e.getValue().equals(h0.grid.cells().get(e.getKey()))) continue;
+                    changed++;
+                    assertFalse(hairCells.contains(e.getKey()), p + " × " + eyes + ": mudou célula de cabelo");
+                }
+                if (!eyes.equals(C.catalog.eyes(base))) assertTrue(changed > 0, p + " × " + eyes + ": nada mudou");
+                Set<Map<Long, Integer>> exprs = new HashSet<>();
+                exprs.add(h1.grid.cells());
+                for (VoxGrid g : h1.alts.values()) exprs.add(g.cells());
+                assertEquals(4, exprs.size(), p + " × " + eyes + ": as 4 expressões têm de ser diferentes");
+            }
+    }
+
+    // ------------------------------------------------------------------ rodada 09: botas (primeira peça por região)
+
+    @Test
+    void bootsReplaceOnlyTheShinsKeepPivotsAndSole() {
+        for (String p : CANON.keySet()) {
+            Appearance base = Appearance.preset(p), orig = base.copy(), boots = base.copy();
+            orig.feet = "botas.originais";
+            boots.feet = "botas.viajante";
+            Composer.ComposedRig r0 = C.compose(base), r1 = C.compose(orig), r2 = C.compose(boots);
+            int changed = 0;
+            for (Composer.Piece a : r0.pieces) {
+                Composer.Piece same = r1.piece(a.name), b = r2.piece(a.name);
+                assertEquals(a.grid.cells(), same.grid.cells(), p + " " + a.name + ": 'do modelo' não muda nada");
+                assertArrayEquals(a.pivot, b.pivot, 1e-6f, p + " " + a.name + ": pivô");
+                boolean shin = a.name.startsWith("shin_");
+                if (!shin) assertEquals(a.grid.cells(), b.grid.cells(), p + " " + a.name + ": só as canelas mudam");
+                else {
+                    assertNotEquals(a.grid.cells(), b.grid.cells(), p + " " + a.name + ": a bota mudou");
+                    changed++;
+                    int minA = Integer.MAX_VALUE, minB = Integer.MAX_VALUE;
+                    for (long k : a.grid.cells().keySet()) minA = Math.min(minA, VoxGrid.ky(k));
+                    for (long k : b.grid.cells().keySet()) minB = Math.min(minB, VoxGrid.ky(k));
+                    assertEquals(minA, minB, p + " " + a.name + ": sola na mesma altura (IK do pé)");
+                }
+            }
+            assertEquals(2, changed, p);
+        }
     }
 }
