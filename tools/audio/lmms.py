@@ -20,7 +20,6 @@ import struct
 from dataclasses import dataclass, field
 from xml.sax.saxutils import quoteattr
 
-SF2 = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
 TICKS_WHOLE = 192
 NAMES = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 _ids = iter(range(4100000, 9999999))
@@ -73,10 +72,8 @@ def parse_bars(bars: list[str], unit: int, bar_ticks: int, start_bar: int = 0, v
 
 # --------------------------------------------------------------------------- instrumentos
 
-def sf2(patch: int, bank: int = 0, gain: float = 1.0) -> str:
-    return (f'<instrument name="sf2player"><sf2player src="{SF2}" bank="{bank}" patch="{patch}" gain="{gain}" '
-            'reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" '
-            'chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>')
+# O sf2player (banco de amostras) saiu na integração da 09.4: a regra do projeto é não versionar nada de terceiros,
+# nem com licença livre. Timbres = síntese própria (tools/audio/sintese.py).
 
 
 def kicker(start=140.0, end=60.0, decay_ms=80.0, noise=0.0, click=0.0, gain=1.0, slope=0.06, env=0.12,
@@ -168,6 +165,7 @@ class Track:
     vol_automation: list[tuple[int, int]] | None = None     # [(tick, volume%)] — curva de volume da faixa
     channel: int = 0         # canal MIDI no .mid (9 = percussão GM)
     program: int = 0
+    eldata: str | None = None   # envelope de volume/filtro do instrumento (síntese própria); None = sem envelope
 
 
 @dataclass
@@ -213,7 +211,7 @@ class Song:
                      'usemasterpitch="1">')
             L.append(f'          <vol id="{vol_id}" value="{t.vol}" scale_type="linear"/>')
             L.append(f"          {t.instrument}")
-            L.append('          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>')
+            L.append("          " + (t.eldata or '<eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>'))
             L.append('          <fxchain enabled="0" numofeffects="0"/>')
             L.append("        </instrumenttrack>")
             # um padrão por faixa, do tamanho da peça (fácil de editar no piano roll)
