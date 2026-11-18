@@ -140,6 +140,15 @@ final class HairWeaponCheck {
         return new Result(preset, hair, worst, worstWhere, gap, gapWhere, samples);
     }
 
+    /**
+     * Componente NOVO (depois do conjunto canônico): estudo `experimental` ou já `aprovado` pelo proprietário. Nunca pode
+     * ser atravessado pela arma mais que o penteado do preset — aprovar não afrouxa a regra.
+     */
+    public static boolean isNew(ComponentCatalog cat, String id) {
+        var doc = cat.components.get(id).doc;
+        return doc.has("experimental") || doc.has("aprovado");
+    }
+
     /** O equipamento de combate do jogo (espada e broquel, o mesmo para toda aparência; ver {@link Composer#kit}). */
     public static final String COMBAT_KIT = "characters/r4/adventurer_shield";
 
@@ -183,9 +192,9 @@ final class HairWeaponCheck {
             for (String hair : cat.ids("cabelo")) {
                 Result r = hair.equals(ref) ? r0 : measure(comp, preset, hair);
                 boolean pass = r.worstPen <= Math.max(TOL, r0.worstPen);
-                boolean experimental = cat.components.get(hair).doc.has("experimental");
-                ok &= pass || !experimental;
-                String verdict = pass ? "OK" : experimental ? "REPROVA" : "PRÉ-EXISTENTE";
+                boolean novo = isNew(cat, hair);                    // estudo (experimental ou aprovado): protegido
+                ok &= pass || !novo;
+                String verdict = pass ? "OK" : novo ? "REPROVA" : "PRÉ-EXISTENTE";
                 String line = String.format(Locale.ROOT, "| %s | %s%s | %d | %s | %.2f | %s | %d | %s |", preset, hair,
                         hair.equals(ref) ? " (referência)" : "", r.worstPen, r.worstWhere, r.minGap(), r.gapWhere, r.samples,
                         verdict);

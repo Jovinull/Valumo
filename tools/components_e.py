@@ -238,7 +238,7 @@ def build(out):
     # pivô do joelho do corpo; "botas.originais" = as do modelo (o compositor não troca nada).
     comps["botas.originais"] = {"versao": 1, "slot": "pes", "nativo": True, "ocupa": ["perna.canela"],
                                 "origem": "botas canônicas de cada corpo"}
-    boots = {"versao": 1, "slot": "pes", "experimental": True, "ocupa": ["perna.canela"], "substitui": ["shin_l", "shin_r"],
+    boots = {"versao": 1, "slot": "pes", "aprovado": "rodada 09.4", "ocupa": ["perna.canela"], "substitui": ["shin_l", "shin_r"],
              "origem": "tools/charlib_e.py leg(boot_style='viajante') (rodada 09.4)", "porCorpo": {}}
     for pid in PRESETS:
         rig_b, _ = _gen(pid, boot_style="viajante")
@@ -278,7 +278,7 @@ def build(out):
         _, psh = _gen("aventureiro", hair_style=style, hair_hex=PROBE_HAIR)
         hid = f"cabelo.{style}"
         e = {"versao": 1, "slot": "cabelo", "origem": origem, "base": "#c2582c", "rampa": HAIR_RAMP["#c2582c"],
-             "experimental": True, "cabeca": _save(out, f"{hid}/hair.vox", hair), "partes": [],
+             "aprovado": "rodada 09.4", "cabeca": _save(out, f"{hid}/hair.vox", hair), "partes": [],
              "ocupa": ["cabeca.topo", "cabeca.nuca"]}
         e["cabeca"]["mascara"] = _mask(out, f"{hid}/hair.mask.vox", {"cabelo": _diff(hair, psh["hair"])})
         comps[hid] = e

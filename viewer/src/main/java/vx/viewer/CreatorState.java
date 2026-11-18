@@ -45,8 +45,8 @@ public final class CreatorState {
         NAMES.put("cabelo.curto", "Curto");
         NAMES.put("cabelo.chanel", "Médio");
         NAMES.put("cabelo.rabo", "Preso");
-        NAMES.put("cabelo.crespo", "Crespo");               // rodada 09.4: estudo experimental (catálogo: "experimental")
-        NAMES.put("cabelo.coque", "Coque alto");            // rodada 09.4: estudo experimental
+        NAMES.put("cabelo.crespo", "Crespo");               // rodada 09.4: estudo aprovado pelo proprietário (catálogo: "aprovado"; antes "experimental")
+        NAMES.put("cabelo.coque", "Coque alto");            // rodada 09.4: estudo aprovado pelo proprietário
         NAMES.put("rosto.aventureiro", "Destemido");
         NAMES.put("rosto.exploradora", "Atento");
         NAMES.put("rosto.maga", "Gentil");

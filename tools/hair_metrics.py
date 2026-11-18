@@ -41,12 +41,12 @@ def main():
                            cat["componentes"][k]["cabeca"]["origin"]) for k in ids}
     neck = cat["pivoCabeca"][1]
     out = ["# Medidas dos estilos de cabelo (voxels do cabelo fundido na cabeça; espaço do modelo)", "",
-           "| estilo | voxels | largura x | topo (voxels acima do pescoço) | profundidade z | experimental |",
+           "| estilo | voxels | largura x | topo (voxels acima do pescoço) | profundidade z | estudo |",
            "|---|---|---|---|---|---|"]
     for k in ids:
         xs, ys, zs = zip(*cells[k])
         out.append(f"| {k} | {len(cells[k])} | {max(xs) - min(xs) + 1} | {max(ys) - neck:.0f} | {max(zs) - min(zs) + 1} | "
-                   f"{'sim' if cat['componentes'][k].get('experimental') else ''} |")
+                   f"{'experimental' if cat['componentes'][k].get('experimental') else ('aprovado ' + cat['componentes'][k]['aprovado'].split()[-1]) if cat['componentes'][k].get('aprovado') else ''} |")
     short = [k.split(".", 1)[1] for k in ids]
     out += ["", "Jaccard de volume entre pares (CustomizationTest exige < 0,80; o 'natural' ficou fora com 0,82):", "",
             "| | " + " | ".join(short) + " |", "|---" * (len(ids) + 1) + "|"]
