@@ -1107,6 +1107,726 @@
     5.0
    ],
    "hip": 0.84
+  },
+  "hx_recoil": {
+   "base": "h_follow",
+   "torso": [
+    4,
+    44,
+    4
+   ],
+   "head": [
+    -14,
+    0,
+    6
+   ],
+   "hip": 0.86,
+   "feet": [
+    1.0,
+    -3.4
+   ],
+   "rootZ": -2.0,
+   "r": [
+    3.0,
+    17.8,
+    7.2
+   ],
+   "rElbow": [
+    0.0,
+    -1.0,
+    0.5
+   ]
+  },
+  "hx_hold": {
+   "base": "hx_recoil",
+   "torso": [
+    5,
+    40,
+    3
+   ],
+   "hip": 0.87,
+   "rootZ": -1.6
+  },
+  "dx_recoil": {
+   "base": "d_follow",
+   "torso": [
+    4,
+    44,
+    6
+   ],
+   "head": [
+    -14,
+    0,
+    6
+   ],
+   "hip": 0.86,
+   "feet": [
+    1.0,
+    -3.4
+   ],
+   "rootZ": -2.0,
+   "r": [
+    0.5,
+    15.0,
+    8.5
+   ],
+   "rElbow": [
+    0.0,
+    -1.0,
+    0.5
+   ]
+  },
+  "dx_hold": {
+   "base": "dx_recoil",
+   "torso": [
+    5,
+    40,
+    4
+   ],
+   "hip": 0.87,
+   "rootZ": -1.6
+  },
+  "hx_return": {
+   "base": "h_settle",
+   "r": [
+    0.8,
+    18.2,
+    9.8
+   ],
+   "rElbow": [
+    -0.4,
+    -1.0,
+    0.4
+   ],
+   "torso": [
+    -2,
+    28,
+    2
+   ],
+   "hip": 0.88,
+   "rootZ": -0.6
+  },
+  "down_mid": {
+   "base": "rest",
+   "r": [
+    -9.4,
+    14.0,
+    5.4
+   ],
+   "rDir": [
+    -0.2,
+    -0.6,
+    0.77
+   ],
+   "rEdge": [
+    0.0,
+    -0.77,
+    -0.6
+   ],
+   "torso": [
+    10,
+    -6,
+    0
+   ],
+   "head": [
+    8,
+    0,
+    0
+   ],
+   "hip": 0.78,
+   "feet": [
+    2.6,
+    -3.0
+   ]
+  },
+  "down_kneel": {
+   "base": "rest",
+   "r": [
+    -9.4,
+    13.4,
+    6.4
+   ],
+   "rDir": [
+    -0.08,
+    -0.95,
+    0.3
+   ],
+   "rEdge": [
+    0.0,
+    -0.3,
+    -0.95
+   ],
+   "rElbow": [
+    -0.8,
+    -0.4,
+    -0.6
+   ],
+   "torso": [
+    20,
+    -8,
+    0
+   ],
+   "head": [
+    16,
+    0,
+    4
+   ],
+   "hip": 0.64,
+   "feet": [
+    3.6,
+    -4.2
+   ]
+  },
+  "bs_crouch": {
+   "_doc": "rodada 09.2 — recuo: agacha",
+   "base": "rest",
+   "hip": 0.78,
+   "torso": [
+    12,
+    0,
+    0
+   ],
+   "feet": [
+    1.5,
+    -1.5
+   ],
+   "rootZ": 0.5
+  },
+  "bs_air": {
+   "_doc": "recuo: no ar, de frente, espada e escudo à frente",
+   "base": "rest",
+   "r": [
+    -9.5,
+    16.0,
+    5.0
+   ],
+   "rDir": [
+    -0.2,
+    0.3,
+    0.93
+   ],
+   "rEdge": [
+    0.98,
+    0.0,
+    0.2
+   ],
+   "rElbow": [
+    -1.0,
+    -0.8,
+    -0.3
+   ],
+   "lMode": "ik",
+   "l": [
+    7.8,
+    16.0,
+    6.0
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "lift": 4.0,
+   "torso": [
+    -8,
+    0,
+    0
+   ],
+   "head": [
+    -4,
+    0,
+    0
+   ],
+   "hip": 0.9,
+   "feet": [
+    0.5,
+    -2.0
+   ],
+   "footY": [
+    2.0,
+    1.0
+   ],
+   "rootZ": -1.5
+  },
+  "bs_land": {
+   "_doc": "recuo: pousa e firma",
+   "base": "rest",
+   "r": [
+    -9.0,
+    14.5,
+    4.5
+   ],
+   "rDir": [
+    -0.25,
+    0.1,
+    0.96
+   ],
+   "rEdge": [
+    0.97,
+    0.0,
+    0.25
+   ],
+   "lMode": "ik",
+   "l": [
+    7.8,
+    15.0,
+    5.5
+   ],
+   "lElbow": [
+    1.0,
+    -0.8,
+    -0.2
+   ],
+   "hip": 0.8,
+   "torso": [
+    8,
+    0,
+    0
+   ],
+   "feet": [
+    2.0,
+    -2.5
+   ],
+   "rootZ": -0.5
+  },
+  "r2f_load": {
+   "_doc": "rodada 09.3 R2 frente — carrega baixo, tronco à frente",
+   "base": "rest",
+   "r": [
+    -9.4,
+    14.0,
+    3.0
+   ],
+   "rDir": [
+    -0.32,
+    -0.18,
+    0.93
+   ],
+   "rEdge": [
+    0.0,
+    -0.98,
+    -0.19
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1.0
+   ],
+   "lMode": "ik",
+   "l": [
+    8.2,
+    15.0,
+    5.5
+   ],
+   "lElbow": [
+    1.0,
+    -0.7,
+    -0.3
+   ],
+   "torso": [
+    18,
+    0,
+    0
+   ],
+   "head": [
+    6,
+    0,
+    0
+   ],
+   "hip": 0.72,
+   "feet": [
+    2.6,
+    -2.4
+   ],
+   "rootZ": 1.0
+  },
+  "r2f_push": {
+   "_doc": "impulso: o corpo sai rente, pernas de trás estendidas",
+   "base": "r2f_load",
+   "torso": [
+    45,
+    0,
+    0
+   ],
+   "head": [
+    20,
+    0,
+    0
+   ],
+   "hip": 0.88,
+   "lift": 4.0,
+   "feet": [
+    0.5,
+    -6.0
+   ],
+   "footY": [
+    2.0,
+    4.0
+   ],
+   "rootZ": 2.0
+  },
+  "r2f_air": {
+   "_doc": "no ar baixo: pernas trazidas para baixo do corpo",
+   "base": "r2f_push",
+   "torso": [
+    36,
+    0,
+    0
+   ],
+   "head": [
+    10,
+    0,
+    0
+   ],
+   "hip": 0.84,
+   "lift": 4.5,
+   "feet": [
+    4.0,
+    -0.5
+   ],
+   "footY": [
+    4.0,
+    2.5
+   ],
+   "rootZ": 1.6
+  },
+  "r2f_land": {
+   "_doc": "pousa com o pé esquerdo à frente, absorve",
+   "base": "r2f_load",
+   "torso": [
+    28,
+    0,
+    0
+   ],
+   "head": [
+    8,
+    0,
+    0
+   ],
+   "hip": 0.6,
+   "feet": [
+    5.5,
+    -3.8
+   ],
+   "footY": [
+    0,
+    0.6
+   ],
+   "rootZ": 0.8
+  },
+  "r2l_load": {
+   "_doc": "rodada 09.3 R2 esquerda — carrega e inclina para o lado da esquiva",
+   "base": "rest",
+   "r": [
+    -9.4,
+    14.0,
+    3.0
+   ],
+   "rDir": [
+    -0.32,
+    -0.18,
+    0.93
+   ],
+   "rEdge": [
+    0.0,
+    -0.98,
+    -0.19
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1.0
+   ],
+   "lMode": "ik",
+   "l": [
+    8.2,
+    15.0,
+    5.5
+   ],
+   "lElbow": [
+    1.0,
+    -0.7,
+    -0.3
+   ],
+   "torso": [
+    10,
+    0,
+    6
+   ],
+   "head": [
+    4,
+    0,
+    -4
+   ],
+   "hip": 0.72,
+   "feet": [
+    1.0,
+    -1.0
+   ],
+   "feetX": [
+    1.0,
+    1.0
+   ],
+   "rollZ": -5
+  },
+  "r2l_push": {
+   "_doc": "impulso lateral: o pé de fora empurra, o corpo deita para o lado",
+   "base": "r2l_load",
+   "torso": [
+    14,
+    0,
+    10
+   ],
+   "head": [
+    6,
+    0,
+    -8
+   ],
+   "hip": 0.84,
+   "lift": 3.5,
+   "feet": [
+    0.5,
+    -0.5
+   ],
+   "feetX": [
+    -4.0,
+    -5.0
+   ],
+   "footY": [
+    2.5,
+    3.5
+   ],
+   "rollZ": 30
+  },
+  "r2l_air": {
+   "_doc": "no ar: pernas juntas embaixo do corpo",
+   "base": "r2l_push",
+   "torso": [
+    14,
+    0,
+    8
+   ],
+   "head": [
+    6,
+    0,
+    -6
+   ],
+   "hip": 0.84,
+   "lift": 4.0,
+   "feetX": [
+    0.5,
+    -0.5
+   ],
+   "footY": [
+    3.5,
+    3.5
+   ],
+   "rollZ": 20
+  },
+  "r2l_land": {
+   "_doc": "pousa com o pé de dentro aberto para o lado, abaixa e segura",
+   "base": "r2l_load",
+   "torso": [
+    16,
+    0,
+    8
+   ],
+   "head": [
+    6,
+    0,
+    -6
+   ],
+   "hip": 0.6,
+   "feet": [
+    1.4,
+    -1.4
+   ],
+   "feetX": [
+    5.0,
+    1.5
+   ],
+   "footY": [
+    0,
+    0
+   ],
+   "rollZ": 12
+  },
+  "r2r_load": {
+   "_doc": "rodada 09.3 R2 direita — carrega e inclina para o lado da esquiva",
+   "base": "rest",
+   "r": [
+    -9.4,
+    14.0,
+    3.0
+   ],
+   "rDir": [
+    -0.32,
+    -0.18,
+    0.93
+   ],
+   "rEdge": [
+    0.0,
+    -0.98,
+    -0.19
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1.0
+   ],
+   "lMode": "ik",
+   "l": [
+    8.2,
+    15.0,
+    5.5
+   ],
+   "lElbow": [
+    1.0,
+    -0.7,
+    -0.3
+   ],
+   "torso": [
+    10,
+    0,
+    -2
+   ],
+   "head": [
+    4,
+    0,
+    4
+   ],
+   "hip": 0.72,
+   "feet": [
+    1.0,
+    -1.0
+   ],
+   "feetX": [
+    -1.0,
+    -1.0
+   ],
+   "rollZ": 5
+  },
+  "r2r_push": {
+   "_doc": "impulso lateral: o pé de fora empurra, o corpo deita para o lado",
+   "base": "r2r_load",
+   "torso": [
+    14,
+    0,
+    -3
+   ],
+   "head": [
+    6,
+    0,
+    8
+   ],
+   "hip": 0.84,
+   "lift": 3.5,
+   "feet": [
+    0.5,
+    -0.5
+   ],
+   "feetX": [
+    5.0,
+    4.0
+   ],
+   "footY": [
+    3.5,
+    2.5
+   ],
+   "rollZ": -30,
+   "r": [
+    -9.4,
+    14.0,
+    3.0
+   ],
+   "rDir": [
+    -0.32,
+    -0.18,
+    0.93
+   ],
+   "rEdge": [
+    0.0,
+    -0.98,
+    -0.19
+   ]
+  },
+  "r2r_air": {
+   "_doc": "no ar: pernas juntas embaixo do corpo",
+   "base": "r2r_push",
+   "torso": [
+    14,
+    0,
+    -3
+   ],
+   "head": [
+    6,
+    0,
+    6
+   ],
+   "hip": 0.84,
+   "lift": 4.0,
+   "feetX": [
+    -0.5,
+    0.5
+   ],
+   "footY": [
+    3.5,
+    3.5
+   ],
+   "rollZ": -20,
+   "r": [
+    -9.4,
+    14.0,
+    3.0
+   ],
+   "rDir": [
+    -0.32,
+    -0.18,
+    0.93
+   ],
+   "rEdge": [
+    0.0,
+    -0.98,
+    -0.19
+   ]
+  },
+  "r2r_land": {
+   "_doc": "pousa com o pé de dentro aberto para o lado, abaixa e segura",
+   "base": "r2r_load",
+   "torso": [
+    16,
+    0,
+    -3
+   ],
+   "head": [
+    6,
+    0,
+    6
+   ],
+   "hip": 0.6,
+   "feet": [
+    1.4,
+    -1.4
+   ],
+   "feetX": [
+    -1.5,
+    -5.0
+   ],
+   "footY": [
+    0,
+    0
+   ],
+   "rollZ": -12,
+   "rDir": [
+    -0.32,
+    -0.18,
+    0.93
+   ],
+   "rEdge": [
+    0.0,
+    -0.98,
+    -0.19
+   ]
   }
  },
  "moves": {
@@ -1178,7 +1898,24 @@
      0.58,
      1.12
     ]
-   }
+   },
+   "interrupt": [
+    {
+     "until": 0.5,
+     "rate": -2
+    },
+    {
+     "until": 0.6,
+     "rate": 1,
+     "exits": {
+      "hit": "hit_cross_h"
+     }
+    },
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
   },
   "slash_d": {
    "label": "Corte diagonal (alto à direita → baixo à esquerda)",
@@ -1244,7 +1981,24 @@
      0.61,
      1.15
     ]
-   }
+   },
+   "interrupt": [
+    {
+     "until": 0.52,
+     "rate": -2
+    },
+    {
+     "until": 0.62,
+     "rate": 1,
+     "exits": {
+      "hit": "hit_cross_d"
+     }
+    },
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
   },
   "slash_v": {
    "label": "Corte descendente (de cima para baixo, à frente)",
@@ -1310,7 +2064,17 @@
      0.66,
      1.22
     ]
-   }
+   },
+   "interrupt": [
+    {
+     "until": 0.57,
+     "rate": -2
+    },
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
   },
   "combo": {
    "label": "Sequência: horizontal → revés → descendente",
@@ -1483,7 +2247,13 @@
      0.3,
      0.9
     ]
-   }
+   },
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
   },
   "emote": {
    "label": "Comemoração: agacha, pula com a arma erguida ao lado da cabeça, aterrissa",
@@ -1540,6 +2310,389 @@
      1.6
     ]
    }
+  },
+  "hit_cross_h": {
+   "label": "Golpe recebido logo após o corte horizontal (rodada 09): a espada fica do lado em que o corte terminou, o corpo recua e a arma volta pela recuperação autorada",
+   "phases": {
+    "prep": [
+     0,
+     0.0
+    ],
+    "exec": [
+     0.0,
+     0.12
+    ],
+    "follow": [
+     0.12,
+     0.3
+    ],
+    "recover": [
+     0.3,
+     1.07
+    ]
+   },
+   "keys": [
+    {
+     "t": 0,
+     "pose": "h_follow",
+     "stop": true
+    },
+    {
+     "t": 0.1,
+     "pose": "hx_recoil",
+     "snap": 1.4
+    },
+    {
+     "t": 0.24,
+     "pose": "hx_hold",
+     "stop": true
+    },
+    {
+     "t": 0.4,
+     "pose": "hx_return"
+    },
+    {
+     "t": 0.58,
+     "pose": "h_settle"
+    },
+    {
+     "t": 0.82,
+     "pose": "guard"
+    },
+    {
+     "t": 1.07,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
+  },
+  "hit_cross_d": {
+   "label": "Golpe recebido logo após o corte diagonal (rodada 09): mesma regra do horizontal",
+   "phases": {
+    "prep": [
+     0,
+     0.0
+    ],
+    "exec": [
+     0.0,
+     0.12
+    ],
+    "follow": [
+     0.12,
+     0.3
+    ],
+    "recover": [
+     0.3,
+     1.05
+    ]
+   },
+   "keys": [
+    {
+     "t": 0,
+     "pose": "d_follow",
+     "stop": true
+    },
+    {
+     "t": 0.1,
+     "pose": "dx_recoil",
+     "snap": 1.4
+    },
+    {
+     "t": 0.24,
+     "pose": "dx_hold",
+     "stop": true
+    },
+    {
+     "t": 0.55,
+     "pose": "d_settle"
+    },
+    {
+     "t": 0.8,
+     "pose": "guard"
+    },
+    {
+     "t": 1.05,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
+  },
+  "defeat": {
+   "label": "Derrota (rodada 09): cai de joelhos com a espada fincada ao lado (só no combate; segue a reação a dano)",
+   "phases": {
+    "prep": [
+     0,
+     0.0
+    ],
+    "exec": [
+     0.0,
+     0.75
+    ],
+    "follow": [
+     0.75,
+     0.75
+    ],
+    "recover": [
+     0.75,
+     2.0
+    ]
+   },
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.35,
+     "pose": "down_mid"
+    },
+    {
+     "t": 0.8,
+     "pose": "down_kneel",
+     "stop": true
+    },
+    {
+     "t": 2.0,
+     "pose": "down_kneel",
+     "stop": true
+    }
+   ]
+  },
+  "backstep": {
+   "label": "Recuo evasivo (rodada 09.2): agacha, salta para trás de frente, pousa",
+   "cutFade": 0.12,
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.05,
+     "pose": "bs_crouch"
+    },
+    {
+     "t": 0.15,
+     "pose": "bs_air"
+    },
+    {
+     "t": 0.26,
+     "pose": "bs_land"
+    },
+    {
+     "t": 0.4,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.05
+    ],
+    "exec": [
+     0.05,
+     0.26
+    ],
+    "follow": [
+     0.26,
+     0.3
+    ],
+    "recover": [
+     0.3,
+     0.4
+    ]
+   },
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
+  },
+  "dodge_f": {
+   "label": "Esquiva R2 para a frente (rodada 09.3): carrega, impulso rente, pernas embaixo, pousa com um pé à frente",
+   "cutFade": 0.12,
+   "fadeIn": 0.08,
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.05,
+     "pose": "r2f_load"
+    },
+    {
+     "t": 0.13,
+     "pose": "r2f_push"
+    },
+    {
+     "t": 0.3,
+     "pose": "r2f_air"
+    },
+    {
+     "t": 0.4,
+     "pose": "r2f_land"
+    },
+    {
+     "t": 0.56,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.05
+    ],
+    "exec": [
+     0.05,
+     0.4
+    ],
+    "follow": [
+     0.4,
+     0.46
+    ],
+    "recover": [
+     0.46,
+     0.56
+    ]
+   },
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
+  },
+  "dodge_l": {
+   "label": "Esquiva R2 para a esquerda (rodada 09.3): carrega, impulso lateral com o corpo deitado para o lado, pousa aberto",
+   "cutFade": 0.12,
+   "fadeIn": 0.08,
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.05,
+     "pose": "r2l_load"
+    },
+    {
+     "t": 0.13,
+     "pose": "r2l_push"
+    },
+    {
+     "t": 0.3,
+     "pose": "r2l_air"
+    },
+    {
+     "t": 0.4,
+     "pose": "r2l_land"
+    },
+    {
+     "t": 0.56,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.05
+    ],
+    "exec": [
+     0.05,
+     0.4
+    ],
+    "follow": [
+     0.4,
+     0.46
+    ],
+    "recover": [
+     0.46,
+     0.56
+    ]
+   },
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
+  },
+  "dodge_r": {
+   "label": "Esquiva R2 para a direita (rodada 09.3): espelho da esquerda",
+   "cutFade": 0.12,
+   "fadeIn": 0.08,
+   "keys": [
+    {
+     "t": 0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.05,
+     "pose": "r2r_load"
+    },
+    {
+     "t": 0.13,
+     "pose": "r2r_push"
+    },
+    {
+     "t": 0.3,
+     "pose": "r2r_air"
+    },
+    {
+     "t": 0.4,
+     "pose": "r2r_land"
+    },
+    {
+     "t": 0.56,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.05
+    ],
+    "exec": [
+     0.05,
+     0.4
+    ],
+    "follow": [
+     0.4,
+     0.46
+    ],
+    "recover": [
+     0.46,
+     0.56
+    ]
+   },
+   "interrupt": [
+    {
+     "until": 9,
+     "rate": 1
+    }
+   ]
   }
  }
 }
