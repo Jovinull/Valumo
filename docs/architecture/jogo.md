@@ -222,6 +222,18 @@ Percursos usados nos vídeos e testes:
   - `close()` libera o compositor, o renderer, o FBO de captura e o `UiKit`;
   - abrir e fechar o criador libera o `App` e o `Creator` dele.
 
+## 9.1 Áudio e volume (rodada 09)
+
+- `GameAudio` traduz fatos do jogo em eventos do catálogo de som: pisada (`Player.steps`, na fase de contato do pé)
+  com a superfície (`World.surfaceAt`: grama, terra, areia, pedra), ações do `GameLogic` (`onAction`), música da vila
+  (abafada na pausa e na conversa), vento e lago (posicional) e o ouvinte no herói. Arquitetura: [audio.md](audio.md).
+- Pausa: fileiras Sensibilidade, Música e Efeitos com o mesmo componente (rótulo que cabe na escala inteira, valor
+  centrado entre − e +); preferências em `output/preferencias/audio.json` (`AudioPrefs`, `-Dvx.prefs=` muda o
+  arquivo — os roteiros usam um temporário).
+- `./gradlew jogo` toca no dispositivo; roteiros e `--demo` são mudos. Gravação sincronizada:
+  `JAVA_OPTS="-Dvx.audio=loopback -Dvx.audio.gravar=x.wav"`. Roteiros: `tools/jogo/07-audio.txt`, `08-pausa-volume.txt`,
+  `09-ambiente.txt`.
+
 ## 10. Testes
 
 `GameplayTest` (sem OpenGL, 21 testes):

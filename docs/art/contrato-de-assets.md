@@ -236,3 +236,16 @@ Testes novos: `AssetContractTest.consolidatedHeroesHaveElbowsAndKnees`,
 
 Estudos novos: `characters/r4/adventurer_shield`, `characters/r4/adventurer_longblade` (`tools/chars_e_study.py`).
 A flecha da exploradora passou a 15 voxels (proporção chibi da puxada). Testes: `ChoreoTest` (14 casos).
+
+## 10. Extensões da rodada 09 (áudio e personalização)
+
+- **Áudio** (fonte de verdade escrita à mão + arquivos renderizados versionados; não são gerados pelo build):
+  `assets/audio/sons.json` (contrato `valumo.sons` v1: `barramentos`, `eventos`, `musicas`, `ambientes`),
+  `assets/audio/sfx/<familia>/*.wav` (PCM 16 bits, 48 kHz, **mono**), `assets/audio/musica/*.ogg` (Vorbis, 48 kHz,
+  estéreo, laço em quadros no catálogo), `assets/audio/ambiente/*.ogg` (posicional = mono; cama = estéreo). Fontes
+  editáveis em `fontes/audio/` (partitura `.py`, sessão LMMS `.mmp`, `.mid`, `*.fatias.json`, `*.laco.json`).
+  Teste: `AudioTest` (formato, taxa, canais, duração por evento, laço).
+- **Componentes** (gerados por `tools/components_e.py`): slot `olhos` (`olhos.*`, parâmetro; o desenho mora em
+  `rosto.*.variantesOlhos.<id>.exprs`), slot `pes` (`botas.originais` nativo; `botas.viajante` com
+  `porCorpo.<preset>.partes` = `shin_l`/`shin_r` no espaço do modelo, mesmo pivô do corpo), `"experimental": true`
+  nos estudos. Aparência `valumo.aparencia` v2 (`aparencia.olhos`, `equipamento_visual.pes`).

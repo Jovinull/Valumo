@@ -55,6 +55,9 @@ Provas:
 |---|---|---|---|
 | `rosto` | `rosto.aventureiro`, `rosto.exploradora`, `rosto.maga` | rosto de cada herói (olho, sobrancelha, boca, atuação) | 4 expressões por rosto |
 | `cabelo` | `cabelo.topete`, `cabelo.curto`, `cabelo.chanel`, `cabelo.rabo` | topete h2 do aventureiro; **curto** (novo, rodada 07); cabelo da maga; cabelo da exploradora com o rabo (parte `tail`) | o `natural` (h1) ficou fora: tinha 82% do mesmo volume do topete |
+| `cabelo` (rodada 09, **experimental**) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"experimental": true` no catálogo; aprovação do proprietário pendente |
+| `olhos` (rodada 09) | `olhos.redondos`, `olhos.amendoados`, `olhos.inclinados` | parâmetro `eye` do pintor (`paint_face`); o desenho de cada expressão mora no ROSTO (`variantesOlhos`), porque depende da atuação | o nativo de cada rosto = arquivos originais (preset idêntico) |
+| `pes` (rodada 09, **experimental**) | `botas.originais` (nativo), `botas.viajante` | `charlib_e.leg(boot_style="viajante")`, uma versão por corpo (`porCorpo`) | ocupa/substitui só `shin_l`/`shin_r`; mesmo pivô e mesma sola |
 | `cabeca` | `chapeu.maga`, `capuz.c3` | `hat.vox` canônico da maga; nó, fitas e pena da exploradora, mais a regra da faixa | |
 | corpo | dos rigs `characters/e/*` | arquivos canônicos | máscara de pele só onde há pele (mãos da maga) |
 
@@ -91,6 +94,9 @@ Paletas do catálogo:
 | Canal | Cores |
 |---|---|
 | Cabelo | cobre, mel, lilás, castanho, preto, loiro, ruivo, cinza, musgo, anil |
+
+Partes de um estilo que não são cabelo (a amarração de couro do coque) ficam fora da máscara pela sonda e não
+recolorem.
 | Pele | pêssego, bronzeada, clara, morena, escura |
 | Íris | verde, azul, violeta, âmbar, castanho |
 
@@ -103,6 +109,7 @@ Paletas do catálogo:
 | `chapeu.maga` × outros | `sob_aba` | ver passos abaixo |
 | `capuz.c3` × qualquer cabelo | `faixa` | o nó, as fitas e a pena se fundem à cabeça; a faixa é pintada sobre o cabelo pela mesma regra do gerador |
 | `chapeu.maga` × `capuz.c3` | — | o mesmo slot, então são exclusivos por construção |
+| `capuz.c3` × `crespo` | `"X"` (rodada 09) | o nó e as fitas ficam enterrados no volume dos cachos; indisponível com motivo no criador |
 | incompatível | `"X"` no catálogo | `InvalidAppearance` com mensagem; o viewer pula a opção e informa |
 
 Passos da variante `sob_aba`:
@@ -129,14 +136,17 @@ Teste: `hatSitsOnEveryHairStyleWithoutPokingThroughOrLeavingAGap`.
 ```json
 {
   "contrato": "valumo.aparencia",
-  "versao": 1,
+  "versao": 2,
   "identidade": {"nome": "Lia"},
   "origem": {"preset": "aventureiro"},
-  "aparencia": {"rosto": "rosto.maga", "cabelo": {"estilo": "cabelo.curto", "cor": "#6b4630"},
+  "aparencia": {"rosto": "rosto.maga", "olhos": "olhos.inclinados", "cabelo": {"estilo": "cabelo.curto", "cor": "#6b4630"},
                 "pele": "#c98a5e", "iris": "#c08a2a"},
-  "equipamento_visual": {"cabeca": "chapeu.maga"}
+  "equipamento_visual": {"cabeca": "chapeu.maga", "pes": "botas.viajante"}
 }
 ```
+
+Versão 2 (rodada 09): `aparencia.olhos` e `equipamento_visual.pes`, ambos opcionais (ausente = o do rosto / as botas
+do modelo). Arquivos v1 abrem pela migração pura `Appearance.migrate1to2` e são gravados de volta em v2.
 
 - Só se salva o que difere do preset (campo ausente significa "do preset"). `"cabeca": "nenhum"` tira a
   cobertura do preset.
@@ -149,8 +159,8 @@ Teste: `hatSitsOnEveryHairStyleWithoutPokingThroughOrLeavingAGap`.
   - combinação incompatível.
 - `save(arquivo, overwrite=false)` nunca sobrescreve. O viewer grava `output/aparencias/<preset>-NNN.json` com
   número novo.
-- **Migração [PLANEJADO]:** a cada versão nova do contrato, uma função pura `migrar_N_para_N+1`. IDs
-  removidos ganham um `substituto` no catálogo, e IDs nunca são reaproveitados.
+- **Migração [IMPLEMENTADO — v1 → v2]:** a cada versão nova do contrato, uma função pura (`migrate1to2`). IDs
+  removidos ganharão um `substituto` no catálogo, e IDs nunca são reaproveitados.
 
 ## 7. Rig, animação e desempenho
 
@@ -182,15 +192,20 @@ Teste: `hatSitsOnEveryHairStyleWithoutPokingThroughOrLeavingAGap`.
 
 ## 8. Limites conhecidos
 
-- Os rostos são os três dos heróis; formatos de olho, sobrancelha e boca avulsos ainda não são componentes.
-  Hoje troca-se o rosto inteiro e a cor da íris.
+- Os rostos são os três dos heróis; o FORMATO DOS OLHOS é componente desde a rodada 09; sobrancelha e boca avulsas
+  ainda não (proposta em [personalizacao-evolucao.md](personalizacao-evolucao.md)).
 - As orelhas de fantasia e os NPCs não entram no sistema (o esqueleto é outro).
-- Roupas e armaduras por região do corpo: **[PLANEJADO]** (ocupa, oculta, substitui; variantes de manga e
-  de cano).
+- Roupas por região: **[IMPLEMENTADO — primeira peça, rodada 09]** botas (`pes`, substitui as canelas). Mangas,
+  calças, tronco, capa e armaduras: **[PLANEJADO]** ([personalizacao-evolucao.md](personalizacao-evolucao.md)).
 - Criador de personagens do jogador: **[IMPLEMENTADO — 07.2]** ([criador de personagens](criador-de-personagens.md)).
   Inventário, atributos e classes: **[NÃO IMPLEMENTADO]**.
 
 ## 9. QA de componentes
+
+Arma × cabeça composta, voxel a voxel (rodada 09): `viewer --check-cabelos [saida.md]` e `HairWeaponTest` — penteado
+EXPERIMENTAL não pode ser atravessado pela arma mais que o penteado do preset (o `WeaponCheck` mede a cabeça como uma
+cápsula de raio 8,6 e não vê o cabelo além dela).
+
 
 1. O preset recomposto é idêntico ao canônico (testes e gate de captura).
 2. Variantes só removem voxels; nenhum voxel é compartilhado entre componentes; nada sai por cima do chapéu
