@@ -23,6 +23,22 @@ public final class Sequencer {
      *  (embalo) se já estava na execução. A mistura nunca liga em linha reta duas poses distantes. */
     public static final float INT_FADE = 0.30f, REWIND = 2.0f;
 
+    /** Rodada 09.2 — duração da transição de corte quando {@code move} entra (o {@code cutFade} do gesto ou INT_FADE). */
+    public static float intFade(Choreo prof, String move) {
+        if (prof == null || move == null) return INT_FADE;
+        Choreo.Move m = prof.moves.get(move);
+        return m == null || Float.isNaN(m.cutFade) ? INT_FADE : m.cutFade;
+    }
+
+    private Choreo prof;
+
+    /** Rodada 09.3 — entrada a partir da locomoção quando {@code move} começa (o {@code fadeIn} do gesto ou FADE_IN). */
+    public static float fadeIn(Choreo prof, String move) {
+        if (prof == null || move == null) return FADE_IN;
+        Choreo.Move m = prof.moves.get(move);
+        return m == null || Float.isNaN(m.fadeIn) ? FADE_IN : m.fadeIn;
+    }
+
     record Seg(Animator.Clip clip, String move, float start, float dur, boolean cut, float rate) {
         boolean action() { return move != null; }
     }
@@ -37,6 +53,7 @@ public final class Sequencer {
     }
 
     public Sequencer(String script, Animator a) {
+        prof = a.prof;
         float t = 0;
         for (String tok : script.split("[,>;]")) {
             tok = tok.trim();
@@ -60,15 +77,18 @@ public final class Sequencer {
                 d = kv.length > 1 ? Float.parseFloat(kv[1]) : 1f;
                 segs.add(new Seg(clip, null, t, d, false, 0f));
             } else {
+                Seg before = segs.isEmpty() ? null : segs.get(segs.size() - 1);
+                if (before != null && before.cut() && a.prof != null) {             // rodada 09: saída autorada da fase cortada
+                    String exit = a.prof.moves.get(before.move()).exitFor(n, before.dur());
+                    if (exit != null) n = exit;
+                }
                 float md = a.moveDuration(n);
                 fullDur.put(n, md);
                 if (md <= 0) throw new IllegalArgumentException("golpe inexistente no perfil: " + n);
                 d = kv.length > 1 ? Math.max(md, Float.parseFloat(kv[1])) : md;
                 if (!Float.isNaN(cut)) d = Math.min(md, Math.max(0.01f, cut));
-                float rate = -REWIND;
                 Choreo.Move mv = a.prof != null ? a.prof.moves.get(n) : null;
-                float[] prep = mv != null ? mv.phases.get("prep") : null;
-                if (!Float.isNaN(cut) && mv.interruptForward && prep != null && cut >= prep[1]) rate = 1f;   // embalo autorado
+                float rate = !Float.isNaN(cut) && mv != null ? mv.cutRate(cut) : -REWIND;   // janela autorada (05.1/09)
                 segs.add(new Seg(Animator.Clip.IDLE, n, t, d, !Float.isNaN(cut), rate));
             }
             t += d;
@@ -99,18 +119,35 @@ public final class Sequencer {
             out.move = s.move;
             out.moveT = local;
             if (prev == null || !prev.action()) {
-                out.clip = prev != null && local < FADE_IN ? prev.clip : Animator.Clip.IDLE;
-                out.weight = prev == null ? 1f : Math.min(1f, local / FADE_IN);
+                float fi = fadeIn(prof, s.move);
+                out.clip = prev != null && local < fi ? prev.clip : Animator.Clip.IDLE;
+                out.weight = prev == null ? 1f : Math.min(1f, local / fi);
             } else {
                 out.weight = 1f;
-                if (prev.cut && local < INT_FADE) {
+                float fade = intFade(prof, s.move);
+                if (prev.cut && local < fade) {
                     out.fromMove = prev.move;
                     out.fromT = Math.clamp(prev.dur + prev.rate * local, 0f, prevFull(prev));
-                    out.xfade = local / INT_FADE;
+                    out.xfade = local / fade;
                     // cortado ainda entrando (peso < 1 sobre a locomoção): o peso continua de onde estava
                     Seg pp = k > 1 ? segs.get(k - 2) : null;
-                    if (pp != null && !pp.action() && prev.dur < FADE_IN) {
-                        float w0 = prev.dur / FADE_IN;
+                    // rodada 09: cortado enquanto ainda misturava com o golpe anterior (encadeamento + dano): a origem
+                    // é a própria mistura, que continua andando — contínua no instante do segundo corte
+                    if (pp != null && pp.action()) {
+                        float since = prev.dur + local;
+                        float pf = intFade(prof, prev.move);
+                        if (pp.cut && prev.dur < pf) {
+                            out.fromMove2 = pp.move;
+                            out.fromT2 = Math.clamp(pp.dur + pp.rate * since, 0f, prevFull(pp));
+                            out.xfade2 = Math.min(1f, since / pf);
+                        } else if (!pp.cut && prev.dur < XFADE) {
+                            out.fromMove2 = pp.move;
+                            out.fromT2 = pp.dur;
+                            out.xfade2 = Math.min(1f, since / XFADE);
+                        }
+                    }
+                    if (pp != null && !pp.action() && prev.dur < fadeIn(prof, prev.move)) {
+                        float w0 = prev.dur / fadeIn(prof, prev.move);
                         out.clip = pp.clip;
                         out.weight = w0 + (1f - w0) * out.xfade;
                     }
@@ -141,7 +178,8 @@ public final class Sequencer {
             if (prev != null && !prev.action() && local < LOCO_FADE) v = clipSpeed(prev.clip) + (v - clipSpeed(prev.clip)) * local / LOCO_FADE;
             return v;
         }
-        if (prev != null && !prev.action() && local < FADE_IN) return clipSpeed(prev.clip) * (1f - local / FADE_IN);
+        float fi = fadeIn(prof, s.move);
+        if (prev != null && !prev.action() && local < fi) return clipSpeed(prev.clip) * (1f - local / fi);
         return 0f;
     }
 

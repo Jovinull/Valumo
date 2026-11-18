@@ -17,7 +17,15 @@ import java.util.List;
  * rotação Z positiva abre o braço esquerdo (x>0) para fora.
  */
 public final class Animator {
-    public enum Clip {IDLE, WALK, RUN, ATTACK, HIT, EMOTE}
+    /**
+     * DEATH (rodada 09): queda/morte, hoje só na animação de combate ("brawler"); nos outros rigs vira HIT segurado.
+     */
+    public enum Clip {
+        IDLE, WALK, RUN, ATTACK, HIT, EMOTE, DEATH;
+
+        /** Os seis clipes das rodadas 01–08 (ferramentas de revisão e o ciclo do viewer não mudam). */
+        public static final Clip[] BASIC = {IDLE, WALK, RUN, ATTACK, HIT, EMOTE};
+    }
 
     /** Parâmetros de pose: por parte rx,ry,rz, ox,oy,oz, sx,sy,sz. Índice n = raiz. */
     public static final class Pose {
@@ -62,18 +70,52 @@ public final class Animator {
         public float t;
         public String move, fromMove;
         public float moveT, fromT, weight, xfade = 1f;
+        /**
+         * Rodada 09: a origem da transição também estava em transição (ex.: encadeamento ainda misturando quando chega
+         * um dano). A origem passa a ser lerp(fromMove2 em fromT2, fromMove em fromT, xfade2): contínua no instante do
+         * segundo corte. null = origem simples.
+         */
+        public String fromMove2;
+        public float fromT2, xfade2 = 1f;
         /** Troca de locomoção (parado ↔ andar ↔ correr): clipe anterior e peso do atual (0 → 1). */
         public Clip fromClip;
         public float locoW = 1f;
 
+        /**
+         * Rodada 09.2 — locomoção do jogo:
+         * <ul>
+         *   <li>{@code stride}: escala da passada (comprimento e altura do pé); o jogo avança a fase pela distância, então
+         *       o pé de apoio continua plantado com a passada maior;</li>
+         *   <li>{@code locoDir}: rumo do deslocamento em relação ao corpo (rad; 0 = para a frente, +π/2 = para a
+         *       esquerda do personagem, π = de costas) — andar de lado e recuar encarando o alvo;</li>
+         *   <li>{@code legW}, {@code legClip}, {@code legT}, {@code legDir}: durante um golpe, as PERNAS seguem a passada
+         *       real (0 = base autorada do golpe, 1 = passada); tronco, braços, quadril e arma continuam exatamente os do
+         *       golpe validado;</li>
+         *   <li>{@code air}: no ar (0–1, pés recolhidos); {@code land}: impacto da aterrissagem (0–1, quadril cede).</li>
+         * </ul>
+         * Tudo 0/1 por padrão: o resultado é idêntico ao das rodadas anteriores.
+         */
+        public float stride = 1f, locoDir, legW, legT, legDir, air, land;
+        /**
+         * Rodada 09.3 — salto: {@code takeoff} = fase do impulso (0 → 1 nos primeiros 0,10 s no ar; −1 fora dele: joelhos
+         * dobrados que estendem enquanto o corpo já sobe); {@code fall} = preparação do pouso (0 → 1 quando o chão chega:
+         * pernas descem para o contato); {@code landRun} = pouso correndo (absorção mais curta e mais baixa).
+         */
+        public float takeoff = -1f, fall, landRun;
+        public Clip legClip;
+
         public Motion set(Clip clip, float t) {
             this.clip = clip;
             this.t = t;
-            move = fromMove = null;
+            move = fromMove = fromMove2 = null;
             weight = 0;
-            xfade = 1f;
+            xfade = xfade2 = 1f;
             fromClip = null;
             locoW = 1f;
+            stride = 1f;
+            locoDir = legW = legT = legDir = air = land = fall = landRun = 0f;
+            takeoff = -1f;
+            legClip = null;
             return this;
         }
     }
@@ -234,6 +276,7 @@ public final class Animator {
                         : mode.equals("bow") ? 1.6f : mode.equals("staff") ? 1.3f : 1.1f;
                 case HIT -> prof != null && !legacy && prof.moves.containsKey("hit") ? prof.moves.get("hit").duration() : 0.9f;
                 case EMOTE -> prof != null && !legacy && prof.moves.containsKey("emote") ? prof.moves.get("emote").duration() : 1.6f;
+                case DEATH -> 1.2f;
             };
         }
         return switch (m.anim) {
@@ -244,6 +287,16 @@ public final class Animator {
                 case ATTACK -> 1.1f;
                 case HIT -> 0.9f;
                 case EMOTE -> 1.6f;
+                case DEATH -> 1.2f;
+            };
+            case "brawler" -> switch (clip) {
+                case ATTACK -> 3f;                       // preparação [0,1) · golpe [1,2) · recuperação [2,3)
+                case HIT -> BRAWLER_HIT;
+                case EMOTE -> BRAWLER_ALERT;
+                case DEATH -> BRAWLER_DEATH;
+                case WALK -> 0.8f;
+                case RUN -> 0.55f;
+                default -> 1.9f;
             };
             default -> 2f;
         };
@@ -298,6 +351,7 @@ public final class Animator {
         p = out;
         p.reset();
         fx.clear();
+        if (clip == Clip.DEATH && !m.anim.equals("brawler")) { clip = Clip.HIT; t = Math.min(t, duration(Clip.HIT) * 0.4f); }
         reachErrR = reachErrL = 0;
         switch (m.anim) {
             case "biped" -> {
@@ -306,6 +360,7 @@ public final class Animator {
             }
             case "quadruped" -> quadruped(clip, t);
             case "hopper" -> hopper(clip, t);
+            case "brawler" -> brawler(clip, t);
             case "floater" -> floater(clip, t);
             case "flutter" -> flutter(clip, t);
             default -> { }
@@ -534,6 +589,69 @@ public final class Animator {
 
     private static float frac(float x) { return x - (float) Math.floor(x); }
 
+    /** Rodada 09.2 — pés no ar: quanto cada pé sobe (fração da perna) e quanto o quadril cede ao pousar. */
+    static final float AIR_TUCK_L = 0.34f, AIR_TUCK_R = 0.20f, LAND_DIP = 0.16f, TAKEOFF_DIP = 0.14f;
+    /** Rodada 09.2 — fração do passo que vira deslocamento lateral (pés não se cruzam ao andar de lado). */
+    static final float LATERAL = 0.62f;
+    private final float[] lf = new float[9];
+    /** Giro do rolamento desta avaliação (graus, já ponderado e levado a (−180, 180]). */
+    private float spinNow;
+
+    /**
+     * Rodada 09.2 — passada de andar/correr no tempo t: {zEsq, ergueEsq, zDir, ergueDir, xEsq, xDir, balançoEsq,
+     * balançoDir, zPouso}. Com stride 1 e rumo 0 é exatamente a passada das rodadas anteriores. Rumo ≠ 0: o pé anda ao
+     * longo do deslocamento (x = lado, z = frente); de lado a passada encolhe e os pés abrem um pouco para não cruzar.
+     */
+    private void locoFeet(Clip c, float t, float stride, float dir, float[] out) {
+        boolean run = c == Clip.RUN;
+        float cad = run ? RUN_CADENCE : WALK_CADENCE, st = run ? RUN_STANCE : WALK_STANCE;
+        float half = (run ? RUN_HALF_STRIDE : WALK_HALF_STRIDE) * stride, lift = (run ? 0.085f : 0.045f) * stride;
+        float fl = frac(t * cad), fr = frac(t * cad + 0.5f);
+        float[] a = footCycle(fl, st, half, lift), b = footCycle(fr, st, half, lift);
+        out[0] = a[0]; out[1] = a[1]; out[2] = b[0]; out[3] = b[1]; out[4] = 0f; out[5] = 0f;
+        out[6] = fl >= st ? (fl - st) / (1 - st) : -1f;
+        out[7] = fr >= st ? (fr - st) / (1 - st) : -1f;
+        out[8] = half;
+        if (dir != 0f) {
+            float sn = (float) Math.sin(dir), cs = (float) Math.cos(dir), side = Math.abs(sn);
+            out[4] = a[0] * sn * LATERAL + 0.025f * side;               // esquerdo (+x) abre para a esquerda
+            out[5] = b[0] * sn * LATERAL - 0.025f * side;               // direito abre para a direita
+            out[0] = a[0] * cs;
+            out[2] = b[0] * cs;
+            out[8] = half * cs;
+        }
+    }
+
+    /**
+     * Rodada 09.2 — gira a raiz em X em torno do ponto (0, cy, 0) do modelo: mantém a rotação/translação já postas e
+     * troca o pivô da sola pelo centro da bola. Só X (rumo e rolagem da raiz são ~0 no rolamento).
+     */
+    private void spinRoot(float a, float cy, float cz, float axisYaw) {
+        int b = m.parts.size() * 9;
+        if (axisYaw != 0f) {                                            // rodada 09.3: eixo diagonal (rolamento de ombro)
+            float h = m.height;
+            org.joml.Quaternionf cur = new org.joml.Quaternionf().rotateZ(p.v[b + 2]).rotateY(p.v[b + 1]).rotateX(p.v[b]);
+            org.joml.Quaternionf sp = new org.joml.Quaternionf().rotateAxis(a, (float) Math.cos(axisYaw), 0f, -(float) Math.sin(axisYaw));
+            Vector3f e = sp.mul(cur, new org.joml.Quaternionf()).getEulerAnglesZYX(new Vector3f());
+            p.v[b] = e.x;
+            p.v[b + 1] = e.y;
+            p.v[b + 2] = e.z;
+            Vector3f t = sp.transform(new Vector3f(p.v[b + 3] * h, p.v[b + 4] * h - cy, p.v[b + 5] * h - cz));
+            p.v[b + 3] = t.x / h;
+            p.v[b + 4] = (t.y + cy) / h;
+            p.v[b + 5] = (t.z + cz) / h;
+            return;
+        }
+        float h = m.height, ty = p.v[b + 4] * h - cy, tz = p.v[b + 5] * h - cz;
+        float c = (float) Math.cos(a), s = (float) Math.sin(a);
+        p.v[b] += a;
+        p.v[b + 4] = (ty * c - tz * s + cy) / h;
+        p.v[b + 5] = (ty * s + tz * c + cz) / h;
+    }
+
+    /** Rodada 09.3 — inclinação lateral, pés para o lado e pivô do giro desta avaliação (já ponderados pelo peso da ação). */
+    private float rollNow, feetXl, feetXr, spinPy, spinPz, spinAx;
+
     /** Pé numa fase f ∈ [0,1): apoio (pé desliza para trás no chão) e balanço (sobe e avança). {z, ergue} */
     private static float[] footCycle(float f, float stance, float half, float lift) {
         if (f < stance) return new float[]{half - 2 * half * f / stance, 0f};
@@ -601,6 +719,8 @@ public final class Animator {
 
         // alvos: tornozelo (z, ergue) de cada pé, altura do quadril, avanço e inclinação da raiz
         float zl = 0.02f, zr = -0.015f, yl = 0, yr = 0, hipH = ankle + lmax * 0.96f, rootZ = 0, tilt = 0;
+        float xl = 0f, xr = 0f;                                   // rodada 09.2: pé para o lado (andar de lado)
+        spinNow = rollNow = feetXl = feetXr = spinPy = spinPz = spinAx = 0f;
         float idle = sin(t * 2.2f);
         boolean choreo = prof != null && !legacy;
         Clip base = clip;
@@ -651,15 +771,13 @@ public final class Animator {
             case WALK, RUN -> {
                 boolean run = clip == Clip.RUN;
                 float cad = run ? RUN_CADENCE : WALK_CADENCE, st = run ? RUN_STANCE : WALK_STANCE;
-                float half = run ? RUN_HALF_STRIDE : WALK_HALF_STRIDE, lift = run ? 0.085f : 0.045f;
-                float fl = frac(t * cad), fr = frac(t * cad + 0.5f);
-                float[] a = footCycle(fl, st, half, lift), b = footCycle(fr, st, half, lift);
-                zl = a[0]; yl = a[1];
-                zr = b[0]; yr = b[1];
+                locoFeet(clip, t, motion.stride, motion.locoDir, lf);
+                zl = lf[0]; yl = lf[1]; zr = lf[2]; yr = lf[3]; xl = lf[4]; xr = lf[5];
                 // balanço: o pé já mira a altura do ponto onde vai pousar (antecipa o degrau) e passa por cima da quina
-                swingL = fl >= st ? (fl - st) / (1 - st) : -1f;
-                swingR = fr >= st ? (fr - st) / (1 - st) : -1f;
-                landZ = half;
+                swingL = lf[6];
+                swingR = lf[7];
+                landZ = lf[8];
+                float fl = frac(t * cad);
                 float ph = (float) (2 * Math.PI) * fl;
                 locoPhase = ph;
                 float c = cos(ph);                                // +1: pé esquerdo à frente
@@ -769,6 +887,54 @@ public final class Animator {
             actionLayer(base, t, locoPhase, ankle, lmax);
             zl = legs[0]; zr = legs[1]; yl = legs[2]; yr = legs[3]; hipH = legs[4]; rootZ = legs[5]; tilt = legs[6];
             rootYaw = legs[7];
+            xl += feetXl;                                            // rodada 09.3: pés para o lado (esquiva lateral)
+            xr += feetXr;
+        }
+        // rodada 09.2 — golpe andando: as PERNAS seguem a passada real (fase pela distância: pé plantado); tronco, braços,
+        // quadril e arma ficam os do golpe (a trajetória validada não muda). Peso suave: parar devolve a base do golpe.
+        if (choreo && motion.legW > 0f && (motion.legClip == Clip.WALK || motion.legClip == Clip.RUN)) {
+            locoFeet(motion.legClip, motion.legT, motion.stride, motion.legDir, lf);
+            float k = Math.clamp(motion.legW, 0f, 1f);
+            k = k * k * (3 - 2 * k);
+            zl += (lf[0] - zl) * k; yl += (lf[1] - yl) * k;
+            zr += (lf[2] - zr) * k; yr += (lf[3] - yr) * k;
+            xl += (lf[4] - xl) * k; xr += (lf[5] - xr) * k;
+            if (k > 0.5f) { swingL = lf[6]; swingR = lf[7]; landZ = lf[8]; }
+        }
+        // rodada 09.2 — salto: no ar os pés recolhem (o esquerdo mais, o direito atrás) e o corpo inclina um pouco;
+        // ao pousar o quadril cede e volta (amortecimento). O corpo sobe pela física do jogo, não pela pose.
+        if (motion.air > 0f) {
+            float a = Math.clamp(motion.air, 0f, 1f);
+            a = a * a * (3 - 2 * a);
+            float f = Math.clamp(motion.fall, 0f, 1f);               // rodada 09.3: o pouso chegando desdobra as pernas
+            f = f * f * (3 - 2 * f);
+            float tuck = a * (1f - 0.85f * f);
+            yl += AIR_TUCK_L * lmax * tuck;
+            yr += AIR_TUCK_R * lmax * tuck;
+            zl += (0.05f + 0.03f * f) * lmax * a;                  // pé da frente vai à frente para receber o chão
+            zr -= (0.06f - 0.03f * f) * lmax * a;
+            hipH -= 0.04f * lmax * a * (1f - f);
+            tilt += (0.10f - 0.05f * f) * a;
+            swingL = swingR = -1f;
+        }
+        if (motion.takeoff >= 0f && motion.takeoff < 1f) {          // rodada 09.3: impulso — agacha e estende no começo
+            float u = motion.takeoff;
+            float crouch = (1f - u) * (1f - u);                       // joelhos dobrados no instante do aperto, abrindo
+            float push = (float) Math.sin(Math.PI * u);               // perna de trás estendida, ponta do pé para baixo
+            hipH -= TAKEOFF_DIP * lmax * crouch;
+            yl -= AIR_TUCK_L * lmax * Math.min(1f, motion.air) * (1f - u) * 0.9f;   // ainda não recolheu
+            yr -= AIR_TUCK_R * lmax * Math.min(1f, motion.air) * (1f - u) * 0.9f;
+            zr -= 0.07f * lmax * push;
+            zl += 0.02f * lmax * push;
+            tilt += 0.10f * crouch + 0.04f * push;
+        }
+        if (motion.land > 0f) {
+            float d = Math.clamp(motion.land, 0f, 1f);
+            float run = Math.clamp(motion.landRun, 0f, 1f);          // correndo: absorve menos e segue
+            hipH -= LAND_DIP * lmax * d * (1f - 0.45f * run);
+            tilt += (0.08f + 0.06f * run) * d;
+            zl += 0.03f * lmax * d * (1f - run);                    // parado: um pé à frente segurando o corpo
+            zr -= 0.03f * lmax * d * (1f - run);
         }
 
         // chão irregular: cada pé procura a altura do terreno; o quadril acompanha o pé mais baixo
@@ -777,15 +943,74 @@ public final class Animator {
         if (Math.abs(gl - gr) > STEP_LIMIT * lmaxLeg) {            // degrau fora do alcance: o pé alto fica no limite
             if (gl > gr) gl = gr + STEP_LIMIT * lmaxLeg; else gr = gl + STEP_LIMIT * lmaxLeg;
         }
+        if (spinNow != 0f) gl = gr = 0f;                                 // rodando: os pés não procuram o chão
         hipH += Math.min(gl, gr);
+        if (rollNow != 0f) {                                             // rodada 09.3: inclinação lateral gira em torno do meio
+            float sn = (float) Math.sin(rad(rollNow));                   // dos pés: sobe o quanto o pé do lado dela desceria
+            float footL = lL.px + xl, footR = lR.px + xr;
+            float up = Math.max(0f, Math.max(footL * sn, footR * sn)) + 2.5f * m.voxelSize * Math.abs(sn);   // + a espessura da canela
+            hipH += up;                                                  // o corpo inteiro sobe (quadril E pés, como o lift):
+            yl += up;                                                    // só o quadril dobraria os joelhos e o pé continuaria
+            yr += up;                                                    // descendo com a inclinação
+        }
         float rootTilt = tilt + lean;
-        root(0, (hipH - hip) / h, rootZ / h, rootTilt, rootYaw, 0);
+        root(0, (hipH - hip) / h, rootZ / h, rootTilt, rootYaw, -rad(rollNow));   // rotateZ + inclina para a direita: + = esquerda
         // o quadril gira com a inclinação da raiz (em torno dos pés): desloca o alvo relativo
         float hz = lL.pz + hip * rootTilt;
         legIK("leg_l", "shin_l", hipH, hz, ankle + yl + gl, zl - rootZ, l1, l2, rootTilt);
         legIK("leg_r", "shin_r", hipH, hz, ankle + yr + gr, zr - rootZ, l1, l2, rootTilt);
+        // rodada 09.2 — pé para o lado: a coxa abre (rz) o quanto leva o tornozelo ao deslocamento lateral pedido
+        if (xl != 0f) rot("leg_l", 0, 0, (float) Math.atan2(xl, Math.max(0.05f, hipH - ankle - yl - gl)));
+        if (xr != 0f) rot("leg_r", 0, 0, (float) Math.atan2(xr, Math.max(0.05f, hipH - ankle - yr - gr)));
+        // rodada 09.2 — rolamento: o corpo inteiro gira em torno do centro da bola (prof.spinCenter), não da sola
+        if (spinNow != 0f) spinRoot(rad(spinNow), (spinPy > 0f ? spinPy : prof.spinCenter) * m.voxelSize, spinPz * m.voxelSize, rad(spinAx));
         secondary(clip, t, mode, weaponRest);
+        if (spinNow != 0f) rollContact();
         if (choreo) fxToModel();
+    }
+
+    /** Rodada 09.2 — volumes do rig (meta.volumes, voxels): parte, a, b, raio. Para o contato do rolamento. */
+    private float[][] vols;
+    private Matrix4f[] contactMats;
+
+    /**
+     * Rodada 09.2 — rolamento como uma bola de verdade: o ponto mais baixo do corpo (volumes do rig, itens incluídos)
+     * fica no chão enquanto gira — nem afunda (cabeça grande atravessando o relevo) nem flutua. O peso sobe com o giro e
+     * some perto de 0°/360° (em pé o contato já é o dos pés).
+     */
+    private void rollContact() {
+        if (vols == null) {
+            java.util.List<float[]> l = new ArrayList<>();
+            if (m.meta.has("volumes"))
+                for (var e : m.meta.getAsJsonArray("volumes")) {
+                    var o = e.getAsJsonObject();
+                    Integer pi = m.index.get(o.get("part").getAsString());
+                    if (pi == null) continue;
+                    var a = o.getAsJsonArray("a");
+                    var b = o.has("b") ? o.getAsJsonArray("b") : a;
+                    String part = o.get("part").getAsString();
+                    float isItem = part.equals("weapon") || part.equals("shield") || part.equals("bow") || part.equals("arrow") ? 1f : 0f;
+                    l.add(new float[]{pi, a.get(0).getAsFloat(), a.get(1).getAsFloat(), a.get(2).getAsFloat(),
+                            b.get(0).getAsFloat(), b.get(1).getAsFloat(), b.get(2).getAsFloat(), o.get("r").getAsFloat(), isItem});
+                }
+            vols = l.toArray(new float[0][]);
+            contactMats = new Matrix4f[m.parts.size()];
+            for (int i = 0; i < contactMats.length; i++) contactMats[i] = new Matrix4f();
+        }
+        if (vols.length == 0) return;
+        float k = Math.clamp((Math.abs(spinNow) - 4f) / 26f, 0f, 1f);
+        if (k <= 0f) return;
+        compose(p, mT.identity(), contactMats);
+        float vs = m.voxelSize, body = Float.MAX_VALUE, item = Float.MAX_VALUE;
+        for (float[] v : vols) {
+            Matrix4f mm = contactMats[(int) v[0]];
+            float ya = mm.m01() * v[1] * vs + mm.m11() * v[2] * vs + mm.m21() * v[3] * vs + mm.m31();
+            float yb = mm.m01() * v[4] * vs + mm.m11() * v[5] * vs + mm.m21() * v[6] * vs + mm.m31();
+            float lo = Math.min(ya, yb) - v[7] * vs;
+            if (v[8] != 0f) item = Math.min(item, lo); else body = Math.min(body, lo);
+        }
+        float min = Math.min(body, item);                                // o mais baixo encosta: corpo, ou o item se estiver abaixo dele
+        p.v[m.parts.size() * 9 + 4] -= min * k / m.height;
     }
 
     /** Arco (1,6 s): virar de lado, puxar a flecha da aljava, erguer, puxar a corda, segurar, soltar, recuperar. */
@@ -836,6 +1061,8 @@ public final class Animator {
     private final float[] legs = new float[8];
     private final float[] ctl = new float[Choreo.N], actA = new float[Choreo.N], actB = new float[Choreo.N];
     private final int[] ctlD = new int[Choreo.ND], actDA = new int[Choreo.ND], actDB = new int[Choreo.ND];
+    private float[] actC;
+    private int[] actDC;
 
     // ---- movimento secundário das ações (rodada 05.1) ----
     /** Atraso estilizado (s): partes secundárias reagem ao tronco/raiz de LAG segundos atrás. */
@@ -896,6 +1123,14 @@ public final class Animator {
             Choreo.Move from = motion.fromMove != null ? prof.moves.get(motion.fromMove) : null;
             if (from != null && motion.xfade < 1f) {
                 prof.sample(from, motion.fromT, actB, actDB);
+                Choreo.Move from2 = motion.fromMove2 != null ? prof.moves.get(motion.fromMove2) : null;
+                if (from2 != null && motion.xfade2 < 1f) {                  // rodada 09: origem que ainda misturava
+                    if (actC == null) { actC = new float[Choreo.N]; actDC = new int[Choreo.ND]; }
+                    prof.sample(from2, motion.fromT2, actC, actDC);
+                    float x2 = motion.xfade2 * motion.xfade2 * (3 - 2 * motion.xfade2);
+                    Choreo.lerp(actC, actB, x2, actB);
+                    if (x2 < 0.5f) System.arraycopy(actDC, 0, actDB, 0, Choreo.ND);
+                }
                 float x = motion.xfade * motion.xfade * (3 - 2 * motion.xfade);
                 Choreo.lerp(actB, actA, x, actA);
                 if (x < 0.5f) System.arraycopy(actDB, 0, actDA, 0, Choreo.ND);
@@ -916,6 +1151,15 @@ public final class Animator {
             legs[4] += lift;
             legs[2] += lift;
             legs[3] += lift;
+            legs[2] += actA[Choreo.FOOTY] * vs * w;                 // rodada 09.2: pés recolhidos (rolamento)
+            legs[3] += actA[Choreo.FOOTY + 1] * vs * w;
+            spinNow = Choreo.wrapDeg(actA[Choreo.SPIN]) * w;
+            rollNow = actA[Choreo.ROLLZ] * w;                        // rodada 09.3: esquiva de lado
+            feetXl = actA[Choreo.FEETX] * vs * w;
+            feetXr = actA[Choreo.FEETX + 1] * vs * w;
+            spinPy = actA[Choreo.SPINP];
+            spinPz = actA[Choreo.SPINP + 1];
+            spinAx = actA[Choreo.SPINA];
         } else System.arraycopy(ctl, 0, actA, 0, Choreo.N);
         // lado livre: troca o alvo autorado pela posição/polo atuais por FK antes de misturar
         if (cFreeR || aFreeR) fkHand("r", "farm_r", prof.rightItem, cFreeR ? ctl : null, aFreeR ? actA : null, Choreo.R_POS, Choreo.R_ELBOW);
@@ -1388,6 +1632,87 @@ public final class Animator {
         rot("leg_l", 0.5f * jump, 0, 0);
         rot("leg_r", 0.5f * jump, 0, 0);
         rot("cap", -0.08f * flop, 0, 0.04f * sin(t * 1.7f));
+    }
+
+    /** Tempos da animação de combate da criatura (s); a preparação, o golpe e a recuperação vêm normalizados. */
+    public static final float BRAWLER_HIT = 0.45f, BRAWLER_ALERT = 0.55f, BRAWLER_DEATH = 1.2f;
+
+    /**
+     * Rodada 09 — criatura de combate (fungo-cardo). Locomoção = a do saltitante; o resto é atuação de ameaça:
+     * <ul>
+     *   <li>EMOTE = alerta: pulinho de susto com o chapéu erguido e os braços abertos (0,55 s);</li>
+     *   <li>ATTACK, t em [0,3): [0,1) PREPARAÇÃO (agacha, recua o corpo, chapéu inclinado para trás, braços para
+     *       trás e, no último terço, tremor que avisa o golpe); [1,2) GOLPE (cabeçada: o corpo estica para a frente
+     *       com o chapéu de espinhos à frente); [2,3) RECUPERAÇÃO (volta devagar e cambaleia: a janela do jogador);</li>
+     *   <li>HIT = recuo: tomba para trás, achata e o chapéu chacoalha (0,45 s);</li>
+     *   <li>DEATH = cai de costas, fica e some encolhendo como esporos (1,2 s).</li>
+     * </ul>
+     * Os tempos reais de cada fase são da lógica do jogo; aqui só o formato do gesto.
+     */
+    private void brawler(Clip clip, float t) {
+        float lean = m.meta.has("lean") ? m.meta.get("lean").getAsFloat() : 0f;
+        switch (clip) {
+            case ATTACK -> {
+                root(0, 0, 0, lean, 0, 0);
+                if (t < 1f) {                                   // preparação
+                    float k = smooth(0f, 0.55f, t), shiver = t > 0.62f ? sin(t * 95f) * smooth(0.62f, 0.75f, t) : 0f;
+                    root(0, -0.02f * k, -0.05f * k, -0.32f * k, 0.05f * shiver, 0.03f * shiver);
+                    squash(1f - 0.16f * k);
+                    rot("cap", -0.42f * k, 0, 0.05f * shiver);
+                    rot("arm_l", -0.9f * k, 0, 0.6f * k);
+                    rot("arm_r", -0.9f * k, 0, -0.6f * k);
+                    rot("leg_l", 0.25f * k, 0, 0);
+                    rot("leg_r", 0.25f * k, 0, 0);
+                } else if (t < 2f) {                            // golpe: cabeçada
+                    float u = t - 1f, k = smooth(0f, 0.35f, u), back = 1f - smooth(0f, 0.25f, u);
+                    float pitch = -0.32f * back + 0.62f * k;
+                    root(0, 0.05f * sin((float) Math.PI * Math.min(1f, u * 1.6f)), 0.10f * k, pitch, 0, 0);
+                    squash(0.84f * back + (1f + 0.14f * k) * (1f - back));
+                    rot("cap", -0.42f * back + 0.55f * k, 0, 0);
+                    rot("arm_l", -0.9f * back + 0.9f * k, 0, 0.6f * back + 0.3f * k);
+                    rot("arm_r", -0.9f * back + 0.9f * k, 0, -0.6f * back - 0.3f * k);
+                    rot("leg_l", -0.35f * k, 0, 0);
+                    rot("leg_r", 0.35f * k, 0, 0);
+                } else {                                        // recuperação: volta e cambaleia
+                    float u = Math.min(1f, t - 2f), k = 1f - smooth(0f, 0.85f, u), wob = sin(u * 13f) * (1f - u);
+                    root(0, 0, 0.10f * k, 0.62f * k, 0.18f * wob, 0.10f * wob);
+                    squash(1f + 0.14f * k - 0.06f * wob * wob);
+                    rot("cap", 0.55f * k + 0.12f * wob, 0, 0.10f * wob);
+                    rot("arm_l", 0.9f * k, 0, 0.3f * k + 0.25f * wob);
+                    rot("arm_r", 0.9f * k, 0, -0.3f * k - 0.25f * wob);
+                }
+            }
+            case EMOTE -> {                                     // alerta
+                float u = Math.min(t, BRAWLER_ALERT) / BRAWLER_ALERT, jump = sin((float) Math.PI * smooth(0.05f, 0.55f, u));
+                root(0, 0.16f * jump, 0, lean - 0.18f * jump, 0, 0);
+                squash(1f - 0.15f * (1f - smooth(0f, 0.12f, u)) * (u < 0.12f ? 1f : 0f) + 0.10f * jump - 0.12f * smooth(0.55f, 0.7f, u) * (1f - smooth(0.7f, 1f, u)));
+                rot("cap", -0.30f * jump, 0, 0);
+                rot("arm_l", -0.5f * jump, 0, 0.9f * jump);
+                rot("arm_r", -0.5f * jump, 0, -0.9f * jump);
+            }
+            case HIT -> {
+                float u = Math.min(t, BRAWLER_HIT) / BRAWLER_HIT, k = smooth(0f, 0.18f, u) * (1f - smooth(0.45f, 1f, u));
+                float wob = sin(u * 30f) * (1f - u);
+                root(0, 0, -0.06f * k, lean - 0.45f * k, 0, 0.12f * wob);
+                squash(1f - 0.20f * k);
+                rot("cap", -0.35f * k + 0.15f * wob, 0, 0.12f * wob);
+                rot("arm_l", 0.6f * k, 0, 0.8f * k);
+                rot("arm_r", 0.6f * k, 0, -0.8f * k);
+            }
+            case DEATH -> {
+                float u = Math.min(t, BRAWLER_DEATH), fall = smooth(0f, 0.45f, u), bounce = sin(Math.clamp((u - 0.45f) / 0.2f, 0f, 1f) * (float) Math.PI) * 0.12f;
+                float gone = smooth(0.80f, 1.15f, u);
+                root(0, 0.03f * bounce, -0.10f * fall, lean - 1.35f * fall + bounce, 0, 0.12f * fall);
+                squash(Math.max(0.02f, (1f - 0.18f * fall) * (1f - gone)));
+                scale("cap", 1f - gone, 1f - gone, 1f - gone);
+                rot("cap", -0.5f * fall, 0, 0.2f * fall);
+                rot("arm_l", 0.4f * fall, 0, 1.1f * fall);
+                rot("arm_r", 0.4f * fall, 0, -1.1f * fall);
+                rot("leg_l", -0.6f * fall, 0, 0);
+                rot("leg_r", -0.6f * fall, 0, 0);
+            }
+            default -> hopper(clip, t);
+        }
     }
 
     private void floater(Clip clip, float t) {

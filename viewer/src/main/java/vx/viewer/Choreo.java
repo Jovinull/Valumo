@@ -33,7 +33,7 @@ import java.util.Map;
 public final class Choreo {
     // canais contínuos
     static final int R_POS = 0, R_DIR = 3, R_EDGE = 6, R_ELBOW = 9, L_POS = 12, L_DIR = 15, L_EDGE = 18, L_ELBOW = 21,
-            TORSO = 24, HEAD = 27, HIP = 30, FEET = 31, ROOTZ = 33, TILT = 34, DRAW = 35, GLOW = 36, L_GRIP = 37, GRIP_W = 38, YAW = 39, LIFT = 40, N = 41;
+            TORSO = 24, HEAD = 27, HIP = 30, FEET = 31, ROOTZ = 33, TILT = 34, DRAW = 35, GLOW = 36, L_GRIP = 37, GRIP_W = 38, YAW = 39, LIFT = 40, SPIN = 41, FOOTY = 42, ROLLZ = 44, FEETX = 45, SPINP = 47, SPINA = 49, N = 50;
     // canais discretos
     static final int D_LMODE = 0, D_ARROW = 1, ND = 2;
     static final int LM_IK = 0, LM_GRIP = 1, LM_FREE = 2;
@@ -58,17 +58,50 @@ public final class Choreo {
         final List<Key> keys = new ArrayList<>();
         public final Map<String, float[]> phases = new LinkedHashMap<>();
         public float release = Float.NaN, emit = Float.NaN;
+        /**
+         * Rodada 09.2 — duração da transição quando ESTE gesto entra cortando outro ({@code "cutFade"}, s); NaN = a
+         * padrão ({@link Sequencer#INT_FADE}). Esquivas entram rápido: menos tempo de pose misturada, resposta mais seca.
+         */
+        public float cutFade = Float.NaN;
+        /** Rodada 09.3 — entrada a partir da locomoção ({@code "fadeIn"}, s); NaN = {@link Sequencer#FADE_IN}. */
+        public float fadeIn = Float.NaN;
         /** Rodada 05.1: cortado na execução, o golpe segue em frente (embalo) em vez de rebobinar ("interrupt": "forward"). */
         public boolean interruptForward;
+        /**
+         * Rodada 09: janelas de interrupção autoradas ("interrupt": [{"until": s, "rate": r, "exits": {"hit": "golpe"}}]).
+         * Cortado no instante t, o golpe usa a primeira janela com t ≤ until: anda pela PRÓPRIA trajetória no ritmo r
+         * (negativo = rebobina, positivo = embalo) enquanto a reação assume, e a reação pode ser trocada por uma saída
+         * autorada para aquela fase (ex.: a espada já do outro lado do corpo). Vazio = regra da 05.1.
+         */
+        public final List<Cut> cuts = new ArrayList<>();
 
         public float duration() { return keys.get(keys.size() - 1).t; }
+
+        /** Ritmo da trajetória cortada no instante t (s de golpe por s de transição). */
+        public float cutRate(float t) {
+            for (Cut c : cuts) if (t <= c.until()) return c.rate();
+            if (!cuts.isEmpty()) return cuts.get(cuts.size() - 1).rate();
+            float[] prep = phases.get("prep");
+            return interruptForward && prep != null && t >= prep[1] ? 1f : -Sequencer.REWIND;
+        }
+
+        /** Golpe que substitui a reação {@code reaction} quando este é cortado em t (null = a própria reação). */
+        public String exitFor(String reaction, float t) {
+            for (Cut c : cuts) if (t <= c.until()) return c.exits().get(reaction);
+            return null;
+        }
     }
+
+    /** Janela de interrupção (rodada 09). */
+    public record Cut(float until, float rate, Map<String, String> exits) { }
 
     public String name, description, rightItem, leftItem, attack;
     /** Comprimento do punho até a ponta (voxels, eixo +Y do item) e ponto de emissão (espaço do item). */
     public float tipLength;
     public float[] emit, rest;
     public float swingWalk = 2.0f, swingRun = 3.2f, arrowSpeed = 9f, orbSpeed = 4.5f;
+    /** Rodada 09.2 — centro do giro do rolamento (voxels acima do chão, no espaço do modelo). */
+    public float spinCenter = 13f;
     /** Mão que fica livre (balanço de locomoção) no transporte: 'l', 'r' ou 0 (as duas presas ao item). */
     public char carryFree;
     final Map<String, float[]> poses = new HashMap<>();
@@ -138,6 +171,7 @@ public final class Choreo {
         c.rest = doc.has("arrowRest") ? vec(doc.getAsJsonArray("arrowRest")) : null;
         if (doc.has("arrowSpeed")) c.arrowSpeed = doc.get("arrowSpeed").getAsFloat();
         if (doc.has("orbSpeed")) c.orbSpeed = doc.get("orbSpeed").getAsFloat();
+        if (doc.has("spinCenter")) c.spinCenter = doc.get("spinCenter").getAsFloat();
         float[] base = defaults();
         int[] baseD = {LM_IK, AR_HIDDEN};
         if (doc.has("defaults")) apply(doc.getAsJsonObject("defaults"), base, baseD);
@@ -175,12 +209,25 @@ public final class Choreo {
                 mv.keys.add(k);
             }
             if (mv.keys.size() < 2) throw new IllegalStateException(c.name + "/" + mn + ": um golpe precisa de 2+ chaves");
-            mv.interruptForward = mo.has("interrupt") && mo.get("interrupt").getAsString().equals("forward");
+            if (mo.has("interrupt") && mo.get("interrupt").isJsonArray()) {
+                float last = -1;
+                for (JsonElement ce : mo.getAsJsonArray("interrupt")) {
+                    JsonObject co = ce.getAsJsonObject();
+                    Map<String, String> ex = new HashMap<>();
+                    if (co.has("exits")) for (var e : co.getAsJsonObject("exits").entrySet()) ex.put(e.getKey(), e.getValue().getAsString());
+                    float until = co.get("until").getAsFloat();
+                    if (until <= last) throw new IllegalStateException(c.name + "/" + mn + ": janelas de interrupção devem crescer");
+                    last = until;
+                    mv.cuts.add(new Cut(until, co.get("rate").getAsFloat(), Map.copyOf(ex)));
+                }
+            } else mv.interruptForward = mo.has("interrupt") && mo.get("interrupt").getAsString().equals("forward");
             if (mo.has("phases")) {
                 JsonObject ph = mo.getAsJsonObject("phases");
                 for (String pn : ph.keySet()) mv.phases.put(pn, vec(ph.getAsJsonArray(pn)));
             }
             if (mo.has("release")) mv.release = mo.get("release").getAsFloat();
+            if (mo.has("cutFade")) mv.cutFade = mo.get("cutFade").getAsFloat();
+            if (mo.has("fadeIn")) mv.fadeIn = mo.get("fadeIn").getAsFloat();
             if (mo.has("emit")) mv.emit = mo.get("emit").getAsFloat();
             tangents(mv);
             c.moves.put(mn, mv);
@@ -241,7 +288,18 @@ public final class Choreo {
         if (o.has("rootZ")) v[ROOTZ] = o.get("rootZ").getAsFloat();
         if (o.has("tilt")) v[TILT] = o.get("tilt").getAsFloat();
         if (o.has("yaw")) v[YAW] = o.get("yaw").getAsFloat();
-        if (o.has("lift")) v[LIFT] = o.get("lift").getAsFloat();      // pulo: corpo e pés sobem (voxels)        // giro do corpo inteiro (graus), ex.: arqueiro de lado
+        if (o.has("lift")) v[LIFT] = o.get("lift").getAsFloat();
+        // rodada 09.2 — rolamento: giro do corpo inteiro em torno do centro da bola (graus, + = cambalhota para a frente)
+        // e quanto cada pé sobe em relação ao quadril dobrado (voxels), sem erguer o corpo
+        if (o.has("spin")) v[SPIN] = o.get("spin").getAsFloat();
+        put(o, "footY", v, FOOTY, 2);
+        // rodada 09.3 — esquiva: inclinação lateral do corpo inteiro em torno dos pés (graus, + = para a esquerda do
+        // personagem), pés para o lado (voxels, + = esquerda) e centro do giro do rolamento por pose ([altura, frente]
+        // em voxels; 0, 0 = o spinCenter do perfil) — o pivô anda junto com o apoio no chão
+        if (o.has("rollZ")) v[ROLLZ] = o.get("rollZ").getAsFloat();
+        put(o, "feetX", v, FEETX, 2);
+        put(o, "spinPivot", v, SPINP, 2);
+        if (o.has("spinAxis")) v[SPINA] = o.get("spinAxis").getAsFloat();   // rumo do eixo do giro (graus; 0 = eixo lateral: cambalhota)      // pulo: corpo e pés sobem (voxels)        // giro do corpo inteiro (graus), ex.: arqueiro de lado
         if (o.has("draw")) v[DRAW] = o.get("draw").getAsFloat();
         if (o.has("glow")) v[GLOW] = o.get("glow").getAsFloat();
         if (o.has("lGrip")) v[L_GRIP] = o.get("lGrip").getAsFloat();
@@ -274,11 +332,13 @@ public final class Choreo {
         c.tipLength = tipLength; c.emit = emit; c.rest = rest;
         c.swingWalk = swingWalk; c.swingRun = swingRun; c.arrowSpeed = arrowSpeed; c.orbSpeed = orbSpeed;
         c.carryFree = carryFree;
+        c.spinCenter = spinCenter;
         c.poses.putAll(poses); c.posesD.putAll(posesD); c.carry.putAll(carry);
         c.moves.putAll(moves);
         Move mv = new Move();
         mv.name = src.name; mv.label = src.label; mv.interruptForward = src.interruptForward;
-        mv.release = src.release * k; mv.emit = src.emit * k;
+        for (Cut ct : src.cuts) mv.cuts.add(new Cut(ct.until() * k, ct.rate(), ct.exits()));
+        mv.release = src.release * k; mv.emit = src.emit * k; mv.cutFade = src.cutFade; mv.fadeIn = src.fadeIn;
         for (Key o : src.keys) {
             Key n = new Key();
             n.t = o.t * k;
@@ -337,8 +397,19 @@ public final class Choreo {
 
     /** Interpola dois vetores de controle (direções renormalizadas). */
     static void lerp(float[] a, float[] b, float w, float[] out) {
+        float sa = a[SPIN], sb = b[SPIN];
         for (int c = 0; c < N; c++) out[c] = a[c] + (b[c] - a[c]) * w;
+        // rodada 09.2: giro pelo caminho mais curto (360° = 0°: sair do rolamento não desenrola a cambalhota)
+        out[SPIN] = sa + wrapDeg(sb - sa) * w;
         for (int i : VECTOR_DIRS) norm(out, i);
+    }
+
+    /** Ângulo em graus levado a (−180, 180]. */
+    static float wrapDeg(float d) {
+        d = d % 360f;
+        if (d > 180f) d -= 360f;
+        else if (d <= -180f) d += 360f;
+        return d;
     }
 
     private static void copy(Key k, float[] out, int[] outD) {
