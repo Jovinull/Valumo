@@ -70,7 +70,11 @@ public final class AsyncComposer implements AutoCloseable {
         String sig = a.signature();
         wanted = sig;
         long gen = mainGen.incrementAndGet();
+        int pending = queue.size();
         queue.removeIf(j -> j.main);                                          // pedidos antigos nem começam
+        discarded += pending - queue.size();                                  // rodada 09: também são descartes (antes não
+                                                                              // contavam: com a CPU cheia a thread de trabalho só
+                                                                              // acordava depois dos cliques e o teste falhava)
         if (models.get(sig) != null) {                                        // get: renova a posição no LRU
             shown = sig;
             return true;
