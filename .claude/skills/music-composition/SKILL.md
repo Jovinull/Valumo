@@ -30,7 +30,7 @@ QA técnico: skill `audio-qa`. Efeitos: skill `sound-design`.
 
 | Ferramenta | Versão | Uso | Verificação |
 |---|---|---|---|
-| LMMS | 1.2.2 (apt) | DAW: sessão `.mmp`, render | abre o projeto escrito à mão (captura em `round-09-4/ferramentas/`); render por CLI determinístico (amostras idênticas em dois renders) |
+| LMMS | 1.2.2 (apt no Ubuntu; Flatpak `io.lmms.LMMS` --user no Fedora, achado por `render_musica.lmms_command`) | DAW: sessão `.mmp`, render | abre o projeto escrito à mão (captura em `round-09-4/ferramentas/`); render por CLI determinístico (amostras idênticas em dois renders) |
 | FluidR3 GM | 3.1 (apt) | instrumentos do sf2player | afinação conferida (A4 = 440 Hz) |
 | ffmpeg / ffprobe | 6.1 (apt) e build em `~/bin` | medida, limitador, OGG | `ebur128`, `alimiter`, `libvorbis` |
 | sox | 14.4.2 (apt) | utilidades | — |

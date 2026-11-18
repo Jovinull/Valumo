@@ -93,3 +93,13 @@ Audacity 3.4.2 (sem `mod-script-pipe`), sox 14.4.2, ffmpeg/ffprobe 6.1.1, vorbis
 caps), xvfb + xdotool + imagemagick (inspeção de interfaces), Goxel 0.13.0 (Flatpak de usuário). `.venv` recriada com
 numpy, Pillow, imageio, soundfile e scipy. Áudio do jogo: OpenAL Soft embutido nos natives do LWJGL 3.4.3 (ADR 0023).
 Detalhes e verificações: `docs/validation/relatorio-rodada-09-4.md` §2 e as skills de áudio.
+
+**Fedora (máquina principal do projeto, integração da 09.4):**
+- **LMMS 1.2.2:** a mesma versão, pelo Flatpak do usuário, sem privilégio:
+  `flatpak install --user flathub io.lmms.LMMS`.
+  - `tools/audio/render_musica.py` acha o LMMS sozinho: `VX_LMMS`, `lmms` no PATH ou o Flatpak (com acesso ao disco e
+    ao `/tmp`).
+  - Verificado: `render_sfx.py fontes/audio/sfx/passos/passos.mmp` gera os 48 passos.
+- **FluidR3 GM:** NÃO instalado. O banco é de terceiros, e a decisão do proprietário está pendente. Sem ele, a música e
+  os sons de interface com instrumento de banco não renderizam aqui; os arquivos versionados continuam valendo.
+- **Python:** `soundfile` e `scipy` no `.venv` (o QA de áudio usa).
