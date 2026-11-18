@@ -19,10 +19,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "tools" / "audio"))
 import lmms as L  # noqa: E402
+import sintese as S  # noqa: E402  (síntese própria: nenhuma amostra de terceiros)
 
 BPM = 240
 BAR = 192
-WOOD_HI, WOOD_LO = 76, 77          # GM percussão: bloco de madeira agudo / grave
+WOOD_HI, WOOD_LO = L.midi("A6"), L.midi("E6")   # bloco de madeira agudo (~1,76 kHz) / grave (~1,32 kHz): o Kicker segue a nota
 
 T = {k: [] for k in ["Bloco de madeira", "Kalimba", "Sininho", "Papel", "Toque grave", "Celesta", "Caixa de música"]}
 fatias = []
@@ -73,18 +74,19 @@ put("b_salvar_1", "b_salvar", 950,
      ("Sininho", 20, "D7", 44, 8)])
 
 TR = {
-    "Bloco de madeira": (L.sf2(0, bank=128), [L.fx_eq(hp=300, peaks=[(1200, 2.0, 0.6)])], 100),
-    "Kalimba": (L.sf2(108, gain=2.0), [L.fx_eq(hp=200, peaks=[(2400, 1.5, 0.6)])], 100),
-    "Sininho": (L.sf2(112, gain=2.0), [L.fx_eq(hp=1500)], 100),
-    "Papel": (L.kicker(noise=1.0, decay_ms=30, gain=5.0), [L.fx_eq(hp=1200, lp=6000, peaks=[(2600, 3.0, 0.7)])], 200),
-    "Toque grave": (L.kicker(start=120, end=70, decay_ms=45, gain=0.8, slope=0.08), [L.fx_eq(lp=600)], 100),
-    "Celesta": (L.sf2(8, gain=2.5), [L.fx_eq(hp=500)], 100),
-    "Caixa de música": (L.sf2(10, gain=2.0), [L.fx_eq(hp=400)], 100),
+    "Bloco de madeira": (L.kicker(start=2300, end=1500, decay_ms=24, click=0.25, noise=0.02, gain=1.4, slope=0.1, follow_note=True),
+                         [L.fx_eq(hp=300, peaks=[(1200, 2.0, 0.6)])], 100, None),
+    "Kalimba": (*S.kalimba()[:1], [L.fx_eq(hp=200, peaks=[(2400, 1.5, 0.6)])], 100, S.kalimba()[1]),
+    "Sininho": (*S.sininho()[:1], [L.fx_eq(hp=1500)], 100, S.sininho()[1]),
+    "Papel": (L.kicker(noise=1.0, decay_ms=30, gain=5.0), [L.fx_eq(hp=1200, lp=6000, peaks=[(2600, 3.0, 0.7)])], 200, None),
+    "Toque grave": (L.kicker(start=120, end=70, decay_ms=45, gain=0.8, slope=0.08), [L.fx_eq(lp=600)], 100, None),
+    "Celesta": (*S.celesta()[:1], [L.fx_eq(hp=500)], 100, S.celesta()[1]),
+    "Caixa de música": (*S.caixa_de_musica()[:1], [L.fx_eq(hp=400)], 100, S.caixa_de_musica()[1]),
 }
 song = L.Song(
     title="Valumo — interface (rodada 09.4)", bpm=BPM, num=4, den=4,
     tracks=[L.Track(n, TR[n][0], T[n], vol=TR[n][2], fx=TR[n][1], channel=9 if n == "Bloco de madeira" else i,
-                    program=0) for i, n in enumerate(TR)],
+                    program=0, eldata=TR[n][3]) for i, n in enumerate(TR)],
     buses=[L.Bus("Sala", [L.fx_reverb(size=0.55, color=9000, wet=1.0)], volume=0.5)],
     tail_bars=1, notes_md=__doc__,
 )

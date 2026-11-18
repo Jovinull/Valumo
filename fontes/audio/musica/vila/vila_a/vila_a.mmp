@@ -6,9 +6,9 @@
     <trackcontainer type="song">
       <track muted="0" type="0" name="Violão" solo="0">
         <instrumenttrack fxch="1" basenote="57" pitchrange="1" pitch="0" pan="-12" usemasterpitch="1">
-          <vol id="4100000" value="92" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="24" gain="1.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <vol id="4100000" value="64" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="110" pan0="0" coarse0="0" finel0="-3" finer0="3" phoffset0="0" stphdetun0="0" wavetype0="2" modalgo1="2" userwavefile0="" vol1="130" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="1" modalgo2="2" userwavefile1="" vol2="40" pan2="0" coarse2="12" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="1" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.35" ftype="0" fcut="950" fwet="1"><elvol lspd_denominator="4" sustain="0.0" pdel="0" userwavefile="" dec="0.5657" lamt="0.0" syncmode="0" latt="0" rel="0.2236" amt="1.0" x100="0" att="0.02" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.0" pdel="0" userwavefile="" dec="0.253" lamt="0.0" syncmode="0" latt="0" rel="0.1414" amt="1.0" x100="0" att="0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Violão" pos="0">
@@ -186,8 +186,8 @@
       <track muted="0" type="0" name="Flauta" solo="0">
         <instrumenttrack fxch="2" basenote="57" pitchrange="1" pitch="0" pan="8" usemasterpitch="1">
           <vol id="4100001" value="88" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="73" gain="1.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="90" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="1" modalgo1="2" userwavefile0="" vol1="40" pan1="0" coarse1="12" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="1" modalgo2="2" userwavefile1="" vol2="8" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="6" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.3" ftype="0" fcut="9500" fwet="1"><elvol lspd_denominator="4" sustain="0.85" pdel="0" userwavefile="" dec="0.2" lamt="0.06" syncmode="0" latt="0" rel="0.2236" amt="1.0" x100="0" att="0.1183" lpdel="0" hold="0.0" lshp="0" lspd="0.22" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Flauta" pos="0">
@@ -259,9 +259,9 @@
       </track>
       <track muted="0" type="0" name="Clarinete" solo="0">
         <instrumenttrack fxch="3" basenote="57" pitchrange="1" pitch="0" pan="-6" usemasterpitch="1">
-          <vol id="4100002" value="86" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="71" gain="1.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <vol id="4100002" value="51" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="70" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="3" modalgo1="2" userwavefile0="" vol1="60" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="0" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.5" ftype="0" fcut="4800" fwet="1"><elvol lspd_denominator="4" sustain="0.85" pdel="0" userwavefile="" dec="0.2449" lamt="0.0" syncmode="0" latt="0" rel="0.1897" amt="1.0" x100="0" att="0.1" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Clarinete" pos="0">
@@ -297,9 +297,9 @@
       </track>
       <track muted="0" type="0" name="Baixo" solo="0">
         <instrumenttrack fxch="4" basenote="57" pitchrange="1" pitch="0" pan="0" usemasterpitch="1">
-          <vol id="4100003" value="78" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="32" gain="1.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <vol id="4100003" value="66" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="100" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="1" modalgo1="2" userwavefile0="" vol1="60" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="16" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="2" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.3" ftype="0" fcut="380" fwet="1"><elvol lspd_denominator="4" sustain="0.25" pdel="0" userwavefile="" dec="0.4899" lamt="0.0" syncmode="0" latt="0" rel="0.1549" amt="1.0" x100="0" att="0.0283" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.0" pdel="0" userwavefile="" dec="0.1732" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.35" x100="0" att="0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Baixo" pos="0">
@@ -339,8 +339,8 @@
       <track muted="0" type="0" name="Cordas" solo="0">
         <instrumenttrack fxch="5" basenote="57" pitchrange="1" pitch="0" pan="4" usemasterpitch="1">
           <vol id="4100004" value="60" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="49" gain="1.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="60" pan0="0" coarse0="0" finel0="-8" finer0="6" phoffset0="0" stphdetun0="0" wavetype0="2" modalgo1="2" userwavefile0="" vol1="60" pan1="0" coarse1="0" finel1="7" finer1="-9" phoffset1="0" stphdetun1="0" wavetype1="2" modalgo2="2" userwavefile1="" vol2="10" pan2="0" coarse2="-12" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.3" ftype="0" fcut="4300" fwet="1"><elvol lspd_denominator="4" sustain="0.9" pdel="0" userwavefile="" dec="0.3162" lamt="0.0" syncmode="0" latt="0" rel="0.3742" amt="1.0" x100="0" att="0.3162" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Cordas" pos="0">
@@ -375,9 +375,9 @@
       </track>
       <track muted="0" type="0" name="Glockenspiel" solo="0">
         <instrumenttrack fxch="6" basenote="57" pitchrange="1" pitch="0" pan="18" usemasterpitch="1">
-          <vol id="4100005" value="100" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="0" patch="9" gain="4.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <vol id="4100005" value="34" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="100" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="0" modalgo1="2" userwavefile0="" vol1="34" pan1="0" coarse1="17" finel1="58" finer1="58" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="12" pan2="0" coarse2="24" finel2="100" finer2="100" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.5" ftype="0" fcut="14000" fwet="0"><elvol lspd_denominator="4" sustain="0.0" pdel="0" userwavefile="" dec="0.5099" lamt="0.0" syncmode="0" latt="0" rel="0.3225" amt="1.0" x100="0" att="0.0173" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Glockenspiel" pos="0">
@@ -394,9 +394,9 @@
       </track>
       <track muted="0" type="0" name="Chocalho" solo="0">
         <instrumenttrack fxch="7" basenote="57" pitchrange="1" pitch="0" pan="24" usemasterpitch="1">
-          <vol id="4100006" value="100" scale_type="linear"/>
-          <instrument name="sf2player"><sf2player src="/usr/share/sounds/sf2/FluidR3_GM.sf2" bank="128" patch="0" gain="5.0" reverbOn="0" chorusOn="0" reverbRoomSize="0.2" reverbDamping="0" reverbWidth="0.5" reverbLevel="0.9" chorusNum="3" chorusLevel="2" chorusSpeed="0.3" chorusDepth="8"/></instrument>
-          <eldata fres="0.5" fcut="14000" fwet="0" ftype="0"/>
+          <vol id="4100006" value="60" scale_type="linear"/>
+          <instrument name="tripleoscillator"><tripleoscillator vol0="120" pan0="0" coarse0="0" finel0="0" finer0="0" phoffset0="0" stphdetun0="0" wavetype0="6" modalgo1="2" userwavefile0="" vol1="0" pan1="0" coarse1="0" finel1="0" finer1="0" phoffset1="0" stphdetun1="0" wavetype1="0" modalgo2="2" userwavefile1="" vol2="0" pan2="0" coarse2="0" finel2="0" finer2="0" phoffset2="0" stphdetun2="0" wavetype2="0" modalgo3="2" userwavefile2=""/></instrument>
+          <eldata fres="0.5" ftype="0" fcut="14000" fwet="0"><elvol lspd_denominator="4" sustain="0.0" pdel="0" userwavefile="" dec="0.1183" lamt="0.0" syncmode="0" latt="0" rel="0.0775" amt="1.0" x100="0" att="0.02" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elcut lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/><elres lspd_denominator="4" sustain="0.5" pdel="0" userwavefile="" dec="0.5" lamt="0.0" syncmode="0" latt="0" rel="0.1" amt="0.0" x100="0" att="0.0" lpdel="0" hold="0.0" lshp="0" lspd="0.1" ctlenvamt="0" lspd_numerator="4"/></eldata>
           <fxchain enabled="0" numofeffects="0"/>
         </instrumenttrack>
         <pattern muted="0" type="1" steps="16" name="Chocalho" pos="0">
@@ -455,10 +455,10 @@
         <automationpattern prog="1" tens="1" mute="0" name="Cordas&gt;&gt;Volume" pos="0" len="4176">
           <time pos="0" value="0"/>
           <time pos="2880" value="0"/>
-          <time pos="2881" value="55"/>
-          <time pos="3168" value="85"/>
-          <time pos="3744" value="95"/>
-          <time pos="4032" value="70"/>
+          <time pos="2881" value="25"/>
+          <time pos="3168" value="38"/>
+          <time pos="3744" value="43"/>
+          <time pos="4032" value="32"/>
           <object id="4100004"/>
         </automationpattern>
       </track>
@@ -466,7 +466,7 @@
     <fxmixer>
       <fxchannel muted="0" volume="1.0" soloed="0" num="0" name="Master">
         <fxchain enabled="1" numofeffects="1">
-          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="28" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="1" Highshelffreq="6000" HighShelfgain="2.5" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="220" Peak1gain="-1.5" Peak1bw="0.7" Peak2active="0" Peak2freq="250" Peak2gain="0" Peak2bw="0.3" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
+          <effect name="eq" on="1" wet="1" gate="0" autoquit="1" autoquit_numerator="4" autoquit_denominator="4" syncmode="0"><Eq Inputgain="0" Outputgain="0.0" HPactive="1" HPfreq="28" HPres="0.707" HP12="1" HP24="0" HP48="0" LPactive="0" LPfreq="18000" LPres="0.707" LP12="1" LP24="0" LP48="0" Lowshelfactive="0" LowShelffreq="80" Lowshelfgain="0" LowShelfres="1.4" Highshelfactive="1" Highshelffreq="6000" HighShelfgain="1.0" HighShelfres="1.4" AnalyseIn="0" AnalyseOut="0" Peak1active="1" Peak1freq="220" Peak1gain="-1.5" Peak1bw="0.7" Peak2active="1" Peak2freq="3200" Peak2gain="6.0" Peak2bw="0.7" Peak3active="0" Peak3freq="2500" Peak3gain="0" Peak3bw="0.3" Peak4active="0" Peak4freq="5000" Peak4gain="0" Peak4bw="0.3"/></effect>
         </fxchain>
       </fxchannel>
       <fxchannel muted="0" volume="1.0" soloed="0" num="1" name="Violão">
@@ -527,7 +527,7 @@
     </fxmixer>
     <timeline lp0pos="576" lp1pos="4032" lpstate="1"/>
     <controllers/>
-    <projectnotes>Vila — versão A: "Exploração acolhedora" (estudo da rodada 09; NÃO canônica).
+    <projectnotes>Vila — versão A: "Exploração acolhedora" (estudo da rodada 09.4; NÃO canônica).
 
 Hipótese artística: a vila é um lugar seguro de onde se parte. Calor de violão dedilhado e madeiras
 (flauta e clarinete) em 6/8, que balança como um passo tranquilo, com um único momento de "maravilha":
@@ -546,8 +546,9 @@ Decisões:
 - Textura cresce por seção (violão → +baixo/clarinete → +cordas/glock/chocalho) e volta ao mínimo no laço,
   para a repetição não cansar: o ponto mais denso fica no fim do laço, não no começo.
 - Dinâmica por intensidade das notas (acento na 1ª e 4ª colcheias) e uma automação de volume nas cordas.
-- Instrumentos: banco FluidR3 GM (licença MIT) no sf2player do LMMS; mixer com EQ por canal e um retorno
-  de reverberação (ReverbSC) compartilhado.
+- Instrumentos: SÍNTESE PRÓPRIA nos sintetizadores do LMMS (`tools/audio/sintese.py`: violão, flauta, clarinete,
+  baixo, cordas, glockenspiel e chocalho), sem amostra de terceiros (decisão do proprietário na integração da
+  09.4: o banco FluidR3 GM saiu). Mixer com EQ por canal e um retorno de reverberação (ReverbSC) compartilhado.
 </projectnotes>
   </song>
 </lmms-project>

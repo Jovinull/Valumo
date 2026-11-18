@@ -17,6 +17,9 @@ Decisões (cada uma diferente da versão A de propósito):
   ESCRITO na celesta (repetições mais fracas na colcheia pontuada — o Delay do LMMS não funciona por XML).
 - Forma: introdução 2 compassos | A 8 (celesta + harpa + pedal) | B 8 (flauta de pã, Si menor) |
   A'' 4 (motivo de volta, termina suspenso em Lá sus4 → laço). Laço = compassos 3–22.
+
+Instrumentos: SÍNTESE PRÓPRIA nos sintetizadores do LMMS (`tools/audio/sintese.py`), sem amostra de terceiros
+(decisão do proprietário na integração da 09.4: o banco FluidR3 GM saiu); o "sino grave" é um vibrafone sintetizado.
 """
 import sys
 from pathlib import Path
@@ -24,6 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "tools" / "audio"))
 import lmms as L  # noqa: E402
+import sintese as S  # noqa: E402  (síntese própria: nenhuma amostra de terceiros)
 
 U = 24          # colcheia
 BAR = 192       # 4/4
@@ -113,23 +117,25 @@ glass = L.parse_bars(["~", "~", "~", "~", "~", "r:6 E6:2@50", "~", "~", "~", "r:
 song = L.Song(
     title="Valumo — Vila (B: fantasia misteriosa)", bpm=75, num=4, den=4,
     tracks=[
-        L.Track("Harpa", L.sf2(46), harp, vol=84, pan=-16, channel=0, program=46,
-                fx=[L.fx_eq(hp=70, peaks=[(300, -2.5, 0.8)])], sends={"Reverberação": 0.38}),
-        L.Track("Celesta", L.sf2(8, gain=3.5), celesta, vol=90, pan=20, channel=1, program=8,
-                fx=[L.fx_eq(hp=500)], sends={"Reverberação": 0.50}),
-        L.Track("Flauta de pã", L.sf2(75), pan, vol=64, pan=4, channel=2, program=75,
+        L.Track("Harpa", *S.harpa()[:1], harp, eldata=S.harpa()[1], vol=46, pan=-16, channel=0, program=46,
+                fx=[L.fx_eq(hp=110, peaks=[(300, -2.5, 0.8)])], sends={"Reverberação": 0.30}),
+        L.Track("Celesta", *S.celesta()[:1], celesta, eldata=S.celesta()[1], vol=90, pan=20, channel=1, program=8,
+                fx=[L.fx_eq(hp=500)], sends={"Reverberação": 0.40}),
+        L.Track("Flauta de pã", *S.flauta_pa()[:1], pan, eldata=S.flauta_pa()[1], vol=51, pan=4, channel=2, program=75,
                 fx=[L.fx_eq(hp=250, peaks=[(1500, 1.0, 0.6)])], sends={"Reverberação": 0.45}),
-        L.Track("Violoncelo", L.sf2(42), cello, vol=70, pan=-6, channel=3, program=42,
-                fx=[L.fx_eq(hp=35, peaks=[(220, -2.0, 0.6)])], sends={"Reverberação": 0.25}),
-        L.Track("Cordas lentas", L.sf2(49), pad, vol=64, pan=8, channel=4, program=49,
+        L.Track("Violoncelo", *S.violoncelo()[:1], cello, eldata=S.violoncelo()[1], vol=68, pan=-6, channel=3, program=42,
+                fx=[L.fx_eq(hp=60, peaks=[(220, -2.0, 0.6)])], sends={"Reverberação": 0.25}),
+        L.Track("Cordas lentas", *S.cordas(lentas=True)[:1], pad, eldata=S.cordas(lentas=True)[1], vol=21, pan=8, channel=4, program=49,
                 fx=[L.fx_eq(hp=160, high_shelf=(7000, -3.0))], sends={"Reverberação": 0.45}),
-        L.Track("Sino grave", L.sf2(11, gain=2.5), bowl, vol=100, pan=0, channel=5, program=11,
-                fx=[L.fx_eq(hp=90, high_shelf=(5000, -4.0))], sends={"Reverberação": 0.60}),
-        L.Track("Cristal", L.sf2(98, gain=2.0), glass, vol=100, pan=28, channel=6, program=98,
+        L.Track("Sino grave", *S.vibrafone()[:1], bowl, eldata=S.vibrafone()[1], vol=45, pan=0, channel=5, program=11,
+                fx=[L.fx_eq(hp=130, high_shelf=(5000, -4.0))], sends={"Reverberação": 0.60}),
+        L.Track("Cristal", *S.cristal()[:1], glass, eldata=S.cristal()[1], vol=21, pan=28, channel=6, program=98,
                 fx=[L.fx_eq(hp=1200)], sends={"Reverberação": 0.65}),
     ],
     buses=[L.Bus("Reverberação", [L.fx_reverb(size=0.91, color=7500, wet=1.0)], volume=0.95)],
-    master_fx=[L.fx_eq(hp=28, peaks=[(250, -1.0, 0.7)], high_shelf=(6000, 1.5))],
+    # síntese própria: os graves somavam ~8 dB mais que na versão anterior (harpa, violoncelo e vibrafone em pedal) —
+    # prateleira de −4 dB abaixo de 160 Hz no master (medido)
+    master_fx=[L.fx_eq(hp=28, low_shelf=(160, -4.0), peaks=[(250, -1.0, 0.7)], high_shelf=(6000, 2.5))],
     loop=(INTRO * BAR, (INTRO + 20) * BAR),
     tail_bars=3,
     notes_md=__doc__,

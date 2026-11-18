@@ -17,8 +17,9 @@ Decisões:
 - Textura cresce por seção (violão → +baixo/clarinete → +cordas/glock/chocalho) e volta ao mínimo no laço,
   para a repetição não cansar: o ponto mais denso fica no fim do laço, não no começo.
 - Dinâmica por intensidade das notas (acento na 1ª e 4ª colcheias) e uma automação de volume nas cordas.
-- Instrumentos: banco FluidR3 GM (licença MIT) no sf2player do LMMS; mixer com EQ por canal e um retorno
-  de reverberação (ReverbSC) compartilhado.
+- Instrumentos: SÍNTESE PRÓPRIA nos sintetizadores do LMMS (`tools/audio/sintese.py`: violão, flauta, clarinete,
+  baixo, cordas, glockenspiel e chocalho), sem amostra de terceiros (decisão do proprietário na integração da
+  09.4: o banco FluidR3 GM saiu). Mixer com EQ por canal e um retorno de reverberação (ReverbSC) compartilhado.
 """
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "tools" / "audio"))
 import lmms as L  # noqa: E402
+import sintese as S  # noqa: E402  (síntese própria: nenhuma amostra de terceiros)
 
 U = 24            # unidade = colcheia
 BAR = 144         # 6/8
@@ -132,8 +134,9 @@ for h in A2_H:
     else:
         strings_A2.append(f"{PADS[h]}:6@52")
 strings = L.parse_bars(strings_A2, U, BAR, start_bar=INTRO + 16, vel=52)
-strings_auto = [(0, 0), ((INTRO + 16) * BAR, 0), ((INTRO + 16) * BAR + 1, 55), ((INTRO + 18) * BAR, 85),
-                ((INTRO + 22) * BAR, 95), ((INTRO + 24) * BAR, 70)]
+STRINGS_LEVEL = 0.45   # síntese própria: as cordas soam mais que as do banco; nivelado por tools/audio/nivelar.py (−9 dB da flauta)
+strings_auto = [(p, round(v * STRINGS_LEVEL)) for p, v in [(0, 0), ((INTRO + 16) * BAR, 0), ((INTRO + 16) * BAR + 1, 55),
+                ((INTRO + 18) * BAR, 85), ((INTRO + 22) * BAR, 95), ((INTRO + 24) * BAR, 70)]]
 
 # ------------------------------------------------------------------ glockenspiel (sinal do motivo)
 glock_intro = ["~", "~", "A5:3@50 F#6:3@56", "E6:1@50 D6:1@46 E6:4@52"]
@@ -150,24 +153,25 @@ REV = {"Reverberação": 0}
 song = L.Song(
     title="Valumo — Vila (A: exploração acolhedora)", bpm=100, num=6, den=8,
     tracks=[
-        L.Track("Violão", L.sf2(24), guitar, vol=92, pan=-12, channel=0, program=24,
+        L.Track("Violão", *S.violao()[:1], guitar, eldata=S.violao()[1], vol=64, pan=-12, channel=0, program=24,
                 fx=[L.fx_eq(hp=85, peaks=[(250, -3.0, 0.8), (3200, 2.0, 0.6)])], sends={"Reverberação": 0.22}),
-        L.Track("Flauta", L.sf2(73), flute, vol=88, pan=8, channel=1, program=73,
+        L.Track("Flauta", *S.flauta()[:1], flute, eldata=S.flauta()[1], vol=88, pan=8, channel=1, program=73,
                 fx=[L.fx_eq(hp=220, peaks=[(1800, 1.0, 0.5)], high_shelf=(9000, -2.0))], sends={"Reverberação": 0.32}),
-        L.Track("Clarinete", L.sf2(71), clar, vol=86, pan=-6, channel=2, program=71,
+        L.Track("Clarinete", *S.clarinete()[:1], clar, eldata=S.clarinete()[1], vol=51, pan=-6, channel=2, program=71,
                 fx=[L.fx_eq(hp=140, peaks=[(400, -2.0, 0.7)])], sends={"Reverberação": 0.30}),
-        L.Track("Baixo", L.sf2(32), bass, vol=78, pan=0, channel=3, program=32,
+        L.Track("Baixo", *S.baixo()[:1], bass, eldata=S.baixo()[1], vol=66, pan=0, channel=3, program=32,
                 fx=[L.fx_eq(hp=38, lp=4200, peaks=[(180, -1.5, 0.6)])], sends={"Reverberação": 0.06}),
-        L.Track("Cordas", L.sf2(49), strings, vol=60, pan=4, channel=4, program=49,
+        L.Track("Cordas", *S.cordas()[:1], strings, eldata=S.cordas()[1], vol=60, pan=4, channel=4, program=49,
                 fx=[L.fx_eq(hp=180, high_shelf=(7000, -4.0))], sends={"Reverberação": 0.40},
                 vol_automation=strings_auto),
-        L.Track("Glockenspiel", L.sf2(9, gain=4.0), glock, vol=100, pan=18, channel=5, program=9,
+        L.Track("Glockenspiel", *S.glockenspiel()[:1], glock, eldata=S.glockenspiel()[1], vol=34, pan=18, channel=5, program=9,
                 fx=[L.fx_eq(hp=900, high_shelf=(10000, -3.0))], sends={"Reverberação": 0.45}),
-        L.Track("Chocalho", L.sf2(0, bank=128, gain=5.0), shk, vol=100, pan=24, channel=9,
+        L.Track("Chocalho", *S.chocalho()[:1], shk, eldata=S.chocalho()[1], vol=60, pan=24, channel=9,
                 fx=[L.fx_eq(hp=2500, high_shelf=(11000, -4.0))], sends={"Reverberação": 0.12}),
     ],
     buses=[L.Bus("Reverberação", [L.fx_reverb(size=0.80, color=8500, wet=1.0)], volume=0.9)],
-    master_fx=[L.fx_eq(hp=28, peaks=[(220, -1.5, 0.7)], high_shelf=(6000, 2.5))],
+    # síntese própria: presença (+6 dB em 3,2 kHz) para as madeiras e o dedilhado não soarem abafados (medido contra a versão anterior)
+    master_fx=[L.fx_eq(hp=28, peaks=[(220, -1.5, 0.7), (3200, 6.0, 0.7)], high_shelf=(6000, 1.0))],
     loop=(INTRO * BAR, (INTRO + 24) * BAR),
     notes_md=__doc__,
 )
