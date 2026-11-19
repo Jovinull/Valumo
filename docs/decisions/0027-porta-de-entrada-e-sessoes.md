@@ -59,8 +59,9 @@ escolhida, tudo na mesma aplicação, com mouse e teclado, sem perder o que já 
 - **Texto na tela:** nenhuma instrução de tecla nem texto de desenvolvimento.
 - **"Menu principal" na pausa volta à TELA INICIAL** (Jogar, Configurações, Sair), não à de mundos. As escolhas ficam
   guardadas para o próximo Jogar.
-- **X da janela:** interceptado (`glfwSetWindowCloseCallback` → `Window.takeCloseRequest`). Pergunta só quando há
-  progresso fora do disco (`GameLogic.unsaved`: missões ou posição, não o tempo). Usa a MESMA confirmação da pausa, de
+- **X da janela:** interceptado (`glfwSetWindowCloseCallback` → `Window.takeCloseRequest`). Primeiro perguntava só com
+  progresso fora do disco (`GameLogic.unsaved`: missões ou posição, não o tempo); revisto abaixo, depois do teste
+  físico: numa aventura, sempre pergunta. Usa a MESMA confirmação da pausa, de
   qualquer estado; cancelar volta ao estado de antes. No criador com alterações, o diálogo dele. Encerramento forçado do
   processo não é interceptável e não é prometido.
 - **Criador com cache:** o `App` do criador vive enquanto o jogo vive; a primeira montagem da cena vira um passo de

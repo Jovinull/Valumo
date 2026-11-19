@@ -113,8 +113,8 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `M` | liga/desliga o som |
 | `F12` | captura em `output/visual-review/manual/` |
 
-Fechar a janela (o X) durante a aventura pergunta antes, se houver progresso ainda não salvo (salvar e sair / sair sem
-salvar / cancelar); no menu, fecha direto.
+Fechar a janela (o X) durante a aventura sempre pergunta antes: com progresso ainda não salvo, salvar e sair / sair sem
+salvar / cancelar; com tudo salvo, sair / cancelar. No menu, fecha direto.
 
 O som usa o dispositivo padrão do sistema (OpenAL Soft, que vem com o LWJGL); sem dispositivo, o jogo segue mudo e
 avisa no console.

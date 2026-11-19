@@ -21,9 +21,9 @@
 
 | # | Item | Antes | Agora | Evidência |
 |---|---|---|---|---|
-| 1 | **X da janela (P0)** | fechava na hora, mesmo com progresso | o `Window` intercepta o pedido (`glfwSetWindowCloseCallback`, antes de destruir nada). Sem nada a perder, fecha. Com progresso fora do disco: a MESMA confirmação "Sair do jogo?" da pausa, de qualquer estado (explorando, luta, diálogo, diário, pausa); Cancelar volta ao estado anterior, o diálogo na mesma fala. No criador com alterações: Salvar e sair / Sair sem salvar / Cancelar | `MenuAdventureTest` (2 testes novos + 1 reescrito), roteiros `13-navegacao-a…e`, `capturas/navegacao/` |
+| 1 | **X da janela (P0)** | fechava na hora, mesmo com progresso | o `Window` intercepta o pedido (`glfwSetWindowCloseCallback`, antes de destruir nada). Fora de uma aventura (menus, carregamento), fecha. Numa aventura, SEMPRE a mesma confirmação "Sair do jogo?" da pausa, de qualquer estado (explorando, luta, diálogo, diário, pausa); com tudo salvo ela diz isso e oferece Sair/Cancelar. Cancelar volta ao estado anterior, o diálogo na mesma fala. No criador com alterações: Salvar e sair / Sair sem salvar / Cancelar | `MenuAdventureTest` (2 testes novos + 1 reescrito), roteiros `13-navegacao-a…e`, `capturas/navegacao/` |
 | 2 | **"Menu principal" (P0)** | voltava à tela de mundos | volta à TELA INICIAL. Personagem e mundo ficam guardados: Jogar reabre com eles escolhidos | roteiros 13-a e 13-b; capturas n04–n06 |
-| 3 | **Quando perguntar** | por tempo de jogo | `GameLogic.unsaved()`: progresso das missões ou posição (0,25 u) desde o último save, o Continuar ou o começo. Parado não pergunta | `MenuAdventureTest` |
+| 3 | **O que a pergunta oferece** | — | numa aventura sempre pergunta; `GameLogic.unsaved()` (progresso das missões ou posição de 0,25 u desde o último save, o Continuar ou o começo; o tempo não conta) decide só o CONTEÚDO: tudo salvo = Sair / Cancelar; progresso = Salvar e sair / Sair sem salvar / Cancelar | `MenuAdventureTest` |
 | 4 | **Tipografia dos botões** | cada botão escolhia a sua escala; vizinhos diferentes (no 720p, "Novo personagem" minúsculo ao lado de "Voltar" grande) | mesma escala por grupo (`Game.groupPx`): base 30 no menu principal, 27 nas telas de menu, 22 na pausa. Em personagens, "Novo/Editar" empilham quando lado a lado encolheriam o grupo. Rótulos das configurações encurtados ("Barras", "Sensibilidade") | `tipografia/` (14 pares antes × depois, 720p e 1080p) |
 | 5 | **Tela de carregamento** | preto quase total + uma linha | fundo escuro quente em faixas, o logotipo pequeno, o passo real e as sementes P1; sem porcentagem, sem cena 3D | `carregamento/` |
 | 6 | **Câmera da prévia** | — | comparada com uma alternativa baixa nas sementes 1024, 2048, 4096 e 77; a alternativa perdeu em todas (telhado no primeiro plano; 2048 e 77 sem rumo livre na colisão real). **Mantida a atual**, `PREVIEW_VERSION` = 1 | `previa/` |
@@ -37,10 +37,11 @@ o que o save de fato guarda.
 ## Respostas
 
 1. **O X da janela agora respeita o salvamento?** Sim.
-   - Com progresso fora do disco, abre a confirmação; "Salvar e sair" grava (escrita atômica) e fecha.
+   - Numa aventura, sempre abre a confirmação. Com progresso fora do disco, "Salvar e sair" grava (escrita atômica) e
+     fecha; com tudo salvo, ela diz isso e oferece Sair/Cancelar.
    - Provado em execução real: a parte A salvou pelo X na posição (−6,95; 2,54), e a parte B reabriu e continuou em
      (−6,95; 2,55).
-   - Sem nada a perder (menu, carregamento, aventura parada, depois de uma falha de geração), fecha direto.
+   - Fora de uma aventura (menu, personagens, mundos, carregamento, depois de uma falha de geração), fecha direto.
    - O encerramento forçado do processo não é interceptável e não é prometido.
 2. **O cancelamento do fechamento funciona?** Sim: volta ao estado de antes, inclusive ao diálogo na mesma fala (teste),
    e o jogo continua (roteiro 13-a, captura n08).

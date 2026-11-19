@@ -155,8 +155,8 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **Saves de antes** são adotados sozinhos, uma vez, por **cópia** validada e registrada (sha256), nunca por cima de
     progresso; aparências soltas ficam no Carregar do criador.
   - **Sem texto de tecla nem de desenvolvimento na tela** (nenhum "↑ ↓ escolher", "(Esc)", "rodada", "legado").
-  - **Sair:** "Menu principal" volta à tela inicial. O X da janela é interceptado e pede a mesma confirmação da pausa só
-    quando há progresso fora do disco (`GameLogic.unsaved`). O criador tem cache (`App` vivo) e pergunta no X com
+  - **Sair:** "Menu principal" volta à tela inicial. Numa aventura, sair (X da janela interceptado, Sair do jogo, Menu
+    principal) SEMPRE pede a mesma confirmação da pausa; `GameLogic.unsaved` só decide o que ela oferece. O criador tem cache (`App` vivo) e pergunta no X com
     alterações. Botões de um grupo usam a mesma escala (`groupPx`).
   - **QA:** `-Dvx.menu=sim` + `-Dvx.personagens/mundos/savegame/saves/prefs` temporários (`tools/review111.sh`).
     Roteiros antigos rodam sem menu.
