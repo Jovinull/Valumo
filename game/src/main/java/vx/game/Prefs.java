@@ -17,6 +17,8 @@ public final class Prefs {
     /** Barras de inimigos comuns: "nunca", "dano" (quando leva dano ou está travado) ou "sempre" (engajado e visível). */
     public String bars;
     public String feel, encounter;
+    /** Rodada 10 — rastreador da missão visível (T no diário). */
+    public boolean tracker = true;
     public final Path file;
     public boolean persist = true;
     /**
@@ -50,12 +52,18 @@ public final class Prefs {
     public Prefs load() {
         if (file == null || !Files.isRegularFile(file)) return this;
         String b = bars, f = feel, e = encounter;
+        boolean t = tracker;
         try {
             if (Files.size(file) > MAX_BYTES) throw new IOException("grande demais");
             JsonObject o = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
             if (o.has("barrasInimigos")) b = valid(text(o, "barrasInimigos"), b);
             if (o.has("sensacao")) f = text(o, "sensacao");
             if (o.has("encontro")) e = text(o, "encontro");
+            if (o.has("rastreador")) {
+                var v = o.get("rastreador");
+                if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isBoolean()) throw new IllegalArgumentException("\"rastreador\" não é verdadeiro/falso");
+                t = v.getAsBoolean();
+            }
         } catch (IOException | RuntimeException ex) {
             System.err.println("preferências ilegíveis (usando os padrões; original em " + preserveInvalid(file) + "): " + ex.getMessage());
             return this;
@@ -63,6 +71,7 @@ public final class Prefs {
         bars = b;
         feel = storedFeel = f;
         encounter = storedEncounter = e;
+        tracker = t;
         return this;
     }
 
@@ -95,6 +104,7 @@ public final class Prefs {
         if (!encounterFromCommandLine) storedEncounter = encounter;
         o.addProperty("sensacao", storedFeel);
         o.addProperty("encontro", storedEncounter);
+        o.addProperty("rastreador", tracker);
         try {
             if (file.getParent() != null) Files.createDirectories(file.getParent());
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(o) + "\n");
