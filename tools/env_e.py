@@ -597,6 +597,9 @@ def build(out):
         ps.add("dock", EB.dock())
         ps.add("lily", EB.lily(), **leafy)
         ps.add("cloud", EB.cloud(), 0.5)
+        # rodada 10 — marco de luz do posto da trilha (missão "As Luzes do Posto"): os dois estados são props distintos
+        ps.add("trail_beacon_off", trail_beacon(False), FINE, **leafy)
+        ps.add("trail_beacon_on", trail_beacon(True), FINE, **leafy)
         for name, vox in (("fern", EB.fern()), ("mushroom_red", EB.mushrooms_red()), ("signpost", EB.signpost()),
                           ("lantern_post", EB.lantern_post()), ("crate", EB.crate()), ("barrel", EB.barrel()),
                           ("campfire", EB.campfire()), ("reeds", EB.reeds())):
@@ -607,3 +610,47 @@ def build(out):
         ps.add(name, vox, SMALL, **leafy)
     ps.save()
     print("  env_e: " + ", ".join(sorted(ps.entries)))
+
+
+# rodada 10 — marco de luz do posto da trilha ------------------------------------------------------------------------
+BEACON_GLASS_OFF = P("#6c7a80")        # vidro fosco, apagado (sem emissivo)
+BEACON_SEED_OFF = P("#6f9a94")         # semente P1 sem brilho (lê como a mesma peça, apagada)
+BEACON_SEED_ON = C("#7ff0dc", "emissive")   # semente P1 (assinatura-visual.md: verde-água, ≤ 3 voxels, 1 por objeto)
+
+
+def trail_beacon(lit):
+    """Marco do posto: estela de pedra assentada sobre um degrau, braço de ferro com uma lanterna de quatro vidros e, no
+    topo da gaiola, UMA semente de luz P1. Apagado: vidro fosco e semente sem brilho (nada emissivo). Aceso: luz quente
+    das lanternas da vila (GLOW/GLOW_HI) e a semente verde-água emissiva. A forma é a mesma nos dois estados: só a luz
+    muda, para o antes/depois ser lido como "o mesmo marco, aceso"."""
+    v = Vox()
+    # degrau e base da estela (pedras assentadas, como os poços e muros da vila)
+    EB.rbox(v, -4, 0, -4, 3, 1, 3, EB.STONE, r=0)
+    EB.rbox(v, -3, 2, -3, 2, 3, 2, EB.STONE, r=0)
+    # fuste que afina: 4×4 até a metade, 2×2 em cima, com faixas claras a cada 4 voxels
+    for y in range(4, 22):
+        a = -2 if y < 13 else -1
+        b = 1 if y < 13 else 0
+        v.box(a, y, a, b, y, b, EB.STONE)
+    EB.stones(v, seed=11, cell=(2, 2, 2))
+    for y in (8, 12, 16, 20):
+        a, b = (-2, 1) if y < 13 else (-1, 0)
+        v.box(a, y, a, b, y, b, EB.STONE_L)
+    # capitel e braço de ferro para a frente (+z: o lado que encara quem chega pela trilha)
+    v.box(-2, 22, -2, 1, 22, 1, EB.STONE_D)
+    v.box(-1, 23, -1, 0, 23, 6, EB.IRON)
+    v.box(-1, 22, 6, 0, 22, 6, EB.IRON)
+    # lanterna pendurada: tampa, quatro colunas de ferro, vidro, base e a semente P1 no topo da gaiola
+    v.box(-3, 21, 4, 2, 21, 9, EB.TEAL_D)
+    v.box(-2, 20, 5, 1, 20, 8, EB.TEAL)
+    glass, core = (EB.GLOW, EB.GLOW_HI) if lit else (BEACON_GLASS_OFF, BEACON_GLASS_OFF)
+    v.box(-2, 14, 5, 1, 19, 8, glass)
+    v.box(-1, 15, 6, 0, 18, 7, core)
+    for (x, z) in ((-2, 5), (1, 5), (-2, 8), (1, 8)):
+        v.box(x, 14, z, x, 19, z, EB.IRON)
+    v.box(-2, 13, 5, 1, 13, 8, EB.TEAL_D)
+    v.set(-1, 12, 6, EB.GOLD)                 # pingente dourado embaixo, como nas lanternas da vila
+    seed = BEACON_SEED_ON if lit else BEACON_SEED_OFF
+    v.set(-1, 22, 8, seed)                     # cápsula de 2 voxels em pé sobre a tampa, na frente do gancho
+    v.set(-1, 23, 8, seed)                     # (assinatura P1: ≤ 3 voxels)
+    return v
