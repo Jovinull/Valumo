@@ -153,9 +153,17 @@ public final class Animator {
     /** Diagnóstico do IK do último evaluate (voxels): quanto cada mão ficou longe do alvo. */
     public float reachErrR, reachErrL;
 
+    /**
+     * Voxel da COREOGRAFIA no espaço deste modelo: {@code voxelSize × meta.escala}. Um perfil de gesto (npc_vila,
+     * sword…) é desenhado para o esqueleto de origem; um rig REAMOSTRADO (NPC de ofício com altura narrativa,
+     * {@code meta.escala}) executa o mesmo gesto em proporção. Sem {@code escala} (todos os outros): o voxel do modelo.
+     */
+    private final float cvs;
+
     public Animator(CharacterModel m, float exaggeration) {
         this.m = m;
         this.amp = exaggeration;
+        this.cvs = m.voxelSize * (m.meta != null && m.meta.has("escala") ? m.meta.get("escala").getAsFloat() : 1f);
         Choreo c = null;
         if (m.meta != null && m.meta.has("weaponProfile") && m.anim.equals("biped") && m.index.containsKey("farm_r")) {
             try {
@@ -963,7 +971,7 @@ public final class Animator {
         if (xl != 0f) rot("leg_l", 0, 0, (float) Math.atan2(xl, Math.max(0.05f, hipH - ankle - yl - gl)));
         if (xr != 0f) rot("leg_r", 0, 0, (float) Math.atan2(xr, Math.max(0.05f, hipH - ankle - yr - gr)));
         // rodada 09.2 — rolamento: o corpo inteiro gira em torno do centro da bola (prof.spinCenter), não da sola
-        if (spinNow != 0f) spinRoot(rad(spinNow), (spinPy > 0f ? spinPy : prof.spinCenter) * m.voxelSize, spinPz * m.voxelSize, rad(spinAx));
+        if (spinNow != 0f) spinRoot(rad(spinNow), (spinPy > 0f ? spinPy : prof.spinCenter) * cvs, spinPz * cvs, rad(spinAx));
         secondary(clip, t, mode, weaponRest);
         if (spinNow != 0f) rollContact();
         if (choreo) fxToModel();
@@ -1097,7 +1105,7 @@ public final class Animator {
      * com o balanço da passada), mistura a AÇÃO pelo peso da Motion e resolve tronco, braços e itens.
      */
     private void actionLayer(Clip base, float t, float ph, float ankle, float lmax) {
-        float vs = m.voxelSize;
+        float vs = cvs;                                                   // voxel da coreografia (escala do rig)
         String cp = prof.carryPose(base);
         System.arraycopy(cp != null ? prof.pose(cp) : NO_CARRY, 0, ctl, 0, Choreo.N);
         System.arraycopy(cp != null ? prof.poseD(cp) : NO_CARRY_D, 0, ctlD, 0, Choreo.ND);
@@ -1211,7 +1219,7 @@ public final class Animator {
 
     /** Posição e polo da mão por FK (pose de locomoção atual) escritos nos vetores de controle indicados. */
     private void fkHand(String side, String fore, String item, float[] c1, float[] c2, int posCh, int elbowCh) {
-        float vs = m.voxelSize;
+        float vs = cvs;
         Vector3f h = new Vector3f(handWorldFk(fore, item, handPoint(side)));
         CharacterModel.Part f = part(fore), u = part(fore.replace("farm", "arm"));
         Vector3f e = chain(m.index.get(fore), mA).transformPosition(new Vector3f(f.px, f.py, f.pz));
@@ -1230,7 +1238,7 @@ public final class Animator {
 
     /** Escreve tronco, cabeça, braços (IK), itens, corda/flecha e efeitos a partir de ctl. */
     private void applyControl(boolean ikR, boolean ikL, Choreo.Move mv) {
-        float vs = m.voxelSize;
+        float vs = cvs;
         float tp = rad(ctl[Choreo.TORSO]), ty = rad(ctl[Choreo.TORSO + 1]), tr = rad(ctl[Choreo.TORSO + 2]);
         rot("torso", tp, ty, tr);
         rot("head", rad(ctl[Choreo.HEAD]) - 0.45f * tp, rad(ctl[Choreo.HEAD + 1]) - 0.8f * ty, rad(ctl[Choreo.HEAD + 2]) - 0.6f * tr);
