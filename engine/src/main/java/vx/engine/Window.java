@@ -116,6 +116,33 @@ public final class Window implements AutoCloseable {
             events.add(new InputEvent(InputEvent.Kind.SCROLL, cursorX(), cursorY(), 0, (float) sy, 0));
         });
         glfwSetCharCallback(handle, (win, cp) -> events.add(new InputEvent(InputEvent.Kind.CHAR, cursorX(), cursorY(), 0, 0, cp)));
+        glfwSetWindowCloseCallback(handle, win -> onCloseRequest());
+    }
+
+    private boolean interceptClose, closeRequested;
+
+    /**
+     * Rodada 11.1 — com {@code on}, o X da janela (ou o atalho do gerenciador de janelas que PEDE para fechar) não fecha:
+     * vira um pedido ({@link #takeCloseRequest}) que o jogo atende (confirmação, salvar, sair). O GLFW chama o callback
+     * antes de destruir qualquer coisa e o pedido desfaz o {@code shouldClose}. Encerramento forçado do processo (SIGKILL,
+     * queda de energia) não passa por aqui e não pode ser interceptado.
+     */
+    public void interceptClose(boolean on) { interceptClose = on; }
+
+    /** Houve pedido de fechar desde a última leitura? (e o esquece) */
+    public boolean takeCloseRequest() {
+        boolean r = closeRequested;
+        closeRequested = false;
+        return r;
+    }
+
+    /** O mesmo caminho do callback do GLFW (roteiros e testes: a janela oculta não tem X para clicar). */
+    public void simulateCloseRequest() { onCloseRequest(); }
+
+    private void onCloseRequest() {
+        if (!interceptClose) return;                                       // sem interceptar: o GLFW fecha como sempre
+        closeRequested = true;
+        glfwSetWindowShouldClose(handle, false);
     }
 
     /** Processa eventos; deve ser chamado uma vez por quadro, antes de ler a entrada. */
