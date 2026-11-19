@@ -1,0 +1,54 @@
+{
+ "bpm": 240,
+ "compasso_ticks": 384,
+ "fatias": [
+  {
+   "id": "a_aceita",
+   "grupo": "a_aceita",
+   "tick": 0,
+   "max_ms": 700
+  },
+  {
+   "id": "a_objetivo",
+   "grupo": "a_objetivo",
+   "tick": 384,
+   "max_ms": 800
+  },
+  {
+   "id": "a_sinal",
+   "grupo": "a_sinal",
+   "tick": 768,
+   "max_ms": 1500
+  },
+  {
+   "id": "a_recompensa",
+   "grupo": "a_recompensa",
+   "tick": 1152,
+   "max_ms": 900
+  },
+  {
+   "id": "b_aceita",
+   "grupo": "b_aceita",
+   "tick": 1536,
+   "max_ms": 700
+  },
+  {
+   "id": "b_objetivo",
+   "grupo": "b_objetivo",
+   "tick": 1920,
+   "max_ms": 800
+  },
+  {
+   "id": "b_sinal",
+   "grupo": "b_sinal",
+   "tick": 2304,
+   "max_ms": 1500
+  },
+  {
+   "id": "b_recompensa",
+   "grupo": "b_recompensa",
+   "tick": 2688,
+   "max_ms": 900
+  }
+ ]
+}

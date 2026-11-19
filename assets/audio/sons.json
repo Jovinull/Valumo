@@ -29,7 +29,15 @@
     "ui.abrir": {"barramento": "interface", "arquivos": ["sfx/interface/abrir.wav"],
                  "ganho_db": 0, "intervalo_min": 0.1, "max_vozes": 1, "prioridade": 3, "duracao": [0.15, 0.4]},
     "ui.salvar": {"barramento": "interface", "arquivos": ["sfx/interface/salvar.wav"],
-                  "ganho_db": -2, "intervalo_min": 0.2, "max_vozes": 1, "prioridade": 4, "duracao": [0.4, 1.0]}
+                  "ganho_db": -2, "intervalo_min": 0.2, "max_vozes": 1, "prioridade": 4, "duracao": [0.4, 1.0]},
+    "missao.aceita": {"barramento": "interface", "arquivos": ["sfx/missao/aceita.wav"],
+                      "ganho_db": -1, "intervalo_min": 0.5, "max_vozes": 1, "prioridade": 5, "duracao": [0.5, 1.0]},
+    "missao.objetivo": {"barramento": "interface", "arquivos": ["sfx/missao/objetivo.wav"],
+                        "ganho_db": -1, "intervalo_min": 0.5, "max_vozes": 1, "prioridade": 5, "duracao": [0.5, 1.0]},
+    "missao.sinal": {"barramento": "interface", "arquivos": ["sfx/missao/sinal.wav"],
+                     "ganho_db": -12, "intervalo_min": 1.0, "max_vozes": 1, "prioridade": 6, "duracao": [0.7, 1.6]},
+    "missao.recompensa": {"barramento": "interface", "arquivos": ["sfx/missao/recompensa.wav"],
+                          "ganho_db": -2, "intervalo_min": 0.5, "max_vozes": 1, "prioridade": 5, "duracao": [0.5, 1.0]}
   },
   "musicas": {
     "vila_a": {"arquivo": "musica/vila_a.ogg", "laco_inicio": 2419200, "laco_fim": 4492800, "ganho_db": 0,
