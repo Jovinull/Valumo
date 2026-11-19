@@ -1,6 +1,6 @@
 ---
 name: gameplay
-description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade. Rodada 09.2: perfis de sensação (velocidade/passada/aceleração), salto com coyote e buffer, props pisáveis (colisao_e.json "pisavel"), referência do WASD com giro limitado e preferências do jogador (Prefs).
+description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade. Rodada 09.2: perfis de sensação (velocidade/passada/aceleração), salto com coyote e buffer, props pisáveis (colisao_e.json "pisavel"), referência do WASD com giro limitado e preferências do jogador (Prefs). Rodada 10: missões, objetos do mundo com estado (E), falas por contexto, jogo salvo v1 (atômico), Continuar, diário e rastreador (tools/aventura, tools/review10.sh).
 ---
 
 # Gameplay (rodada 08 em diante)
@@ -150,3 +150,23 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   na pausa. Preferência ilegível: padrões + original em `ARQUIVO.invalido`.
 - Placa "E Conversar" acima da cabeça de qualquer NPC (`max(1,55, altura + 0,30)`).
 - Conversa só sem luta engajada (`combat.engaged()`): roteiro que conversa logo depois de lutar precisa reiniciar o encontro.
+
+## Rodada 10 — missões, objetos com estado, jogo salvo (`jogo.md` §14)
+
+- Missão = dados (`missoes_e.json`) + falas por contexto (`dialogos_e.json`) + encontro com identidade estável
+  (`combate_e.json`, 5º item) + objeto (`jogo.objetos`). A camada `vx.game.quest` não sabe de interface nem de som. Guia:
+  `docs/processo/como-adicionar-uma-missao.md`; skill `quest-design`.
+- **Contagem:** evento de missão só no passo lógico (`Combat.defeated` → `GameLogic.questsAfterTick`). O que contou vai
+  para `Combat.retired` e nunca volta.
+- **Salvamento automático:** só no primeiro passo seguro (`saveBlocker`: sem pausa de impacto, sem luta, no chão).
+  Nunca por quadro.
+- **QA sempre com save temporário:**
+  - `-Dvx.savegame=PASTA -Dvx.prefs=- -Dvx.prefs.audio=- -Dvx.saves=PASTA_VAZIA`;
+  - os testes já recebem `vx.savegame=-` do Gradle;
+  - nunca use `output/saves` do proprietário.
+- **Roteiro que clica num botão logo depois de abrir um menu:** desenhe a tela antes (`shot`) — os botões são os do
+  último quadro desenhado.
+- **Alcance de objeto ≥ 1,8 u**, como os NPCs: o `ir` do roteiro para a ~0,4 u do ponto, e com 1,5 u o E não pegava.
+- **Captura de objeto antes × depois:** o mesmo `posicionar` + `camera-recompor` nos dois. Com o herói de costas para o
+  objeto, a câmera atrás dele o esconde: vire o herói ~30–40° para o objeto ficar de lado no quadro.
+
