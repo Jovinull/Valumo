@@ -299,10 +299,10 @@ def workshop_forge(telhado="coral", placa=True):
         v.box(px - 1, 2, pz - 1 if pz > 0 else pz, px + 2, 2, pz + 1 if pz < 0 else pz + 2, STONE_L)
     v.box(rx1 + 1, 15, Z1 - 1, X1, 15, Z1, TIMBER)              # frechal da frente aberta
     v.box(X1 - 1, 15, Z0, X1, 15, Z1, TIMBER)
-    for z in (Z1 - 1, Z1):                                       # mãos-francesas do vão aberto (2 de fundo, contínuas)
-        L.line6(v, (4, 11, z), (1, 14, z), TIMBER)
-        L.line6(v, (7, 11, z), (10, 14, z), TIMBER)
-        L.line6(v, (X1 - 2, 11, z), (X1 - 5, 14, z), TIMBER)
+    for z in (Z1 - 1, Z1):                                       # mãos-francesas CURTAS, acima da cabeça (y ≥ 13 =
+        L.line6(v, (4, 13, z), (2, 14, z), TIMBER)               # 1,625 u; v1 desciam a 1,0 u do piso e só sobrava
+        L.line6(v, (7, 13, z), (9, 14, z), TIMBER)               # 0,375 u de vão: o herói batia a cabeça)
+        L.line6(v, (X1 - 2, 13, z), (X1 - 4, 14, z), TIMBER)
     # telhado comprido de duas águas (cumeeira em X), baixo
     roof, hs = L.gable_roof(v, X0, X1, Z0, Z1, 16, 11, ov=3, curve=0.5, sag=1.2, roof=telhado, axis="x")
     for f, xc in ((fL, X0),):
@@ -331,11 +331,14 @@ def workshop_forge(telhado="coral", placa=True):
         hood.box(x, 9, z, x, 12, z, STONE_D)
     v.merge(hood)
     # bigorna num toco, tina de têmpera, bancada com ferramentas encostada na sala
-    v.cyl(2, 0, 3, 5, 1.8, WOOD_D)
-    v.box(0, 6, -1, 4, 7, 0, IRON)
-    v.box(1, 5, -1, 3, 5, 0, IRON)
-    v.box(5, 7, -1, 6, 7, 0, IRON)
-    barrel(v, 13.5, 0.5, 3, 5)
+    # bigorna na FRENTE do galpão (v1 ficava no meio: o vão até a forja era 0,5 u e o corpo do herói precisa de 0,6 —
+    # achado pela caminhabilidade das vilas do lote 2)
+    v.cyl(2, -1, 3, 5, 1.8, WOOD_D)                              # bigorna à esquerda da forja, junto à sala: o vão de
+    v.box(0, 6, -2, 4, 7, -1, IRON)                              # entrada entre os esteios e o corredor até a forja
+    v.box(1, 5, -2, 3, 5, -1, IRON)                              # ficam livres (mapa de alcance no relatório do lote 2)
+    v.box(5, 7, -2, 6, 7, -1, IRON)
+    # corredor de ~1 u da frente do galpão até a forja (x 8..14): a tina de têmpera fica FORA, à direita (v1/v2 no
+    # meio do galpão: vão de 0,5 u, o corpo do herói não passava — caminhabilidade das vilas do lote 2)
     v.box(rx1 + 1, 7, -8, rx1 + 3, 7, 5, WOOD_L)
     for z in (-8, 5):
         v.box(rx1 + 3, 3, z, rx1 + 3, 6, z, WOOD_D)
@@ -348,6 +351,7 @@ def workshop_forge(telhado="coral", placa=True):
     # chaminé alta da forja (passa da cumeeira) e lenha do lado de fora
     L.chimney(out, 10, Z0 + 4, 21, 44, lean=0.07, w=1, cap=L.STONE_D)
     _logpile(out, X1 + 3, X1 + 10, -8, 0, 0, 2)
+    barrel(out, X1 + 4.5, 5.5, 0, 6)                             # tina de têmpera do lado de fora, à direita
     out.box(X1 + 3, 0, -9, X1 + 9, 0, 1, STONE_D)
     # placa de ofício pendurada no frechal (bigorna desenhada)
     if placa:
@@ -374,8 +378,8 @@ def workshop_forge(telhado="coral", placa=True):
     out.box(gx, 7, gz - 2, gx, 9, gz - 2, IRON)
     pts = {
         "entradas": [("porta", (-7, 0, Z1 + 8), 0), ("galpao", (10, 0, Z1 + 4), 0)],
-        "interacao": [("forja", (10, 3, Z0 + 10), "usar"), ("bigorna", (2, 3, 4), "usar"),
-                      ("bancada", (rx1 + 6, 3, -2), "examinar")],
+        "interacao": [("forja", (10, 3, 1), "usar"), ("bigorna", (7, 3, 2), "usar"),
+                      ("bancada", (5, 3, 4), "examinar")],
         "spawns": [("ferreira", (6, 3, 2), "npc")],
         "area_segura": [(-1, -2, 16, 8)],
     }
