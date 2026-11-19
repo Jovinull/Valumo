@@ -30,7 +30,7 @@ def shots(scene, cat):
     out = []
     for p in doc["props"]:
         rec = cat.get(p["n"])
-        if not rec or rec["categoria"] not in ("construcao", "poi"):
+        if not rec or rec["categoria"] not in ("construcao", "poi", "estrutura") or rec["medidas"]["voxel"] < 0.1:
             continue
         x, z, r = p["x"], p["z"], p["r"]
         size = max(rec["medidas"]["dimensoes_u"])
@@ -52,6 +52,9 @@ def shots(scene, cat):
         ]
     hx, hz = doc["hero"][0], doc["hero"][1]
     out.append(("panorama", f"layout={scene},hx={hx},hz={hz},yaw=10,pitch=34,dist=24,lift=0.5"))
+    out.append(("planta", f"layout={scene},hx={hx},hz={hz},yaw=0,pitch=72,dist=30,lift=0.5"))      # organização espacial
+    out.append(("jogo-centro", f"layout={scene},hx={hx},hz={hz},hyaw=200,yaw=20,pitch=17,dist=4.6,lift=0.9"))
+    out.append(("jogo-centro-oposto", f"layout={scene},hx={hx},hz={hz},hyaw=20,yaw=200,pitch=17,dist=4.6,lift=0.9"))
     return out
 
 
@@ -65,7 +68,7 @@ def main():
         for name, spec in shots(sc, cat):
             for (cfg, extra) in (("1080-dia", "size=1920x1080"), ("720-dia", "size=1280x720"),
                                  ("1080-tarde", "size=1920x1080,preset=tarde")):
-                if cfg != "1080-dia" and name.endswith(("-frente", "-fundos", "-alto")):
+                if cfg != "1080-dia" and name.endswith(("-frente", "-fundos", "-alto", "planta")):
                     continue                                         # 720p e tarde: jogo, 3/4 e panorama bastam
                 rel = f"{short}/{cfg}/{name}.png"
                 os.makedirs(os.path.join(dest, short, cfg), exist_ok=True)
