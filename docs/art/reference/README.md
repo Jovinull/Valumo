@@ -59,6 +59,18 @@ As 22 imagens foram refeitas com a **malha conforme** ([ADR 0014](../../decision
 Comparação, diferenças e pranchas: `output/visual-review/round-08-1/referencias/`. As anteriores (conjunto
 completo + manifesto) ficam em [anteriores/r08/](anteriores/r08/).
 
+### Fechamento do QA (09.4) — repouso do cajado
+
+Oito imagens (01–05, 08, 09, 22) foram refeitas porque a **pose de repouso do cajado da maga** mudou na rodada 09.4,
+com aprovação do proprietário (cajado inclinado para fora e à frente, empunhadura mais alta), e as imagens não tinham
+sido refeitas. Como foi conferido:
+- o código final com o `assets/anim/staff.json` de antes da 09.4 reproduz as 22 versionadas com **desvio 0/255**: a
+  única causa da diferença é o cajado;
+- os pixels que mudam ficam só no cajado, na mão que o segura e na sombra dele;
+- as outras 14 imagens saem idênticas, pixel a pixel.
+
+As anteriores (as oito + o manifesto delas) ficam em [anteriores/r094/](anteriores/r094/).
+
 ## Reprovados (o que NÃO fazer)
 
 Não são a direção oficial: são defeitos reais, corrigidos, guardados para ensinar o que evitar.
