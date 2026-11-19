@@ -1,0 +1,16 @@
+# Rodada 11 — o mesmo mundo reaberto: a mesma semente gera a mesma região e o save v2 traz o progresso, os vínculos e o
+# marco aceso.
+size 1280 720
+settle
+record on
+wait 1.2
+shot b01-titulo
+click continuar-jogo
+wait 1.4
+regiao
+missao
+shot b02-carregado
+key J
+wait 1.4
+shot b03-diario
+key J

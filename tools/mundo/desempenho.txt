@@ -1,0 +1,13 @@
+# Rodada 11 — medição numa região gerada: ida e volta pela trilha correndo (com giro de câmera no posto), a 60 quadros/s
+# de simulação, cada quadro medido com glFinish; depois 10 gerações completas da semente. Comparar com
+# tools/jogo/desempenho.txt (vila fixa) no MESMO binário.
+size 1920 1080
+click comecar
+wait 1.0
+aquecer 7
+perf on
+seguir-trilha ida correndo
+look 900 0 3.0
+seguir-trilha volta correndo
+perf off desempenho.txt
+medir-geracao 10

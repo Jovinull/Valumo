@@ -1,0 +1,54 @@
+# Rodada 11 — "As Luzes do Posto" numa região GERADA, com entrada real (W + mouse, E, Q + clique): o doador que a semente
+# escolheu, a trilha que ela traçou, o encontro e o marco no posto que ela pôs, a volta pela mesma trilha, a entrega,
+# salvar e sair. Rode com -Dvx.mundo=procedural -Dvx.semente=N e saves temporários (tools/review11.sh).
+size 1280 720
+settle
+regiao
+record on
+wait 1.2
+shot a01-titulo
+click comecar
+wait 1.0
+ir-lugar doador andando
+wait 0.4
+shot a02-doador
+conversar aceitar 1.3
+missao
+shot a03-aceitou
+key J
+wait 1.4
+shot a04-diario
+key J
+wait 0.4
+seguir-trilha ida correndo
+wait 0.4
+shot a05-chegada-posto
+lutar 30
+wait 2.5
+missao
+shot a06-trilha-limpa
+ir-lugar marco andando
+wait 0.3
+shot a07-marco-apagado
+key E
+wait 1.4
+shot a08-marco-aceso
+missao
+seguir-trilha volta correndo
+ir-lugar doador andando
+wait 0.3
+conversar aceitar 1.3
+missao
+shot a09-entregue
+key J
+wait 1.4
+shot a10-diario-concluida
+key J
+key ESC
+wait 0.4
+shot a11-pausa
+click salvar
+wait 0.8
+missao
+click sair
+wait 0.4

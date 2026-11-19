@@ -1,0 +1,37 @@
+# Rodada 11 — vistas de uma região procedural (rode com -Dvx.mundo=procedural -Dvx.semente=N): geral, assentamento,
+# trilha, posto, objetivo, protagonista em escala, colisão e interação. As posições saem da região gerada (comandos
+# vista-lugar, ir-lugar), nada é escrito à mão por semente.
+size 1920 1080
+regiao
+settle
+click comecar
+wait 1.0
+vista-lugar geral
+wait 0.8
+shot 1-geral
+vista-lugar assentamento
+wait 0.6
+shot 2-assentamento
+vista-lugar trilha
+wait 0.6
+shot 3-trilha
+vista-lugar posto
+wait 0.6
+shot 4-posto
+vista-fim
+ir-lugar marco
+wait 0.8
+shot 5-objetivo-marco
+ir-lugar trilha
+wait 0.6
+shot 6-protagonista-escala
+ir-lugar casa
+wait 0.4
+segurar W
+wait 1.8
+soltar W
+estado
+shot 7-colisao-estalagem
+ir-lugar doador
+wait 0.6
+shot 8-interacao-doador
