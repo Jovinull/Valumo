@@ -24,8 +24,10 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            "chars_e_study",
            # rodada 06: primeira expansão controlada (NPC, criatura, árvore, estrutura)
            "npcs_e",
-           # NPCs da vila (Kelyra, Índira, Súvia)
+           # NPCs da vila (Kelyra, Índira, Súvia) — e o construtor em lote que os de ofício reaproveitam
            "npcs_vila_e",
+           # NPCs de ofício com altura narrativa (Bramor, Teodor, Pluma, Ondina, Lunara)
+           "npcs_oficios_e",
            # rodada 06.1: prova técnica de personalização modular (lê assets de chars_e)
            "custom_e",
            # rodada 07: componentes de personalização em tempo de execução (lê assets de chars_e)
