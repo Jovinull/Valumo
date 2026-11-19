@@ -15,7 +15,9 @@ import java.util.Locale;
 final class Check {
     static final String[] RIGS = {"characters/e/adventurer", "characters/r4/adventurer_shield", "characters/r4/adventurer_longblade",
             "characters/e/ranger", "characters/e/mage", "characters/npc/cartografa",
-            "characters/npc/kelyra", "characters/npc/indira", "characters/npc/suvia"};
+            "characters/npc/kelyra", "characters/npc/indira", "characters/npc/suvia",
+            // NPCs de ofício (integração da 09.4): entram no portão de linha de comando como os da vila
+            "characters/npc/bramor", "characters/npc/teodor", "characters/npc/pluma", "characters/npc/ondina", "characters/npc/lunara"};
 
     /** Roteiros de transição verificados (o golpe "attack" vira o padrão de cada perfil). */
     static final String[] SEQS = {"idle:0.4,walk:1.0,attack,idle:0.6", "run:1.0,attack,run:1.0", "walk:0.8,attack,walk:0.8",
@@ -46,6 +48,27 @@ final class Check {
     /** Golpes que o combate da rodada 09 usa (a espada e broquel do herói): todos validados no passo fino. */
     public static final List<String> PLAYABLE = List.of("slash_h", "slash_d", "slash_v", "shield_block", "guard_hold");
 
+    /** Rig do equipamento de combate (combate_e.json → heroi.kit): nele cada golpe jogável precisa existir. */
+    static final String KIT = "characters/r4/adventurer_shield";
+
+    /**
+     * Auditoria de engenharia — um validador que não conferiu nada não pode dizer "seguro". Antes, um perfil que não
+     * carregava, um golpe renomeado ou a pasta de assets errada faziam os laços pularem tudo e o comando sair com 0.
+     * {@code required}: o golpe é obrigatório neste rig (o kit do combate); nos outros, golpe ausente só é pulado.
+     */
+    private static boolean has(Animator an, CharacterModel m, String move, boolean required) {
+        if (an.prof == null) throw new IllegalStateException(m.name + ": perfil de arma não carregou (ver o aviso acima)");
+        if (an.prof.moves.containsKey(move)) return true;
+        if (required) throw new IllegalStateException(m.name + ": o golpe jogável '" + move + "' não existe no perfil");
+        return false;
+    }
+
+    private static boolean nothing(String what, int checked) {
+        if (checked > 0) return false;
+        System.out.println(what + ": NADA FOI CONFERIDO (assets ou perfis ausentes?)");
+        return true;
+    }
+
     /**
      * Rodada 09 — {@code viewer --check interrupcao-fina}: corta cada golpe JOGÁVEL a cada {@code step} s (0,01) e
      * deixa a reação a dano assumir pela regra autorada do perfil. Retorna false se algum corte de golpe jogável
@@ -55,6 +78,7 @@ final class Check {
         Animator an = new Animator(m, 1f);
         List<String> bad = new ArrayList<>();
         float d = an.moveDuration(move);
+        if (d <= 0f) throw new IllegalArgumentException(m.name + ": golpe desconhecido '" + move + "' (nada a cortar)");
         int n = Math.round((d - 0.02f) / step);
         for (int i = 1; i < n; i++) {
             float c = i * step;
@@ -67,18 +91,21 @@ final class Check {
 
     static boolean interruptFine() {
         boolean all = true;
-        for (String r : List.of("characters/r4/adventurer_shield", "characters/e/adventurer")) {
+        int checked = 0;
+        for (String r : List.of(KIT, "characters/e/adventurer")) {
             CharacterModel m = CharacterModel.loadSkeleton(Path.of("assets").resolve(r));
             Animator an = new Animator(m, 1f);
             for (String mv : PLAYABLE) {
-                if (!an.prof.moves.containsKey(mv)) continue;
+                if (!has(an, m, mv, r.equals(KIT))) continue;
                 StringBuilder line = new StringBuilder();
                 List<String> bad = unsafeCuts(m, mv, 0.01f, line);
+                checked += line.length();
                 all &= bad.isEmpty();
                 System.out.printf(Locale.ROOT, "%s / %s: %d cortes inseguros (passo 0,01 s)%n  %s%n", m.name, mv, bad.size(), line);
                 for (String b : bad) System.out.println("  " + b.replace("\n", "\n    "));
             }
         }
+        if (nothing("interrupcao-fina", checked)) return false;
         System.out.println(all ? "interrupcao-fina: golpes jogáveis seguros" : "interrupcao-fina: HÁ CORTE INSEGURO");
         return all;
     }
@@ -120,12 +147,13 @@ final class Check {
      */
     static boolean movingAttacks() {
         boolean all = true;
+        int checked = 0;
         List<String> moves = List.of("slash_h", "slash_d", "slash_v", "guard_hold", "shield_block");
-        for (String r : List.of("characters/r4/adventurer_shield", "characters/e/adventurer")) {
+        for (String r : List.of(KIT, "characters/e/adventurer")) {
             CharacterModel m = CharacterModel.loadSkeleton(Path.of("assets").resolve(r));
             Animator an = new Animator(m, 1f);
             for (String mv : moves) {
-                if (!an.prof.moves.containsKey(mv)) continue;
+                if (!has(an, m, mv, r.equals(KIT))) continue;
                 int bad = 0, n = 0;
                 StringBuilder line = new StringBuilder();
                 for (String clip : List.of("walk", "run"))
@@ -137,32 +165,62 @@ final class Check {
                             line.append(rep.ok() ? "·" : "X");
                         }
                 all &= bad == 0;
+                checked += n;
                 System.out.printf(Locale.ROOT, "%s / %s andando: %d/%d combinações com problema%n  %s%n", m.name, mv, bad, n, line);
             }
         }
+        if (nothing("golpe-andando", checked)) return false;
         System.out.println(all ? "golpe-andando: tudo seguro" : "golpe-andando: HÁ PROBLEMA");
         return all;
     }
 
-    /**
-     * Rodada 09.2 — {@code viewer --check esquiva}: cortes golpe → esquiva/recuo dentro das janelas medidas e as saídas da
-     * esquiva (golpe, reação, guarda) nos instantes em que o jogo as permite, nos dois kits, a cada 0,01 s.
-     */
     /** Rodada 09.3 — gestos de esquiva do jogo: recuo e R2 (frente, esquerda, direita; decisão do proprietário). */
     static final List<String> DODGES = List.of("backstep", "dodge_f", "dodge_l", "dodge_r");
 
+    /**
+     * Rodada 09.2 — {@code viewer --check esquiva}: cortes golpe → esquiva/recuo dentro das janelas medidas e as saídas da
+     * esquiva (golpe, reação, guarda) nos instantes em que o jogo as permite, nos dois kits, a cada 0,01 s.
+     * As janelas e os instantes de saída vêm de {@code assets/scenes/combate_e.json} ({@code esquiva}): antes estavam
+     * copiados aqui, e mudar o JSON deixava o validador conferindo as janelas antigas (auditoria de engenharia). A guarda
+     * pode esquivar a qualquer momento (o gesto inteiro).
+     */
     static boolean dodges() {
         boolean all = true;
+        int checked = 0;
+        com.google.gson.JsonObject dodge;
+        try {
+            dodge = com.google.gson.JsonParser.parseString(Files.readString(Path.of("assets/scenes/combate_e.json")))
+                    .getAsJsonObject().getAsJsonObject("esquiva");
+        } catch (IOException e) {
+            throw new IllegalStateException("esquiva: não li assets/scenes/combate_e.json: " + e.getMessage());
+        }
         java.util.Map<String, float[][]> win = new java.util.LinkedHashMap<>();
-        win.put("slash_h", new float[][]{{0.01f, 0.27f}, {0.68f, 1.09f}});
-        win.put("slash_d", new float[][]{{0.01f, 0.30f}, {0.64f, 0.76f}, {0.92f, 1.12f}});
-        win.put("slash_v", new float[][]{{0.01f, 0.36f}, {0.53f, 1.19f}});
-        win.put("guard_hold", new float[][]{{0.01f, 1.52f}});
-        for (String r : List.of("characters/r4/adventurer_shield", "characters/e/adventurer")) {
+        for (var e : dodge.getAsJsonObject("janelas").entrySet()) {
+            com.google.gson.JsonArray ws = e.getValue().getAsJsonArray();
+            float[][] w = new float[ws.size()][];
+            for (int i = 0; i < w.length; i++)
+                w[i] = new float[]{ws.get(i).getAsJsonArray().get(0).getAsFloat(), ws.get(i).getAsJsonArray().get(1).getAsFloat()};
+            win.put(e.getKey(), w);
+        }
+        if (win.isEmpty()) throw new IllegalStateException("esquiva: combate_e.json sem esquiva.janelas");
+        // saídas da esquiva nos instantes que o jogo permite: golpe a partir de atacarDe, reação logo depois do fim da
+        // invulnerabilidade, guarda a partir de liberaDe — do recuo e do gesto com direção (os lados usam os do 'rolar')
+        java.util.Map<String, float[]> from = new java.util.LinkedHashMap<>();
+        for (String kind : List.of("recuo", "rolar")) {
+            com.google.gson.JsonObject k = dodge.getAsJsonObject(kind);
+            float[] f = {k.get("atacarDe").getAsFloat(), k.getAsJsonArray("invulneravel").get(1).getAsFloat() + 0.01f, k.get("liberaDe").getAsFloat()};
+            from.put(k.get("golpe").getAsString(), f);
+            if (kind.equals("rolar")) for (var side : dodge.getAsJsonObject("lados").entrySet())
+                if (!side.getKey().startsWith("_")) from.put(side.getValue().getAsString(), f);
+        }
+        for (String g : DODGES) if (!from.containsKey(g)) throw new IllegalStateException("esquiva: gesto " + g + " sem números em combate_e.json");
+        for (String r : List.of(KIT, "characters/e/adventurer")) {
             CharacterModel m = CharacterModel.loadSkeleton(Path.of("assets").resolve(r));
             Animator an = new Animator(m, 1f);
+            if (has(an, m, "guard_hold", r.equals(KIT))) win.put("guard_hold", new float[][]{{0.01f, an.moveDuration("guard_hold") - 0.02f}});
+            else win.remove("guard_hold");
             for (var e : win.entrySet()) {
-                if (!an.prof.moves.containsKey(e.getKey())) continue;
+                if (!has(an, m, e.getKey(), r.equals(KIT))) continue;
                 int bad = 0, n = 0;
                 for (float[] w : e.getValue())
                     for (float c = w[0]; c <= w[1] + 1e-4f; c += 0.01f)
@@ -171,12 +229,11 @@ final class Check {
                             if (!WeaponCheck.validate(m, String.format(Locale.ROOT, "seq:idle:0.3,%s!%.3f,%s,idle:0.5", e.getKey(), c, tg)).ok()) bad++;
                         }
                 all &= bad == 0;
+                checked += n;
                 System.out.printf(Locale.ROOT, "%s / %s → esquiva (janelas medidas): %d inseguros em %d cortes%n", m.name, e.getKey(), bad, n);
             }
-            // saídas da esquiva nos instantes que o jogo permite (combate_e.json: atacarDe, fim da invulnerabilidade, liberaDe)
-            java.util.Map<String, float[]> from = java.util.Map.of("backstep", new float[]{0.26f, 0.21f, 0.30f},
-                    "dodge_f", new float[]{0.44f, 0.33f, 0.46f}, "dodge_l", new float[]{0.44f, 0.33f, 0.46f}, "dodge_r", new float[]{0.44f, 0.33f, 0.46f});
-            for (String src : DODGES)
+            for (String src : DODGES) {
+                if (!has(an, m, src, true)) continue;
                 for (int ti = 0; ti < 3; ti++) {
                     String tg = List.of("slash_h", "hit", "guard_hold").get(ti);
                     int bad = 0, n = 0;
@@ -185,8 +242,10 @@ final class Check {
                         if (!WeaponCheck.validate(m, String.format(Locale.ROOT, "seq:idle:0.3,%s!%.3f,%s,idle:0.5", src, c, tg)).ok()) bad++;
                     }
                     all &= bad == 0;
+                    checked += n;
                     System.out.printf(Locale.ROOT, "%s / %s → %s (de %.2f s): %d inseguros em %d cortes%n", m.name, src, tg, from.get(src)[ti], bad, n);
                 }
+            }
             List<String> entries = new ArrayList<>();
             for (String g : DODGES) for (String lc : List.of("idle:0.3", "walk:0.4", "run:0.4")) entries.add("seq:" + lc + "," + g + "," + lc.split(":")[0] + ":0.5");
             for (String s2 : entries) {
@@ -195,6 +254,7 @@ final class Check {
                 System.out.println("  " + (rep.ok() ? "ok " : "FALHA ") + s2);
             }
         }
+        if (nothing("esquiva", checked)) return false;
         System.out.println(all ? "esquiva: segura" : "esquiva: HÁ CORTE INSEGURO");
         return all;
     }
@@ -206,14 +266,25 @@ final class Check {
         if ("interrupcao".equals(csv)) return interrupt();
         if ("interrupcao-fina".equals(csv)) return interruptFine();
         boolean all = true;
+        int checked = 0;
         List<String> rows = new ArrayList<>();
         rows.add("rig,animacao,item,pior_vox,tolerancia,instante_s,ok,amostras,passo_ponta_vox,ms");
         for (String r : RIGS) {
             Path dir = Path.of("assets").resolve(r);
-            if (!Files.exists(dir.resolve("rig.json"))) continue;
+            if (!Files.exists(dir.resolve("rig.json"))) {                // todo rig da lista é gerado pelo build: ausente = falha
+                System.out.println("check: FALTA o rig " + r + " (assets gerados? pasta de trabalho na raiz?)");
+                all = false;
+                continue;
+            }
             CharacterModel m = CharacterModel.loadSkeleton(dir);
             Animator an = new Animator(m, 1f);
-            if (an.prof == null) continue;
+            if (an.prof == null) {
+                if (m.meta != null && m.meta.has("weaponProfile")) {     // declara perfil e ele não carregou: não é "sem coreografia"
+                    System.out.println("check: " + r + " declara o perfil " + m.meta.get("weaponProfile").getAsString() + " e ele não carregou");
+                    all = false;
+                }
+                continue;
+            }
             List<String> what = new ArrayList<>(an.prof.moves.keySet());
             for (String sq : SEQS) {
                 if (sq.contains("hit") && !an.prof.moves.containsKey("hit")) continue;   // NPC sem gesto de HIT (rodada 06)
@@ -225,6 +296,7 @@ final class Check {
                 WeaponCheck.Report rep = WeaponCheck.validate(m, w);
                 System.out.println(rep);
                 all &= rep.ok();
+                checked++;
                 for (WeaponCheck.Item i : rep.items.values())
                     rows.add(String.format(Locale.ROOT, "%s,%s,%s,%.3f,%.2f,%.3f,%s,%d,%.2f,%.1f", r, w.replace(',', ' '), i.name, i.worst, i.tol,
                             i.at, i.ok(), rep.samples, rep.maxTipStep, rep.nanos / 1e6));
@@ -239,7 +311,8 @@ final class Check {
                 System.err.println("check: falha ao gravar " + csv + ": " + e.getMessage());
             }
         }
-        System.out.println(all ? "check: TODOS OK" : "check: HÁ FALHAS");
+        if (nothing("check", checked)) return false;
+        System.out.println((all ? "check: TODOS OK" : "check: HÁ FALHAS") + " (" + checked + " animações conferidas)");
         return all;
     }
 }
