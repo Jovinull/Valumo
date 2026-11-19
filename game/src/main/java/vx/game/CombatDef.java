@@ -151,20 +151,41 @@ public final class CombatDef {
     public static CombatDef load(Path assets, String name) {
         Path f = assets.resolve("scenes/" + name + ".json");
         try {
-            return parse(JsonParser.parseString(Files.readString(f)).getAsJsonObject());
+            com.google.gson.JsonElement doc = JsonParser.parseString(Files.readString(f));
+            finiteEverywhere(doc, "");
+            return parse(doc.getAsJsonObject());
         } catch (IOException e) {
             throw new UncheckedIOException("combate ilegível: " + f, e);
+        } catch (RuntimeException e) {                    // campo ausente, tipo errado, NaN: arquivo do projeto quebrado
+            throw new IllegalStateException("combate inválido em " + f + ": " + e.getMessage(), e);
         }
     }
 
     static float f(JsonObject o, String k) {
         if (!o.has(k)) throw new IllegalArgumentException("combate_e.json: falta \"" + k + "\"");
-        return o.get(k).getAsFloat();
+        return finite(o.get(k).getAsFloat(), k);
+    }
+
+    /**
+     * O leitor de JSON aceita NaN e Infinity; no combate eles são erro do arquivo em QUALQUER campo (muitos são lidos
+     * direto por {@code getAsInt}/{@code getAsFloat}, e {@code (int) NaN} vira 0 em silêncio).
+     */
+    static void finiteEverywhere(com.google.gson.JsonElement e, String path) {
+        if (e.isJsonObject()) for (var en : e.getAsJsonObject().entrySet()) finiteEverywhere(en.getValue(), path + "." + en.getKey());
+        else if (e.isJsonArray()) for (int i = 0; i < e.getAsJsonArray().size(); i++) finiteEverywhere(e.getAsJsonArray().get(i), path + "[" + i + "]");
+        else if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber() && !Double.isFinite(e.getAsDouble()))
+            throw new IllegalArgumentException("\"" + path.substring(1) + "\" não é um número finito");
+    }
+
+    /** NaN e infinito no combate são erro do arquivo, nunca um número que "funciona" em silêncio. */
+    static float finite(float v, String k) {
+        if (!Float.isFinite(v)) throw new IllegalArgumentException("combate_e.json: \"" + k + "\" não é um número finito (" + v + ")");
+        return v;
     }
 
     static float[] floats(JsonArray a) {
         float[] r = new float[a.size()];
-        for (int i = 0; i < r.length; i++) r[i] = a.get(i).getAsFloat();
+        for (int i = 0; i < r.length; i++) r[i] = finite(a.get(i).getAsFloat(), "lista");
         return r;
     }
 
