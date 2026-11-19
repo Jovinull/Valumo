@@ -1,0 +1,66 @@
+{
+  "_doc": "Rodada 11 — moradores que o mundo procedural pode pôr num assentamento (escrito à mão). id = pasta do rig. papeis: o que o NPC pode pedir ou comentar (modelos de missão escolhem o doador por papel). artigo: 'a'/'o' para a gramática das falas ('à Kelyra', 'ao Bramor'). requer: fatos do mundo sem os quais o NPC não mora ali ('lago'). falas: as de sempre, sem fatos fixos; {rumo_posto} = rumo do posto visto do assentamento ('sul', 'nordeste'…). falasSemLago: variante para regiões sem lago. Contrato: docs/architecture/contrato-instancias-de-missao.md.",
+  "formato": "valumo.habitantes",
+  "versao": 1,
+  "habitantes": {
+    "kelyra": {
+      "rig": "characters/npc/kelyra", "nome": "Kelyra", "titulo": "Estalajadeira", "artigo": "a",
+      "papeis": ["estalajadeira", "viajantes", "caminhos"],
+      "falas": [
+        {"texto": "Ora, um rosto novo! Faz tempo que a trilha não traz viajante.", "expressao": "joy"},
+        {"texto": "Sou Kelyra. Cuido da estalagem ali atrás — estas chaves abrem quase todas as portas daqui."},
+        {"texto": "E quando cansar, volte. Sempre tem lugar perto do fogo.", "expressao": "joy"}
+      ]
+    },
+    "bramor": {
+      "rig": "characters/npc/bramor", "nome": "Bramor", "titulo": "Guardião de trilhas", "artigo": "o",
+      "papeis": ["guardiao", "trilhas", "criaturas"],
+      "falas": [
+        {"texto": "Calma, não precisa olhar tão para cima. Sou Bramor, guardo as trilhas que saem daqui.", "expressao": "joy"},
+        {"texto": "Se for pela mata, siga as pedras marcadas. Quem sai da trilha costuma voltar com o pé molhado e a história errada."},
+        {"texto": "E se ouvir um fungo bufando para os lados do {rumo_posto}, recue antes de golpear. Ele sempre avisa antes de investir.", "expressao": "determined"}
+      ]
+    },
+    "teodor": {
+      "rig": "characters/npc/teodor", "nome": "Teodor", "titulo": "Estudioso", "artigo": "o",
+      "papeis": ["estudioso", "historia"],
+      "falas": [
+        {"texto": "Ah, perdão — eu estava contando as marcas desta pedra. Sou Teodor; estudo o que este lugar esquece de anotar."},
+        {"texto": "Sabia que o musgo cresce mais do lado de onde vem a chuva? Dá para achar o caminho de casa só olhando para ele."},
+        {"texto": "Volte quando tiver uma pergunta difícil. As fáceis eu já respondi para mim mesmo."}
+      ]
+    },
+    "pluma": {
+      "rig": "characters/npc/pluma", "nome": "Pluma", "titulo": "Cronista", "artigo": "a",
+      "papeis": ["cronista", "historias"],
+      "falas": [
+        {"texto": "Olá! Sou Pluma, cronista daqui. Tudo o que acontece por aqui acaba no meu caderno.", "expressao": "joy"},
+        {"texto": "As asinhas? Presente de uma ave que tirei do lago. Desde então, nenhuma história me escapa."},
+        {"texto": "Faça algo memorável lá fora. Eu escrevo, e todo mundo lê."}
+      ],
+      "falasSemLago": [
+        {"texto": "Olá! Sou Pluma, cronista daqui. Tudo o que acontece por aqui acaba no meu caderno.", "expressao": "joy"},
+        {"texto": "As asinhas? Presente de uma ave que cuidei na mata. Desde então, nenhuma história me escapa."},
+        {"texto": "Faça algo memorável lá fora. Eu escrevo, e todo mundo lê."}
+      ]
+    },
+    "ondina": {
+      "rig": "characters/npc/ondina", "nome": "Ondina", "titulo": "Guia costeira", "artigo": "a",
+      "papeis": ["guia", "agua"], "requer": ["lago"],
+      "falas": [
+        {"texto": "Bom dia, viajante! Sou Ondina, guia da margem do lago.", "expressao": "joy"},
+        {"texto": "A água parece calma, mas o fundo muda de um dia para o outro. Atravesse só por onde eu marquei."},
+        {"texto": "Precisando de caminho pela margem, me procure aqui. O chapéu ajuda a me achar de longe."}
+      ]
+    },
+    "lunara": {
+      "rig": "characters/npc/lunara", "nome": "Lunara", "titulo": "Cantora noturna", "artigo": "a",
+      "papeis": ["cantora", "noite"],
+      "falas": [
+        {"texto": "Psiu... ainda é cedo para cantar. Sou Lunara; minha voz é das noites daqui."},
+        {"texto": "Quando a lua sobe, a praça inteira para para ouvir. Até os fungos ficam quietos, juram os mais velhos."},
+        {"texto": "Volte depois do pôr do sol. Guardo uma canção nova para quem chega de longe."}
+      ]
+    }
+  }
+}

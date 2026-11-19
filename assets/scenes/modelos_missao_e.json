@@ -1,0 +1,162 @@
+{
+  "_doc": "Rodada 11 — modelos de missão (escritos à mão). Um modelo diz o que exige do mundo (fatos), como os objetivos se ligam às entidades geradas ($encontro, $marco, $doador) e as falas em vozes autorais por papel do doador. A instância resolve tudo com ids estáveis do mundo gerado. Parâmetros de texto: {rumo} ('sul', 'nordeste'… — todos masculinos: 'do {rumo}', 'para o {rumo}'), {doador} (nome), {ao_doador} ('à Kelyra' / 'ao Bramor'). Contrato: docs/architecture/contrato-instancias-de-missao.md.",
+  "formato": "valumo.modelos-de-missao",
+  "versao": 1,
+  "modelos": [
+    {
+      "id": "quest.template.restaurar_sinal",
+      "versao": 1,
+      "nome": "As Luzes do Posto",
+      "descricao": "Os fungos-cardo tomaram a trilha do {rumo} e o marco de luz do posto apagou. Sem ele, quem chega à noite se perde antes de achar o caminho. {doador} pediu para limpar a trilha e reacender o sinal.",
+      "requer": {
+        "poi": "trail_post",
+        "estado": "sinal_apagado",
+        "inimigos": "fungo_cardo",
+        "alcancavel": true,
+        "doador": {"papeis": ["caminhos", "trilhas"]}
+      },
+      "objetivos": [
+        {"id": "limpar_trilha", "tipo": "derrotar", "alvos": "$encontro", "texto": "Afaste os fungos-cardo da trilha do {rumo}"},
+        {"id": "acender_marco", "tipo": "interagir", "objeto": "$marco", "texto": "Reacenda o marco de luz do posto"},
+        {"id": "voltar", "tipo": "falar", "npc": "$doador", "texto": "Volte e conte {ao_doador}"}
+      ],
+      "recompensa": {"moedas": 30},
+      "vozes": {
+        "caminhos": {
+          "oferta": {
+            "falas": [
+              {"texto": "Ora, um rosto novo! Faz tempo que a trilha não traz viajante.", "expressao": "joy"},
+              {"texto": "Sou {doador}. Cuido da estalagem ali atrás — estas chaves abrem quase todas as portas daqui."},
+              {"texto": "Mas a trilha do {rumo} anda feia: os fungos-cardo tomaram o caminho, e o marco de luz do posto apagou.", "expressao": "determined"},
+              {"texto": "Sem aquela luz, quem chega à noite se perde. Você limpa a trilha e reacende o marco para mim?"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "oferta_ja_viu": {
+            "falas": [
+              {"texto": "Você já subiu até o posto? Então viu o marco frio, apagado no fim da trilha.", "expressao": "surprise"},
+              {"texto": "Os fungos-cardo se espalharam por lá. Enquanto estiverem no caminho, ninguém sobe para acender a lanterna."},
+              {"texto": "Você limpa a trilha e reacende o marco para mim?", "expressao": "determined"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "oferta_ja_lutou": {
+            "falas": [
+              {"texto": "Você já enfrentou um fungo-cardo? Pois é: espanta um, brotam dois.", "expressao": "surprise"},
+              {"texto": "Eles tomaram a trilha do {rumo}, e o marco de luz do posto apagou."},
+              {"texto": "Se for voltar lá, que seja para limpar o caminho e reacender o marco. Aceita?", "expressao": "determined"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "oferta_apos_recusa": {
+            "falas": [
+              {"texto": "Pensou melhor? A trilha continua tomada, e o marco, apagado."},
+              {"texto": "Não tenho pressa de mandar ninguém para o perigo, mas a gente precisa daquela luz.", "expressao": "determined"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "aceitou_agora": {"falas": [
+            {"texto": "Obrigada! Siga a trilha para o {rumo}, passando pela placa. Os fungos ficam na clareira do posto.", "expressao": "joy"},
+            {"texto": "O marco fica no fim da clareira. Depois que acender, volte aqui: tenho umas moedas guardadas para você."}
+          ]},
+          "recusou_agora": {"falas": [{"texto": "Entendo. Se mudar de ideia, estou sempre por aqui."}]},
+          "aceita": {"falas": [
+            {"texto": "A trilha do {rumo} começa logo depois da placa. Os fungos-cardo ficam na clareira do posto.", "expressao": "determined"},
+            {"texto": "Recue quando ouvir um bufar: eles sempre avisam antes de investir."}
+          ]},
+          "em_andamento": {"falas": [
+            {"texto": "Já de volta da trilha? Pela sua cara, ainda tem fungo por lá.", "expressao": "surprise"},
+            {"texto": "Termine de limpar a clareira. O marco não vai acender com eles rondando."}
+          ]},
+          "caiu": {"falas": [
+            {"texto": "Você voltou com cara de quem levou uma boa trombada.", "expressao": "surprise"},
+            {"texto": "Os fungos que você já espantou não voltam. Respire, e tente de novo com calma.", "expressao": "determined"}
+          ]},
+          "trilha_limpa": {"falas": [
+            {"texto": "A trilha está limpa? Que alívio!", "expressao": "joy"},
+            {"texto": "Agora suba até o marco, no fim da clareira, e acenda a lanterna. Depois volte e me conte."}
+          ]},
+          "entrega": {"falas": [
+            {"texto": "Voltou inteiro — e com esse sorriso, o marco está aceso, não está?", "expressao": "joy"},
+            {"texto": "Quem chegar à noite agora encontra o caminho. Tome: trinta moedas, como prometi."},
+            {"texto": "Vou deixar um lugar perto do fogo reservado para você.", "expressao": "joy"}
+          ]},
+          "concluida": {"falas": [
+            {"texto": "Desde que você acendeu o marco, a trilha do {rumo} ficou outra.", "expressao": "joy"},
+            {"texto": "E quando cansar, volte. Sempre tem lugar perto do fogo."}
+          ]}
+        },
+        "trilhas": {
+          "oferta": {
+            "falas": [
+              {"texto": "Calma, não precisa olhar tão para cima. Sou {doador}, guardo as trilhas que saem daqui.", "expressao": "joy"},
+              {"texto": "A do {rumo} me preocupa: os fungos-cardo fecharam a clareira do posto, e o marco de luz apagou.", "expressao": "determined"},
+              {"texto": "Eu não largo a entrada sozinho. Você limpa a trilha e reacende o marco?"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "oferta_ja_viu": {
+            "falas": [
+              {"texto": "Já esteve no posto? Então viu: o marco está frio.", "expressao": "surprise"},
+              {"texto": "Com os cardos rondando a clareira, ninguém chega perto da lanterna. Vai lá resolver isso?", "expressao": "determined"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "oferta_ja_lutou": {
+            "falas": [
+              {"texto": "Andou trocando golpes com os cardos? Eles voltam, sempre em dupla.", "expressao": "surprise"},
+              {"texto": "Se for subir de novo para o {rumo}, que seja para limpar a clareira e reacender o marco. Topa?", "expressao": "determined"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "oferta_apos_recusa": {
+            "falas": [
+              {"texto": "Mudou de ideia? A clareira continua fechada, e o marco, apagado."},
+              {"texto": "Sem pressa. Mas trilha sem luz é trilha perdida.", "expressao": "determined"}
+            ],
+            "escolhas": [{"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"}, {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}]
+          },
+          "aceitou_agora": {"falas": [
+            {"texto": "Bom. Siga as pedras marcadas para o {rumo}, passando pela placa. Os cardos ficam na clareira.", "expressao": "determined"},
+            {"texto": "O marco fica no fundo dela. Acenda e volte aqui: o posto paga quem cuida das trilhas."}
+          ]},
+          "recusou_agora": {"falas": [{"texto": "Tudo bem. Eu fico de olho na entrada enquanto isso."}]},
+          "aceita": {"falas": [
+            {"texto": "A trilha do {rumo} sai logo depois da placa. Os cardos esperam na clareira do posto.", "expressao": "determined"},
+            {"texto": "Recue quando ouvir o bufar. Eles avisam antes de investir — sempre."}
+          ]},
+          "em_andamento": {"falas": [
+            {"texto": "Ainda tem cardo na clareira? Sua bota diz que sim.", "expressao": "surprise"},
+            {"texto": "Termine o serviço antes de mexer no marco. Com eles por perto, a lanterna não pega."}
+          ]},
+          "caiu": {"falas": [
+            {"texto": "Levou uma cabeçada das boas, hein?", "expressao": "surprise"},
+            {"texto": "Os que você já derrubou não voltam. Não deixe o outro ficar às suas costas.", "expressao": "determined"}
+          ]},
+          "trilha_limpa": {"falas": [
+            {"texto": "Clareira limpa? Muito bem.", "expressao": "joy"},
+            {"texto": "Agora suba até o marco e acenda a lanterna. Depois volte e me conte."}
+          ]},
+          "entrega": {"falas": [
+            {"texto": "Voltou de pé, e pela sua cara o marco está aceso. Trilha com luz é trilha viva.", "expressao": "joy"},
+            {"texto": "O posto paga quem cuida dele: trinta moedas, como combinado."}
+          ]},
+          "concluida": {"falas": [
+            {"texto": "Desde que você acendeu o marco, a trilha do {rumo} anda tranquila.", "expressao": "joy"},
+            {"texto": "Se ouvir falar de outro caminho fechado, venha me contar."}
+          ]}
+        }
+      },
+      "comentarios": {
+        "kelyra": {
+          "missao_ativa": [{"texto": "{doador} pediu sua ajuda com o posto? Os fungos-cardo andam em dupla por lá: cuidado.", "expressao": "determined"}],
+          "missao_concluida": [{"texto": "Soube que o marco do posto acendeu de novo. Hoje a estalagem dorme mais tranquila.", "expressao": "joy"}]
+        },
+        "bramor": {
+          "missao_ativa": [{"texto": "{doador} mandou você ao posto? Os cardos andam em dupla por lá: não deixe um ficar às suas costas.", "expressao": "determined"}],
+          "missao_concluida": [{"texto": "Soube que o marco do posto acendeu de novo. Amanhã subo a trilha sem lanterna na mão.", "expressao": "joy"}]
+        }
+      }
+    }
+  ]
+}
