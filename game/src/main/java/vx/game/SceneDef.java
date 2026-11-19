@@ -25,7 +25,21 @@ import java.util.Map;
 public final class SceneDef {
     public record Line(String text, String expression) { }
 
-    public record Interactive(String rig, String name, String title, float x, float z, float yawDeg, float range, List<Line> lines) { }
+    /** {@code height}: altura do personagem no mundo (u), lida do rig.json — a câmera de conversa enquadra por ela. */
+    public record Interactive(String rig, String name, String title, float x, float z, float yawDeg, float range, List<Line> lines,
+                              float height) { }
+
+    /** Altura do rig (u): {@code meta.worldUnits} (NPC com altura narrativa) ou corpo × voxel; 1,25 se não houver. */
+    static float rigHeight(Path assets, String rig) {
+        try {
+            JsonObject doc = JsonParser.parseString(Files.readString(assets.resolve(rig).resolve("rig.json"))).getAsJsonObject();
+            JsonObject meta = doc.has("meta") ? doc.getAsJsonObject("meta") : new JsonObject();
+            if (meta.has("worldUnits")) return meta.get("worldUnits").getAsFloat();
+            if (meta.has("bodyHeightVoxels") && doc.has("voxelSize"))
+                return meta.get("bodyHeightVoxels").getAsFloat() * doc.get("voxelSize").getAsFloat();
+        } catch (Exception ignored) { }
+        return 1.25f;
+    }
 
     public final String layout;
     /** Raiz dos assets (o combate carrega os esqueletos de lá). */
@@ -76,7 +90,8 @@ public final class SceneDef {
             }
             d.interactives.add(new Interactive(o.get("rig").getAsString(), o.get("nome").getAsString(),
                     o.has("titulo") ? o.get("titulo").getAsString() : null, o.get("x").getAsFloat(), o.get("z").getAsFloat(),
-                    o.get("r").getAsFloat(), o.has("alcance") ? o.get("alcance").getAsFloat() : 1.7f, List.copyOf(lines)));
+                    o.get("r").getAsFloat(), o.has("alcance") ? o.get("alcance").getAsFloat() : 1.7f, List.copyOf(lines),
+                    rigHeight(assets, o.get("rig").getAsString())));
         }
         Map<String, float[]> boxes = propBounds(assets, "e");
         Terrain t = Terrain.e();

@@ -311,15 +311,24 @@ public final class GameLogic {
         // enquadra os dois de lado, um pouco atrás do herói, do lado onde a câmera já estava
         float lx = n.def.x() - player.x, lz = n.def.z() - player.z, l = (float) Math.hypot(lx, lz);
         lx /= l; lz /= l;
-        float best = 0, bestScore = -9;
-        for (int side : new int[]{1, -1}) {
-            float dx = -lz * side - lx * 0.45f, dz = lx * side - lz * 0.45f;
-            float y = (float) Math.atan2(dx, dz);
-            float score = (float) Math.cos(y - cam.curYaw);
-            if (score > bestScore) { bestScore = score; best = y; }
-        }
         float g = collision.ground.height((player.x + n.def.x()) / 2, (player.z + n.def.z()) / 2);
-        cam.frame(true, new Vector3f((player.x + n.def.x()) / 2, g + 0.8f, (player.z + n.def.z()) / 2), best, 0.16f, 3.1f);
+        // integração da 09.4: NPC mais alto que o padrão (1,25 u) — alvo mais alto e câmera mais longe, em proporção
+        float k = Math.max(1f, n.def.height() / 1.25f), dist = 3.1f * k;
+        Vector3f target = new Vector3f((player.x + n.def.x()) / 2, g + 0.8f * k, (player.z + n.def.z()) / 2);
+        // lado da câmera: o mais perto de onde ela já estava ENTRE os que têm a vista livre (uma pedra ou parede de um
+        // lado empurrava a câmera para dentro do rosto); o recuo maior, por cima do ombro, só se os dois lados fecharem
+        float best = 0, bestScore = -99;
+        for (float lean : new float[]{0.45f, 1.3f})
+            for (int side : new int[]{1, -1}) {
+                float dx = -lz * side - lx * lean, dz = lx * side - lz * lean;
+                float y = (float) Math.atan2(dx, dz), cp = (float) Math.cos(0.16f);
+                Vector3f eye = new Vector3f(target.x + dist * cp * (float) Math.sin(y), target.y + dist * (float) Math.sin(0.16f),
+                        target.z + dist * cp * (float) Math.cos(y));
+                float clear = collision.rayClear(target, eye, 0.18f);
+                float score = (float) Math.cos(y - cam.curYaw) + (clear >= 0.999f ? 4f : 4f * clear - 2f) - (lean > 1f ? 1.5f : 0f);
+                if (score > bestScore) { bestScore = score; best = y; }
+            }
+        cam.frame(true, target, best, 0.16f, dist);
     }
 
     private void dialog(float dt, Input in) {
