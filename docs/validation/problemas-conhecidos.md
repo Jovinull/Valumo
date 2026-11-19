@@ -1,4 +1,4 @@
-# Problemas conhecidos — estado atual (rodada 09.4 + auditoria de engenharia)
+# Problemas conhecidos — estado atual (rodada 10 sobre o fechamento do QA)
 
 Fonte única do que falta ou não funciona. Severidade: **grave** (bloqueia aprovação de asset ou
 expansão), **média** (visível na câmera de jogo), **baixa** (só de perto / cosmético). Rastreabilidade
@@ -127,6 +127,17 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | Na espada (`slash_v` e `combo`, t ≈ 0,448 s) o FIO inverte 180° em torno do eixo da lâmina em ~4 ms (`viewer --grip`: giro de 65 000 °/s; o eixo da lâmina é contínuo). Lâmina simétrica: não deve aparecer; não confirmado em vídeo | baixa | `output/qa/final-closure/` (relatório I) | conferir em vídeo a 120 FPS; se aparecer, autorar `rEdge` nas poses do corte vertical |
 | Números de jogo fora de `combate_e.json` (aceleração da esquiva, curva do deslocamento, constantes da mira travada) | baixa | `Hero`, `Enemy`, `FollowCamera` | mover ou documentar como exceção |
 
+## Abertos depois da rodada 10 ("As Luzes do Posto")
+
+| Problema | Severidade | Evidência | Próximo passo |
+|---|---|---|---|
+| **P49** — sons da missão (`missao.aceita`, `objetivo`, `sinal`, `recompensa`) medidos (QA 0 alertas, ganhos pelo LUFS). O agente não os ouviu, e o teste físico do proprietário aprovou a aventura sem um resultado específico sobre esses quatro sons | baixa | `round-10/efeitos-sonoros/`, `missao-luzes-do-posto.md` | escuta individual, se o proprietário quiser (`roteiro-de-teste-fisico-aventura.md` §G) |
+| ~~**P50** — aventura validada só por entrada injetada~~ → **resolvido no fechamento da 10:** o proprietário jogou a aventura com teclado, mouse e som reais e aprovou | — | — | — |
+| ~~**P51** — marco, Kelyra com missão e falas como CANDIDATOS~~ → **APROVADOS** pelo proprietário depois do teste físico (fechamento da 10), com uma correção: as falas não afirmam ver o marco (ele não aparece da estalagem nem do lugar do Bramor). A Rodada 10 é a **referência de qualidade** de gameplay | — | `missao-luzes-do-posto.md` | não redesenhar o marco nem mudar a recompensa sem pedido |
+| Um NPC dá uma missão só (`DialogueBook` liga NPC → missão); um save só (sem slots); recompensa só em moedas | — (escopo) | `missoes.md`, ADR 0024 | estender quando houver a 2ª missão |
+| Com um fungo vivo perto do marco, o E não aparece (nada se usa no meio da luta): a frase "limpe a clareira antes" só aparece se o jogador chegar ao marco sem engajar | baixa (intencional) | `AdventureTest.duranteCairRecomecar…` | teste físico decide se falta um aviso |
+| ~~A troca de arena na pausa tirava os fungos da missão da clareira~~ → **resolvido no fechamento da 10:** arena e sensação só no modo técnico (`-Ptecnico`); o jogo normal não as oferece | — | `AdventureTest.jogoNormalNaoTrocaArena…` | — |
+
 ## Limitações aceitas (comportamento conhecido, não é defeito)
 
 | Limitação | Por quê |
@@ -147,6 +158,7 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 
 ## Fora do escopo (não implementado por decisão)
 
-Golpe aéreo, escalada, salto duplo, stamina, chefe completo, inventário, sistema de equipamentos, mana, progressão,
+Golpe aéreo, escalada, salto duplo, stamina, chefe completo, inventário, loja, economia, vários slots de save,
+segunda missão, sistema de equipamentos, mana, progressão,
 multiplayer, física de pano, capas longas, novos biomas/criaturas/personagens
 (aguardam aprovação da expansão), editor de animação visual.

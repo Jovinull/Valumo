@@ -75,10 +75,11 @@ No viewer e na engine, a rodada só acrescentou ganchos:
 
 | Estado | Entrada | Câmera | Cursor |
 |---|---|---|---|
-| `SELECT` | clique ou ↑↓ escolhe a aparência; Enter ou **Entrar na vila** começa; **Criar no editor** abre o criador | herói de frente (3/4), à esquerda do painel | livre |
+| `SELECT` | clique ou ↑↓ escolhe a aparência; Enter ou **Jogo novo** começa; **Continuar o jogo salvo** (C) carrega o save (apagado, com o motivo, sem save válido — rodada 10); **Criar no editor** abre o criador | herói de frente (3/4), à esquerda do painel | livre |
 | `EXPLORE` | `WASD`/setas, `Shift`, mouse, roda, `E`, `Esc`, `F1` | terceira pessoa | preso (clique recaptura se a janela perder o foco) |
 | `DIALOG` | `E`/`Enter`/`Espaço` ou **Continuar**; `Esc` ou **Sair** | enquadra herói e NPC de lado | livre |
-| `PAUSE` | **Continuar**, **Trocar aparência**, **Abrir o criador**, sensibilidade, inverter vertical, **Sair do jogo** | parada | livre |
+| `PAUSE` | **Continuar**, **Aparência**, **Criador**, **Salvar jogo**, **Diário** (rodada 10), sensibilidade, inverter vertical, som, combate, **Sair do jogo** | parada | livre |
+| `JOURNAL` | diário (rodada 10): `J`/`Esc` fecha, `T` mostra/esconde o rastreador; a lógica para como na pausa | parada | livre |
 
 Pausar e conversar preservam posição, rumo e câmera; o tempo do herói não corre na pausa (testes).
 
@@ -205,7 +206,11 @@ Percursos usados nos vídeos e testes:
 - **Painel:**
   - mostra a plaqueta "Kelyra · Estalajadeira", a fala com quebra de linha e o progresso;
   - tem os botões **Continuar (E)**, que vira **Até logo** na última fala, e **Sair (Esc)**.
-- **Falas:** quatro, originais, na seção `jogo` da cena. Sem árvore, missões nem serviço externo.
+- **Falas:** as de sempre ficam na seção `jogo` da cena. Desde a rodada 10, quem tem missão (Kelyra) ou comenta uma
+  (Bramor) fala por contexto (`assets/scenes/dialogos_e.json`, `DialogueBook`). A última fala da oferta tem escolhas
+  (Aceitar / Agora não). Ver [missoes.md](missoes.md).
+- **Objetos do mundo (rodada 10):** o E também usa objetos com estado (`jogo.objetos`: o marco do posto), pela mesma
+  regra de alcance e ângulo (pega o mais perto entre NPC e objeto). A placa diz a ação ("Acender o marco").
 - **NPCs de ofício (integração da 09.4):** Bramor (guardião de trilhas), Teodor (estudioso), Pluma (cronista),
   Ondina (guia costeira) e Lunara (cantora noturna) entram em `jogo.interativos` com três falas cada, pelo mesmo
   sistema. Têm altura narrativa (Bramor 1,73 u); a câmera de conversa sobe o alvo e se afasta na proporção da
@@ -344,7 +349,7 @@ perfil (`combate_e.json → sensacao`; ver [combate.md](combate.md) §14).
 | Tab / Shift+Tab | próximo alvo à direita / à esquerda na tela |
 | Mouse | câmera (travado: ajuste de ±0,40 rad e inclinação) |
 | E | conversar |
-| Esc | pausa (volume, mudo, barras de inimigos, sensação, arena) |
+| Esc | pausa (volume, mudo, barras de inimigos; sensação e arena só no modo técnico, desde o fechamento da 10) |
 | M | mudo |
 | F1 | ajuda |
 
@@ -373,3 +378,46 @@ Roteiros e testes usam sempre os padrões e não gravam.
   - A posição da câmera não muda: os números do `CameraModesTest` são os da 09.2.
   - O pontilhado não usa transparência real. Com isso não há ordenação nem custo de mistura, e as referências e o gate
     não mudam (só o herói do jogo recebe `fade`).
+
+## 14. Rodada 10 — a primeira aventura, missões e jogo salvo
+
+- **Missões:** [missoes.md](missoes.md) (sistema), [missao-luzes-do-posto.md](missao-luzes-do-posto.md) (a primeira),
+  [../processo/como-adicionar-uma-missao.md](../processo/como-adicionar-uma-missao.md) e o
+  [ADR 0024](../decisions/0024-missoes-e-save.md).
+- **Jogo salvo:** [save.md](save.md). `-Dvx.savegame` (padrão `output/saves`; `-` desliga), escrita atômica, salvamento
+  automático nos marcos da missão no primeiro passo lógico seguro, "Salvar jogo" na pausa e "Continuar" na tela
+  inicial.
+- **Arena:** antes de aceitar a missão, a arena abre no encontro padrão (como na 09.x). Ao aceitar, passa para o
+  encontro `trilha` (dois fungos com identidade estável). Fungos que já
+  contaram nunca voltam (`Combat.retired`).
+- **Interface nova:**
+  - placa do objeto;
+  - escolhas no diálogo;
+  - rastreador (canto superior direito, abaixo das mensagens);
+  - aviso de missão;
+  - diário (J);
+  - na pausa, as mensagens descem para baixo (no topo cobriam o título);
+  - mensagens longas terminam em "…" na largura da tela.
+- **Roteiros:** `tools/aventura/` (aventura inteira, continuar, marco antes × depois, recusar, cair na trilha) e
+  `tools/review10.sh`. Comandos novos do interpretador:
+  - `missao`: estado no log;
+  - `lutar S`: entrada real, trava a mira, aproxima e clica;
+  - `derrubar #i`: montagem técnica pelo caminho do dano;
+  - as teclas `J`, `T` e `C`.
+- **Testes:** `QuestTest`, `AdventureTest`, `SaveGameTest` e o caso de missão do `GameAudioTest`. Mais o ajuste do
+  `GameplayTest`: a conversa da Kelyra é a oferta.
+
+### Fechamento da rodada 10 — ferramentas técnicas fora do jogo normal
+
+- **Jogo normal:** a pausa não oferece a arena (um / três / chefe / trilha) nem a sensação A/B/C. As ações
+  `encontro`/`sensacao` da interface são recusadas. A arena e a sensação gravadas antes nas preferências não valem
+  (nem são apagadas do arquivo): vale o padrão aprovado (sensação C, encontro padrão até aceitar a missão). A missão
+  nunca perde os fungos porque o jogador abriu a pausa (`AdventureTest.jogoNormalNaoTrocaArena…`).
+- **Modo técnico** (`./gradlew jogo -Ptecnico`, `-Dvx.tecnico=true`): tudo como na 09.2, com F3 e as comparações na
+  pausa.
+- **Roteiros e testes:** mantêm o acesso direto (comando `encontro X`, `setEncounter`, `-Dvx.encontro`, `-Dvx.sensacao`).
+  O `tools/combate92/capturas.txt`, que mostra essas opções na pausa, roda com `-Dvx.tecnico=true` nos pacotes 09.2 e
+  10, e as comparações históricas não mudam.
+- **Falas:** nenhuma afirma o que o NPC não vê. O marco não aparece da estalagem nem do lugar do Bramor, então a
+  Kelyra deduz pelo retorno do herói e o Bramor "soube".
+

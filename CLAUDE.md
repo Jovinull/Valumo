@@ -1,12 +1,14 @@
 # Guia para agentes neste repositório
 
-**Valumo** — RPG voxel original (protótipo com exploração jogável e combate com som, mobilidade — golpe andando, esquiva, salto —, mira opcional e grupos) em Java 25 + LWJGL 3 (OpenGL 3.3 core), engine própria. Direção oficial: **E —
+**Valumo** — RPG voxel original (protótipo com exploração jogável, combate com som, mobilidade — golpe andando, esquiva, salto —, mira opcional, grupos e a primeira aventura completa com missão, diário e jogo salvo) em Java 25 + LWJGL 3 (OpenGL 3.3 core), engine própria. Direção oficial: **E —
 "Fábula Voxel"**. A–D existem só para comparação. Produção de assets novos **só com aprovação do
 proprietário**.
 
-**Estado:** checkpoint `engineering-foundation-v0.3` (fechamento do QA de engenharia,
-[relatório](docs/validation/relatorio-fechamento-qa.md)). **Próxima etapa: Rodada 10** — não começou. O Titã Celeste
-(Velária) é candidato num ramo LOCAL (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
+**Estado:** **Rodada 10 — "As Luzes do Posto"** aprovada pelo proprietário após teste físico e fechada no checkpoint
+`adventure-foundation-v0.4` ([relatório](docs/validation/relatorio-rodada-10.md)). É a referência de qualidade de
+gameplay, mas **não** é o modelo de produção: o Valumo terá mundo procedural (Rodada 11). O checkpoint anterior é
+`engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
+(`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
 ## Leia antes de mexer
 
@@ -15,7 +17,8 @@ proprietário**.
 3. `docs/art/reference/` — imagens canônicas e reprovados.
 4. A skill da tarefa em `.claude/skills/`: `character-design`, `voxel-art`, `weapon-animation`,
    `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`, `combat`, `audio`,
-   `music-composition`, `sound-design`, `audio-qa`, `engineering-qa` (avisos da IDE, Gradle, vazamentos, desempenho, falso verde).
+   `music-composition`, `sound-design`, `audio-qa`, `engineering-qa` (avisos da IDE, Gradle, vazamentos, desempenho, falso verde),
+   `quest-design` (missões, objetos com estado, falas por contexto, matriz de travamentos).
 5. `docs/validation/problemas-conhecidos.md` — o que está aberto e o que é limitação aceita
    (histórico completo: `matriz-de-problemas.md`).
 
@@ -25,7 +28,9 @@ proprietário**.
 export JAVA_HOME=~/.sdkman/candidates/java/current
 ./gradlew editor                                    # criador de personagens do jogador (gera assets antes, se preciso)
 ./gradlew editorDebug                               # editor técnico da personalização (rodada 07)
-./gradlew jogo                                      # protótipo jogável (escolha de aparência → vila → arena ao sul)
+./gradlew jogo                                      # protótipo jogável (jogo novo/continuar → vila → missão da Kelyra → trilha e marco ao sul)
+./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
+tools/review10.sh [capturas|videos|marco|casos|desempenho|testes|validadores|regressao|zip]  # rodada 10: aventura (tools/aventura/), saves TEMPORÁRIOS
 ./gradlew jogo -Ptecnico                            # idem com F3 = hitboxes, hurtboxes e estados do combate
 tools/review9.sh [capturas|camera|videos|angulos|interrupcoes|validadores|desempenho|testes|zip]  # pacote do combate (tools/combate/)
 tools/review91.sh [camera|videos|sons|desempenho|testes|validadores|regressao|zip]  # 09.1: câmera de luta e som (tools/combate91/)
@@ -112,6 +117,13 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   geradora de som (o banco FluidR3 GM saiu na 09.4, decisão do proprietário). Sem
   dispositivo = mudo, nunca erro. Roteiros e testes mudos; vídeos com o som da própria aplicação (`-Dvx.som=loopback`).
   Medir não é ouvir: diga quando não ouviu. Skills `audio`, `sound-design`, `music-composition`, `audio-qa`.
+- **Missões e save** (rodada 10, ADR 0024, skill `quest-design`):
+  - **Missão = dados:** `missoes_e.json`, `dialogos_e.json`, `encontros` com identidade estável e `jogo.objetos`.
+  - **Contagem:** o estado é derivado; evento só no passo lógico; o que contou nunca volta (`Combat.retired`); a
+    recompensa sai uma vez.
+  - **Jogo salvo** `valumo.save` v1: escrita atômica, leitor que recusa com o motivo e guarda `.invalido`, sem
+    migração falsa. Salvamento automático só nos marcos e no primeiro passo seguro.
+  - **QA nunca toca nos saves do proprietário:** `-Dvx.savegame=PASTA_TEMP`; os testes recebem `vx.savegame=-`.
 - **Contrato:** nomes, eixos e escalas em `docs/art/contrato-de-assets.md`; mudou → atualize o documento,
   `AssetContractTest` e `QualityTest`.
 - **Protagonistas da E:** 2,35–2,60 cabeças, ≤ 1,25 u, voxel 1/40 u, articulados (`farm_*`, `shin_*`),
@@ -149,5 +161,6 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Jogo | módulo `game/` (`vx.game`): `GameLogic` (estados, passo fixo), `Player` (movimento), `Collision` (relevo + formas), `FollowCamera`, `Game` (janela, desenho, roteiros); cena `assets/scenes/jogo_vila_e.json`, colisão `assets/scenes/colisao_e.json`; `viewer/.../Terrain.java`; `docs/architecture/jogo.md`; skill `gameplay` |
 | Mobilidade, mira, grupos (09.2) | `vx.game`: `Hero` (golpe móvel, esquiva), `Player` (perfil, salto), `Targeting` (Q/Tab), `Combat.enemies` (encontros, vez no grupo), `DeathFx` + `VoxelCloud` + `DeathFxMesh` (morte), `Prefs` (barras, sensação, arena); `viewer`: `Animator` (`Motion.legW/locoDir/air/land`, `spin`/`footY`, contato do rolamento), `Choreo` (`cutFade`); `MobilityTest`, `GroupCombatTest`, `CameraModesTest`; roteiros `tools/combate92/`; `combate.md` §14–19 |
 | Áudio | um dispositivo por processo (ADR 0023): engine `vx.engine.audio` — `Audio`, `SoundSystem`, `SoundCatalog`, `OpenAlOut`, `LoopingReader`, `VorbisSource` (catálogo: música, ambiente, passos, interface) e `OpenAlBackend` (`shared`), `SilentBackend`, `Wav` (efeitos do combate); `vx.game`: `GameAudio`, `AudioPrefs` (volumes na pausa), `Sfx`, `CombatAudio`, `Footsteps` (só sem catálogo); catálogo `assets/audio/sons.json` + arquivos versionados de `fontes/audio/` e `tools/audio/`; combate gerado por `tools/audio_e.py` em `assets/audio/sintese/`, mistura `assets/scenes/sons_e.json`; `AudioTest`, `GameAudioTest`, `CombatAudioTest`; `docs/architecture/audio.md`; skills `audio`, `sound-design`, `music-composition`, `audio-qa` |
+| Missões e save (10) | `vx.game.quest`: `QuestDefinition`, `QuestProgress`, `QuestState`, `QuestEvent`, `QuestSystem`; `vx.game`: `DialogueBook`, `SaveGame`, `SceneDef.WorldObject`, `GameLogic` (falas, objetos, avisos, salvar/continuar), `Game` (marco, rastreador, diário); dados `assets/scenes/missoes_e.json`, `dialogos_e.json`, `jogo_vila_e.json → jogo.objetos`, `combate_e.json → encontros.trilha`; marco `tools/env_e.py → trail_beacon`; sons `fontes/audio/sfx/missao/`; `QuestTest`, `AdventureTest`, `SaveGameTest`; roteiros `tools/aventura/`; `docs/architecture/missoes.md`, `save.md`, `missao-luzes-do-posto.md` |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |

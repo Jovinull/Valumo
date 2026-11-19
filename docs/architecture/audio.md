@@ -101,7 +101,12 @@ Decisão do proprietário na integração: nenhum banco de amostras. As partitur
 | `ui.confirmar` | começar, concluir, confirmar restauração, carregar arquivo, vitrine, abrir o criador | 1 |
 | `ui.cancelar` | Esc/fechar diálogo, opção indisponível, sair da pausa, fim da conversa | 1 |
 | `ui.abrir` | pausa, diálogo de restaurar/carregar/concluir, começo da conversa, trocar aparência | 1 |
-| `ui.salvar` | aparência gravada em disco (só no sucesso) | 1 |
+| `ui.salvar` | aparência gravada em disco; jogo salvo na pausa (só no sucesso; o salvamento automático é mudo) | 1 |
+| `ui.abrir` / `ui.cancelar` (rodada 10) | abrir / fechar o diário; recusar a missão; usar o marco sem efeito | — |
+| `missao.aceita` | missão aceita (rodada 10; `GameAudio.questEvent`) | 1 |
+| `missao.objetivo` | objetivo cumprido (não no mesmo uso do marco) | 1 |
+| `missao.sinal` | o marco acende (o momento da aventura; −12 dB no catálogo, ~3 LU acima dos outros) | 1 |
+| `missao.recompensa` | recompensa recebida | 1 |
 | música `vila_a` / `vila_b` | jogo (padrão `vila_a`) e criador; `-Dvx.musica=vila_b|nenhuma` | OGG com laço |
 | ambiente `vento` | jogo, sempre (cama, sem posição, estéreo) | OGG em laço de 24 s |
 | ambiente `lago` | jogo, no centro do lago (`World.pondCenter`), posicional, mono: pleno até 2,5 u, some até 14 u | OGG em laço de 16 s |
@@ -109,7 +114,10 @@ Decisão do proprietário na integração: nenhum banco de amostras. As partitur
 Regras: nunca a mesma variação duas vezes seguidas (gerador com semente → roteiro reproduzível); interface sem
 variação de tom (fica em Ré maior); limite por evento rouba a voz mais antiga dele; limite global (24 vozes)
 rouba a mais antiga de prioridade ≤, senão descarta; música pedida de novo não reinicia; troca de música sai em
-1,2 s e entra em 1,5 s; pausa abafa a música a 45%, conversa a 70%.
+1,2 s e entra em 1,5 s; pausa e diário abafam a música a 45%, conversa a 70%.
+
+Rodada 10: os sons da missão vêm de `fontes/audio/sfx/missao/missao.py` (proposta A "madeira e luz", a família da
+interface; a B "vidro" ficou como comparação em `round-10/efeitos-sonoros/propostas/`). Medidos, não ouvidos.
 
 ### 3. Pisada sincronizada **[IMPLEMENTADO]**
 

@@ -30,6 +30,12 @@
 | [validation/matriz-de-problemas.md](validation/matriz-de-problemas.md) | rastreabilidade de todos os problemas (rodadas 01–05.1) com evidência verificada |
 | [architecture/combate.md](architecture/combate.md) | o combate (rodada 09; câmera refeita na 09.1; mobilidade, esquiva, mira, grupos, morte voxel e barras na 09.2 §14–19): tempo e ordem, herói, golpes e janelas de dano, inimigo e IA, interrupções, vida, defesa, câmera de luta e sua medição, retorno visual e sonoro, testes |
 | [architecture/audio.md](architecture/audio.md) | o som: um dispositivo por processo; parte A (09.4) catálogo de eventos, música, ambiente, interface, pisada por superfície, laço, gravação; parte B (09.1–09.3) efeitos do combate, diretor que só lê a lógica, síntese, mistura, sincronia |
+| [architecture/missoes.md](architecture/missoes.md) | missões (rodada 10): definição, estados derivados, objetivos, identidade estável de inimigo, objetos com estado, falas por contexto, recompensa, avisos, salvamento automático, testes |
+| [architecture/missao-luzes-do-posto.md](architecture/missao-luzes-do-posto.md) | contrato da primeira missão "As Luzes do Posto": passos, lugares, marco, contextos, sons |
+| [architecture/save.md](architecture/save.md) | jogo salvo v1: conteúdo, quando grava, escrita atômica, leitura de arquivo ruim |
+| [processo/como-adicionar-uma-missao.md](processo/como-adicionar-uma-missao.md) | guia: dados, teste, evidência para uma missão nova |
+| [validation/relatorio-rodada-10.md](validation/relatorio-rodada-10.md) | relatório da rodada 10 (a primeira aventura completa: missão, marco, diário, save) |
+| [validation/roteiro-de-teste-fisico-aventura.md](validation/roteiro-de-teste-fisico-aventura.md) | teste físico da aventura (20 min, para o proprietário) |
 | [architecture/jogo.md](architecture/jogo.md) | o jogo: módulos, estados, controle do herói, colisão, câmera, cena, interação, aparência, interface, testes |
 | [validation/roteiro-de-teste-fisico.md](validation/roteiro-de-teste-fisico.md) | roteiro de teste com teclado e mouse físicos (criador e jogo) para o proprietário |
 | [validation/relatorio-fechamento-qa.md](validation/relatorio-fechamento-qa.md) | fechamento do QA de engenharia: auditoria incorporada, validadores, robustez, sessão longa, interface, referências, desempenho, CI (checkpoint `engineering-foundation-v0.3`) |
@@ -53,7 +59,7 @@
 
 Procedimentos para agentes: `.claude/skills/` (character-design, character-customization, voxel-art, visual-qa,
 rendering, weapon-animation, game-ui, gameplay, combat, audio, git-commits, music-composition, sound-design, audio-qa,
-engineering-qa). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
+engineering-qa, quest-design). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
 
 ## Histórico (rastreabilidade — não é especificação atual)
 

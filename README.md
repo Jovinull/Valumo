@@ -3,14 +3,16 @@
 RPG voxel 3D de fantasia em terceira pessoa, com personagens pequenos e expressivos, em **engine própria**
 (Java 25 + LWJGL 3 + OpenGL 3.3 core, sem game engine pronta).
 
-**Estado: protótipo com a primeira exploração jogável e combate com som, mobilidade e grupos.** Dá para escolher ou
+**Estado: protótipo com a primeira aventura completa** — "As Luzes do Posto" (rodada 10): aceitar a missão da Kelyra,
+limpar a trilha dos fungos-cardo, reacender o marco de luz do posto, voltar e receber a recompensa, com diário,
+rastreador, jogo salvo e "Continuar". Antes disso, dá para escolher ou
 criar a aparência do herói, andar, correr e pular pela vila com câmera em terceira pessoa, conversar com a Kelyra e os
 cinco NPCs de ofício e lutar numa arena ao sul (espada e escudo): atacar andando, esquivar (salto baixo), travar a mira e trocar de alvo, contra um fungo-cardo,
 três ou um protótipo de chefe com dois menores (rodada 09.2; esquiva R2 e salto polidos na 09.3). O repositório também tem o visualizador que fixa a
 identidade visual, as ferramentas de modelagem e de síntese de som por script, a animação procedural com coreografia
 de armas, validadores e cenas de demonstração. Há música, ambiente e efeitos sonoros por síntese própria (rodada 09.4): as músicas A (padrão) e B foram aprovadas pelo
 proprietário; efeitos, passos, interface e ambiente têm integração validada e escuta pendente.
-Não há inventário, missões, progressão nem mundo aberto.
+Não há inventário, loja, progressão nem mundo aberto; há uma missão e moedas.
 
 Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visual-identity.md),
 [contrato de qualidade](docs/art/contrato-de-qualidade.md), [referências canônicas](docs/art/reference/README.md)).
@@ -27,6 +29,7 @@ Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visu
 | Validação | testes Java, validador espacial de golpes, oclusão de rosto/arma, sonda de pegada, auditoria de voxels, reprodução determinística |
 | Personalização | **em tempo de execução**: os três heróis como presets (idênticos ao original), 6 estilos de cabelo, 10 cores, 5 tons de pele, 3 rostos, 3 formatos de olhos, 5 íris, chapéu, capuz e botas; salvar e carregar — [arquitetura](docs/architecture/personalizacao.md) |
 | Criador de personagens | interface do jogador com mouse: cena própria, miniaturas reais, amostras de cor, giro e zoom, poses, salvar/carregar/restaurar — [interface](docs/architecture/criador-de-personagens.md) |
+| Aventura (rodada 10) | uma missão completa com falas por contexto (10 situações da Kelyra), fungos com identidade estável, um marco que acende e fica aceso, recompensa única, diário (`J`), rastreador, jogo salvo com escrita atômica e Continuar — [missões](docs/architecture/missoes.md), [save](docs/architecture/save.md) |
 | Jogo (exploração) | herói controlável na vila: andar/correr com aceleração, colisão com o cenário, degraus e encostas, câmera em terceira pessoa que não atravessa paredes, conversa com a Kelyra e os cinco NPCs de ofício, aparência escolhida ou criada no editor — [jogo](docs/architecture/jogo.md) |
 
 Rodadas: 01 comparou quatro direções (A–D), 02 consolidou a E, 03 poliu, 04 refez a coreografia de armas,
@@ -37,7 +40,9 @@ criador clicável e **08** fez a primeira exploração jogável ([relatório](do
 ([relatório](docs/validation/relatorio-integracoes-09-4.md)). Depois veio a auditoria de engenharia e o **fechamento do QA**
 (checkpoint `engineering-foundation-v0.3`, [relatório](docs/validation/relatorio-fechamento-qa.md)): validadores que
 reprovam o que não conferiram, leitores resistentes a arquivo corrompido, sessão longa sem vazamento, interface em sete
-resoluções, referências canônicas refeitas e integração contínua. **Próxima etapa: a Rodada 10** (ainda não começou).
+resoluções, referências canônicas refeitas e integração contínua. A **Rodada 10** fez a primeira aventura completa
+([relatório](docs/validation/relatorio-rodada-10.md)), aprovada pelo proprietário após teste físico (checkpoint
+`adventure-foundation-v0.4`).
 
 ## Requisitos
 
@@ -71,9 +76,11 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 ### Jogar
 
 `./gradlew jogo`:
-1. escolha a aparência (os três modelos, uma salva pelo criador ou **Criar no editor**) e **Entrar na vila**;
-2. explore e converse;
-3. desça a trilha para o sul até a clareira da pedra grande e enfrente o **fungo-cardo** (rodada 09).
+1. escolha a aparência (os três modelos, uma salva pelo criador ou **Criar no editor**) e **Jogo novo**, ou
+   **Continuar o jogo salvo** (`output/saves/aventura.json`; `-Dvx.savegame=PASTA` usa outra pasta);
+2. converse com a **Kelyra**, junto à estalagem: ela oferece a missão "As Luzes do Posto";
+3. desça a trilha para o sul, derrote os dois **fungos-cardo** da clareira, reacenda o **marco** no fim dela e volte à
+   Kelyra.
 
 | Tecla | Ação |
 |---|---|
@@ -81,7 +88,8 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `Shift` | correr |
 | mouse | girar a câmera |
 | roda | aproximar e afastar |
-| `E` | conversar (perto e de frente para um NPC: Kelyra, Bramor, Teodor, Pluma, Ondina, Lunara) e avançar as falas |
+| `E` | conversar (perto e de frente para um NPC: Kelyra, Bramor, Teodor, Pluma, Ondina, Lunara), avançar as falas, confirmar a escolha (← → escolhem) e usar o marco |
+| `J` | diário (missão, objetivos, recompensa, moedas); `T` no diário mostra/esconde o rastreador |
 | clique esquerdo | atacar (no ritmo, encadeia horizontal → diagonal → descendente; dá para andar durante o golpe) |
 | botão direito (segurar) | defender com o escudo (só de frente) |
 | `Espaço` | pular (sobe em caixote, barril e pedra pequena) |
@@ -89,7 +97,7 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `Q` | travar / soltar a mira no inimigo |
 | `Tab` / `Shift+Tab` | trocar o alvo travado (direita / esquerda na tela) |
 | `R` / `Enter` | recomeçar o confronto (depois de vitória / na tela de derrota) |
-| `Esc` | pausa (continuar, trocar aparência, abrir o criador, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sensação A/B/C, arena: um fungo / três / chefe + 2, sair) |
+| `Esc` | pausa (continuar, aparência, criador, **salvar jogo**, **diário**, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sair; com `-Ptecnico` também a sensação A/B/C e a arena de comparação: um fungo / três / chefe + 2 / trilha da missão) |
 | `M` | liga/desliga o som |
 | `F1` | ajuda dos controles |
 | `F12` | captura em `output/visual-review/manual/` |
@@ -98,7 +106,8 @@ O som usa o dispositivo padrão do sistema (OpenAL Soft, que vem com o LWJGL); s
 avisa no console.
 
 Detalhes: [jogo](docs/architecture/jogo.md), [combate](docs/architecture/combate.md) e [som](docs/architecture/audio.md). Teste com teclado e mouse
-físicos: [exploração](docs/validation/roteiro-de-teste-fisico.md) e [combate](docs/validation/roteiro-de-teste-fisico-combate.md).
+físicos: [exploração](docs/validation/roteiro-de-teste-fisico.md), [combate](docs/validation/roteiro-de-teste-fisico-combate.md) e
+[aventura](docs/validation/roteiro-de-teste-fisico-aventura.md).
 
 ### Criar um personagem
 
@@ -212,8 +221,9 @@ Comece por [docs/README.md](docs/README.md).
 
 ## Limitações conhecidas
 
-- Protótipo: uma vila pequena, seis conversas curtas e um confronto (espada e escudo contra um fungo, três ou um
-  protótipo de chefe com dois menores). Sem inventário, experiência, classes, missões nem progressão.
+- Protótipo: uma vila pequena, seis conversas curtas, uma missão e um confronto (espada e escudo contra os fungos da
+  trilha; na pausa, um fungo, três ou um protótipo de chefe com dois menores). Sem inventário, loja, experiência,
+  classes nem progressão; um save só.
 - A lâmina longa não é jogável: interrompê-la por dano ainda atravessa o corpo em algumas janelas (a espada foi
   resolvida na rodada 09).
 - NPCs e assets da rodada 06 são candidatos; NPCs têm só um gesto compartilhado.
