@@ -31,7 +31,13 @@ import static org.lwjgl.openal.SOFTLoopback.*;
  */
 public final class OpenAlOut implements AudioOut {
     public static final int RATE = 48000;
-    static final int STREAM_BUFFERS = 4, STREAM_FRAMES = RATE / 4;      // 4 × 0,25 s em fila por música
+    /**
+     * Fila de cada fluxo (música, ambiente): pedaços de 0,25 s; começa com {@link #STREAM_START} (1 s, como antes) e cresce
+     * UM pedaço por quadro até {@link #STREAM_BUFFERS} (4 s). Com 1 s fixo, montar o criador de dentro do jogo (a thread do
+     * jogo fica ~2 s sem quadro) esvaziava a fila: 1,9 s de silêncio medidos em tempo real (fechamento do QA).
+     * Volume e transições não atrasam: vão pelo ganho da fonte, não pelo conteúdo da fila.
+     */
+    static final int STREAM_BUFFERS = 16, STREAM_START = 4, STREAM_FRAMES = RATE / 4;
 
     private final long device, context;
     private final boolean loopback;
@@ -50,6 +56,7 @@ public final class OpenAlOut implements AudioOut {
         final short[] pcm;
         final ShortBuffer native_;
         boolean ended;
+        int primed;                                                        // pedaços de bufs já postos na fila
 
         Stream(LoopingReader r, int source) {
             reader = r;
@@ -57,7 +64,7 @@ public final class OpenAlOut implements AudioOut {
             pcm = new short[STREAM_FRAMES * r.channels()];
             native_ = MemoryUtil.memAllocShort(pcm.length);
             alGenBuffers(bufs);
-            for (int b : bufs) if (!fill(b)) break;
+            while (primed < STREAM_START && fill(bufs[primed])) primed++;
             alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
             alSource3f(source, AL_POSITION, 0, 0, 0);
             alSourcePlay(source);
@@ -78,6 +85,7 @@ public final class OpenAlOut implements AudioOut {
                 int b = alSourceUnqueueBuffers(source);
                 if (!ended) fill(b);
             }
+            if (!ended && primed < bufs.length && fill(bufs[primed])) primed++;   // a fila cresce um pedaço por quadro
             if (!ended && alGetSourcei(source, AL_SOURCE_STATE) != AL_PLAYING) alSourcePlay(source);   // falta de dados
         }
 

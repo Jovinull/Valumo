@@ -401,6 +401,48 @@ class AudioTest {
 
     // ------------------------------------------------------------------ mixagem real (OpenAL Soft em loopback)
 
+    /** Senoide mono de 220 Hz (amplitude 8000), {@code seconds} de duração. */
+    static PcmSource sine(int seconds) {
+        return new PcmSource() {
+            int pos;
+            public int channels() { return 1; }
+            public int rate() { return 48000; }
+            public long frames() { return 48000L * seconds; }
+            public void seek(long f) { pos = (int) f; }
+            public int read(short[] out, int max) {
+                int k = (int) Math.min(max, frames() - pos);
+                for (int i = 0; i < k; i++) out[i] = (short) (8000 * Math.sin(2 * Math.PI * 220 * (pos + i) / 48000.0));
+                pos += k;
+                return k;
+            }
+            public void close() { }
+        };
+    }
+
+    @Test
+    void musicSurvivesTheGameThreadStallingForThreeSeconds() {
+        // fechamento do QA: montar o criador de dentro do jogo deixa a thread do jogo ~2 s sem quadro. Com a fila fixa de
+        // 1 s a música e o ambiente sumiam (1,9 s de silêncio medidos em tempo real); a fila cresce até 4 s
+        OpenAlOut al = OpenAlOut.loopback(32);
+        Assumptions.assumeTrue(al != null, "OpenAL loopback indisponível nesta máquina");
+        try {
+            int st = al.stream(new LoopingReader(sine(10), 0, 48000L * 10, true), 1f);
+            assertTrue(st > 0);
+            for (int i = 0; i < 30; i++) { al.update(); al.render(800); }    // meio segundo de quadros: a fila cresce
+            short[] stall = al.render(48000 * 3);                             // 3 s sem nenhum quadro
+            int tailPeak = 0;
+            for (int i = stall.length - 2 * 4800; i < stall.length; i++) tailPeak = Math.max(tailPeak, Math.abs(stall[i]));
+            assertTrue(tailPeak > 1000, "a música continua até o fim do travamento: pico dos últimos 0,1 s " + tailPeak);
+            for (int i = 0; i < 10; i++) { al.update(); al.render(800); }    // e segue depois dele
+            short[] after = al.render(4800);
+            int peak = 0;
+            for (short v : after) peak = Math.max(peak, Math.abs(v));
+            assertTrue(peak > 1000, "depois do travamento: pico " + peak);
+        } finally {
+            al.close();
+        }
+    }
+
     @Test
     void openAlLoopbackMixesEventsAndReleasesEverything() throws Exception {
         OpenAlOut al = OpenAlOut.loopback(32);
