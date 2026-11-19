@@ -42,7 +42,12 @@ criador clicável e **08** fez a primeira exploração jogável ([relatório](do
 reprovam o que não conferiram, leitores resistentes a arquivo corrompido, sessão longa sem vazamento, interface em sete
 resoluções, referências canônicas refeitas e integração contínua. A **Rodada 10** fez a primeira aventura completa
 ([relatório](docs/validation/relatorio-rodada-10.md)), aprovada pelo proprietário após teste físico (checkpoint
-`adventure-foundation-v0.4`).
+`adventure-foundation-v0.4`). A **Rodada 11** começou o mundo procedural: uma região gerada por semente, com
+assentamento, trilha, posto, encontro e a mesma aventura vinculada ao lugar gerado
+([relatório](docs/validation/relatorio-rodada-11.md); experimental, em revisão: `./gradlew jogo -Dvx.mundo=procedural
+-Dvx.semente=1024`). A **Rodada 11.1** deu ao jogo uma porta de entrada: menu principal com a vila ao fundo, personagens
+salvos, mundos criados pela interface (nome e semente, com prévia real) e a aventura de cada personagem em cada mundo
+([relatório](docs/validation/relatorio-rodada-11-1.md); [fechamento](docs/validation/relatorio-fechamento-rodadas-11.md)).
 
 ## Requisitos
 
@@ -59,7 +64,7 @@ resoluções, referências canônicas refeitas e integração contínua. A **Rod
 
 ```bash
 export JAVA_HOME=~/.sdkman/candidates/java/current   # ou o caminho do seu JDK 25
-./gradlew jogo                                       # o jogo: escolher a aparência e explorar a vila
+./gradlew jogo                                       # o jogo: menu principal → personagem → mundo → aventura
 ./gradlew editor                                     # criador de personagens (interface do jogador)
 ./gradlew editorDebug                                # editor técnico da personalização (depuração)
 ./gradlew :viewer:run                                # visualizador na clareira canônica
@@ -75,11 +80,18 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 
 ### Jogar
 
-`./gradlew jogo`:
-1. escolha a aparência (os três modelos, uma salva pelo criador ou **Criar no editor**) e **Jogo novo**, ou
-   **Continuar o jogo salvo** (`output/saves/aventura.json`; `-Dvx.savegame=PASTA` usa outra pasta);
-2. converse com a **Kelyra**, junto à estalagem: ela oferece a missão "As Luzes do Posto";
-3. desça a trilha para o sul, derrote os dois **fungos-cardo** da clareira, reacenda o **marco** no fim dela e volte à
+`./gradlew jogo` (ou, depois de `./gradlew :game:installDist`, direto: `game/build/install/game/bin/game`):
+1. no **menu principal**, **Jogar**;
+2. **Personagens:** escolha um personagem, crie um (**Novo personagem** abre o criador; **Cancelar** volta sem gravar),
+   edite a aparência de um existente (as aparências salvas antes ficam no **Carregar** do criador); arraste o herói para
+   girá-lo;
+3. **Mundos:** escolha a **Vila do Posto** (a vila fixa da rodada 10) ou um mundo gerado, ou **Criar mundo** (nome +
+   semente; vazia = sorteada; **Ver prévia** mostra a região de verdade). Cada personagem tem a própria aventura em cada
+   mundo: **Continuar aventura** ou **Iniciar aventura**. Um jogo salvo de antes (`output/saves/aventura.json`, ou
+   `output/saves-procedural/s<N>/`) aparece sozinho, uma vez, como a aventura de um personagem com a aparência dele
+   (cópia; o original fica);
+4. converse com a **Kelyra**, junto à estalagem: ela oferece a missão "As Luzes do Posto";
+5. desça a trilha para o sul, derrote os dois **fungos-cardo** da clareira, reacenda o **marco** no fim dela e volte à
    Kelyra.
 
 | Tecla | Ação |
@@ -97,10 +109,12 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `Q` | travar / soltar a mira no inimigo |
 | `Tab` / `Shift+Tab` | trocar o alvo travado (direita / esquerda na tela) |
 | `R` / `Enter` | recomeçar o confronto (depois de vitória / na tela de derrota) |
-| `Esc` | pausa (continuar, aparência, criador, **salvar jogo**, **diário**, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sair; com `-Ptecnico` também a sensação A/B/C e a arena de comparação: um fungo / três / chefe + 2 / trilha da missão) |
+| `Esc` | pausa (continuar, **menu principal** (volta à tela inicial; se houver progresso não salvo, pergunta: salvar e voltar / voltar sem salvar), **salvar jogo**, **diário**, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sair; com `-Ptecnico` também a sensação A/B/C e a arena de comparação: um fungo / três / chefe + 2 / trilha da missão) |
 | `M` | liga/desliga o som |
-| `F1` | ajuda dos controles |
 | `F12` | captura em `output/visual-review/manual/` |
+
+Fechar a janela (o X) durante a aventura pergunta antes, se houver progresso ainda não salvo (salvar e sair / sair sem
+salvar / cancelar); no menu, fecha direto.
 
 O som usa o dispositivo padrão do sistema (OpenAL Soft, que vem com o LWJGL); sem dispositivo, o jogo segue mudo e
 avisa no console.

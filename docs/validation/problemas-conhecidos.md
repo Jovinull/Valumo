@@ -1,4 +1,4 @@
-# Problemas conhecidos — estado atual (rodada 10 sobre o fechamento do QA)
+# Problemas conhecidos — estado atual (fechamento das rodadas 11 e 11.1)
 
 Fonte única do que falta ou não funciona. Severidade: **grave** (bloqueia aprovação de asset ou
 expansão), **média** (visível na câmera de jogo), **baixa** (só de perto / cosmético). Rastreabilidade
@@ -137,6 +137,31 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | Um NPC dá uma missão só (`DialogueBook` liga NPC → missão); um save só (sem slots); recompensa só em moedas | — (escopo) | `missoes.md`, ADR 0024 | estender quando houver a 2ª missão |
 | Com um fungo vivo perto do marco, o E não aparece (nada se usa no meio da luta): a frase "limpe a clareira antes" só aparece se o jogador chegar ao marco sem engajar | baixa (intencional) | `AdventureTest.duranteCairRecomecar…` | teste físico decide se falta um aviso |
 | ~~A troca de arena na pausa tirava os fungos da missão da clareira~~ → **resolvido no fechamento da 10:** arena e sensação só no modo técnico (`-Ptecnico`); o jogo normal não as oferece | — | `AdventureTest.jogoNormalNaoTrocaArena…` | — |
+
+## Abertos depois da rodada 11 (fundação procedural, experimental)
+
+| Problema | Severidade | Evidência | Próximo passo |
+|---|---|---|---|
+| **P52** — uma região por mundo (48 × 48 u), sem costura nem streaming; trilha de 13–16 u: a aventura gerada é curta | — (escopo) | `mundo-procedural.md` §6 | regiões vizinhas com bordas compartilhadas, geração fora da thread do GL |
+| **P53** — variedade ainda modesta: um modelo de estalagem, 3 arranjos de assentamento, 3 composições de mata; de cima, as regiões se distinguem pelo traçado e pela mata, mais do que pelo relevo | média para "parece outro lugar" | `round-11/comparacoes/` | mais componentes autorais (aprovação do proprietário), mais arranjos, relevo com mais amplitude onde não há trilha |
+| **P54** — em ~1/3 das sementes não há lago (sorteio de 65% + regras de distância); as três sementes do pedido (1024, 2048, 4096) caíram sem lago, a 77 entra como a com lago | baixa | `ProceduralWorldTest` | decidir se toda região precisa de água |
+| **P55** — falas geradas: duas vozes autorais (estalajadeira, guardião) para o único modelo; os outros moradores falam as falas de sempre (sem fatos fixos) | baixa | `modelos_missao_e.json`, `habitantes_e.json` | vozes para novos papéis quando houver novos modelos |
+| **P56** — modo procedural validado só por entrada injetada; teste físico do proprietário pendente | média até o teste | `round-11/videos/` | `./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024` |
+
+## Abertos depois da rodada 11.1 (porta de entrada)
+
+| Problema | Severidade | Evidência | Próximo passo |
+|---|---|---|---|
+| **P57** — menu, personagens e mundos validados por entrada injetada na fila da janela (roteiros `tools/menu/`); mouse, roda, digitação e foco físicos não exercitados nesta máquina (Wayland, sem automação de SO) | média até o teste físico | `round-11-1/` | teste físico do proprietário (relatório 11.1, §23) |
+| ~~**P58**~~ → **resolvido no fechamento da 11.1:** o X da janela é interceptado (GLFW) e pede a mesma confirmação da pausa quando há progresso fora do disco; no criador com alterações, o diálogo dele. Só o encerramento forçado do processo não passa por ela | — | `MenuAdventureTest.xDaJanelaConfirmaDeQualquerEstado…`, roteiros `tools/menu/13-navegacao-*` | — |
+| **P59** — entrar num mundo gerado e criar/ver prévia custam ~1,7 s de malha na thread do GL (tela de carregamento com o passo real; sem quadro congelado sem aviso). A prévia de um mundo antigo sem `previa.png` também custa isso uma vez (três sementes acendendo no lugar dela). A primeira abertura do criador monta a cena dele (~3 s, sob "Abrindo o criador"); as seguintes, ~50 ms | baixa | `round-11-1/desempenho/transicoes-criar-mundo.txt` | malha incremental ou em fatias por quadro |
+| **P60** — configurações: sem qualidade gráfica nem resolução/modo de janela (o jogo não tem essas opções seguras hoje; nada inventado) | baixa | tela Configurações | presets de qualidade do viewer levados ao jogo, com medição |
+| **P61** — a música do menu é a `vila_b` (faixa aprovada); não há tema próprio de abertura | baixa (arte) | `GameAudio.MENU_MUSIC` | composição nova só com aprovação |
+| **P62** — exclusão e renomeação de mundos e personagens não existem (renomear personagem: pelo criador, em Editar). Por decisão: sem exclusão às pressas | — (escopo) | `menus.md` | com confirmação explícita e recuperação, se o proprietário pedir |
+| **P63** — a vitrine dos personagens esconde do desenho os moradores colados ou atrás do herói; a vila ao fundo é a mesma do jogo | baixa | `round-11-1/capturas/1*` | um palco próprio para a vitrine, se o proprietário preferir |
+| **P64** — o X real do gerenciador de janelas (Wayland/GNOME) não pôde ser clicado por automação; os roteiros usam o mesmo caminho do callback (`Window.simulateCloseRequest`) | média até o teste físico | `tools/menu/13-navegacao-*` | roteiro físico do menu, §5 |
+| **P65** — medição de desempenho do fechamento feita com Firefox e VS Code abertos (load ~2,3): os números absolutos subiram nos dois binários (menu ~13 ms × 10,7 ms na sessão da 11.1); a comparação válida é a intercalada na mesma sessão (+0,2 ms na mediana do menu, ruído) | baixa | `round-11-1-final/desempenho/` | repetir com a máquina ociosa antes de citar números absolutos |
+| **P66** — ajuda de controles: as instruções de tecla saíram da tela por decisão do proprietário; se um dia for preciso ensinar os controles, a proposta é um tutorial ou uma tela de ajuda própria (não implementado) | — (proposta) | `menus.md` (Texto na tela) | decisão do proprietário |
 
 ## Limitações aceitas (comportamento conhecido, não é defeito)
 

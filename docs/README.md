@@ -30,6 +30,16 @@
 | [validation/matriz-de-problemas.md](validation/matriz-de-problemas.md) | rastreabilidade de todos os problemas (rodadas 01–05.1) com evidência verificada |
 | [architecture/combate.md](architecture/combate.md) | o combate (rodada 09; câmera refeita na 09.1; mobilidade, esquiva, mira, grupos, morte voxel e barras na 09.2 §14–19): tempo e ordem, herói, golpes e janelas de dano, inimigo e IA, interrupções, vida, defesa, câmera de luta e sua medição, retorno visual e sonoro, testes |
 | [architecture/audio.md](architecture/audio.md) | o som: um dispositivo por processo; parte A (09.4) catálogo de eventos, música, ambiente, interface, pisada por superfície, laço, gravação; parte B (09.1–09.3) efeitos do combate, diretor que só lê a lógica, síntese, mistura, sincronia |
+| [architecture/mundo-procedural.md](architecture/mundo-procedural.md) | mundo procedural (rodada 11): o estudo do que existia, as camadas (regras × semente × gerado × mudado pelo jogador), peças, fluxo, implementado × protótipo × planejado |
+| [architecture/contrato-sementes.md](architecture/contrato-sementes.md), [contrato-regioes.md](architecture/contrato-regioes.md), [contrato-pontos-de-interesse.md](architecture/contrato-pontos-de-interesse.md), [contrato-instancias-de-missao.md](architecture/contrato-instancias-de-missao.md), [persistencia-mundo-procedural.md](architecture/persistencia-mundo-procedural.md) | contratos do mundo procedural |
+| [processo/reproduzir-sementes.md](processo/reproduzir-sementes.md), [processo/como-adicionar-um-tipo-de-poi.md](processo/como-adicionar-um-tipo-de-poi.md) | guias: reproduzir uma semente; novo tipo de POI |
+| [architecture/menus.md](architecture/menus.md) | **porta de entrada (rodada 11.1):** fluxo de menus, navegação, pedidos, transições em passos, ciclo de vida das telas e da sessão, sair da aventura, fundo 3D, como acrescentar botão/tela/etapa |
+| [architecture/perfis-de-personagem.md](architecture/perfis-de-personagem.md), [architecture/catalogo-de-mundos.md](architecture/catalogo-de-mundos.md) | personagens (id estável, aparência, importação das aparências antigas) e mundos (criação por semente, prévia real, aventura = personagem × mundo, persistência, compatibilidade dos saves v1/v2) |
+| [processo/como-adicionar-uma-tomada.md](processo/como-adicionar-uma-tomada.md) | guia: tomada nova no fundo do menu (e a vitrine dos personagens), com o teste na colisão real |
+| [validation/relatorio-fechamento-rodadas-11.md](validation/relatorio-fechamento-rodadas-11.md) | fechamento das rodadas 11 e 11.1: X da janela, menu principal de verdade, tipografia, carregamento, câmera da prévia, commits e procedimento de publicação |
+| [processo/handoff-laboratorio-de-assets.md](processo/handoff-laboratorio-de-assets.md) | handoff: como os assets do laboratório entram no catálogo e no gerador (colisão, alcance, sementes, ids, desempenho, revisão de PR) |
+| [validation/relatorio-rodada-11-1.md](validation/relatorio-rodada-11-1.md) | relatório da rodada 11.1 (menu principal, personagens, mundos, aventuras) |
+| [validation/relatorio-rodada-11.md](validation/relatorio-rodada-11.md) | relatório da rodada 11 (fundação procedural) |
 | [architecture/missoes.md](architecture/missoes.md) | missões (rodada 10): definição, estados derivados, objetivos, identidade estável de inimigo, objetos com estado, falas por contexto, recompensa, avisos, salvamento automático, testes |
 | [architecture/missao-luzes-do-posto.md](architecture/missao-luzes-do-posto.md) | contrato da primeira missão "As Luzes do Posto": passos, lugares, marco, contextos, sons |
 | [architecture/save.md](architecture/save.md) | jogo salvo v1: conteúdo, quando grava, escrita atômica, leitura de arquivo ruim |
@@ -59,7 +69,7 @@
 
 Procedimentos para agentes: `.claude/skills/` (character-design, character-customization, voxel-art, visual-qa,
 rendering, weapon-animation, game-ui, gameplay, combat, audio, git-commits, music-composition, sound-design, audio-qa,
-engineering-qa, quest-design). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
+engineering-qa, quest-design, mundo-procedural; menus na skill game-ui). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
 
 ## Histórico (rastreabilidade — não é especificação atual)
 

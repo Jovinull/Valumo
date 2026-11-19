@@ -6,7 +6,13 @@ proprietário**.
 
 **Estado:** **Rodada 10 — "As Luzes do Posto"** aprovada pelo proprietário após teste físico e fechada no checkpoint
 `adventure-foundation-v0.4` ([relatório](docs/validation/relatorio-rodada-10.md)). É a referência de qualidade de
-gameplay, mas **não** é o modelo de produção: o Valumo terá mundo procedural (Rodada 11). O checkpoint anterior é
+gameplay, mas **não** é o modelo de produção: o Valumo terá mundo procedural. **Rodada 11** (fundação procedural:
+uma região por semente, POIs, missão instanciada, save v2) e **Rodada 11.1** (porta de entrada: menu principal com a
+vila ao fundo, personagens, mundos criados pela interface, aventura = personagem × mundo, X da janela com confirmação)
+**fechadas** em commits LOCAIS no ramo `rodada-11/mundo-procedural`, **à espera da autorização para publicar**
+([fechamento](docs/validation/relatorio-fechamento-rodadas-11.md); relatórios [11](docs/validation/relatorio-rodada-11.md)
+e [11.1](docs/validation/relatorio-rodada-11-1.md)). Próxima prioridade: conteúdo e variedade das regiões
+([handoff do laboratório de assets](docs/processo/handoff-laboratorio-de-assets.md)). O checkpoint anterior é
 `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
@@ -18,7 +24,8 @@ gameplay, mas **não** é o modelo de produção: o Valumo terá mundo procedura
 4. A skill da tarefa em `.claude/skills/`: `character-design`, `voxel-art`, `weapon-animation`,
    `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`, `combat`, `audio`,
    `music-composition`, `sound-design`, `audio-qa`, `engineering-qa` (avisos da IDE, Gradle, vazamentos, desempenho, falso verde),
-   `quest-design` (missões, objetos com estado, falas por contexto, matriz de travamentos).
+   `quest-design` (missões, objetos com estado, falas por contexto, matriz de travamentos), `mundo-procedural` (semente,
+   região, POI, validação espacial, vínculos de missão, save v2); menus da 11.1 em `game-ui`.
 5. `docs/validation/problemas-conhecidos.md` — o que está aberto e o que é limitação aceita
    (histórico completo: `matriz-de-problemas.md`).
 
@@ -28,8 +35,12 @@ gameplay, mas **não** é o modelo de produção: o Valumo terá mundo procedura
 export JAVA_HOME=~/.sdkman/candidates/java/current
 ./gradlew editor                                    # criador de personagens do jogador (gera assets antes, se preciso)
 ./gradlew editorDebug                               # editor técnico da personalização (rodada 07)
-./gradlew jogo                                      # protótipo jogável (jogo novo/continuar → vila → missão da Kelyra → trilha e marco ao sul)
+./gradlew jogo                                      # menu principal → personagem → mundo (vila ou gerado) → aventura (rodada 11.1)
+./gradlew jogo -Dvx.menu=nao                        # entrada antiga: escolha de aparência na vila (padrão dos roteiros)
+tools/review111.sh [capturas|resolucoes|video|desempenho|transicoes|testes|validadores|regressao|zip]  # 11.1: menu (tools/menu/), dados TEMPORÁRIOS
 ./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
+./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024   # rodada 11: região gerada pela semente (save em output/saves-procedural/s1024/)
+tools/review11.sh [vistas|videos|desempenho|testes|validadores|regressao|zip]   # rodada 11: sementes 1024 2048 4096 77 (tools/mundo/)
 tools/review10.sh [capturas|videos|marco|casos|desempenho|testes|validadores|regressao|zip]  # rodada 10: aventura (tools/aventura/), saves TEMPORÁRIOS
 ./gradlew jogo -Ptecnico                            # idem com F3 = hitboxes, hurtboxes e estados do combate
 tools/review9.sh [capturas|camera|videos|angulos|interrupcoes|validadores|desempenho|testes|zip]  # pacote do combate (tools/combate/)
@@ -124,6 +135,31 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **Jogo salvo** `valumo.save` v1: escrita atômica, leitor que recusa com o motivo e guarda `.invalido`, sem
     migração falsa. Salvamento automático só nos marcos e no primeiro passo seguro.
   - **QA nunca toca nos saves do proprietário:** `-Dvx.savegame=PASTA_TEMP`; os testes recebem `vx.savegame=-`.
+- **Mundo procedural** (rodada 11, ADRs 0025–0026, skill `mundo-procedural`):
+  - **Relevo:** é dado (`TerrainField`). `World.LEGACY` é o de antes, sem nenhuma conta nova (referências 22/22).
+  - **Região:** é composta de componentes autorais, com RNG derivado por rótulo (`vx.game.world.Rng`, nunca
+    `java.util.Random`, relógio ou ordem de `HashMap`).
+  - **Validação:** só vale se passar na colisão real (`Reachability`), com no máximo 4 tentativas; senão a semente é
+    recusada com motivo.
+  - **Missões:** vêm de modelo + fatos (sem fatos, sem missão), com ids estáveis e sem coordenadas.
+  - **Versão:** mudou o resultado de uma semente → suba `RegionGenerator.VERSION`.
+  - **Save v2:** guarda o mundo e os vínculos, e recusa diferença. O v1 fica intacto.
+- **Porta de entrada** (rodada 11.1, ADRs 0027–0028, [menus](docs/architecture/menus.md)):
+  - **Regras sem GL:** `MenuFlow` (telas, campos, pedidos); `Game` cumpre os pedidos em transições por passos com
+    rótulo real (nunca porcentagem); `MenuView` desenha e fecha os próprios recursos.
+  - **Fundo:** a vila fixa em estado `MENU` (nada de jogo roda). Tomadas em `apresentacao_e.json`, validadas na colisão
+    real (`ApresentacaoTest`); tomada nova pelo guia `processo/como-adicionar-uma-tomada.md`.
+  - **Personagem** (`valumo.personagem`) e **mundo** (`valumo.mundo`) têm id próprio; nome nunca é caminho; mundo ≠
+    semente.
+  - **Aventura = pasta do par:** `mundos/<mundo>/aventuras/<personagem>/`, save v1 (vila) ou v2 (gerado); **sem v3**.
+  - **Saves de antes** são adotados sozinhos, uma vez, por **cópia** validada e registrada (sha256), nunca por cima de
+    progresso; aparências soltas ficam no Carregar do criador.
+  - **Sem texto de tecla nem de desenvolvimento na tela** (nenhum "↑ ↓ escolher", "(Esc)", "rodada", "legado").
+  - **Sair:** "Menu principal" volta à tela inicial. O X da janela é interceptado e pede a mesma confirmação da pausa só
+    quando há progresso fora do disco (`GameLogic.unsaved`). O criador tem cache (`App` vivo) e pergunta no X com
+    alterações. Botões de um grupo usam a mesma escala (`groupPx`).
+  - **QA:** `-Dvx.menu=sim` + `-Dvx.personagens/mundos/savegame/saves/prefs` temporários (`tools/review111.sh`).
+    Roteiros antigos rodam sem menu.
 - **Contrato:** nomes, eixos e escalas em `docs/art/contrato-de-assets.md`; mudou → atualize o documento,
   `AssetContractTest` e `QualityTest`.
 - **Protagonistas da E:** 2,35–2,60 cabeças, ≤ 1,25 u, voxel 1/40 u, articulados (`farm_*`, `shin_*`),
@@ -162,5 +198,7 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Mobilidade, mira, grupos (09.2) | `vx.game`: `Hero` (golpe móvel, esquiva), `Player` (perfil, salto), `Targeting` (Q/Tab), `Combat.enemies` (encontros, vez no grupo), `DeathFx` + `VoxelCloud` + `DeathFxMesh` (morte), `Prefs` (barras, sensação, arena); `viewer`: `Animator` (`Motion.legW/locoDir/air/land`, `spin`/`footY`, contato do rolamento), `Choreo` (`cutFade`); `MobilityTest`, `GroupCombatTest`, `CameraModesTest`; roteiros `tools/combate92/`; `combate.md` §14–19 |
 | Áudio | um dispositivo por processo (ADR 0023): engine `vx.engine.audio` — `Audio`, `SoundSystem`, `SoundCatalog`, `OpenAlOut`, `LoopingReader`, `VorbisSource` (catálogo: música, ambiente, passos, interface) e `OpenAlBackend` (`shared`), `SilentBackend`, `Wav` (efeitos do combate); `vx.game`: `GameAudio`, `AudioPrefs` (volumes na pausa), `Sfx`, `CombatAudio`, `Footsteps` (só sem catálogo); catálogo `assets/audio/sons.json` + arquivos versionados de `fontes/audio/` e `tools/audio/`; combate gerado por `tools/audio_e.py` em `assets/audio/sintese/`, mistura `assets/scenes/sons_e.json`; `AudioTest`, `GameAudioTest`, `CombatAudioTest`; `docs/architecture/audio.md`; skills `audio`, `sound-design`, `music-composition`, `audio-qa` |
 | Missões e save (10) | `vx.game.quest`: `QuestDefinition`, `QuestProgress`, `QuestState`, `QuestEvent`, `QuestSystem`; `vx.game`: `DialogueBook`, `SaveGame`, `SceneDef.WorldObject`, `GameLogic` (falas, objetos, avisos, salvar/continuar), `Game` (marco, rastreador, diário); dados `assets/scenes/missoes_e.json`, `dialogos_e.json`, `jogo_vila_e.json → jogo.objetos`, `combate_e.json → encontros.trilha`; marco `tools/env_e.py → trail_beacon`; sons `fontes/audio/sfx/missao/`; `QuestTest`, `AdventureTest`, `SaveGameTest`; roteiros `tools/aventura/`; `docs/architecture/missoes.md`, `save.md`, `missao-luzes-do-posto.md` |
+| Porta de entrada (11.1) | `vx.game.menu`: `MenuFlow`, `CharacterStore`, `WorldStore`, `Cinematic`; `vx.game`: `MenuView`, `Game` (sessões, transições, pedidos, câmera do menu), `GameLogic` (`MENU`, `beginAdventure`, `leaving`); criador: `CreatorState.cancelLabel`; dados `assets/scenes/apresentacao_e.json`; `MenuStoresTest`, `MenuFlowTest`, `MenuAdventureTest`, `ApresentacaoTest`; roteiros `tools/menu/`; `docs/architecture/menus.md`, `perfis-de-personagem.md`, `catalogo-de-mundos.md` |
+| Mundo procedural (11) | `viewer`: `TerrainField`, `World.LEGACY`, `World(assets, style, field, doc)`, `Terrain.of(field)`; `vx.game.world`: `Rng`, `RegionLayout`, `ProceduralField`, `RegionGenerator`; `vx.game`: `ProceduralScene`, `Reachability`, `SceneDef.fromDoc`, `SaveGame` v2; dados `habitantes_e.json`, `modelos_missao_e.json`; `ProceduralWorldTest`; roteiros `tools/mundo/`; `docs/architecture/mundo-procedural.md` + contratos |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |
