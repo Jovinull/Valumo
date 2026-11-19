@@ -280,8 +280,12 @@ public final class Combat {
     /** O Player do confronto (o GameLogic liga). */
     Player player;
 
+    /** Eventos guardados: os mais recentes (a lista crescia a sessão inteira — fechamento do QA, sessão longa). */
+    static final int EVENTS_KEPT = 4096;
+
     public void log(String text) {
         events.add(new Event(ticks, text.split(":")[0], text));
+        if (events.size() > 2 * EVENTS_KEPT) events.subList(0, events.size() - EVENTS_KEPT).clear();
         if (echo) System.out.printf("combate[%d %.3fs]: %s%n", ticks, ticks * GameLogic.TICK, text);
     }
 }
