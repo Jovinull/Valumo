@@ -1,0 +1,116 @@
+# Mundo procedural (rodada 11 — fundação)
+
+Decisões: [ADR 0025](../decisions/0025-mundo-procedural-por-composicao.md) (região por semente, composição validada,
+missão instanciada) e [ADR 0026](../decisions/0026-save-v2-mundo-procedural.md) (save v2). Contratos:
+[sementes](contrato-sementes.md), [regiões](contrato-regioes.md), [POIs](contrato-pontos-de-interesse.md),
+[instâncias de missão](contrato-instancias-de-missao.md), [persistência](persistencia-mundo-procedural.md). Guias:
+[reproduzir sementes](../processo/reproduzir-sementes.md), [novo tipo de POI](../processo/como-adicionar-um-tipo-de-poi.md).
+
+Legenda: **[IMPLEMENTADO]** existe, testado e capturado · **[PROTÓTIPO]** existe e funciona, mas é uma primeira versão
+pequena (uma região, um tipo de missão) · **[PLANEJADO]** desenho sem código · **[FORA DO ESCOPO]** decidido não fazer
+agora.
+
+## 1. Estudo do que existia (antes da rodada 11)
+
+| # | Pergunta | Resposta (no código da rodada 10) |
+|---|---|---|
+| 1 | O que do terreno já era gerado por código? | Todo o relevo: `World.height(x, z)` é uma função analítica (ruído de valor em duas escalas + encostas + bacia do lago + patamar da casa), quantizada em T1 por `World.quantize` e guardada em colunas no `Terrain`. Cores e superfícies (`surfaceClass`) também são funções. |
+| 2 | O que era fixo? | As CONSTANTES dessa função: o traçado do caminho (`World.PATH`, 8 pontos), o centro do lago (`POND_X/Z`), o patamar da casa (`HOUSE_X/Z`), as encostas fixas por eixo. Uma seed não mudava nada. |
+| 3 | Como os props eram posicionados? | À mão em `assets/scenes/*.json` ("props": nome, x, z, rumo) mais um espalhamento com semente fixa ("scatter") fora da área jogável, que evitava o caminho, o lago e a casa pelas constantes acima. |
+| 4 | Como a vila era definida? | Pela mesma lista à mão (`jogo_vila_e.json`): uma casa, poço, cercas, caixotes, lanternas, placa, posto. |
+| 5 | Como os NPCs eram posicionados? | `jogo.interativos` com x, z, rumo escritos à mão (vagas medidas na 09.4 por `GameplayTest`). |
+| 6 | Como a colisão era construída? | `Collision.build` a partir do que o `World` desenhou (`World.placements()`), dos perfis `colisao_e.json` e dos NPCs — sem OpenGL, a mesma fonte do desenho. |
+| 7 | Como os inimigos recebiam IDs? | Rodada 10: identidade do spawn (5º item de `encontros`, ou `<encontro>.<índice>`). |
+| 8 | Como a missão escolhia o encontro? | `QuestDefinition.encounter` ("trilha"), trocado ao aceitar. |
+| 9 | Como os objetos eram associados à missão? | `jogo.objetos` (id, x, z…) + `objetivos[].objeto` com o mesmo id. |
+| 10 | Como o save identificava a cena? | `"cena": "jogo_vila_e"` (v1); outra cena = recusado. |
+| 11 | Coordenadas fixas no código | `World.PATH/POND/HOUSE`, `CombatDef` (arena, recomeço, encontros vindos do JSON), `GameplayTest`/`AdventureTest` (posições da vila), `Game` (nenhuma no fluxo; as dos roteiros ficam nos roteiros). |
+| 12 | O que já era reutilizável | O ruído, a quantização T1, a malha conforme, o `VoxelMesher`, a `Collision` (perfis, formas, `walkable`, `insideLimit` com círculos extras), o `SceneDef` (formato de cena), o `CombatDef.parse`, a missão inteira (`QuestSystem` não conhece coordenadas), o save atômico. |
+
+Conclusão: o relevo já era procedural, mas com parâmetros fixos; o que faltava era (a) o relevo receber seus
+parâmetros de fora, (b) alguém compor a região e (c) a missão sair dos fatos do mundo em vez de coordenadas.
+
+## 2. O que a semente determina × o que foi gerado × o que existe × o que o jogador mudou
+
+| Camada | Onde | Persistido? |
+|---|---|---|
+| **Regras do mundo** (o que é uma região, que componentes existem, como validar) | `RegionGenerator` (versão `valumo.regiao` v1), `habitantes_e.json`, `modelos_missao_e.json`, props da E | não (é código e dados do jogo) |
+| **O que a semente determina** | `RegionLayout`: relevo (deslocamento e amplitude do ruído, encostas, colina, lago), lugares, trilha, arranjo do assentamento, moradores, posto, encontro, marco, vegetação | não: regenerado da semente + versão + tentativa |
+| **O que existe no mundo atual** | `ProceduralScene`: os documentos de cena (desenho, jogo, combate), a missão instanciada e o vínculo, a conferência de alcance | não: derivado |
+| **O que o jogador mudou** | `QuestSystem`: missões, inimigos derrotados, objetos acesos, moedas; posição, aparência | **sim** (save v2) |
+| **Vínculos resolvidos** | `ProceduralScene.Binding`: modelo, POI, doador, inimigos, objeto e posição dele, rumo | **sim** (save v2), e conferidos na volta |
+
+"Guardar a semente não basta": o save guarda a semente E o que o jogador mudou E os vínculos da missão. Uma versão
+nova do gerador que mudasse o lugar do marco faz o save ser recusado com o motivo, nunca reposiciona a missão em
+silêncio ([persistência](persistencia-mundo-procedural.md)).
+
+## 3. Peças
+
+| Peça | Estado | O quê |
+|---|---|---|
+| `vx.viewer.TerrainField` | [IMPLEMENTADO] | o relevo como dado: altura, distância ao caminho e ao lago, centro do lago, raio da floresta. `World.LEGACY` = as mesmas funções de antes (referências 22/22 com desvio 0) |
+| `World(assets, style, field, doc)`, `Terrain.of(field)` | [IMPLEMENTADO] | o mesmo desenho (malha conforme, T1, cores, água) para qualquer campo; cache da grade pela identidade do campo |
+| `vx.game.world.Rng` | [IMPLEMENTADO] | SplitMix64 próprio + derivação por rótulos (FNV-1a): resultado igual em toda JVM, independente de ordem ([sementes](contrato-sementes.md)) |
+| `vx.game.world.RegionLayout` | [IMPLEMENTADO] | o que a semente decidiu, dado puro ([regiões](contrato-regioes.md)) |
+| `vx.game.world.ProceduralField` | [IMPLEMENTADO] | o relevo gerado: o vocabulário da vila com parâmetros da semente; patamares onde há construção; trilha aplainada em rampa |
+| `vx.game.world.RegionGenerator` | [PROTÓTIPO] | compõe UMA região (assentamento + trilha + posto, lago e colina opcionais, vegetação) com 3 arranjos autorais de assentamento e 3 composições de mata |
+| `vx.game.Reachability` | [IMPLEMENTADO] | confere na colisão real e no T1: busca em grade de 0,25 u (raio do herói, degrau de 0,30 u), alvos (falar com cada morador, usar o marco, cada fungo, recomeço), arena livre ≥ 75%, nada afundado nem em desnível |
+| `vx.game.ProceduralScene` | [IMPLEMENTADO] | região → documentos de cena; até 4 tentativas determinísticas, senão recusa com motivos; o modelo de missão vira instância |
+| `assets/scenes/habitantes_e.json` | [IMPLEMENTADO] | moradores possíveis com papéis, artigo, exigências (lago) e falas sem fatos fixos |
+| `assets/scenes/modelos_missao_e.json` | [PROTÓTIPO] | um modelo (`quest.template.restaurar_sinal`) com duas vozes autorais (estalajadeira, guardião) |
+| Save v2 | [IMPLEMENTADO] | `valumo.save` v2 só para o mundo procedural ([ADR 0026](../decisions/0026-save-v2-mundo-procedural.md)) |
+| Modo `-Dvx.mundo=procedural -Dvx.semente=N` | [PROTÓTIPO] | o mesmo jogo, o mesmo renderer; semente na tela inicial e na pausa; save em `output/saves-procedural/s<N>/` |
+
+## 4. Como uma região nasce (fluxo)
+
+1. `RegionGenerator.compose(semente, tentativa)`:
+   - **relevo:** deslocamento do ruído, amplitude e encostas;
+   - **lugares:** o assentamento a 1,5–6 u do centro, e o posto do outro lado, a 13–16 u, dentro de ±16,5 u;
+   - **patamares:** a altura natural de cada lugar, presa a uma faixa;
+   - **trilha:** curva Catmull-Rom com dois pontos de controle desviados, amostrada a 0,5 u;
+   - **lago** (opcional, longe de tudo) e **colina** (opcional, longe da trilha);
+   - **área jogável:** círculos no assentamento, ao longo da trilha e na clareira;
+   - **assentamento:** um de 3 arranjos, girado para a saída da trilha e espelhado pela semente, com a Kelyra diante da
+     estalagem e 2 a 4 moradores em vagas livres de props;
+   - **posto:** quadro do posto, marco no fundo virado para quem chega, dois fungos-cardo entre a chegada e o marco;
+   - **vegetação:** anel de mata fora da área jogável, acentos junto à trilha, pedras e arbustos nos vazios, flores na
+     margem, cogumelos no posto, juncos no lago.
+2. `ProceduralScene.docs`: monta os três documentos (desenho, jogo, combate) com tudo explícito e instancia a missão se
+   os fatos existirem.
+3. `SceneDef.fromDoc` + `Collision.build` + `Reachability.check`: a colisão do jogo e o relevo T1.
+4. **Reprovou?** Volta ao passo 1 com a tentativa seguinte (outros sorteios derivados), no máximo
+   `RegionGenerator.MAX_ATTEMPTS = 4`. Nenhuma passou: `ProceduralScene.Rejected`, com os motivos de cada tentativa. Nada
+   de laço infinito.
+5. `Game`: `new World(assets, style, field, worldDoc)` e o `GameLogic` de sempre com a cena gerada.
+
+A geração pesada acontece uma vez, antes do primeiro quadro (no `Game`), nunca no laço de desenho. Nenhum recurso de
+GPU é criado fora da thread do GL: a geração é dado puro, e o `World` monta as malhas como sempre.
+
+## 5. Estado da validação (sementes 1024, 2048, 4096 e 77; mais 1, 2, 3, 555, 9001, 31337 nos testes)
+
+- todas passam na **primeira** tentativa, com 0 problemas de alcance;
+- geração + conferência: ~50–200 ms por região (a primeira é mais lenta: carga de classes e arquivos);
+- números e capturas: relatório da rodada.
+
+## 6. O que fica para depois
+
+| Item | Estado |
+|---|---|
+| Várias regiões costuradas (bordas, trilhas que atravessam) e streaming | [PLANEJADO]: a região já tem id (`r0`) e todo rótulo de RNG leva o id da região; a costura exige bordas compartilhadas (alturas e trilhas na fronteira derivadas do par de regiões), um gerador assíncrono que produza `RegionLayout` + documentos fora da thread do GL e uma fila que só monte malhas na thread do GL |
+| Mais tipos de POI (ruína, entrada de caverna, acampamento) | [PLANEJADO]: [guia](../processo/como-adicionar-um-tipo-de-poi.md) |
+| Mais modelos de missão (exploração, resgate, defesa…) | [PLANEJADO]: a fundação já não impõe "derrotar → interagir → falar" (`conclusao: ultimo_objetivo`) e um NPC pode ter várias missões em sequência |
+| Biomas | [FORA DO ESCOPO] nesta rodada (as 3 matas são composições dos mesmos modelos) |
+| Mundo infinito, dungeons, inventário, comércio, novas criaturas, LLM | [FORA DO ESCOPO] |
+
+## 7. Rodada 11.1 — mundos pela interface
+
+A semente agora também é digitada no jogo:
+
+- **Criar:** menu → personagem → **Criar mundo** (nome + semente opcional; vazia = sorteada e mostrada).
+- **Prévia:** real, desenhada da região gerada.
+- **Entrar:** a mesma `ProceduralScene.create` da linha de comando, com as mesmas tentativas e recusas.
+- **Mundo:** ganhou id próprio (`m-…`), independente da semente. O save v2 da aventura mora na pasta do par personagem ×
+  mundo.
+
+O gerador não mudou (`RegionGenerator.VERSION` = 1); só a grade de relevo de uma tentativa recusada passou a sair do
+cache (`Terrain.release`), sem mudar o resultado de nenhuma semente. Detalhes: [catálogo de mundos](catalogo-de-mundos.md).
