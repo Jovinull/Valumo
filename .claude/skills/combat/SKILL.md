@@ -100,7 +100,7 @@ sons próprios no diretor + teste de correspondência.
 ./gradlew test                                              # CombatTest, CombatAnimationTest, AnimationQaTest, CombatCameraTest, CombatAudioTest
 viewer/build/install/viewer/bin/viewer --check              # todos os golpes (inclui saídas e derrota)
 viewer/build/install/viewer/bin/viewer --check interrupcao-fina
-tools/review9.sh videos angulos                             # vídeos reais (roteiros em tools/combate/) e 4 ângulos
+tools/review9.sh videos && tools/review9.sh angulos         # vídeos reais (roteiros em tools/combate/) e 4 ângulos — um bloco por chamada
 ```
 
 Comandos de roteiro do combate:
@@ -138,8 +138,9 @@ Comandos de roteiro do combate:
 
 ### Esquiva (ADR 0018)
 - Golpe novo jogável: meça as janelas de onde se pode esquivar.
-  - Rode o laço de `Check.dodges` (ou `output/tmp/r92/dbg/Windows.java` como modelo): cortar para `roll` e para
-    `backstep` a cada 0,01 s, nos dois kits.
+  - Rode o laço de `Check.dodges` com os gestos de `Check.DODGES` (`backstep`, `dodge_f`, `dodge_l`, `dodge_r`): cortar a
+    cada 0,01 s, nos dois kits. O validador lê `esquiva.janelas` e os instantes de saída de `combate_e.json` (antes da
+    auditoria de engenharia eles estavam copiados no código).
   - Copie as janelas seguras (fora da execução) para `esquiva.janelas.<golpe>`.
   - Nunca chute janela. Nunca aumente tolerância.
 - `viewer --check esquiva` precisa terminar "segura".

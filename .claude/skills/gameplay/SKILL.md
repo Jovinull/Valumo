@@ -32,8 +32,8 @@ Teste físico do proprietário: `docs/validation/roteiro-de-teste-fisico.md`.
   Se mexer em `Shape.contains`, mantenha o raio envolvente (`bound`) coerente, ou o filtro passa a errar.
 - **Cenas jogáveis são cópias controladas** (`jogo_*.json`, com a seção `jogo`); a clareira canônica e a vila não
   mudam para acomodar gameplay.
-- **Fora do escopo** até ser pedido: combate, dano, IA hostil, inventário, missões, progressão. As interrupções
-  por HIT da espada e da lâmina longa continuam abertas: não as declare corrigidas.
+- **Fora do escopo** até ser pedido: inventário, missões, progressão. Combate, dano e IA hostil são da skill `combat`.
+  A interrupção por HIT da espada foi resolvida na rodada 09; só a da lâmina longa (não jogável) continua aberta.
 
 ## Procedimentos
 
@@ -91,7 +91,7 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 - Pisada: `Player.steps` muda quando `floor(2·animT·cadência)` muda, com o herói no chão e acima de 0,12 u/s
   (`GameAudioTest`: intervalo 1/(2·cadência), mesma contagem a 30 e 144 FPS, parado não pisa).
 - Superfície nova no relevo → caso novo em `GameAudio.stepEvent` + evento no catálogo + teste.
-- Volume do jogador: `AudioPrefs` (pausa), `output/preferencias/audio.json`; roteiros com `-Dvx.prefs=` temporário.
+- Volume do jogador: `AudioPrefs` (pausa), `output/preferencias/audio.json`; roteiros com `-Dvx.prefs=-` (padrão: nem lê nem grava) ou `-Dvx.prefs=` + `-Dvx.prefs.audio=` temporários.
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |

@@ -64,7 +64,8 @@ rodadas anteriores). Registre defeito, severidade, correção e situação no re
   docs/art/reference output/tmp/ref` mede a diferença (critério declarado: < 0,5% dos pixels acima de 8/255).
   Mudou de propósito → refaça as referências e registre o motivo; nunca troque uma referência sem aprovação.
 - **Reprovados** (`docs/art/reference/reprovados/`): procure esses defeitos primeiro.
-- **Auditoria estrutural** antes do olho: `python3 tools/asset_audit.py` (voxels soltos, fragmentos, órfãos).
+- **Auditoria estrutural** antes do olho: `python3 tools/asset_audit.py PASTA` (voxels soltos, fragmentos, órfãos). Ela só
+  relata — sai sempre com 0: leia a última linha, não use em cadeia com `&&`.
 - **Vídeos**: velocidade normal **e** câmera de jogo (`mode=scene`, câmera padrão) — a meia velocidade só
   como apoio. A câmera de jogo é onde o jogador vê (`ref 22`).
 - **Validado ≠ aprovado**: o agente registra evidências; aprovação artística é do proprietário.

@@ -54,8 +54,8 @@ em vez de 5 × 5), contorno ~0,7 ms. Antes de otimizar outra coisa, meça com `-
 ## Rodada 03
 
 - Qualidade PADRÃO = FXAA (`post.frag`, `uFxaa`); ALTA = SSAA 1,5×; bench com `fxaa=0` desliga.
-- Fusão de faces: margem anti-fresta `VoxelMesher.crackMargin` = 0,06 voxel (pontos claros de
-  T-junction). Teste de área compara com a margem zerada.
+- Fusão de faces: **margem 0** desde o ADR 0014 (malha conforme sem T-junctions; `MeshSeamTest`). A margem anti-fresta
+  de 0,06 voxel (`VoxelMesher.crackMargin`) só existe com `-Dvx.mesh=legado`, para comparar.
 - Relevo da E: `World.E_TERRAIN` = 1 (T1); `terrain=0..4` para estudo. Malha nova gerada à mão
   (ex.: chanfro): confira a **ordem dos vértices** (normal = produto vetorial) — a ordem invertida
   some por backface culling sem erro nenhum.

@@ -104,8 +104,9 @@ cruzar rosto/cabeça/tronco · registro no relatório da rodada (o que mudou, n�
 - Interrupção obrigatória (HIT): `golpe!segundos` no roteiro. O golpe cortado anda pela PRÓPRIA trajetória
   por 0,30 s (rebobina na preparação; `"interrupt": "forward"` no golpe faz seguir em frente) e o HIT assume.
   Varredura: `viewer --check interrupcao`. Garantido hoje: nenhum teleporte; preparação sempre segura; arco e
-  cajado seguros em qualquer instante. Janelas inseguras da espada/lâmina longa estão em problemas-conhecidos.
-- Sem cancelamento de gameplay, prioridades, stamina ou hitstop (fora do escopo até existir combate).
+  cajado seguros em qualquer instante. A espada foi resolvida na rodada 09 (0 cortes inseguros a cada 0,01 s: `viewer --check
+  interrupcao-fina`); só a lâmina longa (18/47, não jogável) está em problemas-conhecidos.
+- Cancelamento, prioridades e pausa de impacto do jogo: skill `combat`.
 
 ## Acessórios secundários
 

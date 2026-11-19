@@ -71,9 +71,11 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
 1. `python3 tools/build_assets.py` (canônicos idênticos por hash) e `./gradlew test` (`CustomizationTest`).
 2. `tools/review7.sh gate`: tem de dar **0 pares com diferença**. Se der diferença, investigue a causa (ordem de
    sobreposição, limpeza, origem, recoloração indevida) e mantenha o problema aberto até corrigir.
-3. `tools/review7.sh cabelos pele coberturas matriz videos` e **olhe**: costas com chapéu, mechas
+3. `for s in cabelos pele coberturas matriz videos; do tools/review7.sh $s; done` (o script lê um bloco por chamada; cabelos
+   novos, olhos e botas saem do `tools/review94.sh`) e **olhe**: costas com chapéu, mechas
    atravessando, cor achatada, crânio exposto, chapéu flutuando.
-4. `viewer --check` continua TODOS OK, e a mesma lista de exceções em `--occlusion`.
+4. `viewer --check` continua TODOS OK, e a mesma lista de exceções em `--occlusion` (os dois percorrem só os rigs de
+   `Check.RIGS`: um rig novo precisa entrar nessa lista para ser conferido).
 5. Se o componente aparece no criador: `./gradlew test` (`CreatorTest`: rótulo cabe sem "…", hitboxes) e
    `tools/review72.sh capturas`; olhe a miniatura nova em tamanho real.
 6. Gate de rodadas seguintes sem sobrescrever a 07: `R=output/visual-review/<rodada>/regressao tools/review7.sh gate`.

@@ -19,7 +19,7 @@ exploradora, maga) e `tools/creatures_e.py` (pompom = criatura de referência).
 4. Rosto pintado em superfície curva. **Sempre** placa plana (`charlib_e.skull()` faz; criaturas:
    achatar a frente como em `creatures_e.pompom`).
 5. Cabelo-capacete ou mais de ~6 mechas finas (vira xadrez nas costas).
-6. Arma que atravessa cabeça/chapéu em algum quadro de ação (`viewer --check`); parte pendurada > 40% da altura.
+6. Arma que atravessa cabeça/chapéu em algum quadro de ação (`viewer --check`, com o rig em `Check.RIGS`); parte pendurada > 40% da altura.
 7. Voxel solto ou fragmento < 4 voxels em qualquer parte (`tools/asset_audit.py`, `QualityTest`).
 
 ## Receita

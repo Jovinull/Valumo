@@ -87,7 +87,7 @@ Captura no mundo (`mode=scene,style=e`), close, luz neutra e panorama; checklist
   minúsculas com `_`, radical + variante (`tree_oak2`, `rock_s`).
 - Prop novo na cena: modele em `env_e.py` → contrato → `assets/scenes/clearing_e.json` → captura de escala.
 - Mudar um formato: escritor (Python) e leitor (Java) no mesmo trabalho + contrato + `AssetContractTest`.
-- Versione as saídas de `assets/` (pequenas); antes de entregar, `build_assets` + `./gradlew test` e
+- As saídas geradas de `assets/` **não** vão para o git (o Gradle as regenera); antes de entregar, `build_assets` + `./gradlew test` e
   confira que o `git status` não mostra saída desatualizada (variantes dependem do `charlib_e`).
 
 ## Rodada 05.1

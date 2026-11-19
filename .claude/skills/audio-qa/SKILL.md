@@ -54,7 +54,7 @@ contagem a 30 e 144 FPS, parado não pisa, mapeamento de superfície e de açõe
 ```bash
 JAVA_OPTS="-Dvx.audio=loopback -Dvx.audio.log=true -Dvx.audio.gravar=$PWD/SAIDA/mix.wav" \
   game/build/install/game/bin/game --roteiro tools/jogo/07-audio.txt TMP 30 | grep '^som' > SAIDA/eventos.txt
-ffmpeg -framerate 30 -i TMP/quadros/q_%05d.png -i SAIDA/mix.wav -c:v libx264 -c:a aac -shortest SAIDA/jogo.mp4
+ffmpeg -framerate 30 -i TMP/quadros/q_%05d.png -i SAIDA/mix.wav -c:v libopenh264 -b:v 8M -c:a aac -shortest SAIDA/jogo.mp4   # libx264 -crf 18 onde existir
 ```
 
 - O loopback mistura exatamente `dt` por quadro do roteiro e grava só entre `record on` e `record off`:
@@ -81,9 +81,13 @@ eventos), tabelas de QA e o que foi **ouvido por quem**.
 ## Rodada 09.4 (2ª parte)
 
 - `audio_qa.py` tipo `ambiente` (−28 a −20 LUFS; emenda fim → começo ≤ 3×) e `--catalogo` inclui `ambientes`.
-- `tools/audio/superficies.py PASTA grama_a terra_a areia pedra`: distinção entre superfícies de passo.
+- `tools/audio/superficies.py assets/audio/sfx/passos grama terra areia pedra`: distinção entre superfícies de passo (só
+  imprime as medidas; não reprova sozinho).
 - `AudioTest` prova a posição pelo loopback (lago a 2 u × 12 u: longe < metade do RMS) e as camadas de ambiente
   (entram em rampa, não reiniciam, só o lago tem posição, barramento próprio).
 - Jogo indo ao lago e se afastando: `tools/review94.sh ambiente` (marulho ~8 dB mais baixo longe; passos de areia
   registrados na margem). Preferências de volume: `GameAudioTest.volumePreferences…`; os roteiros usam
-  `-Dvx.prefs=` temporário para não mexer nas preferências do proprietário.
+  `-Dvx.prefs=-` (nem lê nem grava). Quem precisa de preferências num roteiro passa `-Dvx.prefs=ARQUIVO` **e**
+  `-Dvx.prefs.audio=ARQUIVO` temporários — o `review94.sh` gravava nas do proprietário antes da auditoria de engenharia.
+  Atenção: `tools/review94.sh audio|ambiente` REGENERA as sessões e sobrescreve os OGG versionados; para só medir, use
+  `audio_qa.py --catalogo`.

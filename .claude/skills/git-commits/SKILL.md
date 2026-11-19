@@ -30,7 +30,7 @@ Autor: `79649732+Jovinull@users.noreply.github.com` (config local do repositóri
 | `chore` | manutenção (gitignore, limpeza, organização) |
 | `style` | formatação sem efeito |
 
-Escopos usados: `engine`, `viewer`, `tools`, `assets`, `anim`, `scenes`, `skills`, `revisao`, ou nenhum.
+Escopos usados: `engine`, `viewer`, `game`, `tools`, `assets`, `anim`, `scenes`, `skills`, `revisao`, ou nenhum.
 
 Exemplos: `feat(engine): adiciona mesher de voxels com fusão exata de faces` ·
 `fix(tools): corrige furo de pele na franja dos npcs da vila` · `docs: adiciona registros de decisão`.
@@ -39,7 +39,7 @@ Exemplos: `feat(engine): adiciona mesher de voxels com fusão exata de faces` ·
 
 - **Um assunto por commit**, pequeno e separado: um módulo, um gerador, um conjunto de assets do mesmo
   gerador, um grupo de documentos do mesmo tema. Não misture código, assets gerados e docs no mesmo commit.
-- Ordem lógica: build → engine → viewer → testes → ferramentas (`tools/`) → cenas e perfis de animação
+- Ordem lógica: build → engine → viewer → game → testes → ferramentas (`tools/`) → cenas e perfis de animação
   (`assets/scenes`, `assets/anim`) → documentação → skills.
 - Assets gerados **não** são commitados: muda o gerador, commita o gerador (e os testes que o conferem).
 - Use `git add -- <caminhos>` explícitos; nunca `git add -A` sem conferir o `git status`.
@@ -47,7 +47,7 @@ Exemplos: `feat(engine): adiciona mesher de voxels com fusão exata de faces` ·
 ## Nunca versionar
 
 `output/` inteiro (capturas, vídeos, zips, temporários, quarentena), assets gerados (`assets/characters`, `components`,
-`creatures`, `environment`, `textures`, `studies`), `build/`, `bin/`, `.gradle/`, `.venv/`, `__pycache__/`.
+`creatures`, `environment`, `textures`, `studies`, `audio/sintese`), `build/`, `bin/`, `.gradle/`, `.venv/`, `__pycache__/`.
 Sem Releases para pacotes de revisão (decisão do proprietário). Nenhum arquivo acima de 5 MB sem motivo. Nada que ligue um personagem a
 pessoa real (fotos, nomes, referências — ver skill `character-design`). Nenhuma credencial.
 
