@@ -1,0 +1,228 @@
+{
+ "_doc": "Laboratório de conteúdo, lote 2 — VILA A, assentamento de caminho (compacto): construções coladas no caminho e viradas para ele, praça com chafariz, mesa e bancos, conjuntos de ofício (comerciante, ferreiro, guardião de trilhas) como dados do catálogo, a estalagem aprovada no patamar. Vitrine artística: NÃO substitui a vila do jogo. Gerada por tools/conteudo/vitrines.py.",
+ "hero": [
+  0.4,
+  2.6,
+  200
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4"
+   ],
+   "count": 55,
+   "ring": [
+    18.5,
+    24
+   ],
+   "seed": 51,
+   "minDist": 2.8
+  }
+ ],
+ "creatures": [],
+ "clouds": [
+  [
+   -18,
+   13,
+   -20
+  ],
+  [
+   6,
+   15,
+   -26
+  ],
+  [
+   22,
+   12,
+   -18
+  ]
+ ],
+ "props": [
+  {
+   "n": "house",
+   "x": -6.5,
+   "z": -8.0,
+   "r": 0
+  },
+  {
+   "n": "fountain_square",
+   "x": 2.6,
+   "z": -0.6,
+   "r": 0,
+   "dy": 0.125
+  },
+  {
+   "n": "house_tall",
+   "x": 9.3,
+   "z": -6.1,
+   "r": 305,
+   "dy": 0.125
+  },
+  {
+   "n": "market_stall",
+   "x": 9.809,
+   "z": -0.841,
+   "r": 305
+  },
+  {
+   "n": "crate_stack",
+   "x": 12.332,
+   "z": -3.34,
+   "r": 35
+  },
+  {
+   "n": "bench_wood",
+   "x": 5.548,
+   "z": -6.403,
+   "r": 305
+  },
+  {
+   "n": "sign_trade__oficio-comerciante",
+   "x": 8.014,
+   "z": -2.88,
+   "r": 305
+  },
+  {
+   "n": "workshop_forge",
+   "x": -4.6,
+   "z": 4.2,
+   "r": 125,
+   "dy": 0.125
+  },
+  {
+   "n": "sign_trade",
+   "x": -1.184,
+   "z": 4.372,
+   "r": 125
+  },
+  {
+   "n": "tool_rack",
+   "x": -3.043,
+   "z": 6.772,
+   "r": 35
+  },
+  {
+   "n": "crate_stack",
+   "x": -6.96,
+   "z": 0.481,
+   "r": 125
+  },
+  {
+   "n": "woodpile_axe",
+   "x": -6.255,
+   "z": 5.847,
+   "r": 305
+  },
+  {
+   "n": "tower_watch",
+   "x": 4.4,
+   "z": 11.6,
+   "r": 260,
+   "dy": 0.25
+  },
+  {
+   "n": "guard_brazier",
+   "x": 2.911,
+   "z": 9.103,
+   "r": 260
+  },
+  {
+   "n": "weapon_rack",
+   "x": 5.442,
+   "z": 9.144,
+   "r": 350,
+   "dy": 0.125
+  },
+  {
+   "n": "notice_board",
+   "x": 1.423,
+   "z": 13.512,
+   "r": 260,
+   "dy": 0.125
+  },
+  {
+   "n": "bench_wood",
+   "x": 0.212,
+   "z": 11.166,
+   "r": 80
+  },
+  {
+   "n": "shed_storage",
+   "x": -11.5,
+   "z": -0.5,
+   "r": 90,
+   "dy": 0.25
+  },
+  {
+   "n": "table_bench",
+   "x": -0.9,
+   "z": -3.0,
+   "r": 20
+  },
+  {
+   "n": "bench_wood",
+   "x": 4.6,
+   "z": 1.6,
+   "r": 270
+  },
+  {
+   "n": "bench_wood",
+   "x": -1.8,
+   "z": 1.4,
+   "r": 120
+  },
+  {
+   "n": "lantern_post",
+   "x": -3.6,
+   "z": -1.6,
+   "r": 0
+  },
+  {
+   "n": "lantern_post",
+   "x": 2.8,
+   "z": 5.0,
+   "r": 0
+  },
+  {
+   "n": "barrel",
+   "x": -5.2,
+   "z": -4.4,
+   "r": 0
+  },
+  {
+   "n": "cart_hay",
+   "x": 2.4,
+   "z": 13.6,
+   "r": 160
+  },
+  {
+   "n": "fence_picket",
+   "x": -8.8,
+   "z": -3.4,
+   "r": 0
+  }
+ ],
+ "npcs": [
+  {
+   "rig": "characters/npc/kelyra",
+   "x": 8.107,
+   "z": -4.425,
+   "r": 305,
+   "clip": "idle"
+  },
+  {
+   "rig": "characters/npc/bramor",
+   "x": 2.394,
+   "z": 11.817,
+   "r": 260,
+   "clip": "idle"
+  }
+ ]
+}

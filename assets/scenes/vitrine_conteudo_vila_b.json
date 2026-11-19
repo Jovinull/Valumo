@@ -1,0 +1,261 @@
+{
+ "_doc": "Laboratório de conteúdo, lote 2 — VILA B, comunidade rural (dispersa): sítios afastados (caçador na borda da mata, herbalista junto ao caminho), paiol e hortas como área de trabalho, poço de sarilho como ponto de encontro, mureta de pedra, carroça, árvores entre as casas e muito espaço aberto. Vitrine artística: NÃO substitui a vila do jogo. Gerada por tools/conteudo/vitrines.py.",
+ "hero": [
+  0.4,
+  2.6,
+  200
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4",
+    "tree_forked",
+    "tree_poplar"
+   ],
+   "count": 60,
+   "ring": [
+    18.5,
+    24
+   ],
+   "seed": 52,
+   "minDist": 2.6
+  }
+ ],
+ "creatures": [],
+ "clouds": [
+  [
+   -18,
+   13,
+   -20
+  ],
+  [
+   6,
+   15,
+   -26
+  ],
+  [
+   22,
+   12,
+   -18
+  ]
+ ],
+ "props": [
+  {
+   "n": "cabin_hunter",
+   "x": -12.0,
+   "z": -0.5,
+   "r": 80,
+   "dy": 0.375
+  },
+  {
+   "n": "woodshed_open",
+   "x": -12.973,
+   "z": 3.289,
+   "r": 170,
+   "dy": 0.25
+  },
+  {
+   "n": "woodpile_axe",
+   "x": -8.629,
+   "z": -2.343,
+   "r": 80
+  },
+  {
+   "n": "basket_group__conteudo-cogumelos",
+   "x": -9.474,
+   "z": 1.875,
+   "r": 80
+  },
+  {
+   "n": "sign_trade__oficio-cacador",
+   "x": -8.495,
+   "z": -0.796,
+   "r": 80
+  },
+  {
+   "n": "hut_herbalist",
+   "x": -6.0,
+   "z": 10.5,
+   "r": 100
+  },
+  {
+   "n": "herb_rack",
+   "x": -6.324,
+   "z": 7.511,
+   "r": 190
+  },
+  {
+   "n": "basket_group__conteudo-ervas",
+   "x": -3.491,
+   "z": 8.027,
+   "r": 100
+  },
+  {
+   "n": "fence_picket",
+   "x": -2.588,
+   "z": 11.422,
+   "r": 100
+  },
+  {
+   "n": "sign_trade__oficio-herbalista",
+   "x": -2.924,
+   "z": 8.942,
+   "r": 100
+  },
+  {
+   "n": "granary_raised",
+   "x": 9.5,
+   "z": -9.5,
+   "r": 330,
+   "dy": 0.25
+  },
+  {
+   "n": "crop_field",
+   "x": 11.1,
+   "z": -3.6,
+   "r": 0
+  },
+  {
+   "n": "crop_field",
+   "x": 3.0,
+   "z": -9.0,
+   "r": 90
+  },
+  {
+   "n": "well_windlass",
+   "x": 2.6,
+   "z": -3.4,
+   "r": 20
+  },
+  {
+   "n": "scarecrow",
+   "x": 13.2,
+   "z": -3.4,
+   "r": 200
+  },
+  {
+   "n": "cart_hay",
+   "x": 6.2,
+   "z": -6.6,
+   "r": 120
+  },
+  {
+   "n": "woodpile_axe",
+   "x": 8.0,
+   "z": -12.4,
+   "r": 0
+  },
+  {
+   "n": "fence_stone",
+   "x": 15.4,
+   "z": -7.0,
+   "r": 90
+  },
+  {
+   "n": "fence_stone",
+   "x": 15.4,
+   "z": -5.0,
+   "r": 90
+  },
+  {
+   "n": "fence_stone",
+   "x": 15.4,
+   "z": -3.0,
+   "r": 90
+  },
+  {
+   "n": "fence_stone",
+   "x": 14.4,
+   "z": -1.9,
+   "r": 0
+  },
+  {
+   "n": "fence_stone",
+   "x": 12.4,
+   "z": -1.9,
+   "r": 0
+  },
+  {
+   "n": "basket_group",
+   "x": 10.4,
+   "z": -0.4,
+   "r": 0
+  },
+  {
+   "n": "bench_wood",
+   "x": 4.4,
+   "z": -1.4,
+   "r": 290
+  },
+  {
+   "n": "tree_oak",
+   "x": -3.0,
+   "z": -6.0,
+   "r": 0
+  },
+  {
+   "n": "tree_forked",
+   "x": 4.4,
+   "z": 10.2,
+   "r": 0
+  },
+  {
+   "n": "tree_poplar",
+   "x": 0.2,
+   "z": -9.6,
+   "r": 0
+  },
+  {
+   "n": "tree_poplar",
+   "x": -1.6,
+   "z": -10.4,
+   "r": 0
+  },
+  {
+   "n": "tree_gnarled",
+   "x": -14.0,
+   "z": 8.0,
+   "r": 0
+  },
+  {
+   "n": "bush",
+   "x": -8.6,
+   "z": 2.0,
+   "r": 0
+  },
+  {
+   "n": "bush_berry",
+   "x": 6.8,
+   "z": -15.0,
+   "r": 0
+  },
+  {
+   "n": "flower_yellow",
+   "x": 3.6,
+   "z": 2.8,
+   "r": 0
+  },
+  {
+   "n": "grass_tall",
+   "x": -2.6,
+   "z": 4.0,
+   "r": 0
+  }
+ ],
+ "npcs": [
+  {
+   "rig": "characters/npc/indira",
+   "x": -3.553,
+   "z": 9.624,
+   "r": 100,
+   "clip": "idle"
+  }
+ ]
+}
