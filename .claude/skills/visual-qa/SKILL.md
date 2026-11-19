@@ -1,6 +1,6 @@
 ---
 name: visual-qa
-description: Revisar visualmente qualquer mudança do jogo com capturas reais do viewer — comparação controlada no modo LINHA, silhueta, argila, luz neutra, tamanho reduzido, close de rosto, cena, vídeo de animação (MP4/GIF), pacote --review2, revisão de interface por roteiro de entrada (tools/review72.sh) e checklist de aceitação. Use sempre que algo visual mudar, antes de declarar pronto. Rodada 09.2: vídeos de combate com som da aplicação (tools/review92.sh), comparações no mesmo roteiro (binário 09.1 × 09.2, perfil A × C, morte antiga × D1 × D2 lado a lado), capturas em 1080p e 720p e pranchas de animação com pernas.
+description: Revisar visualmente qualquer mudança do jogo com capturas reais do viewer — comparação controlada no modo LINHA, silhueta, argila, luz neutra, tamanho reduzido, close de rosto, cena, vídeo de animação (MP4/GIF), pacote --review2, revisão de interface por roteiro de entrada (tools/review72.sh) e checklist de aceitação. Use sempre que algo visual mudar, antes de declarar pronto. Rodada 09.2: vídeos de combate com som da aplicação (tools/review92.sh), comparações no mesmo roteiro (binário 09.1 × 09.2, perfil A × C, morte antiga × D1 × D2 lado a lado), capturas em 1080p e 720p e pranchas de animação com pernas. Rodada 11.1: menu, personagens, mundos e aventura por roteiro com dados temporários, resoluções e leiautes A × B (tools/review111.sh).
 ---
 
 # QA visual (rodada 02 em diante)
@@ -217,3 +217,21 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
 - `snap` aceita `kit=DIR` (equipamento da aparência composta, como no jogo).
 - Referência canônica: só se refaz com a causa PROVADA (código final × arquivo suspeito revertido, desvio 0) — skill
   `engineering-qa` §7b.
+
+## Rodada 11.1 — porta de entrada (`tools/review111.sh`)
+
+- **Dados SEMPRE temporários:** cópias das aparências e do save do proprietário. O script confere por sha256 os
+  originais antes e depois e escreve "dados do proprietário: intactos".
+- **Roteiros** (`tools/menu/`), na mesma pasta, em sequência:
+  - `01` menu principal e tomadas;
+  - `02` personagens (criar, girar, editar, cancelar);
+  - `03` mundos (prévia, criar, semente sorteada, recusa simulada com `-Dvx.qa.recusar=4242`, mesma semente em dois
+    mundos);
+  - `04` aventura (o save antigo adotado sozinho, continuar, voltar ao menu salvando ou não);
+  - `07` resoluções (720p, 1080p, 16:10, 21:9, leiautes A × B);
+  - `08` vídeo com som por loopback.
+- **Fundo do menu:** olhe cada tomada (`menu-tomada T`). O teste de colisão não pega morador colado na borda do quadro nem
+  um prop que domina a imagem.
+- **Vitrine dos personagens:** o herói precisa ler sozinho. Morador colado ou atrás confunde a silhueta (escondidos só no
+  desenho); relevo na frente da câmera vira um bloco enorme (aconteceu no ponto de início da vila: a vitrine tem ponto
+  próprio, testado).

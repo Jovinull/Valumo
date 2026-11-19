@@ -1,6 +1,6 @@
 ---
 name: game-ui
-description: Construir ou alterar interfaces de jogo do Valumo na engine própria — lote 2D (UiBatch), fonte de pixel própria (PixelFont/FontAtlas), fila de eventos da janela em pixels do framebuffer, layout e estado testáveis sem OpenGL, estados de controle, escala por resolução, composição assíncrona e revisão por roteiro de entrada. Use ao criar uma tela (criador, inventário, diálogo, HUD de jogo) ou ao mexer no criador de personagens.
+description: Construir ou alterar interfaces de jogo do Valumo na engine própria — lote 2D (UiBatch), fonte de pixel própria (PixelFont/FontAtlas), fila de eventos da janela em pixels do framebuffer, layout e estado testáveis sem OpenGL, estados de controle, escala por resolução, composição assíncrona e revisão por roteiro de entrada. Use ao criar uma tela (criador, inventário, diálogo, HUD de jogo) ou ao mexer no criador de personagens. Rodada 11.1: menus da porta de entrada (MenuFlow sem GL + MenuView), campos de texto, modais exclusivos, roteiros tools/menu.
 ---
 
 # Interfaces de jogo (rodada 07.2 em diante)
@@ -62,6 +62,52 @@ Decisão: `docs/decisions/0012-interface-do-jogo.md`.
   formato dos olhos vira botões de alternância sob um título único. O `CreatorTest` (todas as resoluções e variantes)
   pega o que sai da tela.
 - Roteiros sem `record on` não desenham: use `settle` antes de `click` em botão que acabou de aparecer.
+## Rodada 11.1 — menus da porta de entrada (`docs/architecture/menus.md`)
+
+- **Separação:**
+  - regras em `vx.game.menu.MenuFlow` (sem GL, testável);
+  - desenho e recursos de GL em `MenuView` (fecha em `close()`);
+  - pedidos que exigem GL ou o laço da janela cumpridos pelo `Game` (`done`/`failed`).
+- **Botão novo:** `g.button(id, …)` na tela + o `id` em `MenuFlow.action` (ou `Game.menuClick` para `cfg:*`) + o caso no
+  `MenuFlowTest`.
+- **Tela nova:**
+  1. Valor em `Screen`.
+  2. Chegada em `action`, volta em `back()`.
+  3. `drawX` + `case` em `MenuView.draw`.
+  4. Roteiro de captura em `tools/menu/`.
+- **Modal:** limpe `g.buttons` antes de desenhar o modal; senão os botões de baixo recebem o clique (aconteceu: o clique
+  no campo da semente caiu num cartão da lista).
+- **Campo de texto:**
+  - eventos `CHAR` para `MenuFlow.chr` e Backspace/Tab/Enter/Esc para `MenuFlow.key`;
+  - enquanto `typing()`, nenhuma tecla de jogo vale, nem o M de mudo;
+  - a semente só aceita algarismos;
+  - o fim do texto fica visível e o cursor pisca.
+- **Quebra de linha:** mesma fonte na medida e no desenho. `g.wrap` mede na regular: desenhar em negrito o que foi
+  quebrado na regular invade a coluna vizinha (aconteceu com a mensagem de erro).
+- **Avisos:** no topo, onde não cobrem plaqueta nem botões (embaixo cobriam o nome do personagem).
+- **Dica de teclas:** não ponha `controlsHint` onde há painel até o rodapé: cobre os botões. Os botões já dizem a tecla.
+- **Roteiros:** `click` desenha um quadro antes de procurar o botão. `digitar`, `arrastar`, `esperar-menu`,
+  `menu-estado`, `menu-mundo`, `menu-tomada`, `menu-leiaute`, `menu-recursos`.
+- **Resoluções:** capture 720p, 1080p, 16:10 e 21:9 (`tools/menu/07-resolucoes.txt`); o menu principal tem os leiautes
+  A (oficial) e B (só comparação: `-Dvx.menu.layout=B`).
+
+## Texto na tela (decisão do proprietário, 11.1)
+
+Nenhuma dica de tecla em lugar nenhum: nada de linha "↑ ↓ escolher · Enter confirmar · mouse", "(Esc)"/"(Enter)"/"(E)"
+em botão, tecla na placa de interação, "arraste para girar". Nada de texto de desenvolvimento (rodada, legado, versão do
+gerador, nome de arquivo). Espera = indicador sem texto (`MenuView.waiting`).
+
+## Fechamento da 11.1 — tipografia, carregamento, X
+
+- **Grupos de botões:** escala comum (`g.groupPx = g.groupPxFrom(base, rótulo, largura, …)` antes do grupo; `0` depois).
+  - Base 30 no menu principal, `MenuView.MENU_BUTTON` (27) nas telas de menu, 22 na pausa.
+  - Se um par lado a lado encolheria o grupo, empilhe (personagens).
+  - Nunca deixe um botão escolher sozinho a escala ao lado de outro do mesmo grupo.
+- **Carregamento:** logotipo pequeno + passo real + sementes P1 (`MenuView.waiting`); sem porcentagem, sem cena 3D.
+- **Modais e confirmações:** a confirmação de saída é uma só (pausa e X da janela).
+- **Roteiros:** `fechar-janela` (mesmo caminho do callback do GLFW), `shot-agora` (captura sem esperar),
+  `menu-personagem NOME`.
+
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |

@@ -1,6 +1,6 @@
 ---
 name: gameplay
-description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade. Rodada 09.2: perfis de sensação (velocidade/passada/aceleração), salto com coyote e buffer, props pisáveis (colisao_e.json "pisavel"), referência do WASD com giro limitado e preferências do jogador (Prefs). Rodada 10: missões, objetos do mundo com estado (E), falas por contexto, jogo salvo v1 (atômico), Continuar, diário e rastreador (tools/aventura, tools/review10.sh).
+description: Desenvolver a experiência jogável do Valumo (módulo game) — controle do herói por velocidade com subpassos fixos, colisão simples por perfis de prop (colisao_e.json) separada da malha, relevo T1 compartilhado com o desenho (Terrain), câmera de terceira pessoa com linha de visão e desvio, NPCs interativos e diálogo, estados do jogo, aparência do compositor no mundo, testes de propriedades de gameplay e roteiros de entrada (tools/jogo, tools/review8.sh). Use ao mexer em movimento, colisão, câmera de exploração, cena jogável, interação ou ao validar jogabilidade. Rodada 09.2: perfis de sensação (velocidade/passada/aceleração), salto com coyote e buffer, props pisáveis (colisao_e.json "pisavel"), referência do WASD com giro limitado e preferências do jogador (Prefs). Rodada 10: missões, objetos do mundo com estado (E), falas por contexto, jogo salvo v1 (atômico), Continuar, diário e rastreador (tools/aventura, tools/review10.sh). Rodada 11.1: o jogo abre no menu (estado MENU, sessão trocável, transições em passos), aventura = personagem × mundo (beginAdventure, pasta do par), confirmação ao sair (tools/menu, tools/review111.sh).
 ---
 
 # Gameplay (rodada 08 em diante)
@@ -144,7 +144,8 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 
 ## Fechamento do QA — interface do jogo e preferências
 
-- Dica de controles: `GameLogic.helpVisible()` (40 s a partir de "Entrar na vila"; F1 alterna o que está visível).
+- Dica de controles na tela: **removida na 11.1** a pedido do proprietário (nenhuma linha de teclas, nenhum "(Esc)" ou
+  "(E)" em botão ou placa, em lugar nenhum). Não reintroduza.
 - Voltar de outra tela que tomou a janela (o criador): `Input.releaseAll()` (as solturas de tecla foram para ela).
 - `-Dvx.sensacao`/`-Dvx.encontro` são comparação de sessão: `Prefs.save()` grava o valor do arquivo até o jogador escolher
   na pausa. Preferência ilegível: padrões + original em `ARQUIVO.invalido`.
@@ -170,3 +171,36 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 - **Captura de objeto antes × depois:** o mesmo `posicionar` + `camera-recompor` nos dois. Com o herói de costas para o
   objeto, a câmera atrás dele o esconde: vire o herói ~30–40° para o objeto ficar de lado no quadro.
 
+## Rodada 11 — modo procedural (`jogo.md` §15, skill `mundo-procedural`)
+
+- `-Dvx.mundo=procedural -Dvx.semente=N`: o mesmo `Game` e `GameLogic` com a cena gerada (`ProceduralScene` →
+  `SceneDef.fromDoc`, `scene.procedural`). O modo padrão é a vila fixa e não pode mudar.
+- Tudo que antes lia o relevo estático (`World.surfaceAt`, `World.pondCenter`) lê o da cena (`scene.field`).
+- Roteiro de região não escreve coordenadas: `ir-lugar`, `seguir-trilha`, `vista-lugar`, `conversar` acham os lugares
+  da região gerada.
+
+## Rodada 11.1 — porta de entrada (`jogo.md` §16, `menus.md`)
+
+- **O jogo abre no menu.** `Game` abre a sessão da vila com `saveDir = null` e põe a lógica em `MENU` (só assenta herói e
+  câmera). Os roteiros antigos rodam sem menu (`GameMain`: `-Dvx.menu=nao`); os do menu pedem `-Dvx.menu=sim`.
+- **Sessão trocável:** `openSession(world, cena, ps, pastaDoSave)` / `closeSession(manterVila)`.
+  - Tudo da sessão fecha: malhas, `Terrain.release` do relevo gerado, atores, mortes, som.
+  - Nunca deixe combate ou diálogo vivo atrás do menu.
+- **Transições:** `transition(Step...)`, um passo por quadro, depois de um quadro com o rótulo real. Trabalho de GL só
+  na thread do contexto. Falha = `recoverToMenu(mensagem)`.
+- **Começar ou continuar:** `GameLogic.beginAdventure(aparência do perfil, nome, continuar)` com `saveDir` = pasta do par
+  (`WorldStore.adventureDir`). A aparência do perfil vale também ao continuar.
+- **Sair da aventura:** `leaving` ("menu" | "sair"). Salvar e sair só se `saveBlocker()` deixar. Fora do menu, "sair"
+  continua direto.
+- **Preferências:** sensibilidade e inverter vertical estão em `Prefs` (gravadas). O volume geral está em `AudioPrefs`.
+- **Testes:** `MenuAdventureTest` (começar, continuar com a aparência do perfil, confirmação, v1/v2 no mundo certo) e
+  `ApresentacaoTest` (tomadas e vitrine na colisão real).
+
+## Fechamento da 11.1 — sair sem perder
+
+- **Pedido de sair** (pausa "Menu principal", "Sair do jogo", X da janela):
+  - `GameLogic.unsaved()` decide se pergunta: o progresso das missões ou a posição (0,25 u) desde o último save/Continuar/
+    começo; o tempo de jogo não conta;
+  - `requestQuit()` abre a mesma confirmação de qualquer estado e lembra o estado anterior para o Cancelar.
+- **Menu principal:** volta à tela inicial (`enterMenu(MAIN)`); as escolhas ficam no `MenuFlow`.
+- **Testes:** `MenuAdventureTest` (X em diálogo, salvamento automático intocado, falha de gravação não sai).

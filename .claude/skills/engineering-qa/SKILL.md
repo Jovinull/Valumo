@@ -154,3 +154,32 @@ Para cada achado: evidência → hipótese → reprodução → causa → corre�
 **P0** build quebrado, corrupção, crash · **P1** erro Java real, corrida, bug de jogo reproduzível, vazamento, falso verde do
 build, gargalo grande · **P2** aviso legítimo, robustez, teste frágil, documento oficial errado · **P3** limpeza. O que não
 foi reproduzido fica como "não confirmado", com a condição que faltou. Atualize `problemas-conhecidos.md`.
+
+## Rodada 11.1 — menu e troca de sessão
+
+- **Vazamento na troca de mundo:** `tools/review111.sh transicoes` faz 24 transições (vila e mundo gerado alternados),
+  mudo e com som por loopback. Cada volta grava uma linha de recursos: malhas, texturas, FBOs, grades de relevo
+  (`Terrain.cached()`), heap pós-GC, RSS, fluxos e vozes do OpenAL. Nada pode crescer.
+  - Achado e corrigido: as tentativas recusadas da geração deixavam a grade de relevo no cache estático.
+- **Quem é dono:**
+  - `MenuView` fecha retratos, prévias e os dois renderers próprios;
+  - `Game.closeSession` fecha mundo, relevo gerado e atores;
+  - a prévia fecha o mundo temporário e o FBO no `finally`.
+- **Dados do proprietário:** testes com `@TempDir`; roteiros com `-Dvx.personagens/mundos/savegame/saves/prefs`
+  temporários; hash antes e depois.
+- **Desempenho:** `menu: primeiro quadro N ms` (tempo até o menu) e `tools/menu/05-desempenho.txt` (quadro no menu,
+  personagens, mundos). Compare com `vila-sem-menu-referencia.txt` do mesmo binário.
+
+## Rodada 11 — geração procedural
+
+- **Determinismo de geração:** mesma semente, gerada duas vezes e em ordens diferentes, tem que dar o mesmo resultado:
+  `ProceduralWorldTest.mesmaSementeGeraOMesmoMundoEmQualquerOrdem` compara os documentos, os vínculos e as alturas.
+- **Refatorou o relevo ou o `World`:** referências 22/22 (desvio 0) e gate 51/0 **antes** de seguir. O campo legado
+  não pode ganhar conta nova.
+- **Desempenho:** `tools/review11.sh desempenho` (vila fixa × regiões, mesmo binário, 3 repetições) e
+  `medir-geracao N` (compor, conferir na colisão real, consulta de POI, instanciar missão). A geração é feita antes do
+  primeiro quadro e nunca no laço de desenho.
+- **Save:** número relido do JSON comparado com o escrito precisa do mesmo tipo (`double` arredondado). `float` falhou
+  em silêncio até o teste de save v2.
+- **Worktree:** um worktree novo não tem `.venv`. Os scripts `tools/*.sh` usam `.venv/bin/python` relativo; crie o link
+  (ignorado pelo git) ou rode com `-Pvx.python=`.

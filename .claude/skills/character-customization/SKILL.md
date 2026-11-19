@@ -1,6 +1,6 @@
 ---
 name: character-customization
-description: Personalização modular dos protagonistas em tempo de execução (Java) — catálogo de componentes gerado por tools/components_e.py, compositor (Composer) com grade fundida por peça, recoloração por canal semântico que preserva a rampa, variantes de cabelo sob chapéu/capuz com assento, presets idênticos ao canônico, Appearance versionada (salvar/carregar), criador do jogador (07.2) e modo PERSONALIZACAO técnico, gate pixel a pixel; rodada 09.4: formato dos olhos (olhos.*), botas por região (pes), Appearance v2 com migração, regra X real e arma × cabelo voxel a voxel (--check-cabelos). Use ao criar cabelo, chapéu, cor, rosto, olhos, roupa ou preset, ao mexer no compositor ou ao validar combinações.
+description: Personalização modular dos protagonistas em tempo de execução (Java) — catálogo de componentes gerado por tools/components_e.py, compositor (Composer) com grade fundida por peça, recoloração por canal semântico que preserva a rampa, variantes de cabelo sob chapéu/capuz com assento, presets idênticos ao canônico, Appearance versionada (salvar/carregar), criador do jogador (07.2) e modo PERSONALIZACAO técnico, gate pixel a pixel; rodada 09.4: formato dos olhos (olhos.*), botas por região (pes), Appearance v2 com migração, regra X real e arma × cabelo voxel a voxel (--check-cabelos). Use ao criar cabelo, chapéu, cor, rosto, olhos, roupa ou preset, ao mexer no compositor ou ao validar combinações. Rodada 11.1: o criador aberto pelo menu (Cancelar só nesse modo) grava perfis de personagem.
 ---
 
 # Personalização de personagens (direção E)
@@ -102,6 +102,19 @@ de tarde, e em escala de jogo. Cabelo e pele parecidos precisam continuar separa
 - **Aparência v2** (`aparencia.olhos`, `equipamento_visual.pes`); v1 abre por `Appearance.migrate1to2`. Campo novo →
   copy, reset, assinatura, JSON, validate, `Main` (chave de captura), criador (layout, miniatura, controlador, nome).
 - Captura: chaves `olhos=` e `pes=` além das antigas. Pacote: `tools/review94.sh cabelos|olhos|botas|armas`.
+## Rodada 11.1 — criador aberto pelo menu (perfis de personagem)
+
+- **Abrir:** o menu abre o MESMO criador (`Creator` na mesma janela) para **Novo personagem** e **Editar aparência**.
+  - `cs.finishLabel` ("Criar personagem"/"Salvar personagem") + `cs.cancelLabel = "Cancelar"`.
+  - O botão Cancelar (canto superior direito) e o Esc fecham sem gravar (`cs.cancelled`).
+  - Sem `cancelLabel` o criador é o de sempre: o gate 51/0 não muda.
+- **Concluir:** grava o PERFIL (`CharacterStore.create`/`update`, id estável, nome só exibição), não um arquivo solto
+  de `output/aparencias/`.
+- **Aparências soltas** (`output/aparencias/`): não viram personagens; ficam no **Carregar** do criador (sem botão de importar no menu, decisão do proprietário).
+- **Retratos da lista:** o caminho das miniaturas do criador (`AsyncComposer.requestThumb` → `App.renderPortrait`,
+  enquadramento "cabeça"), uma vez por assinatura de aparência. Nada de malha por quadro.
+- **Testes:** `MenuStoresTest` (editar não duplica nem toca outro perfil, Unicode, importação repetida, arquivo ruim).
+
 ## Defeitos já vistos (não repita)
 
 | Defeito | Causa | Correção |
