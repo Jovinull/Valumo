@@ -220,3 +220,89 @@ O teste exige coerência: quem declara `colisao.formas` não pode estar `liberad
 4. `tools/conteudo/vitrines.py` + `tools/conteudo/cenas.py`: no mundo, com câmera de jogo, 720p e 1080p, dia e tarde.
 5. `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest`.
 6. Crítica escrita **com o problema concreto** (o que se vê, em que vista) e correção no script; nunca afrouxar teste.
+
+## 11. Lote 2 — assentamentos (candidatos, aguardando avaliação)
+
+Ramo `feature/world-content-settlements`, empilhado sobre o lote 1. O objetivo é o que **liga** as casas: trabalho,
+caminho, espaço público, objetos do dia a dia, identidade local. Nenhum NPC ou missão nova; os cenários ficam
+preparados.
+
+### O que entrou
+
+| Grupo | Assets | Voxel |
+|---|---|---|
+| Estruturas complementares | depósito de uma água, paiol sobre pés de pedra, poço de sarilho, chafariz de praça | 1/8 |
+| Estruturas pequenas | lenheiro coberto, barraca de feira, quadro de avisos, horta em canteiros, braseiro de sinal, suporte de lanças | 1/16 |
+| Props | carroça de feno, banco, mesa com bancos, caixotes e sacos, cestos, lenha com machado, placa de ofício (5 pictogramas), mureta de pedra seca, cerca de estacas, suporte de ferramentas, varal de ervas, espantalho | 1/16 (mureta 1/8) |
+
+Regras que o lote fixou:
+- **Silhueta antes de quantidade.** Cada prop tem forma própria na câmera de jogo:
+  - roda de raios (carroça);
+  - toldo inclinado (barraca);
+  - cruz com chapéu (espantalho);
+  - cavalete com ferramentas de cabeça distinta.
+
+  Nada de vinte barris parecidos. A pilha de caixotes é escada irregular com sacos, nunca o cubo do caixote aprovado.
+- **Função sem texto:** a placa de ofício troca só o pictograma (bigorna, folha, moeda, caneca, flecha); os cestos
+  trocam o conteúdo (horta, ervas, cogumelos BEGE, nunca o vermelho do fungo inimigo).
+- **Frente = +z** (contrato). O quadro de avisos e o suporte de lanças nasceram de costas (v1) e foram virados. O
+  quadro tem papéis dos dois lados.
+- **Maciço por dentro:** caixote oco gera as paredes internas, invisíveis, e dobra as faces (crate_stack v1: 3 454 →
+  dentro do orçamento depois de preencher).
+- **Lenha:** achas de 1/16 com ponta arredondada (cerne, anel, casca) e vão **só nas pontas**; o miolo da pilha é
+  maciço. A 1/8, ou com vão em toda a profundidade, ela virava xadrez ou tijolo e custava 14 mil triângulos (lenheiro
+  v1).
+- **Variação segura não muda a forma:** o teste rejeitou e o lote corrigiu:
+  - banco sem encosto (−46% de altura);
+  - carroça vazia;
+  - horta de uma cultura só;
+  - mesa sem a jarra;
+  - chafariz sem lampião;
+  - braseiro apagado.
+
+  Viraram outra variação (ordem dos canteiros, o que está servido) ou saíram. Estado aceso/apagado é **par de props**,
+  como o marco do posto.
+- **Fonte de luz:** braseiro de sinal com 14% de faces emissivas; a fogueira aprovada tem 25,1%. A regra ficou
+  explícita: tag `fonte_de_luz` até a fração da fogueira; o resto ≤ 6%.
+
+### Conjuntos de ofício
+
+Âncora + itens no referencial dela (`tools/conteudo_conjuntos.py`, validados no build e no teste):
+
+| Conjunto | Âncora | Itens | Lê como |
+|---|---|---|---|
+| ferreiro | oficina com forja | placa (bigorna), suporte de ferramentas, caixotes, lenha | "aqui se trabalha o ferro" |
+| herbalista | cabana redonda | varal de ervas, cesto de ervas, cerca de estacas, placa (folha) | ervas secando, horta cercada |
+| comerciante | sobrado | barraca de feira, caixotes e sacos, banco, placa (moeda) | comércio de rua |
+| caçador | cabana do caçador | lenheiro, lenha com machado, cesto de cogumelos, placa (flecha) | sítio na mata |
+| guardião de trilhas | torre de vigia | braseiro de sinal, lanças e escudos, quadro de avisos, banco | posto de guarda da estrada |
+
+### As duas vilas (mesma luz, mesmo relevo, mesmas tomadas)
+
+| | Vila A — assentamento de caminho | Vila B — comunidade rural |
+|---|---|---|
+| Organização | compacta, frentes viradas para o caminho e a praça | dispersa, sítios afastados com campo aberto entre eles |
+| Centro | chafariz com mesa e bancos (praça) | poço de sarilho com banco (encontro) |
+| Ofícios | comerciante, ferreiro, guardião de trilhas; a estalagem aprovada no patamar | caçador na borda da mata, herbalista junto ao caminho |
+| Trabalho | depósito, barraca, oficina | paiol, duas hortas, espantalho, carroça, mureta de pedra |
+| Vegetação | só o anel de mata ao fundo | árvores entre as casas (carvalho, bifurcada, álamos em fileira, antiga) |
+
+A diferença está na **composição** e nos **conjuntos**, não na cor.
+
+### Caminhabilidade (achado do lote 2)
+
+`tools/conteudo/vitrines.py` confere cada vila com:
+- uma busca em grade de 0,25 u (a resolução da conferência de alcance da rodada 11);
+- raio do herói de 0,3 u e degrau de 0,30 u no relevo medido;
+- água abaixo de −0,42 u;
+- colisão por perfil ou pelas formas compostas.
+
+Ela confere as entradas e os pontos de interação. Na primeira passada, a forja, a bigorna e a bancada da **oficina do
+lote 1** ficaram inalcançáveis por dois defeitos reais:
+- as mãos-francesas da frente aberta desciam a 1,0 u do piso do galpão (o herói tem 1,18 u), deixando 0,375 u de vão;
+- a tina de têmpera e a bigorna fechavam o corredor (0,5 u para um corpo de 0,6 u).
+
+A correção (mãos-francesas acima da cabeça, tina do lado de fora, bigorna junto à sala) está neste ramo. O PR do lote
+1 fica estável para revisão, e a correção pode ser levada a ele.
+
+**Resultado final:** Vila A 33/33 e Vila B 21/21 alvos alcançáveis.

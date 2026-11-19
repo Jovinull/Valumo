@@ -55,6 +55,17 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
 5. Crítica escrita com o defeito concreto. A correção vai no script; versões rejeitadas ficam no material de revisão
    (`estado="rejeitado"` + `motivo_rejeicao`).
 
+## Assentamentos (lote 2)
+
+- Conjunto de ofício = âncora + itens em `tools/conteudo_conjuntos.py` (posição no referencial da âncora). O build
+  recusa conjunto que invade a âncora, sobrepõe itens ou bloqueia uma entrada.
+- Variante que precisa existir no jogo (pictograma, conteúdo): `publicar_variantes=True` → prop
+  `<id>__<param>-<valor>`.
+- Vila de vitrine: `village()` em `tools/conteudo/vitrines.py` assenta construções e conjuntos no lugar válido mais
+  perto do desejado.
+- A **caminhabilidade** (`walkability`: grade de 0,25 u, raio 0,3, degrau 0,30, água, perfis e formas compostas) tem de
+  dar 100% dos alvos alcançáveis. Inalcançável é defeito do asset ou da composição, nunca da conferência.
+
 ## Validar
 
 - `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest` (e a suíte inteira antes de entregar). Os 10 testes:

@@ -47,8 +47,25 @@ conferência de alcance), que ainda não estão na `main`. O agente principal ad
 | `pontos.observacao[]` | mirante: `pos_u` + `rumo` da vista |
 | `pontos.area_segura_u[]` | retângulos `[x0, z0, x1, z1]` caminháveis (interior de ruína, pátio): espaço de luta ou de exploração |
 | `pontos.formas_u[]` | formas autoradas (círculos das pedras do círculo), quando as medidas não descrevem bem |
+| `relacoes[]` | lote 2: `{tipo, alvo, distancia_u}`. `tipo`: `acompanha` (pertence a uma construção), `perto_de`, `dentro_de`, `centro_de`. `alvo`: id de asset (inclusive aprovado) ou `tag:<nome>` (ex.: `tag:praca`). Dados para o gerador; não são impostos aqui |
 | `variacoes.parametros` | parâmetros **seguros** e os valores possíveis (o primeiro é o padrão) |
-| `variacoes.extremos[]` | cada extremo gerado, com a pegada, as dimensões, as faces e `pontos_iguais` (o teste exige `true`) |
+| `variacoes.extremos[]` | cada extremo gerado, com a pegada, as dimensões, as faces e `pontos_iguais` (o teste exige `true`). Com `prop` preenchido, a variante é **publicada** como prop próprio no `props.json` (`<id>__<param>-<valor>`, `variante_de`): a placa de ofício por ofício, os cestos por conteúdo |
+
+### Conjuntos de ofício (`conjuntos[]`, lote 2)
+
+`{id, nome, oficio, ancora, leitura, referencial, itens: [{id, pos_u: [x, z], rumo}], caixa_u, estado}`. As posições ficam no
+referencial da âncora (+z = frente da âncora) e giram com ela (mesma conta do §3). O build (`conteudo_e._conjuntos`) e o
+teste `craftSetsKeepAnchorEntrancesFreeAndDoNotOverlap` conferem:
+- cada item existe no `props.json`;
+- nenhum item invade a pegada da âncora nem a de outro item;
+- nenhuma entrada da âncora fica a menos de 0,3 u de um item.
+
+`caixa_u` é a área do conjunto inteiro: é a pegada que o gerador reserva.
+
+### Estados do lote 2
+
+Antes da avaliação do proprietário, todo asset novo é `estado: candidato`, com `aprovacao.artistica: candidato` e
+`integracao: aguardando_avaliacao` (teste: lote ≥ 2 nunca nasce aprovado).
 
 ## 3. Do modelo para o mundo
 
