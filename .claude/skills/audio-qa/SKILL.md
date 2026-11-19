@@ -91,3 +91,10 @@ eventos), tabelas de QA e o que foi **ouvido por quem**.
   `-Dvx.prefs.audio=ARQUIVO` temporários — o `review94.sh` gravava nas do proprietário antes da auditoria de engenharia.
   Atenção: `tools/review94.sh audio|ambiente` REGENERA as sessões e sobrescreve os OGG versionados; para só medir, use
   `audio_qa.py --catalogo`.
+
+## Fechamento do QA — tempo real
+
+- O loopback só mistura quando o jogo pede: não mede falta de dados. Para isso: `tools/qa/audio_tempo_real.sh ROTEIRO
+  SAIDA` (backend `wave` do OpenAL Soft, nada nos alto-falantes) + `tools/qa/audio_buracos.py`.
+- Fila dos fluxos: 1 s no começo, cresce um pedaço de 0,25 s por quadro até 4 s (`OpenAlOut.STREAM_*`); abrir o criador
+  (~2 s sem quadro) deixava 1,9 s de silêncio com a fila fixa de 1 s. Teste: `AudioTest.musicSurvivesTheGameThreadStalling…`.

@@ -141,3 +141,12 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 - **Câmera:** não imponha giro nem subida automáticos. Contra a câmera colada no herói, use o pontilhado
   (`Game.nearFade`, `uFade`) em vez de mover a câmera. O ajuste de rumo "aperto" foi testado e piorou o
   `CameraModesTest` (relatório 09.3).
+
+## Fechamento do QA — interface do jogo e preferências
+
+- Dica de controles: `GameLogic.helpVisible()` (40 s a partir de "Entrar na vila"; F1 alterna o que está visível).
+- Voltar de outra tela que tomou a janela (o criador): `Input.releaseAll()` (as solturas de tecla foram para ela).
+- `-Dvx.sensacao`/`-Dvx.encontro` são comparação de sessão: `Prefs.save()` grava o valor do arquivo até o jogador escolher
+  na pausa. Preferência ilegível: padrões + original em `ARQUIVO.invalido`.
+- Placa "E Conversar" acima da cabeça de qualquer NPC (`max(1,55, altura + 0,30)`).
+- Conversa só sem luta engajada (`combat.engaged()`): roteiro que conversa logo depois de lutar precisa reiniciar o encontro.

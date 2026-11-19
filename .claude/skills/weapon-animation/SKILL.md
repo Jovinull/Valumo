@@ -246,3 +246,14 @@ golpe ou gesto, rode também `--check-cabelos` e não aumente a penetração de 
   provar que rodou: `Val` com `idle` (em vez de `clip:IDLE`) lança exceção, e "nenhuma linha de FALHA" NÃO é aprovação.
   Conte as linhas OK.
 
+## Fechamento do QA — contrato das ferramentas e o broquel
+
+- `viewer --grip rig golpe`: reprova golpe inexistente, rig sem item e ITEM PARADO NO MUNDO; torção, flexão e giro são
+  informativos (a amarração do item é arbitrária: o repouso de vários itens passa de 90°). Achado aberto: o fio da espada
+  inverte 180° no `slash_v`/`combo` (t ≈ 0,448 s) — invisível na lâmina simétrica, a conferir em vídeo.
+- `viewer --occlusion`: sai 0 só com rosto livre fora de `OcclusionCheck.FACE_EXCEPTIONS` (hoje só `bow_shot`); NPC sem
+  arma conta como "sem arma", não como OK.
+- `viewer --check-cabelos` mede TODOS os itens do catálogo (`Composer.ITEM_PARTS`: espada, broquel, arco, flecha) contra a
+  cabeça (união das expressões) e o chapéu, com e sem cobertura, nos golpes, clipes e no salto. O broquel roçava o chanel
+  na esquiva de frente: corrigido com 0,8 voxel para fora e 1,2 para baixo na mão (`sword_shield.json` r2f_push/air).
+- Para ver o equipamento do jogo numa aparência composta: `snap ... custom=maga,kit=characters/r4/adventurer_shield,act=dodge_f,t=0.13`.

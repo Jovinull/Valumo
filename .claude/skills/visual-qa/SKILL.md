@@ -208,3 +208,12 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
 - Captura de evidência pode ser sobrescrita pela próxima rodada de capturas: copie o "antes" para `comparacoes/`
   antes de corrigir (na 09.4 a imagem do defeito de layout se perdeu).
 - `--check-cabelos` (arma × cabeça composta) entra no portão de qualquer mudança de cabelo, rosto ou golpe.
+
+## Fechamento do QA — interface e captura
+
+- Interface em 7 resoluções (inclui 16:10 e 4:3) com lista longa e NPC alto: `tools/qa/resolucoes.txt` (pasta de aparências
+  temporária com `-Dvx.saves=`). Nada cortado, nada sobreposto, nada fora do painel; nome longo reduz o passo da fonte e
+  só então termina em "…".
+- `snap` aceita `kit=DIR` (equipamento da aparência composta, como no jogo).
+- Referência canônica: só se refaz com a causa PROVADA (código final × arquivo suspeito revertido, desvio 0) — skill
+  `engineering-qa` §7b.

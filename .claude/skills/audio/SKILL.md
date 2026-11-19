@@ -96,8 +96,8 @@ Comandos de roteiro:
 
 - **Efeitos novos:** `esquiva_rolar`, `esquiva_recuo`, `salto`, `pouso`, `fungo_desfaz` (funções `roll`, `backstep`,
   `jump`, `land`, `crumble` em `tools/audio_e.py`).
-- **Mistura:** por alvo de nível, como os da 09.1. Os efeitos aprovados da 09.1 não mudaram (arquivos e ganhos
-  iguais).
+- **Mistura:** por alvo de nível, como os da 09.1. Os efeitos da 09.1 não mudaram (arquivos e ganhos
+  iguais; escuta do proprietário pendente — estado em `docs/architecture/audio.md`).
 - **Diretor (`CombatAudio`):**
   - guarda o estado de CADA inimigo;
   - o som de acerto no fungo sai do inimigo atingido (`Combat.Impact.who`);

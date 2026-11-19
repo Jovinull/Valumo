@@ -119,6 +119,35 @@ python3 tools/qa/ide_diagnosticos.py . /tmp/jdt/ws output/tmp/ide.json     # 0 e
 
 `$V --occlusion` sai com 1 por causa da exceção conhecida do arco: compare a lista com a do binário de antes.
 
+## 7b. Fechamento do QA (2026-11-19) — o que ficou como procedimento
+
+- **Validadores:** `viewer --check`, `--occlusion`, `--grip` e `--check-cabelos` reprovam golpe inexistente, rig ausente,
+  rig sem volumes (`WeaponCheck`), rig sem item (`--grip`) e zero conferências; exceção não tratada vira uma linha
+  "ERRO, nada foi aprovado" (`Main.validator`). Exceção legítima é LISTA explícita com motivo
+  (`OcclusionCheck.FACE_EXCEPTIONS`: só o `bow_shot`), e a ferramenta reprova se ela deixar de acontecer. Teste:
+  `ValidatorContractTest`. Rode as sondas negativas numa pasta vazia (`cd /tmp/x && viewer --check`): saída 1.
+- **Arquivos corrompidos:** fixtures mínimas montadas no teste, pasta temporária, `@Timeout` (`CorruptFilesTest`,
+  `CorruptPrefsTest`, `AppearanceRobustnessTest`). Nunca adultere asset real nem arquivo do jogador.
+- **Sessão longa:** `python3 tools/qa/sessao_longa.py 160 > R && tools/qa/audio_tempo_real.sh R SAIDA 50` (~35 min). Lê
+  `SAIDA/recursos.csv` (heap depois de GC, RSS, malhas/texturas/FBOs vivos, buffers/fluxos/vozes do OpenAL, threads, GC,
+  quadros). Crescimento até o teto de um cache (compositor: 8 aparências × ~17 malhas) é legítimo; vazamento é crescer
+  depois do teto. Os silêncios esperados no áudio são o mudo a cada 10 ciclos.
+- **Áudio em tempo real sem alto-falante:** `tools/qa/audio_tempo_real.sh ROTEIRO SAIDA` força o backend `wave` do OpenAL
+  Soft (`ALSOFT_DRIVERS=wave`) e mede buracos (`tools/qa/audio_buracos.py`). O loopback NÃO serve para isto (só mistura
+  quando o jogo pede). Nos roteiros, `tempo-real S` roda quadros no ritmo do relógio; `esperar-real` dorme a thread (o
+  som passa fome) e `wait` corre mais rápido que o relógio.
+- **Interface:** `game -Dvx.saves=PASTA_COM_12 --roteiro tools/qa/resolucoes.txt SAIDA 30` — 7 resoluções (16:9, 1366×768,
+  ultralarga, 4K, 16:10, 4:3), lista longa, NPC alto, pausa, chefe, criador. Use uma pasta de aparências temporária.
+- **Referências canônicas:** prove a causa antes de refazer: gere com o código final e com SÓ o arquivo suspeito revertido;
+  se o segundo conjunto reproduz as versionadas com desvio 0, a causa é aquele arquivo. Guarde as anteriores em
+  `docs/art/reference/anteriores/<rodada>/` com o manifesto delas.
+- **Dependências:** `gradle/verification-metadata.xml` (SHA-256) e `distributionSha256Sum` no wrapper. Dependência nova:
+  `./gradlew --write-verification-metadata sha256 build :viewer:installDist :game:installDist`, confira cada artefato
+  contra o `.sha1` publicado no Maven Central e valide o XML (comentário XML não pode ter `--`) com um build que resolve
+  dependências de verdade (`help` e `--dry-run` não resolvem).
+- **CI:** `.github/workflows/ci.yml` (build, testes, distribuições, validadores sem GPU, links). Verde no CI não substitui o
+  portão local com GPU (capturas, gate, referências, bench).
+
 ## 8. Relatório
 
 Para cada achado: evidência → hipótese → reprodução → causa → correção mínima → teste → medida do efeito. Severidade:
