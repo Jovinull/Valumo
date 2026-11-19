@@ -1109,6 +1109,8 @@ public final class App implements AutoCloseable {
                 defaultCamera(st);
                 double[] ms = new double[frames];
                 int n = run < 0 ? benchWarm : frames;
+                renderer.gpuCollect();
+                if (run <= 0) { java.util.Arrays.fill(renderer.gpuNanos, 0); renderer.gpuFrames = 0; }   // o aquecimento não conta
                 Actor.animNanos = 0;
                 Actor.animCount = 0;
                 for (int i = 0; i < n; i++) {
@@ -1148,6 +1150,17 @@ public final class App implements AutoCloseable {
             double[] st = stats(all);
             System.out.printf("bench: ESTILO %s TOTAL (%d quadros)  media %.2f ms (%.1f FPS)  mediana %.2f ms (%.1f FPS)  p95 %.2f ms  1%%low %.1f FPS%n",
                     Character.toUpperCase(sk), all.length, st[0], 1000 / st[0], st[1], 1000 / st[1], st[2], st[3]);
+            if (Renderer.GPU_TIMERS && renderer.gpuFrames > 0) {
+                renderer.gpuCollect();
+                StringBuilder g = new StringBuilder("bench: GPU por passo (ms/quadro)");
+                double sum = 0;
+                for (int p = 0; p < Renderer.GPU_PASSES.length; p++) {
+                    double v = renderer.gpuNanos[p] / 1e6 / renderer.gpuFrames;
+                    sum += v;
+                    g.append(String.format("  %s %.2f", Renderer.GPU_PASSES[p], v));
+                }
+                System.out.println(g + String.format("  | soma %.2f", sum));
+            }
         }
         if (out != null) {
             try {

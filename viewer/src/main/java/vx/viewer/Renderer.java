@@ -16,6 +16,8 @@ import static org.lwjgl.opengl.GL14.GL_TEXTURE_COMPARE_FUNC;
 import static org.lwjgl.opengl.GL14.GL_TEXTURE_COMPARE_MODE;
 import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL33.GL_TIME_ELAPSED;
+import static org.lwjgl.opengl.GL33.glGetQueryObjectui64;
 
 /**
  * Pipeline: (1) mapa de sombra ortográfico do sol; (2) céu + cena em FBO HDR com supersampling,
@@ -108,6 +110,42 @@ public final class Renderer implements AutoCloseable {
     private final int emptyVao = glGenVertexArrays();
     private final Matrix4f lightVP = new Matrix4f();
     private final org.joml.FrustumIntersection frustum = new org.joml.FrustumIntersection();
+
+    /**
+     * QA de desempenho: com {@code -Dvx.gpu=true} cada passo é cercado por uma consulta {@code GL_TIME_ELAPSED} e o
+     * tempo de GPU (ns) se acumula em {@link #gpuNanos}, na ordem de {@link #GPU_PASSES}. O resultado de um quadro é
+     * lido no começo do seguinte (ou em {@link #gpuCollect()}); desligado, não custa nada. Só para medição
+     * ({@code viewer --bench}): ler a consulta espera a GPU.
+     */
+    public static final boolean GPU_TIMERS = Boolean.getBoolean("vx.gpu");
+    public static final String[] GPU_PASSES = {"sombra", "cena", "bloom", "composicao"};
+    public final long[] gpuNanos = new long[GPU_PASSES.length];
+    public int gpuFrames;
+    private final int[] gpuQuery = new int[GPU_PASSES.length];
+    private final boolean[] gpuUsed = new boolean[GPU_PASSES.length];
+    private boolean gpuPending;
+
+    private void gpuBegin(int pass) {
+        if (!GPU_TIMERS) return;
+        if (gpuQuery[pass] == 0) gpuQuery[pass] = glGenQueries();
+        glBeginQuery(GL_TIME_ELAPSED, gpuQuery[pass]);
+        gpuUsed[pass] = true;
+    }
+
+    private void gpuEnd() {
+        if (GPU_TIMERS) glEndQuery(GL_TIME_ELAPSED);
+    }
+
+    /** Lê as consultas do último quadro desenhado (espera a GPU terminar). */
+    public void gpuCollect() {
+        if (!gpuPending) return;
+        for (int i = 0; i < gpuQuery.length; i++) {
+            if (gpuUsed[i]) gpuNanos[i] += glGetQueryObjectui64(gpuQuery[i], GL_QUERY_RESULT);
+            gpuUsed[i] = false;
+        }
+        gpuFrames++;
+        gpuPending = false;
+    }
     private final Vector3f tmpCenter = new Vector3f(), tmpScale = new Vector3f();
     /** Estatísticas do último quadro (após descarte por frustum, só o passo de cena). */
     public int lastDrawCount, lastTriangles, lastShadowTriangles;
@@ -192,8 +230,11 @@ public final class Renderer implements AutoCloseable {
         glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
 
+        gpuCollect();
+
         // 1) sombra
         if (tg.shadows) {
+            gpuBegin(0);
             shadowMap.bind();
             glClear(GL_DEPTH_BUFFER_BIT);
             glEnable(GL_POLYGON_OFFSET_FILL);
@@ -207,9 +248,11 @@ public final class Renderer implements AutoCloseable {
                 d.mesh.drawDepth();
             }
             glDisable(GL_POLYGON_OFFSET_FILL);
+            gpuEnd();
         }
 
         // 2) céu + cena
+        gpuBegin(1);
         sceneFbo.bind();
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -292,10 +335,12 @@ public final class Renderer implements AutoCloseable {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glBindVertexArray(emptyVao);
+        gpuEnd();
 
         // 3) bloom
         boolean bloomOn = tg.post && s.bloom > 0f && !tg.silhouette;
         if (bloomOn) {
+            gpuBegin(2);
             bloomA.bind();
             blur.use().set("uTex", 0).set("uThreshold", s.bloomThreshold).set("uDir", 0f, 0f);
             Texture.bind(0, sceneFbo.color[0]);
@@ -311,9 +356,11 @@ public final class Renderer implements AutoCloseable {
                 blur.set("uDir", 0f, (1.3f + i) / bloomA.height);
                 glDrawArrays(GL_TRIANGLES, 0, 3);
             }
+            gpuEnd();
         }
 
         // 4) composição
+        gpuBegin(3);
         glBindFramebuffer(GL_FRAMEBUFFER, target != null ? target.id : 0);
         glViewport(vx, vy, outW, outH);
         post.use()
@@ -335,6 +382,8 @@ public final class Renderer implements AutoCloseable {
         Texture.bind(2, sceneFbo.depth);
         Texture.bind(3, bloomA.color[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        gpuEnd();
+        gpuPending = GPU_TIMERS;
         Texture.bind(0, 0);
         glBindVertexArray(0);
     }
@@ -342,6 +391,7 @@ public final class Renderer implements AutoCloseable {
     @Override
     public void close() {
         glDeleteVertexArrays(emptyVao);
+        for (int q : gpuQuery) if (q != 0) glDeleteQueries(q);
         scene.close();
         depth.close();
         prepass.close();
