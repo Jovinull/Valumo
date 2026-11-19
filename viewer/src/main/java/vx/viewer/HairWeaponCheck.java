@@ -32,7 +32,10 @@ final class HairWeaponCheck {
     static final float DT = 1f / 120f;
     static final int TOL = 0;                                 // nenhum voxel da arma dentro da cabeça
     static final int FIELD = 4;                               // alcance do campo de distância (voxels)
-    static final String[] ITEMS = {"weapon", "bow", "arrow"};
+    /** Itens medidos: os do catálogo, derivados do compositor (uma lista só; o broquel entrou na auditoria). */
+    static final java.util.Set<String> ITEMS = Composer.ITEM_PARTS;
+    /** Alvos: a cabeça composta e o chapéu, quando a cobertura é uma parte própria. */
+    static final String[] TARGETS = {"head", "hat"};
 
     record Result(String preset, String hair, int worstPen, String worstWhere, float minGap, String gapWhere, int samples) { }
 
@@ -79,40 +82,70 @@ final class HairWeaponCheck {
         }
     }
 
-    static Result measure(Composer comp, String preset, String hair) {
+    static Result measure(Composer comp, String preset, String hair) { return measure(comp, preset, hair, Appearance.NO_COVER); }
+
+    /**
+     * Mede um preset × penteado × cobertura ({@link Appearance#NO_COVER}, chapéu ou capuz). Alvos: a cabeça composta
+     * (união das expressões: um sorriso ou uma sobrancelha erguida também conta) e, se houver, o chapéu (parte própria,
+     * filha da cabeça). Itens: todos os do catálogo ({@link Composer#ITEM_PARTS}: arma, broquel, arco, flecha) — antes só
+     * a espada, o arco e a flecha (o broquel ficava de fora). Instantes: cada golpe do perfil, os clipes e o salto.
+     * Devolve null se a combinação é incompatível pelo catálogo (regra "X").
+     */
+    static Result measure(Composer comp, String preset, String hair, String cover) {
         Appearance a = Appearance.preset(preset);
         a.hair = hair;
-        a.cover = Appearance.NO_COVER;
-        Composer.ComposedRig rig = comp.compose(a);
+        a.cover = cover;
+        Composer.ComposedRig rig;
+        try {
+            rig = comp.compose(a);
+        } catch (Appearance.InvalidAppearance e) {
+            return null;
+        }
         CharacterModel m = comp.build(rig, false);
-        Field field = new Field(rig.piece("head").grid);
-        List<int[]> items = new ArrayList<>();                                // [parte, x, y, z] voxels das armas
+        List<int[]> items = new ArrayList<>();                                // [parte, x, y, z] voxels dos itens
         for (String it : ITEMS) {
             Composer.Piece p = rig.piece(it);
             Integer pi = m.index.get(it);
             if (p == null || pi == null) continue;
             for (long k : p.grid.cells().keySet()) items.add(new int[]{pi, VoxGrid.kx(k), VoxGrid.ky(k), VoxGrid.kz(k)});
         }
-        int head = m.index.get("head");
+        List<Integer> targetPart = new ArrayList<>();
+        List<Field> targetField = new ArrayList<>();
+        for (String t : TARGETS) {
+            Composer.Piece p = rig.piece(t);
+            Integer pi = m.index.get(t);
+            if (p == null || pi == null) continue;
+            VoxGrid all = new VoxGrid();
+            for (long k : p.grid.cells().keySet()) all.put(k, 1);
+            for (VoxGrid alt : p.alts.values())
+                for (long k : alt.cells().keySet()) all.put(k, 1);
+            targetPart.add(pi);
+            targetField.add(new Field(all));
+        }
         Animator an = new Animator(m, 1f);
         Animator.Pose pose = an.newPose();
         Matrix4f[] mats = new Matrix4f[m.parts.size()];
         for (int i = 0; i < mats.length; i++) mats[i] = new Matrix4f();
-        Matrix4f id = new Matrix4f(), inv = new Matrix4f();
+        Matrix4f id = new Matrix4f();
+        Matrix4f[] inv = new Matrix4f[targetPart.size()];
+        for (int i = 0; i < inv.length; i++) inv[i] = new Matrix4f();
         Animator.Motion mo = new Animator.Motion();
         float vs = m.voxelSize;
         List<String> what = new ArrayList<>(an.prof == null ? List.of() : an.prof.moves.keySet());
-        what.addAll(List.of("clip:IDLE", "clip:WALK", "clip:RUN", "clip:HIT", "clip:EMOTE"));
+        what.addAll(List.of("clip:IDLE", "clip:WALK", "clip:RUN", "clip:HIT", "clip:EMOTE", "salto:IDLE", "salto:RUN"));
         int worst = 0, samples = 0;
         float gap = FIELD + 1;
         String worstWhere = "—", gapWhere = "—";
         Vector3f p = new Vector3f();
         for (String w : what) {
-            Animator.Clip clip = w.startsWith("clip:") ? Animator.Clip.valueOf(w.substring(5)) : null;
-            float dur = clip != null ? an.duration(clip) : an.moveDuration(w);
-            if (dur <= 0) continue;
+            boolean jump = w.startsWith("salto:");
+            Animator.Clip clip = w.startsWith("clip:") ? Animator.Clip.valueOf(w.substring(5))
+                    : jump ? Animator.Clip.valueOf(w.substring(6)) : null;
+            float dur = jump ? JUMP_S : clip != null ? an.duration(clip) : an.moveDuration(w);
+            if (dur <= 0) throw new IllegalArgumentException("golpe inexistente no perfil: " + w);
             for (float t = 0; t <= dur; t += DT) {
-                if (clip != null) mo.set(clip, t);
+                if (jump) jump(mo, clip, t);
+                else if (clip != null) mo.set(clip, t);
                 else {
                     mo.set(Animator.Clip.IDLE, t);
                     mo.move = w;
@@ -121,21 +154,46 @@ final class HairWeaponCheck {
                 }
                 an.evaluate(mo, pose, id, null);
                 an.compose(pose, id, mats);
-                mats[head].invert(inv);
+                for (int i = 0; i < inv.length; i++) mats[targetPart.get(i)].invert(inv[i]);
                 int pen = 0;
                 for (int[] c : items) {
-                    p.set((c[1] + 0.5f) * vs, (c[2] + 0.5f) * vs, (c[3] + 0.5f) * vs);
-                    mats[c[0]].transformPosition(p);
-                    inv.transformPosition(p);
-                    float dd = field.at(p.x / vs, p.y / vs, p.z / vs);
-                    if (dd == 0) pen++;
-                    if (dd < gap) { gap = dd; gapWhere = String.format(Locale.ROOT, "%s t=%.2f", w, t); }
+                    boolean inside = false;
+                    for (int i = 0; i < inv.length; i++) {
+                        p.set((c[1] + 0.5f) * vs, (c[2] + 0.5f) * vs, (c[3] + 0.5f) * vs);
+                        mats[c[0]].transformPosition(p);
+                        inv[i].transformPosition(p);
+                        float dd = targetField.get(i).at(p.x / vs, p.y / vs, p.z / vs);
+                        if (dd == 0) inside = true;
+                        if (dd < gap) { gap = dd; gapWhere = String.format(Locale.ROOT, "%s t=%.2f", w, t); }
+                    }
+                    if (inside) pen++;
                 }
                 samples++;
                 if (pen > worst) { worst = pen; worstWhere = String.format(Locale.ROOT, "%s t=%.2f", w, t); }
             }
         }
         return new Result(preset, hair, worst, worstWhere, gap, gapWhere, samples);
+    }
+
+    /** Duração do salto medido (s): impulso, subida, queda e pouso. */
+    static final float JUMP_S = 0.9f;
+
+    /**
+     * Salto sobre o clipe de base (IDLE = parado, RUN = correndo): os mesmos canais da rodada 09.3 que o jogo preenche
+     * ({@code takeoff} nos primeiros 0,10 s no ar, {@code air}, {@code fall} quando o chão chega, {@code land} no pouso).
+     */
+    static void jump(Animator.Motion mo, Animator.Clip base, float t) {
+        mo.set(base, t);
+        float airEnd = 0.62f;
+        if (t < airEnd) {
+            mo.air = Math.min(1f, t / 0.08f);
+            mo.takeoff = t < 0.10f ? t / 0.10f : -1f;
+            mo.fall = t > airEnd - 0.14f ? (t - (airEnd - 0.14f)) / 0.14f : 0f;
+        } else {
+            float u = (t - airEnd) / (JUMP_S - airEnd);
+            mo.land = (float) Math.sin(Math.PI * Math.min(1f, u));
+            mo.landRun = base == Animator.Clip.RUN ? 1f : 0f;
+        }
     }
 
     /**
@@ -181,24 +239,45 @@ final class HairWeaponCheck {
         return ok;
     }
 
+    /**
+     * Uma linha por preset × penteado × cobertura. Referência = o penteado do preset com a MESMA cobertura. Combinação
+     * proibida pelo catálogo (regra "X") aparece como "incompatível" e não conta. Sem nenhuma medição: falha.
+     */
     private static boolean table(Composer comp, StringBuilder md) {
         ComponentCatalog cat = comp.catalog;
         boolean ok = true;
+        int measured = 0;
+        List<String> covers = new ArrayList<>(List.of(Appearance.NO_COVER));
+        covers.addAll(cat.ids("cabeca"));
         for (String preset : cat.presets.keySet()) {
             String ref = cat.presets.get(preset).hair;
-            Result r0 = measure(comp, preset, ref);
-            for (String hair : cat.ids("cabelo")) {
-                Result r = hair.equals(ref) ? r0 : measure(comp, preset, hair);
-                boolean pass = r.worstPen <= Math.max(TOL, r0.worstPen);
-                boolean novo = isNew(cat, hair);                    // estudo (experimental ou aprovado): protegido
-                ok &= pass || !novo;
-                String verdict = pass ? "OK" : novo ? "REPROVA" : "PRÉ-EXISTENTE";
-                String line = String.format(Locale.ROOT, "| %s | %s%s | %d | %s | %.2f | %s | %d | %s |", preset, hair,
-                        hair.equals(ref) ? " (referência)" : "", r.worstPen, r.worstWhere, r.minGap(), r.gapWhere, r.samples,
-                        verdict);
-                System.out.println(line);
-                md.append(line).append('\n');
+            for (String cover : covers) {
+                Result r0 = measure(comp, preset, ref, cover);
+                for (String hair : cat.ids("cabelo")) {
+                    Result r = hair.equals(ref) ? r0 : measure(comp, preset, hair, cover);
+                    String cov = cover.equals(Appearance.NO_COVER) ? "" : " + " + cover;
+                    if (r == null || r0 == null) {
+                        String line = String.format(Locale.ROOT, "| %s | %s%s | — | — | — | — | 0 | incompatível (catálogo) |", preset, hair, cov);
+                        System.out.println(line);
+                        md.append(line).append('\n');
+                        continue;
+                    }
+                    measured++;
+                    boolean pass = r.worstPen <= Math.max(TOL, r0.worstPen);
+                    boolean novo = isNew(cat, hair);                // estudo (experimental ou aprovado): protegido
+                    ok &= pass || !novo;
+                    String verdict = pass ? "OK" : novo ? "REPROVA" : "PRÉ-EXISTENTE";
+                    String line = String.format(Locale.ROOT, "| %s | %s%s%s | %d | %s | %.2f | %s | %d | %s |", preset, hair, cov,
+                            hair.equals(ref) ? " (referência)" : "", r.worstPen, r.worstWhere, r.minGap(), r.gapWhere, r.samples,
+                            verdict);
+                    System.out.println(line);
+                    md.append(line).append('\n');
+                }
             }
+        }
+        if (measured == 0) {
+            System.out.println("cabelos: NADA FOI CONFERIDO");
+            return false;
         }
         return ok;
     }

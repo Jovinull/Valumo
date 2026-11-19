@@ -54,6 +54,24 @@ class HairWeaponTest {
     }
 
     @Test
+    void theShieldIsMeasuredAndTheCombatDodgeLeavesEveryHairAndCoverFree() {
+        // fechamento do QA: a sonda media só espada, arco e flecha. Com o broquel, a esquiva R2 de frente do kit de combate
+        // roçava a ponta do chanel (5 voxels, 0,09–0,24 s) em todo corpo — corrigido na pose (sword_shield r2f_push/air)
+        assertTrue(HairWeaponCheck.ITEMS.contains("shield"), "o broquel entra na medição");
+        Composer k = new Composer(Path.of("assets"), 2);
+        k.kit = HairWeaponCheck.COMBAT_KIT;
+        int checked = 0;
+        for (String preset : k.catalog.presets.keySet())
+            for (String cover : java.util.List.of(Appearance.NO_COVER, "chapeu.maga", "capuz.c3")) {
+                HairWeaponCheck.Result r = HairWeaponCheck.measure(k, preset, "cabelo.chanel", cover);
+                assertNotNull(r, preset + " × chanel × " + cover);
+                assertEquals(0, r.worstPen(), "kit de combate: " + preset + " × chanel × " + cover + " em " + r.worstWhere());
+                checked++;
+            }
+        assertEquals(9, checked);
+    }
+
+    @Test
     void theMeasureSeesARealContactAndARealGap() {
         // a exceção conhecida do arco (o tiro cobre o rosto) tem de aparecer como contato; o cabelo curto não toca
         assertTrue(HairWeaponCheck.measure(C, "exploradora", "cabelo.rabo").worstPen() > 0, "contato conhecido do arco");
