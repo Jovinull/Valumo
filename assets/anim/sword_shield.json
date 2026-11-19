@@ -918,8 +918,8 @@
   "r2f_push": {
    "merge": true,
    "l": [
-    8.8,
-    15.0,
+    9.6,
+    13.8,
     9.0
    ],
    "lDir": [
@@ -936,13 +936,14 @@
     1.0,
     -0.8,
     -0.2
-   ]
+   ],
+   "_doc": "fechamento do QA: broquel 0,8 voxel para fora e 1,2 para baixo — com o tronco a 45° a borda dele entrava na ponta do chanel (viewer --check-cabelos, kit de combate)"
   },
   "r2f_air": {
    "merge": true,
    "l": [
-    8.8,
-    15.0,
+    9.6,
+    13.8,
     8.5
    ],
    "lDir": [
