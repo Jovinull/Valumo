@@ -1,0 +1,70 @@
+# Integração contínua do Valumo: o que roda SEM GPU e SEM dispositivo de som.
+# - gera os assets (Python + numpy), compila, testa (OpenAL só em loopback; sem dispositivo o teste de mixagem é pulado)
+#   e instala as duas distribuições;
+# - validadores de linha de comando (CPU): armas, interrupção fina, golpe andando, esquiva, arma × cabelo, oclusão;
+# - links da documentação.
+# Fica de fora (QA local com GPU, ver a skill engineering-qa): capturas, gate dos presets, referências canônicas,
+# benchmarks, roteiros do jogo e do criador.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python do projeto (.venv da raiz, a mesma que o Gradle usa)
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check -r tools/requirements.txt
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: true
+
+      - name: Build, testes e distribuições
+        run: ./gradlew build :viewer:installDist :game:installDist --warning-mode all --console=plain
+
+      - name: Validadores (sem GPU)
+        run: |
+          V=viewer/build/install/viewer/bin/viewer
+          $V --check
+          $V --check interrupcao-fina
+          $V --check golpe-andando
+          $V --check esquiva
+          $V --check-cabelos
+          $V --occlusion
+
+      - name: Links da documentação
+        run: python3 tools/check_links.py
+
+      - name: Relatórios dos testes (só se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-de-teste
+          path: "*/build/reports/tests/test/"
+          retention-days: 7
