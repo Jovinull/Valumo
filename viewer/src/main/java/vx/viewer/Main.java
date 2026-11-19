@@ -39,21 +39,38 @@ import static org.lwjgl.opengl.GL11.*;
  * </pre>
  */
 public final class Main {
+    /**
+     * Roda um validador de linha de comando: 0 só se ele conferiu e aprovou. Uma exceção (asset ausente, perfil que não
+     * carrega, golpe inexistente) vira diagnóstico de uma linha e saída 1 — nunca "ok" e nunca só a pilha.
+     */
+    static int validator(String name, java.util.function.BooleanSupplier run) {
+        try {
+            return run.getAsBoolean() ? 0 : 1;
+        } catch (RuntimeException e) {
+            Throwable c = e;
+            StringBuilder why = new StringBuilder(String.valueOf(e.getMessage()));
+            while (c.getCause() != null && c.getCause() != c) { c = c.getCause(); why.append(" ← ").append(c.getMessage()); }
+            System.out.println(name + ": ERRO, nada foi aprovado — " + e.getClass().getSimpleName() + ": " + why);
+            return 1;
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length > 0 && args[0].equals("--occlusion")) {     // rosto coberto / arma escondida (rodada 05.1)
-            System.exit(OcclusionCheck.run(args) ? 0 : 1);
+            System.exit(validator("occlusion", () -> OcclusionCheck.run(args)));
             return;
         }
-        if (args.length > 2 && args[0].equals("--grip")) {         // sonda de empunhadura (rodada 05.1)
-            System.exit(GripProbe.run(args) ? 0 : 1);
+        if (args.length > 0 && args[0].equals("--grip")) {         // sonda de empunhadura (rodada 05.1)
+            if (args.length < 3) { System.out.println("grip: uso: --grip rig golpe [passo] (nada conferido)"); System.exit(1); }
+            System.exit(validator("grip", () -> GripProbe.run(args)));
             return;
         }
         if (args.length > 0 && args[0].equals("--check-cabelos")) { // rodada 09.4: arma × cabeça composta, voxel a voxel
-            System.exit(HairWeaponCheck.run(args.length > 1 ? args[1] : null) ? 0 : 1);
+            System.exit(validator("check-cabelos", () -> HairWeaponCheck.run(args.length > 1 ? args[1] : null)));
             return;
         }
         if (args.length > 0 && args[0].equals("--check")) {        // validação geométrica, sem janela
-            System.exit(Check.run(args.length > 1 ? args[1] : null) ? 0 : 1);
+            System.exit(validator("check", () -> Check.run(args.length > 1 ? args[1] : null)));
             return;
         }
         for (int i = 0; i + 1 < args.length; i++) if (args[i].equals("--layout")) World.layout = args[i + 1];   // 06.1

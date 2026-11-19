@@ -43,6 +43,7 @@ final class GripProbe {
         Sequencer seq = what.startsWith("seq:") ? new Sequencer(what.substring(4), an) : null;
         Animator.Clip clip = what.startsWith("clip:") ? Animator.Clip.valueOf(what.substring(5)) : null;
         float dur = seq != null ? seq.total - 1e-4f : clip != null ? an.duration(clip) : an.moveDuration(what);
+        if (dur <= 0) throw new IllegalArgumentException("golpe inexistente: " + what);   // antes: uma amostra em repouso, "ok"
         Animator.Motion mo = new Animator.Motion();
         int ii = m.index.get(item), fi = m.index.get(farm);
         Quaternionf prev = null, rel0 = null, qf0 = null, qi0 = null;
@@ -106,19 +107,39 @@ final class GripProbe {
         return (float) Math.toDegrees(2 * Math.atan2(v, Math.abs((double) q.w)));
     }
 
+    /**
+     * {@code viewer --grip rig golpe [passo]}. Reprova (saída 1): rig ausente ou sem perfil, golpe inexistente, nenhum
+     * item segurado (nada conferido) e ITEM PARADO NO MUNDO — o critério da skill weapon-animation. Torção, flexão e giro
+     * são informativos: a amarração do item é arbitrária (o repouso de vários itens já passa de 90°).
+     */
     static boolean run(String[] args) {
-        CharacterModel m = CharacterModel.loadSkeleton(Path.of("assets").resolve(args[1]));
+        Path dir = Path.of("assets").resolve(args[1]);
+        if (!java.nio.file.Files.isRegularFile(dir.resolve("rig.json"))) {
+            System.out.println("grip: rig inexistente: " + dir + " (nada conferido)");
+            return false;
+        }
+        CharacterModel m = CharacterModel.loadSkeleton(dir);
         float step = args.length > 3 ? Float.parseFloat(args[3]) : 0.05f;
         Animator an = new Animator(m, 1f);
-        boolean any = false;
-        if (an.prof != null && an.prof.rightItem != null && m.index.containsKey(an.prof.rightItem)) {
-            probe(m, args[2], an.prof.rightItem, "farm_r", step, true);
-            any = true;
+        if (an.prof == null) {
+            System.out.println("grip: " + args[1] + " não tem perfil de arma (nada conferido)");
+            return false;
         }
-        if (an.prof != null && an.prof.leftItem != null && m.index.containsKey(an.prof.leftItem)) {
-            probe(m, args[2], an.prof.leftItem, "farm_l", step, true);
-            any = true;
+        int checked = 0, frozen = 0;
+        if (an.prof.rightItem != null && m.index.containsKey(an.prof.rightItem)) {
+            if (probe(m, args[2], an.prof.rightItem, "farm_r", step, true).frozen()) frozen++;
+            checked++;
         }
-        return any;
+        if (an.prof.leftItem != null && m.index.containsKey(an.prof.leftItem)) {
+            if (probe(m, args[2], an.prof.leftItem, "farm_l", step, true).frozen()) frozen++;
+            checked++;
+        }
+        if (checked == 0) {
+            System.out.println("grip: " + args[1] + " não segura item no perfil " + an.prof.name + " (nada conferido)");
+            return false;
+        }
+        System.out.println(frozen == 0 ? "grip: OK (" + checked + " item(ns) conferido(s); torção, flexão e giro são informativos)"
+                : "grip: ITEM PARADO NO MUNDO em " + frozen + " de " + checked + " item(ns)");
+        return frozen == 0;
     }
 }

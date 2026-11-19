@@ -323,6 +323,12 @@ public final class WeaponCheck {
             lastTip = tip;
             rep.samples++;
         }
+        if (bind.isEmpty()) {                       // sem meta.volumes nenhuma penetração foi medida: não é "ok"
+            Item v = rep.item("volumes do rig (meta.volumes)", 0f);
+            v.worst = 1f;
+            v.at = 0f;
+            v.where = "rig sem meta.volumes: nenhuma penetração foi conferida";
+        }
         rep.nanos = System.nanoTime() - t0;
         return rep;
     }

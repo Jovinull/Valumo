@@ -28,9 +28,18 @@ final class OcclusionCheck {
     static final float PITCH = 12f;
     static final float FACE_ALERT = 0.25f, FACE_ALERT_S = 0.10f;
 
+    /**
+     * Golpes com rosto coberto ACEITO, com o motivo (contrato de qualidade, "Rosto livre"; matriz de problemas P12). A
+     * linha de comando imprime a exceção em toda execução e reprova se ela deixar de acontecer (exceção obsoleta: atualize
+     * o documento e esta lista) — assim ela nunca vira um "sai com 1, ignore".
+     */
+    static final java.util.Map<String, String> FACE_EXCEPTIONS = java.util.Map.of(
+            "bow_shot", "linha de mira do arco: de frente o arco fica diante do rosto porque aponta para a câmera");
+
     record ViewStat(float yaw, float maxFace, float faceAt, float faceTime, float minVisible, float visibleAt, float legibleShare) { }
 
-    record Result(String subject, List<ViewStat> views) {
+    /** {@code samples}: instantes em que havia arma a medir (0 = nada conferido). */
+    record Result(String subject, List<ViewStat> views, int samples) {
         boolean faceOk() {
             for (ViewStat v : views) if (v.faceTime > FACE_ALERT_S) return false;
             return true;
@@ -72,8 +81,9 @@ final class OcclusionCheck {
         Sequencer seq = what.startsWith("seq:") ? new Sequencer(what.substring(4), an) : null;
         Animator.Clip clip = what.startsWith("clip:") ? Animator.Clip.valueOf(what.substring(5)) : null;
         float dur = seq != null ? seq.total - 1e-4f : clip != null ? an.duration(clip) : an.moveDuration(what);
+        if (dur <= 0) throw new IllegalArgumentException("golpe inexistente: " + what);   // antes: uma amostra em repouso, "ok"
         Animator.Motion mo = new Animator.Motion();
-        int nv = YAWS.length;
+        int nv = YAWS.length, samples = 0;
         float[] legible = new float[nv], maxFace = new float[nv], faceAt = new float[nv], faceTime = new float[nv], minVis = new float[nv], visAt = new float[nv];
         java.util.Arrays.fill(minVis, 1f);
         WeaponCheck.Vol headBind = null;
@@ -93,6 +103,7 @@ final class OcclusionCheck {
                 else if (body(v.tag())) bodies.add(v);
             }
             if (weps.isEmpty()) continue;
+            samples++;
             // rosto: centro um pouco abaixo do centro da cabeça, na frente; normal = +Z da cabeça
             Vector3f faceC = null, faceN = null;
             float faceR = 0;
@@ -118,7 +129,7 @@ final class OcclusionCheck {
         }
         List<ViewStat> out = new ArrayList<>();
         for (int k = 0; k < nv; k++) out.add(new ViewStat(YAWS[k], maxFace[k], faceAt[k], faceTime[k], minVis[k], visAt[k], legible[k] / (n + 1)));
-        return new Result(m.name + " / " + what, out);
+        return new Result(m.name + " / " + what, out, samples);
     }
 
     static Vector3f camDir(float yawDeg) {
@@ -171,28 +182,73 @@ final class OcclusionCheck {
     }
 
     /** {@code viewer --occlusion} (todos os golpes canônicos) ou {@code viewer --occlusion rig golpe}. */
+    /**
+     * Saída 1: rig ausente, golpe inexistente, nada conferido (sem arma em nenhum instante), rosto coberto fora de
+     * {@link #FACE_EXCEPTIONS} ou exceção que deixou de acontecer.
+     */
     static boolean run(String[] args) {
-        boolean all = true;
         if (args.length > 2) {
-            Result r = run(CharacterModel.loadSkeleton(Path.of("assets").resolve(args[1])), args[2]);
+            Path dir = Path.of("assets").resolve(args[1]);
+            if (!java.nio.file.Files.isRegularFile(dir.resolve("rig.json"))) {
+                System.out.println("occlusion: rig inexistente: " + dir + " (nada conferido)");
+                return false;
+            }
+            Result r = run(CharacterModel.loadSkeleton(dir), args[2]);
             System.out.println(r);
-            return r.faceOk();
+            if (r.samples() == 0) {
+                System.out.println("occlusion: nenhuma arma em " + r.subject() + " (nada conferido)");
+                return false;
+            }
+            String why = FACE_EXCEPTIONS.get(args[2]);
+            if (!r.faceOk() && why != null) System.out.println("occlusion: exceção documentada — " + why);
+            return r.faceOk() || why != null;
         }
+        boolean all = true;
+        int checked = 0, unarmed = 0;
+        java.util.Set<String> seenExceptions = new java.util.HashSet<>();
         for (String rig : Check.RIGS) {
-            CharacterModel m = CharacterModel.loadSkeleton(Path.of("assets").resolve(rig));
+            Path dir = Path.of("assets").resolve(rig);
+            if (!java.nio.file.Files.isRegularFile(dir.resolve("rig.json"))) {
+                System.out.println("occlusion: rig ausente " + dir);
+                all = false;
+                continue;
+            }
+            CharacterModel m = CharacterModel.loadSkeleton(dir);
             Animator an = new Animator(m, 1f);
-            if (an.prof == null) continue;
+            if (an.prof == null) {
+                System.out.println("occlusion: " + rig + " sem perfil de arma");
+                all = false;
+                continue;
+            }
             List<String> what = new ArrayList<>(an.prof.moves.keySet());
             what.add("clip:IDLE");
             what.add("clip:WALK");
             what.add("clip:RUN");
             for (String wv : what) {
                 Result r = run(m, wv);
+                if (r.samples() == 0) { unarmed++; continue; }               // NPC sem arma: não há o que cobrir o rosto
+                checked++;
+                String why = FACE_EXCEPTIONS.get(wv);
+                if (!r.faceOk() && why != null) {
+                    seenExceptions.add(wv);
+                    System.out.println(r + "\n  EXCEÇÃO DOCUMENTADA: " + why);
+                    continue;
+                }
                 System.out.println(r);
                 all &= r.faceOk();
             }
         }
-        System.out.println(all ? "occlusion: rosto livre em todos os golpes" : "occlusion: HÁ ROSTO COBERTO");
+        for (String ex : FACE_EXCEPTIONS.keySet())
+            if (!seenExceptions.contains(ex)) {
+                System.out.println("occlusion: a exceção '" + ex + "' não acontece mais — tire-a de FACE_EXCEPTIONS e do contrato");
+                all = false;
+            }
+        if (checked == 0) {
+            System.out.println("occlusion: NADA FOI CONFERIDO (assets ou perfis ausentes?)");
+            return false;
+        }
+        System.out.printf(java.util.Locale.ROOT, "occlusion: %s (%d golpes com arma conferidos, %d sem arma, %d exceção(ões) documentada(s))%n",
+                all ? "rosto livre fora das exceções documentadas" : "HÁ ROSTO COBERTO", checked, unarmed, seenExceptions.size());
         return all;
     }
 }

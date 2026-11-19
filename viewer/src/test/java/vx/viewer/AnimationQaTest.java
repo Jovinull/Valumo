@@ -19,10 +19,8 @@ class AnimationQaTest {
     static final String[] RIGS = {"characters/e/adventurer", "characters/e/ranger", "characters/e/mage",
             "characters/r4/adventurer_shield", "characters/r4/adventurer_longblade"};
 
-    /** Golpes com rosto coberto ACEITO, com justificativa em docs/validation/problemas-conhecidos.md. */
-    static final Set<String> FACE_EXCEPTIONS = Set.of(
-            "bow_shot"   // a linha de mira passa diante do rosto vista do lado do alvo (limitação da proporção)
-    );
+    /** Golpes com rosto coberto ACEITO: a mesma lista (e o motivo) que a linha de comando usa. */
+    static final Set<String> FACE_EXCEPTIONS = OcclusionCheck.FACE_EXCEPTIONS.keySet();
 
     static CharacterModel rig(String r) { return CharacterModel.loadSkeleton(Path.of("assets").resolve(r)); }
 
