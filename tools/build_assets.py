@@ -40,7 +40,17 @@ def main():
     wanted = sys.argv[1:] or [m for m in MODULES if os.path.exists(os.path.join(HERE, m + ".py"))]
     for name in wanted:
         t = time.time()
-        importlib.import_module(name).build(OUT)
+        try:
+            module = importlib.import_module(name)
+        except ModuleNotFoundError as e:
+            if e.name in (name, None) or os.path.exists(os.path.join(HERE, e.name + ".py")):
+                raise                                   # módulo do próprio projeto: erro de verdade
+            # biblioteca de terceiros ausente (hoje só o numpy, usado pela síntese de tools/audio_e.py)
+            sys.exit(f"{name}: falta a biblioteca Python '{e.name}' em {sys.executable}.\n"
+                     f"  Instale numa .venv na raiz (o Gradle a usa sozinho):\n"
+                     f"    python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt\n"
+                     f"  ou aponte outro interpretador: ./gradlew assets -Pvx.python=/caminho/python3 (ou VX_PYTHON).")
+        module.build(OUT)
         print(f"{name}: ok ({time.time() - t:.2f}s)")
 
 

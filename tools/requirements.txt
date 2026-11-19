@@ -1,0 +1,13 @@
+# Bibliotecas Python do projeto (instalação local, sem administrador):
+#   python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
+#
+# OBRIGATÓRIA para gerar os assets (./gradlew assets | test | jogo | editor): tools/audio_e.py sintetiza os efeitos do
+# combate com numpy. Os demais módulos de tools/build_assets.py só usam a biblioteca padrão.
+numpy>=2.0
+
+# Só para QA e produção de áudio (pranchas, comparação de imagens, medição e render de som) — não entram no build:
+pillow
+imageio
+imageio-ffmpeg
+scipy
+soundfile

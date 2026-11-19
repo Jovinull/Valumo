@@ -12,7 +12,7 @@ hs_err_pid*.log
 # Python
 __pycache__/
 *.pyc
-.venv/
+.venv
 
 # Assets GERADOS por tools/build_assets.py (determinístico): não versionar.
 # Feitos à mão (versionados): assets/scenes/*.json e assets/anim/*.json.
