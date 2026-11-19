@@ -1,0 +1,20 @@
+{
+  "_doc": "Rodada 10 — missões da direção E (escrito à mão). Ids estáveis; o mundo (falas, objetos, encontro da arena) se refere a eles. Objetivos em ordem; o último é sempre falar com quem deu a missão. Contrato: docs/architecture/missoes.md.",
+  "formato": "valumo.missoes",
+  "versao": 1,
+  "missoes": [
+    {
+      "id": "quest.trilha.luzes_do_posto",
+      "nome": "As Luzes do Posto",
+      "descricao": "Os fungos-cardo tomaram a trilha do sul e o marco de luz do posto apagou. Sem ele, quem chega à noite se perde antes de ver a vila. Kelyra pediu para limpar a trilha e reacender o sinal.",
+      "doador": "kelyra",
+      "encontro": "trilha",
+      "objetivos": [
+        {"id": "limpar_trilha", "tipo": "derrotar", "texto": "Afaste os fungos-cardo da trilha do sul", "alvos": ["trilha.fungo.1", "trilha.fungo.2"]},
+        {"id": "acender_marco", "tipo": "interagir", "texto": "Reacenda o marco de luz do posto", "objeto": "obj.posto.marco"},
+        {"id": "voltar_kelyra", "tipo": "falar", "texto": "Volte à vila e conte à Kelyra", "npc": "kelyra"}
+      ],
+      "recompensa": {"moedas": 30}
+    }
+  ]
+}

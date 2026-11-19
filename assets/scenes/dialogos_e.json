@@ -1,0 +1,132 @@
+{
+  "_doc": "Rodada 10 — falas por contexto (escrito à mão; o desenho só lê). npcs.<id>.missao: a missão que o NPC oferece e recebe; os 10 contextos de quem dá a missão são obrigatórios (DialogueBook.GIVER_CONTEXTS). 'acrescenta': true = as falas do contexto entram DEPOIS das falas de sempre da cena. escolhas: só na última fala; 'acao' = aceitar | recusar; 'segue' = contexto de reação mostrado logo depois. objetos: frases do marco por resultado do uso (QuestSystem.Use). Contrato: docs/architecture/missoes.md.",
+  "formato": "valumo.dialogos",
+  "versao": 1,
+  "npcs": {
+    "kelyra": {
+      "missao": "quest.trilha.luzes_do_posto",
+      "contextos": {
+        "oferta": {
+          "falas": [
+            {"texto": "Ora, um rosto novo! Faz tempo que a trilha não traz viajante à vila.", "expressao": "joy"},
+            {"texto": "Sou Kelyra. Cuido da estalagem ali atrás — estas chaves abrem quase todas as portas daqui."},
+            {"texto": "Mas a trilha do sul anda feia: os fungos-cardo tomaram o caminho, e o marco de luz do posto apagou.", "expressao": "determined"},
+            {"texto": "Sem aquela luz, quem chega à noite se perde antes de ver a vila. Você limpa a trilha e reacende o marco para mim?"}
+          ],
+          "escolhas": [
+            {"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"},
+            {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}
+          ]
+        },
+        "oferta_ja_viu": {
+          "falas": [
+            {"texto": "Você já passou pelo posto? Então viu o marco frio, apagado no fim da trilha.", "expressao": "surprise"},
+            {"texto": "Os fungos-cardo se espalharam por lá. Enquanto estiverem no caminho, ninguém sobe para acender a lanterna."},
+            {"texto": "Você limpa a trilha e reacende o marco para mim?", "expressao": "determined"}
+          ],
+          "escolhas": [
+            {"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"},
+            {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}
+          ]
+        },
+        "oferta_ja_lutou": {
+          "falas": [
+            {"texto": "Você já enfrentou um fungo-cardo? Pois é: espanta um, brotam dois.", "expressao": "surprise"},
+            {"texto": "Eles tomaram a trilha do sul, e o marco de luz do posto apagou."},
+            {"texto": "Se for voltar lá, que seja para limpar o caminho e reacender o marco. Aceita?", "expressao": "determined"}
+          ],
+          "escolhas": [
+            {"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"},
+            {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}
+          ]
+        },
+        "oferta_apos_recusa": {
+          "falas": [
+            {"texto": "Pensou melhor? A trilha continua tomada, e o marco, apagado."},
+            {"texto": "Não tenho pressa de mandar ninguém para o perigo, mas a vila precisa daquela luz.", "expressao": "determined"}
+          ],
+          "escolhas": [
+            {"texto": "Aceitar", "acao": "aceitar", "segue": "aceitou_agora"},
+            {"texto": "Agora não", "acao": "recusar", "segue": "recusou_agora"}
+          ]
+        },
+        "aceitou_agora": {
+          "falas": [
+            {"texto": "Obrigada! Siga a trilha para o sul, passando pela placa. Os fungos ficam na clareira antes do posto.", "expressao": "joy"},
+            {"texto": "O marco fica no fim da clareira. Depois que acender, volte aqui: tenho umas moedas guardadas para você."}
+          ]
+        },
+        "recusou_agora": {
+          "falas": [
+            {"texto": "Entendo. Se mudar de ideia, estou sempre por aqui."}
+          ]
+        },
+        "aceita": {
+          "falas": [
+            {"texto": "A trilha do sul começa logo depois da placa. Os fungos-cardo ficam na clareira.", "expressao": "determined"},
+            {"texto": "Recue quando ouvir um bufar: eles sempre avisam antes de investir."}
+          ]
+        },
+        "em_andamento": {
+          "falas": [
+            {"texto": "Já de volta da trilha? Pela sua cara, ainda tem fungo por lá.", "expressao": "surprise"},
+            {"texto": "Termine de limpar a clareira. O marco não vai acender com eles rondando."}
+          ]
+        },
+        "caiu": {
+          "falas": [
+            {"texto": "Você voltou com cara de quem levou uma boa trombada.", "expressao": "surprise"},
+            {"texto": "Os fungos que você já espantou não voltam. Respire, e tente de novo com calma.", "expressao": "determined"}
+          ]
+        },
+        "trilha_limpa": {
+          "falas": [
+            {"texto": "A trilha está limpa? Que alívio!", "expressao": "joy"},
+            {"texto": "Agora suba até o marco, no fim da clareira, e acenda a lanterna. Depois volte e me conte."}
+          ]
+        },
+        "entrega": {
+          "falas": [
+            {"texto": "Voltou inteiro — e com esse sorriso, o marco está aceso, não está?", "expressao": "joy"},
+            {"texto": "Quem chegar à noite agora encontra o caminho. Tome: trinta moedas, como prometi."},
+            {"texto": "Vou deixar um lugar perto do fogo reservado para você.", "expressao": "joy"}
+          ]
+        },
+        "concluida": {
+          "falas": [
+            {"texto": "Desde que você acendeu o marco, a trilha do sul ficou outra.", "expressao": "joy"},
+            {"texto": "E quando cansar, volte. Sempre tem lugar perto do fogo."}
+          ]
+        }
+      }
+    },
+    "bramor": {
+      "missao": "quest.trilha.luzes_do_posto",
+      "acrescenta": true,
+      "contextos": {
+        "missao_ativa": {
+          "falas": [
+            {"texto": "A Kelyra mandou você ao posto? Os cardos andam em dupla por lá: não deixe um ficar às suas costas.", "expressao": "determined"}
+          ]
+        },
+        "missao_concluida": {
+          "falas": [
+            {"texto": "Soube que o marco do posto acendeu de novo. Amanhã subo a trilha sem lanterna na mão.", "expressao": "joy"}
+          ]
+        }
+      }
+    }
+  },
+  "objetos": {
+    "obj.posto.marco": {
+      "nome": "Marco de luz do posto",
+      "acao": "Acender o marco",
+      "acaoAtivo": "Examinar o marco",
+      "ativou": "O marco se acendeu: a luz volta a apontar o caminho da vila.",
+      "jaAtivo": "A lanterna do marco brilha firme.",
+      "semMissao": "O marco está frio e apagado. Alguém na vila deve saber dele.",
+      "cedo": "Ainda há fungos-cardo na trilha: limpe a clareira antes de acender o marco.",
+      "nada": "Um marco de pedra com uma lanterna."
+    }
+  }
+}

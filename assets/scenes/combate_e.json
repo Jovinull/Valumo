@@ -141,11 +141,12 @@
   "fungo_anciao": {"nome": "Fungo-cardo ancião (protótipo)", "escala": 1.6, "vida": 16, "velocidade": 0.95, "preparo": 0.85, "recuperacao": 1.0, "chefe": true, "prototipo": true, "empurrao": 1.1}
  },
  "encontros": {
-  "_doc": "Rodada 09.2 — encontros da arena (pausa: Encontro; -Dvx.encontro=). Cada inimigo: variante, x, z, rumo (graus).",
+  "_doc": "Rodada 09.2 — encontros da arena (pausa: Encontro; -Dvx.encontro=). Cada inimigo: variante, x, z, rumo (graus) e, opcional (rodada 10), a identidade estável do spawn (sem ela: <encontro>.<índice>). 'trilha' pertence à missão quest.trilha.luzes_do_posto (missoes_e.json): os fungos que contaram não voltam.",
   "padrao": "um",
   "um": [["fungo_cardo", -1.8, 12.4, 200]],
   "grupo": [["fungo_cardo", -1.8, 12.6, 200], ["fungo_cardo", -0.3, 13.3, 215], ["fungo_cardo", -3.2, 13.1, 185]],
-  "chefe": [["fungo_anciao", -1.6, 13.6, 200], ["fungo_cardo", -0.1, 12.4, 220], ["fungo_cardo", -3.1, 12.3, 170]]
+  "chefe": [["fungo_anciao", -1.6, 13.6, 200], ["fungo_cardo", -0.1, 12.4, 220], ["fungo_cardo", -3.1, 12.3, 170]],
+  "trilha": [["fungo_cardo", -2.5, 12.3, 195, "trilha.fungo.1"], ["fungo_cardo", -0.5, 12.9, 210, "trilha.fungo.2"]]
  },
  "interface": {
   "_doc": "Rodada 09.2 — barras de vida. Inimigo comum: barra pequena sobre ele (preferência do jogador: nunca | dano (padrão: quando leva dano ou está travado) | sempre (engajado e visível)); dura 'mostra' s depois do último dano. Chefe: barra grande no topo, só para variante chefe.",

@@ -506,6 +506,12 @@
     ]
    }
   ],
+  "_doc_r10": "Rodada 10 — missões (missoes_e.json), falas por contexto (dialogos_e.json) e objetos do mundo com estado. objetos: id estável, posição, rumo, alcance do E, os dois modelos (props de env_e: apagado/aceso), raio do corpo e altura da placa.",
+  "missoes": "missoes_e",
+  "dialogos": "dialogos_e",
+  "objetos": [
+    {"id": "obj.posto.marco", "x": -1.15, "z": 14.35, "r": 180, "alcance": 1.8, "modelos": {"apagado": "trail_beacon_off", "aceso": "trail_beacon_on"}, "raio": 0.26, "placa": 1.75}
+  ],
   "combate": "combate_e"
  }
 }
