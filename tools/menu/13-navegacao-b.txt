@@ -1,6 +1,6 @@
 # Parte B (§3): reabrir → mesmo personagem, mesmo mundo → Continuar (o que a parte A salvou ao fechar) → Menu principal →
 # outro personagem, mesmo mundo (outra aventura) → Menu principal → mesmo personagem, outro mundo → X → sair sem salvar.
-# Sem nada novo desde o Continuar, "Menu principal" volta sem perguntar (confirmação desnecessária).
+# Numa aventura, sair sempre pergunta; sem nada novo desde o Continuar, a pergunta só oferece "Voltar ao menu" e Cancelar.
 size 1920 1080
 esperar-menu 20
 click jogar
@@ -18,6 +18,9 @@ missao
 shot n09-continuou-o-que-o-x-salvou
 key ESC
 click menu-principal
+wait 0.3
+shot n09b-menu-principal-tudo-salvo
+click menu-sem-salvar
 esperar-menu 60
 menu-estado
 click jogar
@@ -35,6 +38,7 @@ missao
 shot n10-outro-personagem-mesmo-mundo
 key ESC
 click menu-principal
+click menu-sem-salvar
 esperar-menu 60
 menu-estado
 click jogar
