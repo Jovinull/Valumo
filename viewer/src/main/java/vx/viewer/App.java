@@ -451,10 +451,10 @@ public final class App implements AutoCloseable {
             hud.text(pad, h - pad - line * 4.2f, s * 0.6f, ascii(st.customMsg), accent);
     }
 
-    /** Rig de um diretório de assets ou de uma aparência composta ("custom:<assinatura>"). */
     /** Rodada 07.2: modelos já compostos e enviados pelo editor (a cena nunca compõe de forma síncrona). */
     final Map<String, CharacterModel> injected = new HashMap<>();
 
+    /** Rig de um diretório de assets ou de uma aparência composta ("custom:<assinatura>"). */
     CharacterModel rig(String dir) {
         CharacterModel inj = injected.get(dir);
         if (inj != null) return inj;
@@ -865,9 +865,9 @@ public final class App implements AutoCloseable {
     /**
      * Miniatura REAL: o modelo composto, parado, em estúdio (sem pedestal), num FBO próprio — renderizador
      * separado para não realocar os alvos da cena principal a cada miniatura.
+     * Enquadramento: "corpo" (inteiro, 3/4), "cabeca" (close, 3/4), "cabelo" (cabeça inteira com o alto do
+     * penteado) ou "cobertura" (cabeça com folga em cima, lateral).
      */
-    /** Enquadramento: "corpo" (inteiro, 3/4), "cabeca" (close, 3/4), "cabelo" (cabeça inteira com o alto do
-     *  penteado) ou "cobertura" (cabeça com folga em cima, lateral). */
     public void renderThumb(CharacterModel m, Framebuffer target, String framing) {
         boolean head = !framing.equals("corpo"), cover = framing.equals("cobertura"), hair = framing.equals("cabelo");
         boolean eyes = framing.equals("olhos");                         // rodada 09.4: close na linha dos olhos
@@ -1357,5 +1357,16 @@ public final class App implements AutoCloseable {
         renderer.close();
         hud.close();
         if (captureFbo != null) captureFbo.close();
+        // cenas, pedestais, régua, aparências compostas e os assets carregados: cada App é dono dos seus (auditoria de
+        // engenharia — abrir o criador de dentro do jogo deixava ~53 malhas / ~61 MB na GPU a cada visita)
+        for (World w : worlds.values()) w.close();
+        worlds.clear();
+        for (Mesh m : pedestals.values()) m.close();
+        pedestals.clear();
+        if (ruler != null) { ruler.close(); ruler = null; }
+        if (composer != null) composer.clear();
+        actors.clear();
+        injected.clear();
+        assets.close();
     }
 }

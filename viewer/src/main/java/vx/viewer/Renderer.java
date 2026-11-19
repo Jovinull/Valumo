@@ -341,6 +341,7 @@ public final class Renderer implements AutoCloseable {
 
     @Override
     public void close() {
+        glDeleteVertexArrays(emptyVao);
         scene.close();
         depth.close();
         prepass.close();

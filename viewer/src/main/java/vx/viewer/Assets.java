@@ -16,8 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-/** Carrega e mantém em cache os assets de {@code assets/} (rigs, props). */
-public final class Assets {
+/**
+ * Carrega e mantém em cache os assets de {@code assets/} (rigs, props). É DONO das malhas e texturas que carregou:
+ * {@link #close()} as libera (quem cria um {@code Assets} temporário — o criador aberto de dentro do jogo — precisa
+ * fechá-lo, senão cada visita deixa uma cena inteira de malhas na GPU).
+ */
+public final class Assets implements AutoCloseable {
     /** Modelo estático: malha com origem no ponto de apoio (x,z centrados, y=0 no chão). */
     public record Prop(Mesh mesh, float voxelSize, float height, float width, vx.engine.Texture texture) { }
 
@@ -30,6 +34,24 @@ public final class Assets {
     private final Map<String, Map<String, Prop>> props = new HashMap<>();
 
     public Assets(Path root) { this.root = root; }
+
+    /** Libera as malhas (rigs e props) e as texturas (atlas) carregadas por este cache. Thread do GL. */
+    @Override
+    public void close() {
+        java.util.Set<vx.engine.Texture> textures = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (CharacterModel m : rigs.values()) {
+            Composer.release(m);
+            if (m.atlas != null) textures.add(m.atlas);
+        }
+        rigs.clear();
+        for (Map<String, Prop> set : props.values())
+            for (Prop p : set.values()) {
+                p.mesh().close();
+                if (p.texture() != null) textures.add(p.texture());   // o atlas é compartilhado pelos props do estilo
+            }
+        props.clear();
+        for (vx.engine.Texture t : textures) t.close();
+    }
 
     public Path root() { return root; }
 

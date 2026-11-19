@@ -9,9 +9,7 @@ import vx.engine.Window.InputEvent.Kind;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -463,13 +461,47 @@ class CreatorTest {
             // rodada 09: invariante sem tempo — todo pedido termina EXATAMENTE uma vez: mostrado ou descartado (na fila,
             // ao começar ou ao ficar pronto). Antes, os tirados da fila sumiam da conta e, sob carga (a thread de composição
             // sem CPU), "descartados > 0" falhava mesmo com o comportamento certo.
-            assertEquals(clicks.size() - fromCache, a.completed + a.discarded, "pedido sem destino ou contado duas vezes");
+            // (auditoria de engenharia: três dos cliques são combinações que não compõem — crespo × capuz C3; se a thread
+            // de composição pegasse uma delas como pedido atual, ela não contava em lugar nenhum. Agora conta em failed.)
+            assertEquals(clicks.size() - fromCache, a.completed + a.discarded + a.failed, "pedido sem destino ou contado duas vezes");
             Appearance lastClick = clicks.getLast();
             assertEquals(lastClick.signature(), a.wanted);
             assertEquals(lastClick.signature(), a.shown, "o personagem mostrado é o da última escolha");
             assertTrue(a.discarded > 0, "pedidos obsoletos são descartados");
             assertTrue(a.completed < clicks.size(), "nem todo pedido chega à GPU");
             assertTrue(a.cachedModels() <= 4, "cache limitado (malhas liberadas ao sair)");
+        }
+    }
+
+    /** Auditoria de engenharia — uma composição que falha TERMINA o pedido (antes: "Preparando…" e miniatura pendente para sempre). */
+    @Test
+    void aCompositionThatFailsEndsTheRequestInsteadOfHangingIt() {
+        try (AsyncComposer a = async(4)) {
+            Appearance ok = Appearance.preset("aventureiro");
+            a.request(ok);
+            a.drain(20000);
+            assertEquals(ok.signature(), a.shown);
+            Appearance bad = Appearance.preset("exploradora");            // capuz C3 × crespo: a regra do catálogo recusa
+            bad.hair = "cabelo.crespo";
+            assertThrows(RuntimeException.class, () -> new Composer(Path.of("assets"), 1).prepare(bad), "a combinação precisa ser inválida");
+            a.request(bad);
+            a.drain(20000);
+            assertFalse(a.busy(), "o pedido que falhou não fica pendente");
+            assertEquals(1, a.failed);
+            assertNotNull(a.lastError);
+            assertEquals(ok.signature(), a.shown, "continua mostrando o último personagem válido");
+            assertEquals(ok.signature(), a.wanted);
+            // miniatura da mesma combinação: o chamador é avisado (null), não esquecido
+            List<Object> got = new ArrayList<>();
+            a.requestThumb(bad, p -> got.add(p == null ? "falhou" : p));
+            long end = System.currentTimeMillis() + 20000;
+            while (got.isEmpty() && System.currentTimeMillis() < end) { a.poll(); Thread.onSpinWait(); }
+            assertEquals(List.of("falhou"), got);
+            // e a thread de composição continua viva para o pedido seguinte
+            Appearance next = Appearance.preset("maga");
+            a.request(next);
+            a.drain(20000);
+            assertEquals(next.signature(), a.shown);
         }
     }
 

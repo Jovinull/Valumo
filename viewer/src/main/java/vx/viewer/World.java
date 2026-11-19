@@ -27,7 +27,7 @@ import java.util.Random;
  * {@code assets/scenes/clearing.json}, também compartilhada — assim as direções são comparadas sob a
  * mesma composição.
  */
-public final class World {
+public final class World implements AutoCloseable {
     public static final float SIZE = 48f, Y_MIN = -3f, Y_MAX = 7f, WATER_LEVEL = -0.42f;
 
     /** Paleta e resolução do terreno de um estilo. */
@@ -165,14 +165,26 @@ public final class World {
     private final int[] topColor;
 
     /** Tratamento de relevo da E (rodada 03): 0 = rodada 02, 1 = voxel refinado, 2 = orgânico, 3 = híbrido,
-     *  4 = combinação (patamares do 2 + chanfros do 3). */
-    /** Relevo padrão da E. Rodada 03: T1 (limiar com ruído). O T3 (chanfros) segue disponível em
+     *  4 = combinação (patamares do 2 + chanfros do 3).
+     *  Relevo padrão da E. Rodada 03: T1 (limiar com ruído). O T3 (chanfros) segue disponível em
      *  {@code terrain=3}, mas gera "dentes" nas bordas em zigue-zague; ver docs/historico/experimentos/rodada-03-estudos.md. */
     public static final int E_TERRAIN = 1;
     public final int terrainMode;
     private Mesh chamfer;
 
     public World(Assets assets, StyleProfile style) { this(assets, style, E_TERRAIN); }
+
+    /**
+     * Libera o que este mundo CONSTRUIU (relevo, água, chanfros e a textura do relevo). Os props e as criaturas são do
+     * {@link Assets} e continuam com ele. Thread do GL.
+     */
+    @Override
+    public void close() {
+        terrain.close();
+        water.close();
+        if (chamfer != null) chamfer.close();
+        if (terrainTexture != null) terrainTexture.close();
+    }
 
     public World(Assets assets, StyleProfile style, int terrainMode) {
         this.key = style.key;
@@ -219,7 +231,7 @@ public final class World {
         loadLayout(assets, style);
     }
 
-    private static final int E_ROCK = 0xa99c98, E_ROCK_D = 0x93868a, E_LIP = 0x9cc46a;
+    private static final int E_ROCK = 0xa99c98, E_ROCK_D = 0x93868a;
 
     private int minNeighbor(int x, int z) {
         int m = top[x + z * n];
@@ -249,7 +261,7 @@ public final class World {
         return (int) Math.floor(base + wob);
     }
 
-    /**
+    /*
      * T3 — chanfros: cada degrau de 1 voxel ganha uma rampa (0,6 voxel de largura) apoiada no topo da
      * coluna mais baixa, que cobre a face vertical. Rampas vizinhas na mesma linha viram um quad só.
      * Degraus maiores continuam verticais (voxel evidente); topos continuam planos e fundidos.

@@ -21,6 +21,7 @@ public final class CreatorThumbs implements AutoCloseable {
     private static final class Slot {
         Framebuffer fbo;
         String sig;            // assinatura+enquadramento já renderizados
+        String failed;         // assinatura+enquadramento que não compôs (não se pede de novo)
     }
 
     private final App app;
@@ -70,11 +71,14 @@ public final class CreatorThumbs implements AutoCloseable {
             if (a == null) continue;
             String key = a.signature() + "#" + framing(w.id);
             Slot s = slots.computeIfAbsent(w.id, k -> new Slot());
-            if (key.equals(s.sig) || pending.contains(w.id + "=" + key)) continue;
+            if (key.equals(s.sig) || key.equals(s.failed) || pending.contains(w.id + "=" + key)) continue;
             pending.add(w.id + "=" + key);
             final String id = w.id;
             async.requestThumb(a, p -> toRender.add(() -> {
                 pending.remove(id + "=" + key);
+                // combinação que não compõe (opção indisponível, ex.: crespo × capuz C3): sem miniatura nova e sem pedir
+                // de novo a cada quadro — antes o pedido ficava pendente para sempre e o criador nunca ficava ocioso
+                if (p == null) { s.failed = key; return; }
                 CharacterModel m = async.upload(p);
                 try {
                     if (s.fbo == null) s.fbo = new Framebuffer(SIZE, SIZE, false, GL_RGBA8);

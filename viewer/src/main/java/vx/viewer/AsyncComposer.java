@@ -38,6 +38,9 @@ public final class AsyncComposer implements AutoCloseable {
     public volatile String wanted, shown;
     public volatile double lastComposeMs, lastMeshMs, lastUploadMs, lastTotalMs;
     public int discarded, completed;
+    /** Composições que falharam (aparência inválida, arquivo ausente…) e o motivo da última. Todo pedido termina em um dos três. */
+    public int failed;
+    public volatile String lastError;
     private long requestedAt;
 
     public AsyncComposer(Path assets, int cacheSize) {
@@ -88,7 +91,7 @@ public final class AsyncComposer implements AutoCloseable {
         return false;
     }
 
-    /** Pede uma miniatura (prioridade baixa); onMain recebe o Prepared na thread do GL. */
+    /** Pede uma miniatura (prioridade baixa); onMain recebe o Prepared na thread do GL — ou null se a composição falhou. */
     public void requestThumb(Appearance a, Consumer<Composer.Prepared> onMain) {
         queue.addLast(new Job(0, a.copy(), false, onMain));
     }
@@ -104,8 +107,9 @@ public final class AsyncComposer implements AutoCloseable {
 
     private void loop() {
         while (running) {
+            Job job = null;
             try {
-                Job j = queue.takeFirst();
+                Job j = job = queue.takeFirst();
                 if (j.main && j.gen != mainGen.get()) { synchronized (this) { discarded++; } continue; }
                 long t0 = System.nanoTime();
                 Composer.Prepared p = worker.prepare(j.a);
@@ -129,8 +133,21 @@ public final class AsyncComposer implements AutoCloseable {
                 }
             } catch (InterruptedException e) {
                 return;
-            } catch (RuntimeException e) {
-                System.err.println("composição falhou: " + e.getMessage());
+            } catch (Throwable e) {
+                // Uma falha não pode sumir: antes o pedido ficava sem resposta para sempre ("Preparando…", miniatura com
+                // reticências, roteiros esperando o tempo-limite) e um Error matava a thread em silêncio (auditoria).
+                System.err.println("composição falhou: " + e);
+                Job j = job;
+                if (j == null) continue;
+                synchronized (this) {
+                    if (j.main) ready.add(() -> {
+                        if (j.gen != mainGen.get()) { discarded++; return; }
+                        failed++;
+                        lastError = String.valueOf(e.getMessage());
+                        wanted = shown;                                          // volta ao que está na tela: nada fica "ocupado"
+                    });
+                    else ready.add(() -> j.onMain.accept(null));                 // miniatura: avisa que não haverá resultado
+                }
             }
         }
     }
