@@ -30,6 +30,7 @@
 | [architecture/audio.md](architecture/audio.md) | o som: um dispositivo por processo; parte A (09.4) catálogo de eventos, música, ambiente, interface, pisada por superfície, laço, gravação; parte B (09.1–09.3) efeitos do combate, diretor que só lê a lógica, síntese, mistura, sincronia |
 | [architecture/jogo.md](architecture/jogo.md) | o jogo: módulos, estados, controle do herói, colisão, câmera, cena, interação, aparência, interface, testes |
 | [validation/roteiro-de-teste-fisico.md](validation/roteiro-de-teste-fisico.md) | roteiro de teste com teclado e mouse físicos (criador e jogo) para o proprietário |
+| [validation/relatorio-integracoes-09-4.md](validation/relatorio-integracoes-09-4.md) | relatório das integrações da 09.4: PR #1 (áudio e personalização) na `main` e os cinco NPCs de ofício na vila |
 | [validation/relatorio-rodada-09-4.md](validation/relatorio-rodada-09-4.md) | relatório da rodada 09.4 (desenvolvida em paralelo como "rodada 09": direção sonora, estudos de música e efeitos, integração de áudio, estudos de cabelo, olhos e botas) |
 | [validation/relatorio-rodada-09-3.md](validation/relatorio-rodada-09-3.md) | relatório da 09.3 ( esquiva R1/R2 com a mesma função, salto com impulso e pouso, herói pontilhado perto da câmera) |
 | [validation/relatorio-rodada-09-2.md](validation/relatorio-rodada-09-2.md) | relatório da 09.2 ( mobilidade, esquiva, salto, mira opcional, grupos, ensaio de chefe, morte voxel, barras) |
