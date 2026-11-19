@@ -869,11 +869,19 @@ public final class App implements AutoCloseable {
      * penteado) ou "cobertura" (cabeça com folga em cima, lateral).
      */
     public void renderThumb(CharacterModel m, Framebuffer target, String framing) {
+        if (thumbRenderer == null) thumbRenderer = new Renderer();
+        renderPortrait(thumbRenderer, m, target, framing);
+    }
+
+    /**
+     * Rodada 11.1 — o mesmo retrato das miniaturas do criador (fundo de pergaminho, luz de estúdio, pose parada), com o
+     * {@link Renderer} de quem chama: o jogo usa para os retratos dos personagens na tela de escolha.
+     */
+    public static void renderPortrait(Renderer thumbRenderer, CharacterModel m, Framebuffer target, String framing) {
         boolean head = !framing.equals("corpo"), cover = framing.equals("cobertura"), hair = framing.equals("cabelo");
         boolean eyes = framing.equals("olhos");                         // rodada 09.4: close na linha dos olhos
         boolean feetF = framing.equals("pes");                          // rodada 09.4: botas
         float yaw = cover ? 1.05f : 0.38f;
-        if (thumbRenderer == null) thumbRenderer = new Renderer();
         StyleProfile style = StyleProfile.of(4, 0);
         style.zenith = StyleProfile.lin("#e9d7b4", 1f);            // fundo de pergaminho (combina com o painel)
         style.horizon = StyleProfile.lin("#f7ecd6", 1f);
