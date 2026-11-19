@@ -25,6 +25,7 @@
 | [0021](0021-varios-inimigos.md) | Vários inimigos: uma classe, encontros por dados, coordenação leve, cada alvo uma vez por golpe (rodada 09.2) |
 | [0022](0022-morte-por-desagregacao-voxel.md) | Morte por desagregação voxel: o corpo se desfaz nos próprios blocos (rodada 09.2) |
 | [0023](0023-audio-openal-stb-vorbis.md) | Áudio com OpenAL Soft e stb_vorbis (módulos do LWJGL), um dispositivo por processo com os efeitos do combate, catálogo de eventos, laço exato, loopback para testes e gravação (rodada 09.4) |
+| [0024](0024-missoes-e-save.md) | Missões como dados + camada lógica sem interface, identidade estável de inimigo (o que contou não volta), falas por contexto, jogo salvo v1 com escrita atômica e sem migração falsa (rodada 10) |
 
 Só entram aqui decisões que mudam o rumo do projeto ou que alguém poderia querer desfazer. Escolhas
 locais ficam em comentários no código ou nos guias de arte.
