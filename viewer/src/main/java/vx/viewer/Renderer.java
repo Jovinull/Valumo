@@ -204,7 +204,7 @@ public final class Renderer implements AutoCloseable {
                 if (!d.castsShadow || d.transparent || !visible(d)) continue;
                 lastShadowTriangles += d.mesh.vertexCount / 3;
                 depth.set("uModel", d.model);
-                d.mesh.draw();
+                d.mesh.drawDepth();
             }
             glDisable(GL_POLYGON_OFFSET_FILL);
         }

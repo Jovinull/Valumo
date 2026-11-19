@@ -13,7 +13,15 @@ public final class Mesh implements AutoCloseable {
     public static final int[] SCENE_LAYOUT = {3, 3, 3, 1, 1, 2};
     public static final int SCENE_STRIDE = 13;
 
+    /**
+     * Fluxo só de posição para o passo de sombra ({@code -Dvx.sombra.vbo=false} desliga). O passo de profundidade lê
+     * apenas {@code aPos}; no buffer intercalado isso é 12 bytes úteis a cada 52, e a GPU percorre a memória inteira.
+     */
+    public static final boolean DEPTH_STREAM = !"false".equals(System.getProperty("vx.sombra.vbo"));
+
     private final int vao, vbo;
+    private int depthVao, depthVbo;
+    private long depthBytes;
     public int vertexCount;
     private long bytes;
     private final int stride;
@@ -42,6 +50,19 @@ public final class Mesh implements AutoCloseable {
             glVertexAttribPointer(i, layout[i], GL_FLOAT, false, stride * Float.BYTES, (long) off * Float.BYTES);
             off += layout[i];
         }
+        if (DEPTH_STREAM && layout.length > 1 && layout[0] == 3 && vertexCount > 0) {
+            float[] pos = new float[vertexCount * 3];
+            for (int v = 0; v < vertexCount; v++) System.arraycopy(exact, v * stride, pos, v * 3, 3);
+            depthVao = glGenVertexArrays();
+            depthVbo = glGenBuffers();
+            glBindVertexArray(depthVao);
+            glBindBuffer(GL_ARRAY_BUFFER, depthVbo);
+            glBufferData(GL_ARRAY_BUFFER, pos, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0L);
+            depthBytes = (long) pos.length * Float.BYTES;
+            liveBytes += depthBytes;
+        }
         glBindVertexArray(0);
 
         bounds[0] = bounds[1] = bounds[2] = Float.MAX_VALUE;
@@ -62,6 +83,7 @@ public final class Mesh implements AutoCloseable {
      * objeto na GPU). {@code bounds} é responsabilidade de quem chama.
      */
     public void update(float[] data, int count) {
+        dropDepthStream();                                                 // malha dinâmica: o passo de sombra usa o buffer principal
         if (dyn == null || dyn.capacity() < count) dyn = org.lwjgl.BufferUtils.createFloatBuffer(Math.max(count, 1024));
         dyn.clear();
         dyn.put(data, 0, count).flip();                                    // sem alocar por quadro (buffer reaproveitado)
@@ -80,8 +102,26 @@ public final class Mesh implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
     }
 
+    /** Desenha só a posição (passo de sombra): mesmos triângulos de {@link #draw()}, 12 bytes por vértice em vez de 52. */
+    public void drawDepth() {
+        if (depthVao == 0) { draw(); return; }
+        if (vertexCount == 0) return;
+        glBindVertexArray(depthVao);
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    }
+
+    private void dropDepthStream() {
+        if (depthVao == 0) return;
+        glDeleteBuffers(depthVbo);
+        glDeleteVertexArrays(depthVao);
+        liveBytes -= depthBytes;
+        depthVao = depthVbo = 0;
+        depthBytes = 0;
+    }
+
     @Override
     public void close() {
+        dropDepthStream();
         liveBytes -= bytes;              // o que foi somado (o layout não é sempre o de cena)
         liveMeshes--;
         glDeleteBuffers(vbo);
