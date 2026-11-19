@@ -354,7 +354,7 @@
   ]
  ],
  "jogo": {
-  "_doc": "início do herói [x, z, rumo em graus], limite jogável (círculo), personagens interativos e falas (originais). Rodada 09: 'combate' aponta o arquivo do confronto (arena unida ao limite).",
+  "_doc": "início do herói [x, z, rumo em graus], limite jogável (círculo), personagens interativos e falas (originais). Rodada 09: 'combate' aponta o arquivo do confronto (arena unida ao limite). Integração da 09.4: cinco NPCs de ofício (Bramor, Teodor, Pluma, Ondina, Lunara) com falas próprias, em vagas medidas: chão caminhável, nenhuma forma de corpo ou câmera a menos de 1,6 u e nenhuma copa por cima (GameplayTest).",
   "inicio": [
    0.6,
    4.4,
@@ -391,6 +391,117 @@
      {
       "texto": "E quando cansar, volte. Sempre tem lugar perto do fogo.",
       "expressao": "joy"
+     }
+    ]
+   },
+   {
+    "rig": "characters/npc/bramor",
+    "nome": "Bramor",
+    "titulo": "Guardião de trilhas",
+    "x": -10.0,
+    "z": -2.0,
+    "r": 73,
+    "alcance": 1.8,
+    "falas": [
+     {
+      "texto": "Calma, não precisa olhar tão para cima. Sou Bramor, guardo as trilhas que saem da vila.",
+      "expressao": "joy"
+     },
+     {
+      "texto": "Se for pela mata, siga as pedras marcadas. Quem sai da trilha costuma voltar com o pé molhado e a história errada."
+     },
+     {
+      "texto": "E se ouvir um fungo bufando lá para o sul, recue antes de golpear. Ele sempre avisa antes de investir.",
+      "expressao": "determined"
+     }
+    ]
+   },
+   {
+    "rig": "characters/npc/teodor",
+    "nome": "Teodor",
+    "titulo": "Estudioso",
+    "x": 2.0,
+    "z": -4.0,
+    "r": -22,
+    "alcance": 1.8,
+    "falas": [
+     {
+      "texto": "Ah, perdão — eu estava contando as marcas desta pedra. Sou Teodor; estudo o que a vila esquece de anotar."
+     },
+     {
+      "texto": "Sabia que o musgo cresce mais do lado de onde vem a chuva? Dá para achar o caminho de casa só olhando para ele.",
+      "expressao": "determined"
+     },
+     {
+      "texto": "Volte quando tiver uma pergunta difícil. As fáceis eu já respondi para mim mesmo.",
+      "expressao": "joy"
+     }
+    ]
+   },
+   {
+    "rig": "characters/npc/pluma",
+    "nome": "Pluma",
+    "titulo": "Cronista",
+    "x": -1.5,
+    "z": -10.0,
+    "r": 3,
+    "alcance": 1.8,
+    "falas": [
+     {
+      "texto": "Olá! Sou Pluma, cronista da vila. Tudo o que acontece por aqui acaba no meu caderno.",
+      "expressao": "joy"
+     },
+     {
+      "texto": "As asinhas? Presente de uma ave que tirei do lago. Desde então, nenhuma história me escapa.",
+      "expressao": "surprise"
+     },
+     {
+      "texto": "Faça algo memorável lá fora. Eu escrevo, e a vila inteira lê.",
+      "expressao": "determined"
+     }
+    ]
+   },
+   {
+    "rig": "characters/npc/ondina",
+    "nome": "Ondina",
+    "titulo": "Guia costeira",
+    "x": 8.0,
+    "z": -1.0,
+    "r": -76,
+    "alcance": 1.8,
+    "falas": [
+     {
+      "texto": "Bom dia, viajante! Sou Ondina, guia da margem do lago.",
+      "expressao": "joy"
+     },
+     {
+      "texto": "A água parece calma, mas o fundo muda de um dia para o outro. Atravesse só por onde eu marquei."
+     },
+     {
+      "texto": "Precisando de caminho pela margem, me procure aqui. O chapéu ajuda a me achar de longe.",
+      "expressao": "joy"
+     }
+    ]
+   },
+   {
+    "rig": "characters/npc/lunara",
+    "nome": "Lunara",
+    "titulo": "Cantora noturna",
+    "x": 1.0,
+    "z": -8.0,
+    "r": -6,
+    "alcance": 1.8,
+    "falas": [
+     {
+      "texto": "Psiu... ainda é cedo para cantar. Sou Lunara; minha voz é das noites da vila."
+     },
+     {
+      "texto": "Quando a lua sobe, a praça inteira para para ouvir. Até os fungos ficam quietos, juram os mais velhos.",
+      "expressao": "joy"
+     },
+     {
+      "texto": "Volte depois do pôr do sol. Guardo uma canção nova para quem chega de longe.",
+      "expressao": "determined"
      }
     ]
    }
