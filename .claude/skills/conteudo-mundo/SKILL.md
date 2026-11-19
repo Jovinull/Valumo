@@ -30,11 +30,16 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
    - diagonal com `face_line` ou `line6`;
    - chaminé e tudo o que tem o próprio torto vêm depois do cisalhamento.
 3. Árvore: tronco no centro da caixa (a colisão do jogo põe o círculo ali); declare `tronco_faixa`.
-4. Pontos:
+4. Vento: vegetação PRESA a sólido (musgo, hera, folha de floreira) é fosca (`MOSS_FIX`, `IVY`). Folhagem é só o que
+   balança solto (copa, arbusto, erva pendurada). O vento afim desloca a folhagem proporcional à altura e abre fresta
+   onde ela encosta em sólido.
+5. Estado: `aprovacao` (artística) × `integracao` (liberado ou a dependência); quem usa `colisao.formas` não é
+   `liberado`.
+6. Pontos:
    - entrada fora da parede e da colisão, olhando para o asset;
    - interação e spawn com lugar livre de pé a até 1 u;
    - interior caminhável (galpão, ruína) = `colisao.formas`.
-5. `python3 tools/build_assets.py conteudo_e`.
+7. `python3 tools/build_assets.py conteudo_e`.
 
 ## Revisar (sempre olhando)
 
@@ -52,13 +57,14 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
 
 ## Validar
 
-- `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest` (e a suíte inteira antes de entregar). Os 9 testes:
+- `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest` (e a suíte inteira antes de entregar). Os 10 testes:
   - catálogo e ids;
   - medidas = voxels;
   - materiais e vento;
   - sem fragmento < 4;
   - entradas;
   - pontos de pé;
+  - folhagem presa a sólido (vento);
   - tronco × colisão;
   - variações;
   - orçamento de triângulos relativo aos aprovados.
