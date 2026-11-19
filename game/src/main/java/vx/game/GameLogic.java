@@ -93,8 +93,8 @@ public final class GameLogic {
         prefs = scene.combat != null
                 ? new Prefs(Prefs.defaultFile(), scene.combat.barDefault, scene.combat.feelDefault, scene.combat.encounterDefault).load()
                 : new Prefs(null, "dano", "A", "um");
-        if (System.getProperty("vx.sensacao") != null) prefs.feel = System.getProperty("vx.sensacao");
-        if (System.getProperty("vx.encontro") != null) prefs.encounter = System.getProperty("vx.encontro");
+        if (System.getProperty("vx.sensacao") != null) { prefs.feel = System.getProperty("vx.sensacao"); prefs.feelFromCommandLine = true; }
+        if (System.getProperty("vx.encontro") != null) { prefs.encounter = System.getProperty("vx.encontro"); prefs.encounterFromCommandLine = true; }
         if (System.getProperty("vx.barras") != null) prefs.bars = Prefs.valid(System.getProperty("vx.barras"), prefs.bars);
         combat = scene.combat != null ? new Combat(scene.combat, collision, scene.assets, prefs.encounter) : null;
         if (combat != null) {
@@ -410,6 +410,7 @@ public final class GameLogic {
                 if (combat == null) return;
                 List<String> ks = new ArrayList<>(combat.def.feels.keySet());
                 applyFeel(ks.get((ks.indexOf(prefs.feel) + 1) % ks.size()));
+                prefs.feelFromCommandLine = false;                     // escolha do jogador: passa a valer no arquivo
                 prefs.save();
             }
             case "encontro" -> {                                       // rodada 09.2: próximo encontro da arena
@@ -419,7 +420,7 @@ public final class GameLogic {
             }
             default -> {
                 if (id.startsWith("escolha:")) select(Integer.parseInt(id.substring(8)));
-                else if (id.startsWith("sensacao:")) { applyFeel(id.substring(9)); prefs.save(); }
+                else if (id.startsWith("sensacao:")) { applyFeel(id.substring(9)); prefs.feelFromCommandLine = false; prefs.save(); }
                 else if (id.startsWith("encontro:")) setEncounter(id.substring(9));
                 else if (id.startsWith("barras:")) { prefs.bars = Prefs.valid(id.substring(7), prefs.bars); prefs.save(); }
             }
@@ -436,6 +437,7 @@ public final class GameLogic {
         if (audio != null) audio.reset(combat);
         victoryShown = false;
         prefs.encounter = combat.encounter;
+        prefs.encounterFromCommandLine = false;                        // escolha do jogador (pausa ou roteiro)
         prefs.save();
     }
 

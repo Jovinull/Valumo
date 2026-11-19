@@ -19,13 +19,23 @@ public final class Prefs {
     public String feel, encounter;
     public final Path file;
     public boolean persist = true;
+    /**
+     * Sensação ou encontro vindos de {@code -Dvx.sensacao}/{@code -Dvx.encontro} (comparação de uma sessão): valem no
+     * jogo, mas {@link #save()} grava o valor que estava no arquivo — antes a comparação virava preferência definitiva no
+     * primeiro ajuste da pausa. Escolher na pausa limpa a marca (aí a escolha é do jogador).
+     */
+    public boolean feelFromCommandLine, encounterFromCommandLine;
+    private String storedFeel, storedEncounter;
 
     public Prefs(Path file, String barsDefault, String feelDefault, String encounterDefault) {
         this.file = file;
         bars = barsDefault;
-        feel = feelDefault;
-        encounter = encounterDefault;
+        feel = storedFeel = feelDefault;
+        encounter = storedEncounter = encounterDefault;
     }
+
+    /** Maior arquivo de preferências aceito (bytes). */
+    static final long MAX_BYTES = 64 * 1024;
 
     /** Arquivo das preferências; {@code -Dvx.prefs=-} = nenhum (roteiros: sempre os padrões, nada gravado). */
     public static Path defaultFile() {
@@ -33,17 +43,45 @@ public final class Prefs {
         return f.equals("-") ? null : Path.of(f);
     }
 
+    /**
+     * Lê o arquivo. Ilegível (JSON quebrado, tipo errado, grande demais) = os padrões, e o original é guardado ao lado
+     * ({@link #preserveInvalid}) antes que o próximo {@link #save()} o substitua — o diagnóstico não se perde.
+     */
     public Prefs load() {
         if (file == null || !Files.isRegularFile(file)) return this;
+        String b = bars, f = feel, e = encounter;
         try {
+            if (Files.size(file) > MAX_BYTES) throw new IOException("grande demais");
             JsonObject o = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
-            if (o.has("barrasInimigos")) bars = valid(o.get("barrasInimigos").getAsString(), bars);
-            if (o.has("sensacao")) feel = o.get("sensacao").getAsString();
-            if (o.has("encontro")) encounter = o.get("encontro").getAsString();
-        } catch (IOException | RuntimeException e) {
-            System.err.println("preferências ilegíveis (usando os padrões): " + file);
+            if (o.has("barrasInimigos")) b = valid(text(o, "barrasInimigos"), b);
+            if (o.has("sensacao")) f = text(o, "sensacao");
+            if (o.has("encontro")) e = text(o, "encontro");
+        } catch (IOException | RuntimeException ex) {
+            System.err.println("preferências ilegíveis (usando os padrões; original em " + preserveInvalid(file) + "): " + ex.getMessage());
+            return this;
         }
+        bars = b;
+        feel = storedFeel = f;
+        encounter = storedEncounter = e;
         return this;
+    }
+
+    /** Valor de texto obrigatório (número, objeto ou lista = arquivo inválido, não conversão silenciosa). */
+    static String text(JsonObject o, String k) {
+        var v = o.get(k);
+        if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isString()) throw new IllegalArgumentException("\"" + k + "\" não é texto");
+        return v.getAsString();
+    }
+
+    /** Copia um arquivo de preferências inválido para {@code ARQUIVO.invalido} (o último); devolve o destino. */
+    static Path preserveInvalid(Path f) {
+        Path keep = f.resolveSibling(f.getFileName() + ".invalido");
+        try {
+            Files.copy(f, keep, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return keep;
+        } catch (IOException ex) {
+            return f;
+        }
     }
 
     static String valid(String v, String def) { return v.equals("nunca") || v.equals("dano") || v.equals("sempre") ? v : def; }
@@ -53,8 +91,10 @@ public final class Prefs {
         JsonObject o = new JsonObject();
         o.addProperty("_doc", "Valumo — preferências do jogador (rodada 09.2). barrasInimigos: nunca | dano | sempre.");
         o.addProperty("barrasInimigos", bars);
-        o.addProperty("sensacao", feel);
-        o.addProperty("encontro", encounter);
+        if (!feelFromCommandLine) storedFeel = feel;
+        if (!encounterFromCommandLine) storedEncounter = encounter;
+        o.addProperty("sensacao", storedFeel);
+        o.addProperty("encontro", storedEncounter);
         try {
             if (file.getParent() != null) Files.createDirectories(file.getParent());
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(o) + "\n");

@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import vx.engine.audio.Audio;
 import vx.engine.audio.SoundSystem;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,14 +42,19 @@ public final class AudioPrefs {
         if (f == null) return p;
         try {
             if (Files.isRegularFile(f)) {
+                if (Files.size(f) > Prefs.MAX_BYTES) throw new IOException("grande demais");
                 JsonObject o = JsonParser.parseString(Files.readString(f, StandardCharsets.UTF_8)).getAsJsonObject();
                 if ("valumo.preferencias".equals(o.get("contrato").getAsString()) && o.get("versao").getAsInt() == 1) {
-                    p.music = clamp(o.get("musica").getAsFloat());
-                    p.effects = clamp(o.get("efeitos").getAsFloat());
+                    float m = o.get("musica").getAsFloat(), e = o.get("efeitos").getAsFloat();
+                    if (!Float.isFinite(m) || !Float.isFinite(e)) throw new IllegalArgumentException("volume não finito");
+                    p.music = clamp(m);
+                    p.effects = clamp(e);
                 }
             }
         } catch (Exception e) {
-            System.err.println("preferências de áudio ignoradas (" + e.getMessage() + ")");
+            // os padrões (100%), e o original guardado ao lado antes que a próxima gravação o substitua
+            System.err.println("preferências de áudio ignoradas (" + e.getMessage() + "); original em " + Prefs.preserveInvalid(f));
+            return new AudioPrefs();
         }
         return p;
     }
