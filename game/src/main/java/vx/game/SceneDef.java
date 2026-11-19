@@ -27,7 +27,17 @@ public final class SceneDef {
 
     /** {@code height}: altura do personagem no mundo (u), lida do rig.json — a câmera de conversa enquadra por ela. */
     public record Interactive(String rig, String name, String title, float x, float z, float yawDeg, float range, List<Line> lines,
-                              float height) { }
+                              float height) {
+        /** Rodada 10 — id do NPC (falas por contexto, missões): o nome da pasta do rig ({@code kelyra}). */
+        public String id() { return rig.substring(rig.lastIndexOf('/') + 1); }
+    }
+
+    /**
+     * Rodada 10 — objeto do mundo com estado (o marco de luz): id estável, posição, rumo, alcance do E, os dois modelos
+     * (props gerados: apagado/aceso), raio do corpo sólido e altura da placa de interação.
+     */
+    public record WorldObject(String id, float x, float z, float yawDeg, float range, String modelOff, String modelOn, float radius,
+                              float plateY) { }
 
     /** Altura do rig (u): {@code meta.worldUnits} (NPC com altura narrativa) ou corpo × voxel; 1,25 se não houver. */
     static float rigHeight(Path assets, String rig) {
@@ -51,6 +61,9 @@ public final class SceneDef {
     /** Rodada 09: combate da cena (null = cena sem combate). */
     public CombatDef combat;
     public final List<Interactive> interactives = new ArrayList<>();
+    /** Rodada 10 — objetos com estado, e os arquivos de missões e falas da cena (null = cena sem missões). */
+    public final List<WorldObject> objects = new ArrayList<>();
+    public String questsFile, dialoguesFile;
     /** Props escritos à mão na cena (o espalhamento procedural fica de fora: ele está além do limite jogável). */
     public final List<World.Placement> handPlaced = new ArrayList<>();
     /** NPCs e criaturas não interativos da cena (rig, x, z). */
@@ -92,6 +105,15 @@ public final class SceneDef {
                     o.has("titulo") ? o.get("titulo").getAsString() : null, o.get("x").getAsFloat(), o.get("z").getAsFloat(),
                     o.get("r").getAsFloat(), o.has("alcance") ? o.get("alcance").getAsFloat() : 1.7f, List.copyOf(lines),
                     rigHeight(assets, o.get("rig").getAsString())));
+        }
+        if (game.has("missoes")) d.questsFile = "scenes/" + game.get("missoes").getAsString() + ".json";
+        if (game.has("dialogos")) d.dialoguesFile = "scenes/" + game.get("dialogos").getAsString() + ".json";
+        if (game.has("objetos")) for (JsonElement el : game.getAsJsonArray("objetos")) {
+            JsonObject o = el.getAsJsonObject();
+            JsonObject m = o.getAsJsonObject("modelos");
+            d.objects.add(new WorldObject(o.get("id").getAsString(), o.get("x").getAsFloat(), o.get("z").getAsFloat(), o.get("r").getAsFloat(),
+                    o.get("alcance").getAsFloat(), m.get("apagado").getAsString(), m.get("aceso").getAsString(), o.get("raio").getAsFloat(),
+                    o.get("placa").getAsFloat()));
         }
         Map<String, float[]> boxes = propBounds(assets, "e");
         Terrain t = Terrain.e();

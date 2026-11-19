@@ -166,6 +166,10 @@ public final class Collision {
         for (World.Placement p : props) c.addProp(prof, p);
         for (World.Body b : bodies) c.addBody(prof, b.name(), b.x(), b.z());
         for (SceneDef.Interactive i : scene.interactives) c.addBody(prof, i.rig(), i.x(), i.z());
+        for (SceneDef.WorldObject o : scene.objects) {                    // rodada 10: objeto com estado (marco): corpo sólido
+            float y = c.ground.height(o.x(), o.z());
+            c.shapes.add(Shape.circle(o.id(), o.x(), o.z(), o.radius(), y, y + 1.5f, true, false));
+        }
         c.limitX = scene.limitX;
         c.limitZ = scene.limitZ;
         c.limitR = scene.limitR;
