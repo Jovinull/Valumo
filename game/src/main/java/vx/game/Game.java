@@ -73,6 +73,9 @@ public final class Game implements AutoCloseable {
     private final Map<Enemy, DeathFx> deaths = new HashMap<>();
     private final java.util.Set<Enemy> broken = new java.util.HashSet<>();
     private DeathFxMesh deathMesh;
+    /** Rodada 10: os modelos dos objetos com estado (props da E) e a semente de luz do efeito do marco. */
+    private final Map<String, Assets.Prop> props;
+    private vx.engine.Mesh mote;
     /** Estilo da morte: D2 (padrão), D1 ou "antiga" (rodada 09: cai e encolhe — só para comparar). */
     public static String deathStyle = System.getProperty("vx.morte", "D2");
 
@@ -106,9 +109,11 @@ public final class Game implements AutoCloseable {
         worldBuildMs = (System.nanoTime() - w0) / 1e6;
         World.layout = prev;
         terrain = world.terrainGrid;
+        props = assets.props(world.key);
         SceneDef scene = SceneDef.load(assetsPath, SCENE);
         Collision col = Collision.build(terrain, Collision.profiles(assetsPath), world.placements(), world.bodies(), scene);
         logic = new GameLogic(scene, col);
+        logic.technical = technical;
         gameAudio = new GameAudio(logic);
         audioPrefs.apply();
         async = new AsyncComposer(assetsPath, 8);
@@ -294,6 +299,7 @@ public final class Game implements AutoCloseable {
             }
             if (!old) drawDeaths(f, cb);
         }
+        drawObjects(f);
         for (GameLogic.Npc n : logic.npcs) {
             SceneDef.Line l = n == logic.talking ? logic.currentLine() : null;
             String expr = l != null ? l.expression() : null;
@@ -306,6 +312,47 @@ public final class Game implements AutoCloseable {
         if (target != null) target.bind(); else Framebuffer.bindDefault(w, h);
         drawUi(w, h);
         lastRenderMs = (System.nanoTime() - t0) / 1e6;
+    }
+
+    // ------------------------------------------------------------------ rodada 10: objetos com estado (o marco)
+
+    /** Duração (s) e quantidade das sementes de luz que sobem da lanterna quando o marco acende (P1: ≤ 5 na tela). */
+    static final float MOTE_LIFE = 2.4f;
+    static final int MOTES = 5;
+
+    /** O marco no estado da missão (apagado/aceso) e, logo depois de acender, o efeito discreto. */
+    private void drawObjects(Renderer.Frame f) {
+        for (SceneDef.WorldObject o : logic.scene.objects) {
+            boolean on = logic.quests != null && logic.quests.objectOn(o.id());
+            Assets.Prop pr = props.get(on ? o.modelOn() : o.modelOff());
+            if (pr == null) continue;
+            Matrix4f m = new Matrix4f().translate(o.x(), terrain.groundAt(o.x(), o.z()), o.z()).rotateY((float) Math.toRadians(o.yawDeg()));
+            f.draws.add(new Renderer.Draw(pr.mesh(), m, pr.texture(), false, true));
+            Float t0 = logic.litAt.get(o.id());
+            if (t0 != null && logic.time - t0 < MOTE_LIFE) motes(f, m, logic.time - t0);
+        }
+    }
+
+    /**
+     * Sementes de luz (P1, verde-água emissivo) subindo em espiral da lanterna e encolhendo até sumir: 5 pontos de
+     * 1/24 u por 2,4 s. Só desenho; nada disso volta para a lógica.
+     */
+    private void motes(Renderer.Frame f, Matrix4f model, float t) {
+        if (mote == null) mote = vx.engine.VoxelMesher.build(new vx.engine.VoxelSource() {
+            public int sizeX() { return 1; }
+            public int sizeY() { return 1; }
+            public int sizeZ() { return 1; }
+            public int get(int x, int y, int z) { return x == 0 && y == 0 && z == 0 ? ((vx.engine.VoxModel.MAT_EMISSIVE + 1) << 24) | 0x9ff0c8 : 0; }
+        }, 1f, -0.5f, -0.5f, -0.5f);
+        org.joml.Vector3f c = model.transformPosition(new org.joml.Vector3f(0f, 1.06f, 0.44f));   // centro da lanterna
+        for (int i = 0; i < MOTES; i++) {
+            float u = Math.clamp((t - i * 0.12f) / (MOTE_LIFE - 0.5f), 0f, 1f);
+            if (u <= 0f || u >= 1f) continue;
+            float a = i * 1.2566f + u * 4.2f, r = 0.08f + 0.20f * u;
+            float k = 0.042f * (float) Math.sqrt(1f - u);
+            f.draws.add(new Renderer.Draw(mote, new Matrix4f().translate(c.x + r * (float) Math.cos(a), c.y + 0.70f * u, c.z + r * (float) Math.sin(a))
+                    .rotateY(a).scale(k), null, false, false));
+        }
     }
 
     // ------------------------------------------------------------------ rodada 09.2: morte por desagregação voxel
@@ -374,7 +421,9 @@ public final class Game implements AutoCloseable {
             case EXPLORE -> drawExplore(w, h);
             case DIALOG -> drawDialog(w, h);
             case PAUSE -> drawPause(w, h);
+            case JOURNAL -> drawJournal(w, h);
         }
+        if (logic.state == GameLogic.State.EXPLORE || logic.state == GameLogic.State.DIALOG) drawToast(w, h);
         if (async.busy() && async.waitingMs() > 150) {
             float bw = 260 * s;
             kit.chamfer((w - bw) / 2, h - 120 * s, bw, 46 * s, 5 * s, 0x2a1e18c0);
@@ -382,10 +431,15 @@ public final class Game implements AutoCloseable {
         }
         if (logic.message != null && logic.time < logic.messageUntil) {
             int p = px(21);
-            float tw = kit.width(logic.message, p, true), bw = tw + 60 * s;
-            kit.chamfer((w - bw) / 2, 40 * s, bw, 52 * s, 6 * s, UiKit.WOOD_D);
-            kit.chamfer((w - bw) / 2 + 3 * s, 43 * s, bw - 6 * s, 46 * s, 5 * s, UiKit.PARCH_L);
-            kit.text((w - bw) / 2 + 30 * s, 66 * s - p * 0.66f, logic.message, p, true, UiKit.INK);
+            String msg = fit(logic.message, p, w - 120 * s);              // rodada 10: nunca passa da tela
+            float tw = kit.width(msg, p, true), bw = tw + 60 * s;
+            // rodada 10: na pausa e no diário a mensagem vai para baixo — no topo cobria o título do painel (na tela inicial
+            // continua no topo: embaixo cobriria os botões de jogo novo e continuar)
+            boolean menu = logic.state == GameLogic.State.PAUSE || logic.state == GameLogic.State.JOURNAL;
+            float my0 = menu ? h - 62 * s : 40 * s;
+            kit.chamfer((w - bw) / 2, my0, bw, 52 * s, 6 * s, UiKit.WOOD_D);
+            kit.chamfer((w - bw) / 2 + 3 * s, my0 + 3 * s, bw - 6 * s, 46 * s, 5 * s, UiKit.PARCH_L);
+            kit.text((w - bw) / 2 + 30 * s, my0 + 26 * s - p * 0.66f, msg, p, true, UiKit.INK);
         }
         boolean defeatUi = logic.combat != null && logic.combat.outcome == Combat.Outcome.DEFEAT && logic.state == GameLogic.State.EXPLORE;
         if (drawCursor && (logic.state != GameLogic.State.EXPLORE || defeatUi) && mouseX >= 0) kit.cursor(mouseX, mouseY, s, false);
@@ -426,7 +480,9 @@ public final class Game implements AutoCloseable {
     }
 
     private void drawSelect(int w, int h) {
-        title("Valumo", "Protótipo de exploração — escolha a aparência e entre na vila");
+        boolean fresh = !logic.started && logic.quests != null;           // rodada 10: Jogo novo / Continuar
+        title("Valumo", fresh ? "As Luzes do Posto — escolha a aparência e comece, ou continue o jogo salvo"
+                : "Protótipo de exploração — escolha a aparência e entre na vila");
         float pw = 560 * s, px0 = w - 28 * s - pw, py = 132 * s, ph = h - py - 28 * s;
         kit.panel(px0, py, pw, ph, s, false);
         float x = px0 + 24 * s, y = py + 24 * s, iw = pw - 48 * s;
@@ -439,7 +495,7 @@ public final class Game implements AutoCloseable {
         }
         y += 40 * s - px(19) * 1.25f;
         float bh = 54 * s, gap = 8 * s;
-        int maxRows = Math.max(1, (int) ((py + ph - 24 * s - 70 * s - 66 * s - 40 * s - y) / (bh + gap)));
+        int maxRows = Math.max(1, (int) ((py + ph - 24 * s - 70 * s - 66 * s * (fresh ? 2 : 1) - 40 * s - y) / (bh + gap)));
         // janela que segue a seleção: antes só os primeiros maxRows eram desenhados e a 10ª aparência (inclusive a recém-
         // criada, que entra selecionada no fim da lista) não aparecia
         int first = Math.clamp(logic.selected - maxRows + 1, 0, Math.max(0, logic.choices.size() - maxRows));
@@ -468,9 +524,36 @@ public final class Game implements AutoCloseable {
         if (below > 0)
             kit.text(x, y, "+" + below + " (use ↑ ↓)", px(18), false, UiKit.INK_SOFT);
         float by = py + ph - 24 * s - 70 * s;
-        button("comecar", x, by, iw, 70 * s, "Entrar na vila", true);
+        if (fresh) {
+            String why = logic.continueBlocker();
+            boolean can = why == null;
+            button("comecar", x, by, iw, 70 * s, "Jogo novo", !can);
+            if (can) button("continuar-jogo", x, by - 66 * s, iw, 56 * s, "Continuar o jogo salvo", true);
+            else disabledButton("continuar-jogo", x, by - 66 * s, iw, 56 * s, "Continuar — " + shortReason(why));
+            button("criador", x, by - 132 * s, iw, 56 * s, "Criar no editor", false);
+            controlsHint(w, h, can ? "↑ ↓ escolher · Enter jogo novo · C continuar · Esc sair" : "↑ ↓ escolher · Enter jogo novo · Esc sair");
+            return;
+        }
+        button("comecar", x, by, iw, 70 * s, logic.started ? "Voltar ao jogo" : "Entrar na vila", true);
         button("criador", x, by - 66 * s, iw, 56 * s, "Criar no editor", false);
         controlsHint(w, h, "↑ ↓ escolher · Enter entrar · Esc sair");
+    }
+
+    /** Botão desabilitado: desenhado apagado; o clique ainda chega à lógica, que explica o motivo. */
+    private void disabledButton(String id, float x, float y, float w, float h, String label) {
+        buttons.add(new Button(id, x, y, w, h, label, false));
+        kit.chamfer(x, y, w, h, 5 * s, 0x6b544480);
+        kit.chamfer(x + 3 * s, y + 3 * s, w - 6 * s, h - 7 * s, 4 * s, 0xcfc2b0ff);
+        int p = textPx(label, w - 20 * s, 20);
+        String t = fit(label, p, w - 24 * s);
+        kit.text(x + (w - kit.width(t, p, true)) / 2, y + h / 2 - p * 0.66f, t, p, true, UiKit.INK_SOFT);
+    }
+
+    /** Motivo curto para o botão (o completo sai na mensagem ao clicar). */
+    static String shortReason(String why) {
+        if (why.startsWith("Jogo salvo inválido")) return "jogo salvo inválido";
+        if (why.startsWith("Nenhum")) return "nenhum jogo salvo";
+        return why.toLowerCase(java.util.Locale.ROOT);
     }
 
     /** O texto inteiro se couber em {@code room}; senão o maior prefixo que cabe seguido de "…". */
@@ -510,25 +593,142 @@ public final class Game implements AutoCloseable {
         if (cb != null && cb.outcome == Combat.Outcome.DEFEAT) return;
         if (logic.helpVisible())
             controlsHint(w, h, arena ? "Clique atacar · direito defender · Alt (ou botão do meio) esquivar · Espaço pular · Q mira · Tab trocar alvo · F1"
-                    : "WASD andar · Shift correr · mouse olhar · roda aproxima · E conversar · Esc pausa · F1 ajuda");
+                    : "WASD andar · Shift correr · mouse olhar · roda aproxima · E conversar · J diário · Esc pausa · F1 ajuda");
         GameLogic.Npc n = logic.candidate;
         if (n != null) {
             float gy = terrain.groundAt(n.def.x(), n.def.z());
             // a placa fica acima da cabeça de QUALQUER NPC (1,55 u era fixo: no Bramor, de 1,73 u, caía sobre o cabelo)
             float[] sc = project(n.def.x(), gy + Math.max(1.55f, n.def.height() + 0.30f), n.def.z(), w, h);
-            if (sc != null) {
-                String a = "E", b = "Conversar com " + n.def.name();
-                int p = px(21);
-                float tw = kit.width(b, p, true), kw = 34 * s, bw = tw + kw + 46 * s, bh = 46 * s;
-                float x = sc[0] - bw / 2, y = sc[1] - bh;
-                kit.chamfer(x, y, bw, bh, 5 * s, UiKit.WOOD_D);
-                kit.chamfer(x + 3 * s, y + 3 * s, bw - 6 * s, bh - 6 * s, 4 * s, UiKit.PARCH_L);
-                kit.chamfer(x + 10 * s, y + 8 * s, kw, bh - 16 * s, 3 * s, UiKit.GOLD);
-                kit.text(x + 10 * s + (kw - kit.width(a, p, true)) / 2, y + bh / 2 - p * 0.66f, a, p, true, UiKit.INK);
-                kit.text(x + kw + 26 * s, y + bh / 2 - p * 0.66f, b, p, true, UiKit.INK);
-                kit.rect(sc[0] - 4 * s, y + bh, 8 * s, 6 * s, UiKit.WOOD_D);
-            }
+            if (sc != null) interactPlate(sc, "Conversar com " + n.def.name());
         }
+        SceneDef.WorldObject o = logic.objectCandidate;                   // rodada 10: o marco
+        if (o != null && logic.dialogues != null && logic.dialogues.object(o.id()) != null) {
+            DialogueBook.ObjectText t = logic.dialogues.object(o.id());
+            float[] sc = project(o.x(), terrain.groundAt(o.x(), o.z()) + o.plateY(), o.z(), w, h);
+            if (sc != null) interactPlate(sc, logic.quests.objectOn(o.id()) ? t.verbActive() : t.verb());
+        }
+        drawTracker(w, h);
+    }
+
+    /** Placa "E ação" acima de quem/que se pode usar (sc = ponto projetado na tela). */
+    private void interactPlate(float[] sc, String b) {
+        String a = "E";
+        int p = px(21);
+        float tw = kit.width(b, p, true), kw = 34 * s, bw = tw + kw + 46 * s, bh = 46 * s;
+        float x = sc[0] - bw / 2, y = sc[1] - bh;
+        kit.chamfer(x, y, bw, bh, 5 * s, UiKit.WOOD_D);
+        kit.chamfer(x + 3 * s, y + 3 * s, bw - 6 * s, bh - 6 * s, 4 * s, UiKit.PARCH_L);
+        kit.chamfer(x + 10 * s, y + 8 * s, kw, bh - 16 * s, 3 * s, UiKit.GOLD);
+        kit.text(x + 10 * s + (kw - kit.width(a, p, true)) / 2, y + bh / 2 - p * 0.66f, a, p, true, UiKit.INK);
+        kit.text(x + kw + 26 * s, y + bh / 2 - p * 0.66f, b, p, true, UiKit.INK);
+        kit.rect(sc[0] - 4 * s, y + bh, 8 * s, 6 * s, UiKit.WOOD_D);
+    }
+
+    // ------------------------------------------------------------------ rodada 10: rastreador, aviso e diário
+
+    /** Topo do rastreador (px a 1080p): a mensagem central ocupa de 40 a 92 e pode ser larga. */
+    static final float TRACKER_Y = 112f;
+
+    /** Largura do canto direito (rastreador). */
+    private float trackerW(int w) { return Math.min(470 * s, w - 56 * s); }
+
+    /**
+     * Rastreador discreto (canto superior direito): nome da missão, objetivo atual e progresso. Some com T no diário,
+     * na luta (o canto é do inimigo chefe e da mira) e quando não há missão aceita.
+     */
+    private void drawTracker(int w, int h) {
+        if (logic.quests == null || !logic.prefs.tracker) return;
+        vx.game.quest.QuestProgress q = logic.quests.tracked();
+        if (q == null) return;
+        Combat cb = logic.combat;
+        if (cb != null && (cb.engaged() || cb.boss() != null && cb.inArena(logic.player))) return;
+        var o = q.current();
+        if (o == null) return;
+        int i = q.objectiveIndex(), pt = px(19), pn = px(21);
+        float tw = trackerW(w), x = w - 28 * s - tw, y = TRACKER_Y * s;     // abaixo da faixa das mensagens do topo
+        String prog = o.total() > 1 ? "  " + q.done(i) + "/" + o.total() : "";
+        List<String> lines = wrap(o.text() + prog, pt, tw - 64 * s);
+        float th = 52 * s + lines.size() * pt * 1.3f + 14 * s;
+        kit.chamfer(x, y, tw, th, 5 * s, 0x2a1e18b0);
+        kit.seed(x + 18 * s, y + 20 * s, s * 0.8f);
+        kit.text(x + 40 * s, y + 14 * s, fit(q.def.name(), pn, tw - 56 * s), pn, true, UiKit.PARCH_L);
+        float ly = y + 50 * s;
+        for (String l : lines) {
+            kit.text(x + 40 * s, ly, l, pt, false, 0xf3e6c8ff);
+            ly += pt * 1.3f;
+        }
+    }
+
+    /** Aviso de missão (aceita, progresso, objetivo, recompensa): abaixo do rastreador, some sozinho. */
+    private void drawToast(int w, int h) {
+        if (logic.toast == null || logic.time >= logic.toastUntil) return;
+        int p = px(20);
+        float left = logic.toastUntil - logic.time, tw = Math.min(kit.width(logic.toast, p, true) + 64 * s, w - 56 * s);
+        float x = w - 28 * s - tw, y = (logic.state == GameLogic.State.EXPLORE && logic.prefs.tracker && logic.quests != null
+                && logic.quests.tracked() != null ? TRACKER_Y + 140 : TRACKER_Y) * s;
+        int a = (int) (255 * Math.clamp(left / 0.4f, 0f, 1f));
+        kit.chamfer(x, y, tw, 48 * s, 5 * s, (UiKit.WOOD_D & 0xffffff00) | a);
+        kit.chamfer(x + 3 * s, y + 3 * s, tw - 6 * s, 42 * s, 4 * s, (UiKit.PARCH_L & 0xffffff00) | a);
+        kit.text(x + 32 * s, y + 24 * s - p * 0.66f, fit(logic.toast, p, tw - 44 * s), p, true, (UiKit.INK & 0xffffff00) | a);
+    }
+
+    /** Diário (J): cada missão aceita, com descrição, objetivos, estado, recompensa e registro; moedas no rodapé. */
+    private void drawJournal(int w, int h) {
+        kit.rect(0, 0, w, h, 0x1a1210a0);
+        float pw = Math.min(980 * s, w - 56 * s), ph = Math.min(860 * s, h - 40 * s), x = (w - pw) / 2, y = (h - ph) / 2;
+        kit.panel(x, y, pw, ph, s, true);
+        kit.text(x + 40 * s, y + 30 * s, "Diário", px(40), true, UiKit.INK);
+        String coins = "Moedas: " + logic.quests.coins();
+        kit.text(x + pw - 40 * s - kit.width(coins, px(22), true), y + 44 * s, coins, px(22), true, UiKit.GOLD_D);
+        float cx = x + 44 * s, cw = pw - 88 * s, cy = y + 104 * s, bottom = y + ph - 110 * s;
+        int pt = px(20), ph2 = px(26);
+        boolean any = false;
+        for (vx.game.quest.QuestProgress q : logic.quests.all()) {
+            if (!q.accepted() || cy > bottom) continue;
+            any = true;
+            var d = q.def;
+            kit.text(cx, cy, d.name(), ph2, true, UiKit.INK);
+            String st = q.state().label;
+            kit.chamfer(cx + cw - kit.width(st, px(18), true) - 28 * s, cy - 2 * s, kit.width(st, px(18), true) + 28 * s, 34 * s, 4 * s,
+                    q.completed() ? UiKit.MOSS : UiKit.GOLD);
+            kit.text(cx + cw - kit.width(st, px(18), true) - 14 * s, cy + 15 * s - px(18) * 0.66f, st, px(18), true,
+                    q.completed() ? UiKit.PARCH_L : UiKit.INK);
+            cy += 44 * s;
+            for (String l : wrap(d.description(), pt, cw)) { kit.text(cx, cy, l, pt, false, UiKit.INK_SOFT); cy += pt * 1.35f; }
+            cy += 10 * s;
+            for (int i = 0; i < d.objectives().size(); i++) {
+                var o = d.objectives().get(i);
+                boolean done = q.done(i) >= o.total() && (i < q.objectiveIndex() || q.completed()), cur = !q.completed() && i == q.objectiveIndex();
+                if (done) kit.check(cx, cy + 2 * s, s);
+                else {
+                    kit.rect(cx, cy + 2 * s, 18 * s, 18 * s, cur ? UiKit.GOLD_D : 0x6b463060);
+                    kit.rect(cx + 3 * s, cy + 5 * s, 12 * s, 12 * s, UiKit.PARCH_L);
+                }
+                String t = o.text() + (o.total() > 1 ? "  " + q.done(i) + "/" + o.total() : "");
+                kit.text(cx + 32 * s, cy, fit(t, pt, cw - 32 * s), pt, cur, done ? UiKit.INK_SOFT : cur ? UiKit.INK : 0x6b544490);
+                cy += pt * 1.6f;
+            }
+            cy += 8 * s;
+            int r = d.reward("moedas");
+            String rw = q.rewardGiven() ? "Recompensa recebida: " + r + " moedas" : "Recompensa prometida: " + r + " moedas";
+            kit.text(cx, cy, rw, pt, true, UiKit.GOLD_D);
+            cy += pt * 1.5f;
+            String rec = "Aceita aos " + clock(q.acceptedAt()) + (q.completed() ? " · concluída aos " + clock(q.completedAt()) : "");
+            kit.text(cx, cy, rec, px(18), false, UiKit.INK_SOFT);
+            cy += 60 * s;
+        }
+        if (!any) {
+            for (String l : wrap("Nenhuma missão ainda. Converse com os moradores da vila.", pt, cw)) { kit.text(cx, cy, l, pt, false, UiKit.INK_SOFT); cy += pt * 1.4f; }
+        }
+        float bw = (pw - 100 * s) / 2, bh = 58 * s, by = y + ph - 30 * s - bh;
+        button("rastreador", x + 40 * s, by, bw, bh, logic.prefs.tracker ? "Rastreador: visível (T)" : "Rastreador: oculto (T)", false);
+        button("fechar-diario", x + 60 * s + bw, by, bw, bh, "Fechar  (J)", true);
+    }
+
+    /** Tempo de jogo como "12 min" (ou "40 s" no primeiro minuto). */
+    static String clock(float secs) {
+        if (secs < 0) return "—";
+        return secs < 60 ? Math.round(secs) + " s de jogo" : (int) (secs / 60) + " min de jogo";
     }
 
     // ------------------------------------------------------------------ rodada 09: combate na tela
@@ -806,11 +1006,23 @@ public final class Game implements AutoCloseable {
             ty += pt * 1.45f;
         }
         // progresso e botões
-        int n = logic.talking.def.lines().size();
+        int n = logic.dialogLines.size();
         for (int i = 0; i < n; i++)
             kit.rect(dx + 44 * s + i * 22 * s, dy + dh - 42 * s, 12 * s, 12 * s, i <= logic.line ? UiKit.GOLD_D : 0x6b463050);
         boolean last = logic.lastLine();
         float bw = 260 * s, bh = 58 * s;
+        if (last && !logic.dialogChoices.isEmpty()) {                    // rodada 10: escolha (← → escolher, E confirmar)
+            float cx = dx + dw - 36 * s;
+            for (int i = logic.dialogChoices.size() - 1; i >= 0; i--) {
+                String t = logic.dialogChoices.get(i).text() + (i == logic.choiceSelected ? "  (E)" : "");
+                float cw = Math.max(200 * s, kit.width(t, px(22), true) + 48 * s);
+                cx -= cw;
+                button("fala-escolha:" + i, cx, dy + dh - 30 * s - bh, cw, bh, t, i == logic.choiceSelected);
+                cx -= 16 * s;
+            }
+            button("encerrar-fala", cx - 190 * s, dy + dh - 30 * s - bh, 190 * s, bh, "Sair  (Esc)", false);
+            return;
+        }
         button("continuar-fala", dx + dw - 36 * s - bw, dy + dh - 30 * s - bh, bw, bh, last ? "Até logo  (E)" : "Continuar  (E)", true);
         button("encerrar-fala", dx + dw - 36 * s - bw - 16 * s - 190 * s, dy + dh - 30 * s - bh, 190 * s, bh, "Sair  (Esc)", false);
     }
@@ -846,13 +1058,18 @@ public final class Game implements AutoCloseable {
     private void drawPause(int w, int h) {
         kit.rect(0, 0, w, h, 0x1a1210a0);
         boolean cmb = logic.combat != null;
-        float pw = 620 * s, ph = (cmb ? 990 : 800) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
+        float pw = 620 * s, ph = (cmb ? (logic.technical ? 990 : 866) : 800) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
         kit.panel(x, y, pw, ph, s, true);
         kit.text(x + 40 * s, y + 34 * s, "Pausa", px(40), true, UiKit.INK);
         float bx = x + 40 * s, bw = pw - 80 * s, bh = 62 * s, by = y + 110 * s;
         button("continuar", bx, by, bw, bh, "Continuar", true);
-        button("trocar-aparencia", bx, by + 76 * s, bw, bh, "Trocar aparência", false);
-        button("criador", bx, by + 152 * s, bw, bh, "Abrir o criador", false);
+        float hw = (bw - 14 * s) / 2;                                     // rodada 10: dois por linha
+        button("trocar-aparencia", bx, by + 76 * s, hw, bh, "Aparência", false);
+        button("criador", bx + hw + 14 * s, by + 76 * s, hw, bh, "Criador", false);
+        if (logic.quests != null) {
+            button("salvar", bx, by + 152 * s, hw, bh, "Salvar jogo", false);
+            button("diario-pausa", bx + hw + 14 * s, by + 152 * s, hw, bh, "Diário  (J)", false);
+        }
         // sensibilidade do mouse
         float sy = by + 240 * s;
         stepperRow("sens", "Sensibilidade", String.format("%.1f", logic.cam.sensitivity / 0.0032f), bx, bw, sy);
@@ -866,9 +1083,13 @@ public final class Game implements AutoCloseable {
             float cy = sy + 334 * s;
             String bars = switch (logic.prefs.bars) { case "nunca" -> "nunca"; case "sempre" -> "sempre"; default -> "com dano ou alvo"; };
             button("barras", bx, cy, bw, 50 * s, "Barras: " + bars, false);
-            button("sensacao", bx, cy + 62 * s, bw, 50 * s, "Sensação: " + logic.prefs.feel, false);
-            String enc = switch (logic.combat.encounter) { case "grupo" -> "três fungos"; case "chefe" -> "chefe + 2"; default -> "um fungo"; };
-            button("encontro", bx, cy + 124 * s, bw, 50 * s, "Arena: " + enc, false);
+            if (logic.technical) {                                         // fechamento da 10: comparações só no modo técnico
+                button("sensacao", bx, cy + 62 * s, bw, 50 * s, "Sensação: " + logic.prefs.feel, false);
+                String enc = switch (logic.combat.encounter) {
+                    case "grupo" -> "três fungos"; case "chefe" -> "chefe + 2"; case "trilha" -> "trilha (missão)"; default -> "um fungo";
+                };
+                button("encontro", bx, cy + 124 * s, bw, 50 * s, "Arena: " + enc, false);
+            }
         }
         button("sair", bx, y + ph - 40 * s - bh, bw, bh, "Sair do jogo", false);
     }
@@ -1091,6 +1312,10 @@ public final class Game implements AutoCloseable {
                     int idx = t.length > 2 ? Integer.parseInt(t[2].substring(1)) : 0;
                     if (idx < logic.combat.enemies.size()) logic.combat.enemies.get(idx).hp = Integer.parseInt(t[1]);
                 }
+                case "derrubar" -> {                                       // rodada 10: montagem técnica — derruba o inimigo #i
+                    Enemy e = logic.combat.enemies.get(Integer.parseInt(t[1].substring(1)));   // pelo caminho do dano (receive)
+                    e.receive(9999, logic.player.x, logic.player.z);
+                }
                 case "posicionar" -> {                                     // montagem técnica de cena (QA): herói em x z rumo°
                     logic.player.place(Float.parseFloat(t[1]), Float.parseFloat(t[2]), (float) Math.toRadians(Float.parseFloat(t[3])), logic.collision);
                     logic.player.snapshot();
@@ -1126,6 +1351,61 @@ public final class Game implements AutoCloseable {
                 case "pular" -> {
                     tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_SPACE)), dt, w, h, record, out);
                     tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_SPACE)), dt, w, h, record, out);
+                }
+                case "medir-save" -> {                                     // rodada 10: N gravações + N leituras do save (ms)
+                    int n = Integer.parseInt(t[1]);
+                    double[] wr = new double[n], rd = new double[n];
+                    for (int i = 0; i < n; i++) {
+                        long a0 = System.nanoTime();
+                        if (!logic.save(false)) { System.out.println("medir-save: falhou: " + logic.saveError); break; }
+                        long a1 = System.nanoTime();
+                        logic.refreshSaved();
+                        long a2 = System.nanoTime();
+                        wr[i] = (a1 - a0) / 1e6;                           // save() já relê para o Continuar: grava + relê
+                        rd[i] = (a2 - a1) / 1e6;
+                    }
+                    java.util.Arrays.sort(wr);
+                    java.util.Arrays.sort(rd);
+                    long bytes = logic.saveDir != null && Files.exists(logic.saveDir.resolve(SaveGame.FILE)) ? Files.size(logic.saveDir.resolve(SaveGame.FILE)) : -1;
+                    System.out.printf(java.util.Locale.ROOT, "medir-save: %d vezes, gravar+validar mediana %.2f ms (máx %.2f), ler mediana %.2f ms (máx %.2f), %d bytes%n",
+                            n, wr[n / 2], wr[n - 1], rd[n / 2], rd[n - 1], bytes);
+                }
+                case "missao" -> {                                         // rodada 10: estado das missões no log
+                    var q = logic.quests;
+                    StringBuilder sb = new StringBuilder("missao:");
+                    if (q != null) for (var p : q.all()) {
+                        sb.append(' ').append(p.def.id()).append(' ').append(p.state().key()).append(" objetivo ").append(p.objectiveIndex())
+                                .append(" derrotados ").append(p.defeated());
+                    }
+                    if (q != null) sb.append(" | moedas ").append(q.coins()).append(" | acesos ").append(q.objectsOn());
+                    sb.append(" | saves ").append(logic.saves).append(logic.saveError != null ? " (erro: " + logic.saveError + ")" : "");
+                    if (logic.combat != null) sb.append(" | arena ").append(logic.combat.encounter).append(" vivos ").append(logic.combat.alive());
+                    System.out.println(sb);
+                }
+                case "lutar" -> {                                          // rodada 10: entrada real — trava a mira (Q), aproxima (W)
+                    int n = Math.round(Float.parseFloat(t[1]) * fps);      // e clica a cada 0,38 s até não sobrar fungo vivo
+                    boolean wDown = false;
+                    float sinceQ = 9f, sinceClick = 9f;
+                    for (int i = 0; i < n && logic.combat.alive() > 0 && logic.combat.hero.alive(); i++) {
+                        List<InputEvent> ev = new ArrayList<>();
+                        sinceQ += dt;
+                        sinceClick += dt;
+                        if (!logic.targeting.locked() && sinceQ > 0.5f) {
+                            ev.add(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_Q));
+                            ev.add(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_Q));
+                            sinceQ = 0f;
+                        }
+                        Enemy tg = logic.targeting.target;
+                        boolean far = tg != null && Math.hypot(tg.x - logic.player.x, tg.z - logic.player.z) > 1.15f;
+                        if (far != wDown) { ev.add(new InputEvent(far ? InputEvent.Kind.KEY : InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_W)); wDown = far; }
+                        if (tg != null && !far && sinceClick > 0.38f) { ev.add(new InputEvent(InputEvent.Kind.DOWN, mx, my, 0, 0, 0)); sinceClick = 0f; }
+                        else if (sinceClick > 0.05f && sinceClick < 0.05f + dt) ev.add(new InputEvent(InputEvent.Kind.UP, mx, my, 0, 0, 0));
+                        tickFrame(ev, dt, w, h, record, out);
+                    }
+                    List<InputEvent> up = new ArrayList<>(List.of(new InputEvent(InputEvent.Kind.UP, mx, my, 0, 0, 0)));
+                    if (wDown) up.add(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_W));
+                    tickFrame(up, dt, w, h, record, out);
+                    System.out.printf("lutar: vivos %d, herói %s%n", logic.combat.alive(), logic.combat.hero.alive() ? "de pé" : "caído");
                 }
                 case "mira" -> {                                           // Q
                     tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_Q)), dt, w, h, record, out);
@@ -1488,6 +1768,7 @@ public final class Game implements AutoCloseable {
             case "UP" -> GLFW_KEY_UP; case "DOWN" -> GLFW_KEY_DOWN; case "LEFT" -> GLFW_KEY_LEFT; case "RIGHT" -> GLFW_KEY_RIGHT;
             case "R" -> GLFW_KEY_R; case "F3" -> GLFW_KEY_F3; case "M" -> GLFW_KEY_M;
             case "Q" -> GLFW_KEY_Q; case "TAB" -> GLFW_KEY_TAB; case "ALT" -> GLFW_KEY_LEFT_ALT;
+            case "J" -> GLFW_KEY_J; case "T" -> GLFW_KEY_T; case "C" -> GLFW_KEY_C;   // rodada 10: diário, rastreador, continuar
             default -> throw new IllegalArgumentException("tecla desconhecida: " + name);
         };
     }
@@ -1497,6 +1778,7 @@ public final class Game implements AutoCloseable {
         if (sfx != null) sfx.close();
         if (captureFbo != null) captureFbo.close();
         if (deathMesh != null) deathMesh.mesh.close();
+        if (mote != null) mote.close();
         async.close();
         renderer.close();
         kit.close();

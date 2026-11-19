@@ -1,6 +1,10 @@
 package vx.game;
 
 import org.joml.Vector3f;
+import vx.game.quest.QuestDefinition;
+import vx.game.quest.QuestEvent;
+import vx.game.quest.QuestProgress;
+import vx.game.quest.QuestSystem;
 import vx.viewer.Animator;
 import vx.viewer.Appearance;
 import vx.viewer.ComponentCatalog;
@@ -10,7 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -21,7 +29,8 @@ import static org.lwjgl.glfw.GLFW.*;
  * escolha de aparência.
  */
 public final class GameLogic {
-    public enum State { SELECT, EXPLORE, DIALOG, PAUSE }
+    /** Rodada 10: JOURNAL = diário aberto (J); a lógica para como na pausa. */
+    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL }
 
     /** NPC com quem dá para conversar. */
     public static final class Npc {
@@ -84,12 +93,52 @@ public final class GameLogic {
     /** Rodada 09.2 — medição: ns na câmera (passo fixo) e passos medidos. */
     public long camNanos, camTicks;
     public Prefs prefs;
+    /**
+     * Fechamento da 10 — modo técnico ({@code -Dvx.tecnico}, {@code ./gradlew jogo -Ptecnico}): só nele a pausa troca a arena
+     * (um / três / chefe / trilha) e a sensação (A/B/C). No jogo normal essas comparações não existem para o jogador — a
+     * missão nunca perde os fungos porque alguém abriu a pausa. Roteiros e testes continuam com o acesso direto
+     * ({@link #setEncounter}, {@link #applyFeel}, {@code -Dvx.encontro}, {@code -Dvx.sensacao}).
+     */
+    public boolean technical = Boolean.getBoolean("vx.tecnico");
     private boolean victoryShown;
     /** Avisado quando a aparência escolhida muda (o Game compõe o modelo). */
     public Consumer<Appearance> onAppearance = a -> { };
     /** Rodada 09.4 — avisado a cada ação do jogador ("comecar", "pausar", "fala", "escolha", …): o som da interface
      *  sai daqui (GameAudio), sem a regra de jogo saber de áudio. */
     public Consumer<String> onAction = a -> { };
+
+    // ------------------------------------------------------------------ rodada 10: missões, falas por contexto, objetos, save
+    /** Missões da cena (null = cena sem missões). Trocado inteiro ao continuar um jogo salvo. */
+    public QuestSystem quests;
+    public final Map<String, QuestDefinition> questDefs;
+    public final DialogueBook dialogues;
+    /** Falas e escolhas da conversa atual (do contexto, ou as de sempre da cena). */
+    public List<SceneDef.Line> dialogLines = List.of();
+    public List<DialogueBook.Choice> dialogChoices = List.of();
+    public int choiceSelected;
+    /** Contexto da conversa atual com quem dá a missão (null = falas de sempre). */
+    public String dialogContext;
+    /** Objeto do mundo ao alcance do E (quando nenhum NPC está mais perto). */
+    public SceneDef.WorldObject objectCandidate;
+    /** Instante (tempo de quadro) em que cada objeto acendeu nesta sessão: o efeito discreto do desenho. */
+    public final Map<String, Float> litAt = new HashMap<>();
+    /** Tempo de jogo (s): soma dos passos fixos da exploração (vai no save e carimba o diário). */
+    public float playTime;
+    /** Aviso de missão (canto, abaixo do rastreador). */
+    public String toast;
+    public float toastUntil;
+    /** Avisado a cada mudança de missão (som e interface); a regra não sabe de áudio. */
+    public Consumer<QuestSystem.Notice> onQuest = n -> { };
+    /** Pasta do save ({@code -Dvx.savegame}; null = desligado), id deste jogo e o último save lido (Continuar). */
+    public Path saveDir = SaveGame.dir();
+    public String saveId = SaveGame.newId(new java.util.Random());
+    public SaveGame.Loaded saved = new SaveGame.Loaded(null, null, null);
+    public ComponentCatalog catalog;
+    /** Saves gravados nesta sessão (manual + automático) e o último erro de gravação. */
+    public int saves;
+    public String saveError;
+    private boolean autosavePending;
+    private Combat.Outcome lastOutcome = Combat.Outcome.NONE;
 
     public GameLogic(SceneDef scene, Collision collision) {
         this.scene = scene;
@@ -101,6 +150,16 @@ public final class GameLogic {
         if (System.getProperty("vx.sensacao") != null) { prefs.feel = System.getProperty("vx.sensacao"); prefs.feelFromCommandLine = true; }
         if (System.getProperty("vx.encontro") != null) { prefs.encounter = System.getProperty("vx.encontro"); prefs.encounterFromCommandLine = true; }
         if (System.getProperty("vx.barras") != null) prefs.bars = Prefs.valid(System.getProperty("vx.barras"), prefs.bars);
+        if (!technical && scene.combat != null) {                         // jogo normal: arena e sensação de comparação
+            if (!prefs.encounterFromCommandLine) {                         // gravadas antes não valem (nem são apagadas do arquivo)
+                prefs.encounter = scene.combat.encounterDefault;
+                prefs.encounterFromCommandLine = true;
+            }
+            if (!prefs.feelFromCommandLine) {
+                prefs.feel = scene.combat.feelDefault;
+                prefs.feelFromCommandLine = true;
+            }
+        }
         combat = scene.combat != null ? new Combat(scene.combat, collision, scene.assets, prefs.encounter) : null;
         if (combat != null) {
             combat.player = player;
@@ -110,7 +169,27 @@ public final class GameLogic {
         }
         player.place(scene.startX, scene.startZ, (float) Math.toRadians(scene.startYawDeg), collision);
         cam.yaw = player.yaw + (float) Math.PI;                           // atrás do herói, olhando para onde ele olha
+        if (scene.questsFile != null) {                                   // rodada 10
+            questDefs = QuestDefinition.load(scene.assets.resolve(scene.questsFile));
+            quests = new QuestSystem(questDefs.values());
+            dialogues = scene.dialoguesFile != null ? DialogueBook.load(scene.assets.resolve(scene.dialoguesFile)) : null;
+            Set<String> ids = objectIds();
+            for (QuestDefinition d : questDefs.values())
+                for (QuestDefinition.Objective o : d.objectives())
+                    if (o.kind() == QuestDefinition.Kind.INTERAGIR && !ids.contains(o.object()))
+                        throw new IllegalArgumentException(d.id() + ": objeto " + o.object() + " não está na cena");
+        } else {
+            questDefs = Map.of();
+            quests = null;
+            dialogues = null;
+        }
         frameSelect();
+    }
+
+    public Set<String> objectIds() {
+        Set<String> s = new HashSet<>();
+        for (SceneDef.WorldObject o : scene.objects) s.add(o.id());
+        return s;
     }
 
     /** Rodada 09.2 — perfil de sensação (A = 09.1, B, C) no corpo e no golpe. */
@@ -136,6 +215,8 @@ public final class GameLogic {
 
     /** Monta a lista: três presets e as aparências salvas (válidas ou com o motivo do erro). */
     public void loadChoices(ComponentCatalog cat, Path saveDir) {
+        catalog = cat;
+        refreshSaved();
         choices.clear();
         for (String p : cat.presets.keySet()) choices.add(new Choice("preset:" + p, presetName(p), Appearance.preset(p), null));
         if (Files.isDirectory(saveDir)) {
@@ -186,6 +267,7 @@ public final class GameLogic {
                 if (in.hit(GLFW_KEY_DOWN, GLFW_KEY_S)) select(nextValid(selected, 1));
                 if (in.hit(GLFW_KEY_UP, GLFW_KEY_W)) select(nextValid(selected, -1));
                 if (in.hit(GLFW_KEY_ENTER, GLFW_KEY_SPACE)) action("comecar");
+                if (in.hit(GLFW_KEY_C) && !started && quests != null && continueBlocker() == null) action("continuar-jogo");
                 if (in.hit(GLFW_KEY_ESCAPE)) action("sair");
                 player.update(dt, 0, 0, false, collision);
                 cam.update(dt, player.x, player.visualY, player.z, collision);
@@ -194,6 +276,11 @@ public final class GameLogic {
             case DIALOG -> dialog(dt, in);
             case PAUSE -> {
                 if (in.hit(GLFW_KEY_ESCAPE)) action("continuar");
+                cam.update(dt, player.x, player.visualY, player.z, collision);
+            }
+            case JOURNAL -> {                                              // rodada 10: diário (a lógica para)
+                if (in.hit(GLFW_KEY_ESCAPE, GLFW_KEY_J)) action("fechar-diario");
+                if (in.hit(GLFW_KEY_T)) action("rastreador");
                 cam.update(dt, player.x, player.visualY, player.z, collision);
             }
         }
@@ -214,6 +301,7 @@ public final class GameLogic {
 
     private void explore(float dt, Input in) {
         if (in.hit(GLFW_KEY_ESCAPE)) { action("pausar"); return; }
+        if (in.hit(GLFW_KEY_J) && quests != null) { action("diario"); return; }
         if (in.hit(GLFW_KEY_F1)) {                                          // alterna o que está VISÍVEL agora
             boolean on = helpVisible();
             showHelp = !on;
@@ -254,6 +342,7 @@ public final class GameLogic {
                 intent.target = locked ? null : targeting.target;
                 pendingAttack = pendingDodge = pendingJump = false;
                 combat.tick(TICK, intent, player);
+                questsAfterTick();                                           // rodada 10: mortes e derrota viram eventos
                 targeting.update(TICK, player, combat, (float) Math.atan2(cam.forwardX(), cam.forwardZ()));
                 if (audio != null) audio.afterTick(combat);                  // depois do passo: o som não muda a lógica
             } else {
@@ -262,6 +351,9 @@ public final class GameLogic {
                 player.update(TICK, ix, iz, run, collision);
             }
             if (steps != null) steps.afterTick(player);
+            playTime += TICK;
+            if (quests != null) quests.clock = playTime;
+            if (autosavePending && saveBlocker() == null) save(true);         // rodada 10: no primeiro passo seguro
             if (combat != null) {
                 Enemy t = targeting.target;
                 cam.lockOn(t != null, t != null ? t.x : 0f, t != null ? t.y + 0.4f * t.scale : 0f, t != null ? t.z : 0f);
@@ -284,7 +376,14 @@ public final class GameLogic {
         acc = Math.max(0.0, acc);
         alpha = (float) Math.clamp(acc / TICK_D, 0.0, 1.0);
         candidate = combat != null && combat.engaged() ? null : findCandidate();   // sem conversa no meio da luta
+        objectCandidate = combat != null && combat.engaged() ? null : findObject();
+        if (candidate != null && objectCandidate != null) {                // rodada 10: o mais perto dos dois
+            if (Math.hypot(objectCandidate.x() - player.x, objectCandidate.z() - player.z)
+                    < Math.hypot(candidate.def.x() - player.x, candidate.def.z() - player.z)) candidate = null;
+            else objectCandidate = null;
+        }
         if (candidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) startDialog(candidate);
+        else if (objectCandidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) useObject(objectCandidate);
         if (combat != null) {
             if (combat.outcome == Combat.Outcome.VICTORY && !victoryShown) {
                 victoryShown = true;
@@ -310,10 +409,51 @@ public final class GameLogic {
         return best;
     }
 
+    /** Rodada 10 — objeto do mundo mais perto, dentro do alcance e mais ou menos à frente (mesma regra dos NPCs). */
+    public SceneDef.WorldObject findObject() {
+        if (quests == null) return null;
+        SceneDef.WorldObject best = null;
+        float bestD = Float.MAX_VALUE;
+        float fx = (float) Math.sin(player.yaw), fz = (float) Math.cos(player.yaw);
+        for (SceneDef.WorldObject o : scene.objects) {
+            float dx = o.x() - player.x, dz = o.z() - player.z, d = (float) Math.hypot(dx, dz);
+            if (d > o.range() || d < 1e-4f) continue;
+            if ((dx * fx + dz * fz) / d < Math.cos(INTERACT_ANGLE)) continue;
+            if (d < bestD) { bestD = d; best = o; }
+        }
+        return best;
+    }
+
+    /** Rodada 10 — usar (E) um objeto: a missão decide; a frase vem do arquivo de falas. */
+    public QuestSystem.Use useObject(SceneDef.WorldObject o) {
+        QuestSystem.Use r = quests.use(o.id());
+        DialogueBook.ObjectText t = dialogues != null ? dialogues.object(o.id()) : null;
+        if (t != null) message(t.results().get(r), 5f);
+        if (r == QuestSystem.Use.ATIVOU) litAt.put(o.id(), time);
+        onAction.accept(r == QuestSystem.Use.ATIVOU ? "objeto-ativou" : "objeto-usar");
+        processNotices();
+        return r;
+    }
+
     public void startDialog(Npc n) {
         onAction.accept("fala-inicio");
         talking = n;
         line = 0;
+        choiceSelected = 0;
+        dialogContext = null;
+        DialogueBook.Entry entry = dialogues != null ? dialogues.linesFor(n.def.id(), n.def.lines(), quests) : null;
+        if (entry == null) entry = new DialogueBook.Entry(n.def.lines(), List.of());
+        dialogLines = entry.lines();
+        dialogChoices = entry.choices();
+        if (quests != null) {                                              // rodada 10: o contexto antes da entrega
+            String q = dialogues != null ? dialogues.questOf(n.def.id()) : null;
+            if (q != null && dialogues.gives(n.def.id()) && quests.get(q) != null) {
+                dialogContext = DialogueBook.giverContext(quests.get(q));
+                if (dialogContext.equals("caiu")) quests.forget(q, QuestSystem.FACT_FELL);
+            }
+            quests.talkTo(n.def.id());                                      // entrega na hora (sair no meio não perde nada)
+            processNotices();
+        }
         candidate = null;
         state = State.DIALOG;
         n.emoteStart = time;
@@ -344,8 +484,29 @@ public final class GameLogic {
         player.update(dt, 0, 0, false, collision);                        // para (com frenagem)
         player.face(talking.def.x(), talking.def.z(), dt);
         cam.update(dt, player.x, player.visualY, player.z, collision);
+        if (lastLine() && !dialogChoices.isEmpty()) {                     // rodada 10: escolha na última fala
+            if (in.hit(GLFW_KEY_LEFT, GLFW_KEY_UP, GLFW_KEY_A, GLFW_KEY_W)) choiceSelected = Math.floorMod(choiceSelected - 1, dialogChoices.size());
+            if (in.hit(GLFW_KEY_RIGHT, GLFW_KEY_DOWN, GLFW_KEY_D, GLFW_KEY_S)) choiceSelected = Math.floorMod(choiceSelected + 1, dialogChoices.size());
+        }
         if (in.hit(GLFW_KEY_E, GLFW_KEY_ENTER, GLFW_KEY_SPACE)) action("continuar-fala");
         if (in.hit(GLFW_KEY_ESCAPE)) endDialog();
+    }
+
+    /** Rodada 10 — escolha da última fala: aceitar/recusar a missão do NPC e mostrar a reação. */
+    void choose(int i) {
+        if (talking == null || i < 0 || i >= dialogChoices.size() || !lastLine()) return;
+        DialogueBook.Choice c = dialogChoices.get(i);
+        String npc = talking.def.id(), q = dialogues.questOf(npc);
+        boolean ok = c.action().equals("aceitar") ? quests.accept(q) : quests.decline(q);
+        onAction.accept(c.action().equals("aceitar") ? "fala-aceitar" : "fala-recusar");
+        processNotices();
+        DialogueBook.Entry e = ok ? dialogues.entry(npc, c.next()) : null;
+        if (e == null) { endDialog(); return; }
+        dialogLines = e.lines();
+        dialogChoices = e.choices();
+        choiceSelected = 0;
+        line = 0;
+        talking.emoteStart = time;
     }
 
     public void endDialog() {
@@ -366,9 +527,9 @@ public final class GameLogic {
         return helpPinned || (started && time - startedAt < HINT_S);
     }
 
-    public SceneDef.Line currentLine() { return talking == null ? null : talking.def.lines().get(line); }
+    public SceneDef.Line currentLine() { return talking == null || line >= dialogLines.size() ? null : dialogLines.get(line); }
 
-    public boolean lastLine() { return talking != null && line >= talking.def.lines().size() - 1; }
+    public boolean lastLine() { return talking != null && line >= dialogLines.size() - 1; }
 
     /** Clipe e tempo do NPC (aceno ao começar a conversa, depois parado). */
     public Animator.Motion npcMotion(Npc n, Animator.Motion out) {
@@ -394,8 +555,18 @@ public final class GameLogic {
             }
             case "continuar-fala" -> {
                 if (talking == null) return;
-                if (lastLine()) endDialog(); else line++;
+                if (lastLine() && !dialogChoices.isEmpty()) choose(choiceSelected);
+                else if (lastLine()) endDialog(); else line++;
             }
+            case "diario" -> { if (state == State.EXPLORE && quests != null) state = State.JOURNAL; }
+            case "diario-pausa" -> { if (state == State.PAUSE && quests != null) state = State.JOURNAL; }
+            case "fechar-diario" -> { if (state == State.JOURNAL) state = State.EXPLORE; }
+            case "rastreador" -> { prefs.tracker = !prefs.tracker; prefs.save(); }
+            case "salvar" -> {
+                String why = saveBlocker();
+                if (why != null) message(why, 4f); else save(false);
+            }
+            case "continuar-jogo" -> continueSaved();
             case "encerrar-fala" -> endDialog();
             case "pausar" -> { if (state == State.EXPLORE) state = State.PAUSE; }
             case "continuar" -> { if (state == State.PAUSE) state = State.EXPLORE; }
@@ -428,24 +599,193 @@ public final class GameLogic {
             case "sair" -> quit = true;
             case "barras" -> prefs.cycleBars();                       // rodada 09.2: barras de inimigos comuns
             case "sensacao" -> {                                       // rodada 09.2: próximo perfil de sensação
-                if (combat == null) return;
+                if (combat == null || !technical) return;                // fechamento da 10: só no modo técnico
                 List<String> ks = new ArrayList<>(combat.def.feels.keySet());
                 applyFeel(ks.get((ks.indexOf(prefs.feel) + 1) % ks.size()));
                 prefs.feelFromCommandLine = false;                     // escolha do jogador: passa a valer no arquivo
                 prefs.save();
             }
             case "encontro" -> {                                       // rodada 09.2: próximo encontro da arena
-                if (combat == null) return;
+                if (combat == null || !technical) return;                // fechamento da 10: só no modo técnico
                 List<String> ks = new ArrayList<>(combat.def.encounters.keySet());
                 setEncounter(ks.get((ks.indexOf(combat.encounter) + 1) % ks.size()));
             }
             default -> {
                 if (id.startsWith("escolha:")) select(Integer.parseInt(id.substring(8)));
-                else if (id.startsWith("sensacao:")) { applyFeel(id.substring(9)); prefs.feelFromCommandLine = false; prefs.save(); }
-                else if (id.startsWith("encontro:")) setEncounter(id.substring(9));
+                else if (id.startsWith("fala-escolha:")) { choiceSelected = Integer.parseInt(id.substring(13)); action("continuar-fala"); }
+                else if (id.startsWith("sensacao:") && technical) { applyFeel(id.substring(9)); prefs.feelFromCommandLine = false; prefs.save(); }
+                else if (id.startsWith("encontro:") && technical) setEncounter(id.substring(9));
                 else if (id.startsWith("barras:")) { prefs.bars = Prefs.valid(id.substring(7), prefs.bars); prefs.save(); }
             }
         }
+    }
+
+    // ------------------------------------------------------------------ rodada 10: missões no passo, avisos, save
+
+    /** Depois de cada passo do combate: mortes (uma vez cada) e derrota do herói viram eventos de missão. */
+    void questsAfterTick() {
+        if (combat.outcome != lastOutcome) {
+            if (combat.outcome == Combat.Outcome.DEFEAT && quests != null) quests.handle(new QuestEvent.HeroDefeated());
+            lastOutcome = combat.outcome;
+        }
+        if (combat.defeated.isEmpty()) return;
+        if (quests != null) for (String k : combat.defeated) quests.handle(new QuestEvent.EnemyDefeated(k));
+        combat.defeated.clear();
+        if (quests != null) {
+            combat.retired.addAll(quests.retiredEnemies());              // o que contou não volta ao recomeçar
+            processNotices();
+        }
+    }
+
+    /** Avisos das missões: texto na tela, som (onQuest), encontro da missão ao aceitar e salvamento automático nos marcos. */
+    void processNotices() {
+        if (quests == null) return;
+        int reward = 0;                                                    // a recompensa sai junto com "concluída": um aviso só
+        for (QuestSystem.Notice n : quests.drain()) {
+            QuestDefinition d = questDefs.get(n.quest());
+            onQuest.accept(n);
+            switch (n.kind()) {
+                case ACEITA -> {
+                    toast("Missão aceita: " + d.name(), 5f);
+                    if (combat != null && d.encounter() != null) questEncounter(d.encounter());
+                    autosavePending = true;
+                }
+                case PROGRESSO -> {
+                    QuestProgress p = quests.get(n.quest());
+                    int i = d.index(n.objective());
+                    toast(d.objectives().get(i).text() + ": " + p.done(i) + "/" + d.objectives().get(i).total(), 4f);
+                }
+                case OBJETIVO -> {
+                    toast("Objetivo cumprido: " + d.objectives().get(d.index(n.objective())).text(), 5f);
+                    autosavePending = true;
+                }
+                case RECOMPENSA -> {
+                    reward += n.amount();
+                    toast("Recompensa: +" + n.amount() + " moedas", 6f);
+                }
+                case CONCLUIDA -> {
+                    toast("Missão concluída: " + d.name() + (reward > 0 ? " · +" + reward + " moedas" : ""), 7f);
+                    autosavePending = true;
+                }
+                case RECUSADA, OBJETO -> { }
+            }
+        }
+        if (autosavePending && saveBlocker() == null) save(true);
+    }
+
+    public void toast(String t, float secs) {
+        toast = t;
+        toastUntil = time + secs;
+    }
+
+    /**
+     * Encontro da arena que pertence à missão (sem gravar preferência: é estado do mundo, não escolha de comparação).
+     * Só fora da luta; os inimigos que já contaram nascem fora de jogo.
+     */
+    void questEncounter(String name) {
+        if (combat == null || combat.engaged()) return;
+        combat.retired.addAll(quests.retiredEnemies());
+        targeting.clear();
+        cam.lockOn(false, 0, 0, 0);
+        combat.setEncounter(name);
+        combat.restart(player);
+        if (audio != null) audio.reset(combat);
+        victoryShown = false;
+        lastOutcome = combat.outcome;
+    }
+
+    /** Por que não dá para salvar agora (null = dá). Nunca no meio da luta, na pausa de impacto, caído ou no ar. */
+    public String saveBlocker() {
+        if (quests == null) return "Esta cena não tem jogo para salvar";
+        if (saveDir == null) return "Salvar está desligado nesta sessão";
+        if (appearance == null || catalog == null) return "Escolha uma aparência antes de salvar";
+        if (!started) return "Entre na vila antes de salvar";
+        if (combat != null) {
+            if (combat.hitstop > 0f) return "Não dá para salvar no meio de um golpe";
+            if (combat.engaged()) return "Não dá para salvar no meio da luta";
+            if (!combat.hero.alive() || combat.outcome == Combat.Outcome.DEFEAT) return "Não dá para salvar caído";
+        }
+        if (!player.grounded) return "Não dá para salvar no ar";
+        return null;
+    }
+
+    /** Grava (atômico, validado ao reler). {@code auto} = marco da missão (silencioso se der certo). */
+    public boolean save(boolean auto) {
+        autosavePending = false;
+        try {
+            var json = SaveGame.compose(saveId, scene.layout, appearance, player.x, player.z, (float) Math.toDegrees(player.yaw), playTime, quests);
+            SaveGame.write(saveDir, SaveGame.text(json), t -> SaveGame.parse(t, catalog, scene.layout, questDefs.values(), objectIds()));
+            saves++;
+            saveError = null;
+            saved = SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds());
+            onAction.accept(auto ? "salvo-auto" : "salvo");
+            if (auto) toastIfQuiet("Jogo salvo"); else message("Jogo salvo", 3f);
+            return true;
+        } catch (IOException | RuntimeException e) {
+            saveError = e.getMessage();
+            message("Não consegui salvar: " + e.getMessage(), 6f);
+            return false;
+        }
+    }
+
+    private void toastIfQuiet(String t) {
+        if (toast == null || time >= toastUntil) toast(t, 2.5f);
+    }
+
+    /** Relê o save (tela inicial: habilita ou explica o Continuar). */
+    public void refreshSaved() {
+        saved = quests == null || catalog == null ? new SaveGame.Loaded(null, null, null)
+                : SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds());
+    }
+
+    /** Por que o Continuar está indisponível (null = disponível). */
+    public String continueBlocker() {
+        if (quests == null) return "Esta cena não tem jogo salvo";
+        if (saveDir == null) return "Salvar está desligado nesta sessão";
+        if (saved.data() != null) return null;
+        if (saved.problem() != null) return "Jogo salvo inválido: " + saved.problem();
+        return "Nenhum jogo salvo ainda";
+    }
+
+    /**
+     * Continua o jogo salvo: missões, moedas, objetos, aparência embutida, tempo de jogo e posição. Posição fora do
+     * chão pisável ou dentro de um sólido volta ao ponto seguro documentado (o início da vila, diante da estalagem).
+     */
+    void continueSaved() {
+        String why = started ? "O jogo já começou" : continueBlocker();
+        if (why != null) { message(why, 4f); onAction.accept("indisponivel"); return; }
+        SaveGame.Data d = saved.data();
+        quests = d.quests();
+        playTime = d.playTime();
+        saveId = d.id();
+        appearance = d.appearance().copy();
+        onAppearance.accept(appearance);
+        float yaw = (float) Math.toRadians(d.yawDeg());
+        boolean safe = safeSpot(d.x(), d.z());
+        if (safe) player.place(d.x(), d.z(), yaw, collision);
+        else player.place(scene.startX, scene.startZ, (float) Math.toRadians(scene.startYawDeg), collision);
+        if (combat != null) {
+            combat.retired.addAll(quests.retiredEnemies());
+            String enc = null;
+            for (QuestProgress p : quests.all()) if (p.accepted() && p.def.encounter() != null) { enc = p.def.encounter(); break; }
+            if (enc != null) questEncounter(enc);
+            else { combat.restart(player); if (audio != null) audio.reset(combat); }
+            player.place(player.x, player.z, player.yaw, collision);
+        }
+        player.snapshot();
+        action("comecar");
+        if (d.appearanceProblem() != null) message("Aparência salva incompatível; usando o Aventureiro (" + d.appearanceProblem() + ")", 7f);
+        else if (!safe) message("Posição salva inválida: voltando ao início da vila", 5f);
+        else message("Jogo carregado", 3f);
+    }
+
+    /** Ponto pisável, dentro do limite e fora de qualquer sólido (o círculo do herói não é empurrado). */
+    public boolean safeSpot(float x, float z) {
+        if (!Float.isFinite(x) || !Float.isFinite(z) || !collision.walkable(x, z)) return false;
+        float[] p = {x, z};
+        float y = collision.floor(x, z, 99f, Player.RADIUS);
+        float[] d = collision.resolve(p, Player.RADIUS, y, 1.2f, Player.STEP);
+        return Math.hypot(d[0], d[1]) < 0.02f;
     }
 
     /** Rodada 09.2 — troca o encontro da arena (inimigos novos em casa, mira solta, som do confronto esquecido). */

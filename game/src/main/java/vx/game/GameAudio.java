@@ -1,6 +1,7 @@
 package vx.game;
 
 import vx.engine.audio.Audio;
+import vx.game.quest.QuestSystem;
 import vx.viewer.World;
 
 /**
@@ -9,7 +10,8 @@ import vx.viewer.World;
  * <ul>
  *   <li>pisada: cada vez que um pé começa o apoio ({@link Player#steps}), com a superfície sob o herói
  *       (grama/floresta → grama; caminho → terra; areia → areia; rocha → pedra) e o passo (andar/correr);</li>
- *   <li>interface: ações do {@link GameLogic} (começar, pausar, conversar, escolher…);</li>
+ *   <li>interface: ações do {@link GameLogic} (começar, pausar, conversar, escolher, diário, salvar…);</li>
+ *   <li>missão (rodada 10): aceitar, objetivo cumprido, marco aceso e recompensa ({@link #questEvent});</li>
  *   <li>música: a da vila desde a escolha de aparência, sem reiniciar; abafada na pausa e na conversa;</li>
  *   <li>ambiente: vento (cama) e água do lago (posicional, no centro do lago); ouvinte na CÂMERA, olhando para o herói —
  *       o mesmo dos efeitos do combate (um ouvinte só por contexto, ADR 0023).</li>
@@ -28,15 +30,40 @@ final class GameAudio {
         this.logic = logic;
         lastSteps = logic.player.steps;
         logic.onAction = this::action;
+        logic.onQuest = this::quest;
+    }
+
+    private QuestSystem.Notice lastNotice;
+
+    /**
+     * Rodada 10 — mudança de missão → som (null = mudo): aceitar, objetivo cumprido, marco aceso e recompensa. O objetivo
+     * cumprido NO MESMO uso do marco não toca de novo (o som do marco já diz).
+     */
+    static String questEvent(QuestSystem.Notice n, QuestSystem.Notice before) {
+        return switch (n.kind()) {
+            case ACEITA -> "missao.aceita";
+            case OBJETO -> "missao.sinal";
+            case OBJETIVO -> before != null && before.kind() == QuestSystem.NoticeKind.OBJETO && n.objective().equals(before.objective())
+                    ? null : "missao.objetivo";
+            case RECOMPENSA -> "missao.recompensa";
+            default -> null;
+        };
+    }
+
+    private void quest(QuestSystem.Notice n) {
+        String e = questEvent(n, lastNotice);
+        lastNotice = n;
+        if (e != null) emit(e);
     }
 
     /** Ação do jogador → som de interface (null = ação muda). */
     static String uiEvent(String action) {
         return switch (action) {
-            case "comecar", "criador" -> "ui.confirmar";
-            case "pausar", "trocar-aparencia", "fala-inicio" -> "ui.abrir";
-            case "continuar", "fala-fim", "sair", "indisponivel" -> "ui.cancelar";
-            case "escolha", "continuar-fala" -> "ui.selecionar";
+            case "comecar", "criador", "continuar-jogo" -> "ui.confirmar";
+            case "pausar", "trocar-aparencia", "fala-inicio", "diario", "diario-pausa" -> "ui.abrir";
+            case "continuar", "fala-fim", "sair", "indisponivel", "fechar-diario", "fala-recusar", "objeto-usar" -> "ui.cancelar";
+            case "escolha", "continuar-fala", "rastreador" -> "ui.selecionar";
+            case "salvo" -> "ui.salvar";                                // o automático é mudo: sai junto com o som da missão
             default -> null;
         };
     }
@@ -80,7 +107,7 @@ final class GameAudio {
         float fx = c.pivot.x - eye.x, fy = c.pivot.y - eye.y, fz = c.pivot.z - eye.z, l = (float) Math.sqrt(fx * fx + fy * fy + fz * fz);
         if (l > 1e-5f) Audio.listener(eye.x, eye.y, eye.z, fx / l, fy / l, fz / l);
         Audio.duck(switch (logic.state) {
-            case PAUSE -> 0.45f;
+            case PAUSE, JOURNAL -> 0.45f;
             case DIALOG -> 0.7f;
             default -> 1f;
         });
