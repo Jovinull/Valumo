@@ -1406,14 +1406,16 @@ public final class Game implements AutoCloseable {
         java.util.Collections.sort(fr);
         java.util.function.DoubleUnaryOperator q = p -> fr.isEmpty() ? 0 : fr.get(Math.min(fr.size() - 1, (int) Math.floor(p * fr.size())));
         boolean head = !Files.exists(f);
-        String line = String.format(java.util.Locale.ROOT, "%.1f,%.1f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.1f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f%n",
+        String line = String.format(java.util.Locale.ROOT, "%.1f,%.1f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.1f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%d,%d,%d%n",
                 (System.nanoTime() - sampleT0) / 1e9, logic.time, heap / 1048576.0, heapGc / 1048576.0, nonHeap / 1048576.0,
                 direct / 1048576.0, rss / 1048576.0, vx.engine.Mesh.liveMeshes, vx.engine.Mesh.liveBytes / 1048576.0,
                 vx.engine.Texture.live, vx.engine.Framebuffer.live, al == null ? -1 : al.loadedBuffers(), al == null ? -1 : al.liveStreams(),
                 al == null ? -1 : al.liveVoices(), java.lang.management.ManagementFactory.getThreadMXBean().getThreadCount(), gcN, gcMs,
-                fr.size(), q.applyAsDouble(0.5), q.applyAsDouble(0.95), q.applyAsDouble(0.99), fr.isEmpty() ? 0 : fr.getLast());
+                fr.size(), q.applyAsDouble(0.5), q.applyAsDouble(0.95), q.applyAsDouble(0.99), fr.isEmpty() ? 0 : fr.getLast(),
+                perf == null ? 0 : perf.size(), logic.combat == null ? 0 : logic.combat.events.size(), logic.choices.size());
         Files.writeString(f, (head ? "relogio_s,jogo_s,heap_mb,heap_pos_gc_mb,nao_heap_mb,diretos_mb,rss_mb,malhas,malhas_mb,texturas,fbos,"
-                + "al_buffers,al_fluxos,al_vozes,threads,gc_coletas,gc_ms,quadros,quadro_mediana_ms,quadro_p95_ms,quadro_p99_ms,quadro_max_ms\n" : "")
+                + "al_buffers,al_fluxos,al_vozes,threads,gc_coletas,gc_ms,quadros,quadro_mediana_ms,quadro_p95_ms,quadro_p99_ms,quadro_max_ms,"
+                + "perf_quadros_guardados,eventos_combate,escolhas\n" : "")
                 + line, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
     }
 
