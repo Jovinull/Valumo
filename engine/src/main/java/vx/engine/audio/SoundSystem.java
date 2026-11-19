@@ -56,6 +56,14 @@ public final class SoundSystem implements AutoCloseable {
     }
 
     private Track music;
+    /**
+     * Última música PEDIDA (mesmo que não tenha tocado) e ambientes que não abriram. Sem isto, uma saída sem fluxos (muda,
+     * sem dispositivo) ou um arquivo ausente faziam {@link #music} e {@link #ambient} — chamados a cada quadro pelo jogo —
+     * reabrir e decodificar o OGG a cada quadro (auditoria de engenharia: ~8 ms e ~2,5 MB de lixo por quadro em todo
+     * roteiro, {@code --demo} e máquina sem som).
+     */
+    private String musicAsked;
+    private final java.util.Set<String> ambientFailed = new java.util.HashSet<>();
     private final Map<String, Track> ambients = new LinkedHashMap<>();
     private final Map<String, String> ambientBus = new HashMap<>();
     private final List<Track> fading = new ArrayList<>();
@@ -74,9 +82,9 @@ public final class SoundSystem implements AutoCloseable {
                     Pcm p = Pcm.readWav(base.resolve(e.files().get(i)));
                     if (p.channels() != 1) problems.add(e.id() + ": " + e.files().get(i) + " não é mono");
                     b[i] = out.load(p);
-                } catch (IOException ex) {
+                } catch (IOException | RuntimeException ex) {             // ausente ou malformado (cabeçalho truncado…)
                     problems.add(e.id() + ": " + ex.getMessage());
-                    b[i] = -1;                                             // arquivo ausente: a variação nunca toca
+                    b[i] = -1;                                             // a variação nunca toca
                 }
             }
             buffers.put(e.id(), b);
@@ -108,7 +116,7 @@ public final class SoundSystem implements AutoCloseable {
         if (last != null && time - last < e.minInterval()) { suppressedInterval++; return false; }
         // limite do próprio evento: rouba a mais antiga dele
         List<Voice> mine = voices.stream().filter(v -> v.event.equals(id)).toList();
-        if (mine.size() >= e.maxVoices()) { stopVoice(mine.getFirst()); stolen++; }
+        if (!mine.isEmpty() && mine.size() >= e.maxVoices()) { stopVoice(mine.getFirst()); stolen++; }
         // limite global: rouba a mais antiga de prioridade ≤; senão descarta
         if (voices.size() >= MAX_VOICES) {
             Voice victim = null;
@@ -170,16 +178,20 @@ public final class SoundSystem implements AutoCloseable {
 
     // ------------------------------------------------------------------ música
 
-    /** Pede a música (null = silêncio). A mesma música pedida de novo não reinicia. */
+    /**
+     * Pede a música (null = silêncio). A mesma música pedida de novo não reinicia — nem é tentada de novo se não abriu
+     * (saída muda, arquivo ausente): só um pedido DIFERENTE volta a abrir arquivo.
+     */
     public void music(String id) {
-        if (music != null && music.id.equals(id)) return;
+        if (java.util.Objects.equals(id, musicAsked)) return;
+        musicAsked = id;
         if (music != null) { music.target = 0; fading.add(music); music = null; }
         if (id == null) return;
         SoundCatalog.Music m = cat.music.get(id);
         if (m == null) { note("música desconhecida: " + id); return; }
+        if (!out.streams()) return;                                      // saída muda: nem abre o arquivo
         try {
-            LoopingReader r = new LoopingReader(new VorbisSource(base.resolve(m.file())), m.loopStart(), m.loopEnd(), true);
-            int s = out.stream(r, 0f);
+            int s = out.stream(looping(new VorbisSource(base.resolve(m.file())), m.loopStart(), m.loopEnd()), 0f);
             if (s <= 0) return;
             music = new Track(id, s, db(m.gainDb()));
             music.target = 1;
@@ -191,6 +203,16 @@ public final class SoundSystem implements AutoCloseable {
 
     public String currentMusic() { return music == null ? null : music.id; }
 
+    /** Laço sobre a fonte; se os pontos de laço forem recusados, a fonte (arquivo + decodificador nativos) é fechada. */
+    private static LoopingReader looping(VorbisSource src, long start, long end) {
+        try {
+            return new LoopingReader(src, start, end, true);
+        } catch (RuntimeException ex) {
+            src.close();
+            throw ex;
+        }
+    }
+
     // ------------------------------------------------------------------ ambiente
 
     /**
@@ -198,14 +220,18 @@ public final class SoundSystem implements AutoCloseable {
      * posicionais do catálogo); null = cama sem posição. Pedir de novo o mesmo ambiente não reinicia.
      */
     public void ambient(String id, float[] pos) {
-        if (ambients.containsKey(id)) return;
+        Track on = ambients.get(id);
+        if (on != null) { on.target = 1; return; }                       // pedido de novo durante a saída: volta a entrar
+        if (!ambientFailed.add(id)) return;                              // já tentado e não abriu: não reabre a cada quadro
         SoundCatalog.Ambient a = cat.ambient.get(id);
         if (a == null) { note("ambiente desconhecido: " + id); return; }
+        if (!out.streams()) return;                                      // saída muda: nem abre o arquivo
         try {
             VorbisSource src = new VorbisSource(base.resolve(a.file()));
             if (a.positional() && src.channels() != 1) { src.close(); note("ambiente " + id + ": posicional exige mono"); return; }
-            int s = out.stream(new LoopingReader(src, 0, src.frames(), true), 0f);
+            int s = out.stream(looping(src, 0, src.frames()), 0f);
             if (s <= 0) return;
+            ambientFailed.remove(id);
             if (a.positional() && pos != null) out.streamPosition(s, pos[0], pos[1], pos[2], a.ref(), a.max());
             Track t = new Track(id, s, db(a.gainDb()));
             t.target = 1;
@@ -219,6 +245,7 @@ public final class SoundSystem implements AutoCloseable {
     public void stopAmbient(String id) {
         Track t = ambients.get(id);
         if (t != null) t.target = 0;                                   // sai em 2 s; parado no update
+        ambientFailed.remove(id);                                      // um pedido novo, depois de parar, tenta de novo
     }
 
     public java.util.Set<String> activeAmbients() { return ambients.keySet(); }

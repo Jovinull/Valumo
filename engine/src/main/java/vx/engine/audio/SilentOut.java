@@ -12,6 +12,7 @@ public final class SilentOut implements AudioOut {
     @Override public boolean playing(int voice) { return false; }
     @Override public void gain(int voice, float gain) { }
     @Override public void stop(int voice) { }
+    @Override public boolean streams() { return false; }
     @Override public int stream(LoopingReader reader, float gain) { reader.close(); return 0; }
     @Override public void streamGain(int stream, float gain) { }
     @Override public void stopStream(int stream) { }

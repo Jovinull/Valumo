@@ -171,9 +171,10 @@ public final class OpenAlOut implements AudioOut {
 
     @Override
     public int play(int buffer, float gain, float pitch) {
+        if (buffer <= 0) return 0;                                      // antes de tirar a fonte do pool (não a perde)
         reclaim();
         Integer s = free.poll();
-        if (s == null || buffer <= 0) return 0;
+        if (s == null) return 0;
         alSourcei(s, AL_BUFFER, buffer);
         alSourcei(s, AL_SOURCE_RELATIVE, AL_TRUE);                       // sem posição: herói e interface
         alSource3f(s, AL_POSITION, 0, 0, 0);

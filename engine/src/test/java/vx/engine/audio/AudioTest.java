@@ -18,7 +18,7 @@ class AudioTest {
 
     // ------------------------------------------------------------------ fonte sintética: amostra = índice do quadro
 
-    static final class Ramp implements PcmSource {
+    static class Ramp implements PcmSource {
         final int n;
         int pos;
         Ramp(int n) { this.n = n; }
@@ -202,12 +202,122 @@ class AudioTest {
         Files.writeString(dir.resolve("sons.json"), """
                 {"contrato":"valumo.sons","versao":1,"barramentos":{"efeitos":1},
                  "eventos":{"x":{"barramento":"efeitos","arquivos":["nao-existe.wav"]}}}""");
-        SoundSystem s = new SoundSystem(SoundCatalog.load(dir.resolve("sons.json")), dir, new FakeOut(), 1);
-        assertEquals(1, s.problems().size());
-        assertFalse(s.event("x"));
-        assertFalse(s.event("evento-que-nao-existe"));
-        s.music("tambem-nao");
-        assertEquals(3, s.problems().size());
+        try (SoundSystem s = new SoundSystem(SoundCatalog.load(dir.resolve("sons.json")), dir, new FakeOut(), 1)) {
+            assertEquals(1, s.problems().size());
+            assertFalse(s.event("x"));
+            assertFalse(s.event("evento-que-nao-existe"));
+            s.music("tambem-nao");
+            assertEquals(3, s.problems().size());
+        }
+    }
+
+    // ------------------------------------------------------------------ auditoria de engenharia: mudo barato e falha segura
+
+    /** Saída que não consegue tocar fluxos (como a muda antes da correção): conta quantas vezes o sistema tentou abrir um. */
+    static final class NoStreamOut implements AudioOut {
+        final boolean claims;
+        int opened;
+        NoStreamOut(boolean claimsStreams) { claims = claimsStreams; }
+        public int load(Pcm pcm) { return 0; }
+        public void unload(int b) { }
+        public int play(int b, float g, float p) { return 0; }
+        public boolean playing(int v) { return false; }
+        public void gain(int v, float g) { }
+        public void stop(int v) { }
+        public boolean streams() { return claims; }
+        public int stream(LoopingReader r, float g) { opened++; r.close(); return 0; }
+        public void streamGain(int s, float g) { }
+        public void stopStream(int s) { }
+        public void streamPosition(int s, float x, float y, float z, float ref, float max) { }
+        public void listener(float x, float y, float z, float fx, float fy, float fz) { }
+        public void update() { }
+        public String name() { return "sem fluxos"; }
+        public void close() { }
+    }
+
+    /** O jogo pede música e ambientes a CADA quadro (GameAudio.tick): 600 quadros = 10 s de jogo. */
+    private static void tenSecondsOfGame(SoundSystem s) {
+        for (int f = 0; f < 600; f++) {
+            s.music("vila_a");
+            s.ambient("vento", null);
+            s.ambient("lago", new float[]{4, -0.4f, 6});
+            s.update(1f / 60f);
+        }
+    }
+
+    @Test
+    void aMuteOutputNeverOpensMusicOrAmbienceFiles() throws Exception {
+        NoStreamOut mute = new NoStreamOut(false);
+        try (SoundSystem s = new SoundSystem(SoundCatalog.load(ASSETS.resolve("audio/sons.json")), ASSETS.resolve("audio"), mute, 1)) {
+            tenSecondsOfGame(s);
+            assertEquals(0, mute.opened, "saída muda: nenhum OGG aberto (antes: 3 arquivos decodificados por quadro)");
+            assertNull(s.currentMusic());
+            assertEquals(List.of(), s.problems(), "ficar mudo não é problema");
+        }
+        try (AudioOut silent = new SilentOut("teste")) {
+            assertFalse(silent.streams(), "a saída muda do jogo declara que não toca fluxos");
+        }
+    }
+
+    @Test
+    void aStreamThatFailsToStartIsNotRetriedEveryFrame() throws Exception {
+        NoStreamOut broken = new NoStreamOut(true);                        // diz que toca, mas não consegue (sem fonte livre…)
+        try (SoundSystem s = new SoundSystem(SoundCatalog.load(ASSETS.resolve("audio/sons.json")), ASSETS.resolve("audio"), broken, 1)) {
+            tenSecondsOfGame(s);
+            assertEquals(3, broken.opened, "uma tentativa por pedido (música, vento, lago), não uma por quadro");
+            s.music("vila_b");                                             // um pedido DIFERENTE tenta de novo
+            s.music("vila_b");
+            assertEquals(4, broken.opened);
+            s.stopAmbient("lago");                                         // parar e pedir de novo também
+            s.ambient("lago", null);
+            s.ambient("lago", null);
+            assertEquals(5, broken.opened);
+        }
+    }
+
+    @Test
+    void aStoppedAmbienceAskedAgainComesBackInsteadOfFadingAway() throws Exception {
+        FakeOut out = new FakeOut();
+        try (SoundSystem s = system(out, 3)) {
+            s.ambient("vento", null);
+            for (int i = 0; i < 100; i++) s.update(0.05f);
+            float full = out.streams.values().iterator().next();
+            s.stopAmbient("vento");
+            for (int i = 0; i < 10; i++) s.update(0.05f);                  // meio da saída
+            s.ambient("vento", null);                                     // o jogo pede de novo
+            for (int i = 0; i < 100; i++) s.update(0.05f);
+            assertEquals(1, out.streams.size(), "o mesmo fluxo, sem reabrir o arquivo");
+            assertEquals(full, out.streams.values().iterator().next(), 1e-5f, "voltou ao nível cheio");
+        }
+    }
+
+    @Test
+    void aMalformedSoundFileIsAProblemNeverACrash() throws Exception {
+        Path dir = Files.createTempDirectory("vx-audio");
+        java.nio.ByteBuffer cut = java.nio.ByteBuffer.allocate(20).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        cut.putInt(0x46464952).putInt(12).putInt(0x45564157).putInt(0x20746d66).putInt(16);    // RIFF/WAVE + "fmt " sem corpo
+        Files.write(dir.resolve("cortado.wav"), cut.array());
+        Files.writeString(dir.resolve("sons.json"), """
+                {"contrato":"valumo.sons","versao":1,"barramentos":{"efeitos":1},
+                 "eventos":{"x":{"barramento":"efeitos","arquivos":["cortado.wav"]},
+                            "zero":{"barramento":"efeitos","max_vozes":0,"arquivos":["cortado.wav"]}}}""");
+        try (SoundSystem s = new SoundSystem(SoundCatalog.load(dir.resolve("sons.json")), dir, new FakeOut(), 1)) {
+            assertEquals(2, s.problems().size(), "arquivo truncado vira problema: " + s.problems());
+            assertFalse(s.event("x"));
+            assertFalse(s.event("zero"), "limite de vozes 0 não derruba o jogo");
+        }
+    }
+
+    @Test
+    void aSourceThatDriesUpDoesNotHangTheLoop() {
+        PcmSource dry = new Ramp(1000) {
+            @Override public int read(short[] out, int max) { return pos >= 500 ? 0 : super.read(out, Math.min(max, 500 - pos)); }
+            @Override public void seek(long f) { pos = 700; }                // volta a um trecho sem dados (arquivo corrompido)
+        };
+        LoopingReader r = new LoopingReader(dry, 300, 900, true);
+        short[] buf = new short[2000];
+        int got = assertTimeoutPreemptively(java.time.Duration.ofSeconds(5), () -> r.read(buf, 2000));
+        assertEquals(500, got, "entrega o que havia e devolve o controle (antes: laço infinito na thread do jogo)");
     }
 
     @Test

@@ -20,6 +20,12 @@ public interface AudioOut extends AutoCloseable {
 
     void stop(int voice);
 
+    /**
+     * Esta saída toca fluxos? Uma saída muda responde {@code false} e o {@link SoundSystem} nem abre os arquivos de
+     * música e ambiente (abrir e decodificar um OGG custa milissegundos e megabytes).
+     */
+    default boolean streams() { return true; }
+
     /** Começa um fluxo (música) a partir do leitor; devolve o fluxo (≤ 0 = não tocou). */
     int stream(LoopingReader reader, float gain);
 

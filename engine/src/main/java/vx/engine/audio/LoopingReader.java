@@ -32,6 +32,7 @@ public final class LoopingReader {
     public int read(short[] out, int frames) {
         int ch = src.channels(), done = 0;
         short[] tmp = out;
+        boolean empty = false;                                   // a fonte não deu nada logo depois de voltar ao laço
         while (done < frames) {
             if (pos >= loopEnd) {
                 if (!loop) break;
@@ -42,10 +43,12 @@ public final class LoopingReader {
             short[] part = done == 0 ? tmp : new short[want * ch];
             int got = src.read(part, want);
             if (got <= 0) {                                    // fonte acabou antes do esperado: trata como fim do laço
-                if (!loop) break;
+                if (!loop || empty) break;                     // duas vezes seguidas (arquivo corrompido): não gira para sempre
+                empty = true;
                 pos = loopEnd;
                 continue;
             }
+            empty = false;
             if (part != tmp) System.arraycopy(part, 0, out, done * ch, got * ch);
             done += got;
             pos += got;

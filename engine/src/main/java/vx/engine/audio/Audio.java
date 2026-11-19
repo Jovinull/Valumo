@@ -50,10 +50,22 @@ public final class Audio {
             case OFF -> null;
         };
         if (out == null) out = new SilentOut(mode == Mode.OFF ? "desligado" : "sem dispositivo");
-        sys = new SoundSystem(cat, assets.resolve("audio"), out, 0x5A1L);
+        try {
+            sys = new SoundSystem(cat, assets.resolve("audio"), out, 0x5A1L);
+        } catch (RuntimeException e) {                      // falha → mudo, nunca exceção (e o dispositivo não fica aberto)
+            System.err.println("áudio: falha ao carregar os sons (" + e + "); seguindo sem som");
+            out.close();
+            al = null;
+            return null;
+        }
         for (String b : new String[]{"geral", "musica", "efeitos", "interface", "ambiente"}) {
             String v = System.getProperty("vx.vol." + b);
-            if (v != null) sys.volume(b, Float.parseFloat(v));
+            if (v == null) continue;
+            try {
+                sys.volume(b, Float.parseFloat(v));
+            } catch (NumberFormatException e) {
+                System.err.println("áudio: -Dvx.vol." + b + "=" + v + " não é um número; mantido o volume do catálogo");
+            }
         }
         String rec = System.getProperty("vx.audio.gravar");
         if (rec != null && mode == Mode.LOOPBACK && al != null) {
