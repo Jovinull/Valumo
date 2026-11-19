@@ -24,7 +24,13 @@ public final class VorbisSource implements PcmSource {
     private final long frames;
     private ShortBuffer scratch;
 
+    /** Maior OGG aceito (bytes): a música mais longa do projeto tem ~2,6 MB. */
+    public static final long MAX_BYTES = 64L << 20;
+
+    /** Abre um OGG Vorbis. Vazio, inválido, sem amostras, com mais de dois canais ou grande demais = {@link IOException}. */
     public VorbisSource(Path path) throws IOException {
+        long size = Files.size(path);
+        if (size == 0 || size > MAX_BYTES) throw new IOException(path + ": OGG com " + size + " bytes");
         byte[] bytes = Files.readAllBytes(path);
         file = memAlloc(bytes.length);
         file.put(bytes).flip();
@@ -41,6 +47,10 @@ public final class VorbisSource implements PcmSource {
             rate = info.sample_rate();
         }
         frames = stb_vorbis_stream_length_in_samples(handle);
+        if (frames <= 0 || channels < 1 || channels > 2 || rate <= 0) {
+            close();
+            throw new IOException(path + ": OGG sem amostras utilizáveis (" + frames + " quadros, " + channels + " canais, " + rate + " Hz)");
+        }
     }
 
     @Override public int channels() { return channels; }

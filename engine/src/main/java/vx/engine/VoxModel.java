@@ -49,10 +49,21 @@ public final class VoxModel implements VoxelSource {
         return ((materialOf(idx) + 1) << 24) | palette[idx];
     }
 
+    /** Maior arquivo .vox aceito (bytes): o maior asset do projeto tem ~1 MB; acima disto é arquivo errado, não modelo. */
+    public static final long MAX_BYTES = 32L << 20;
+    /** Lado máximo de um modelo no formato .vox (o próprio formato guarda coordenadas em 1 byte). */
+    public static final int MAX_SIDE = 256;
+
+    /**
+     * Lê um .vox (MagicaVoxel). Arquivo malformado — tamanho de bloco negativo ou além do fim, dimensão fora de 1–256,
+     * voxel fora do tamanho declarado, bloco truncado, sem XYZI ou sem paleta — vira {@link IllegalStateException} com o
+     * caminho e o motivo; nunca laço infinito (antes, um tamanho negativo voltava a posição) nem alocação descontrolada.
+     */
     public static VoxModel load(Path file) {
         try {
+            if (Files.size(file) > MAX_BYTES) throw new IOException("arquivo grande demais (" + Files.size(file) + " bytes)");
             ByteBuffer b = ByteBuffer.wrap(Files.readAllBytes(file)).order(ByteOrder.LITTLE_ENDIAN);
-            if (b.get() != 'V' || b.get() != 'O' || b.get() != 'X' || b.get() != ' ')
+            if (b.remaining() < 8 || b.get() != 'V' || b.get() != 'O' || b.get() != 'X' || b.get() != ' ')
                 throw new IOException("cabeçalho .vox inválido");
             b.getInt(); // versão
             int vx = 0, vy = 0, vz = 0;
@@ -61,31 +72,40 @@ public final class VoxModel implements VoxelSource {
             while (b.remaining() >= 12) {
                 byte[] idb = new byte[4];
                 b.get(idb);
-                String id = new String(idb);
-                int contentSize = b.getInt();
-                b.getInt(); // tamanho dos filhos (percorremos os filhos em sequência)
+                String id = new String(idb, java.nio.charset.StandardCharsets.US_ASCII);
+                int contentSize = b.getInt(), childSize = b.getInt();   // os filhos são percorridos em sequência
+                if (contentSize < 0 || childSize < 0 || contentSize > b.remaining())
+                    throw new IOException("bloco " + id + " com tamanho inválido (" + contentSize + ", restam " + b.remaining() + ")");
                 int end = b.position() + contentSize;
                 switch (id) {
                     case "SIZE" -> {
+                        if (contentSize < 12) throw new IOException("bloco SIZE truncado");
                         if (model == null) {
                             vx = b.getInt();
                             vy = b.getInt();
                             vz = b.getInt();
+                            if (vx < 1 || vy < 1 || vz < 1 || vx > MAX_SIDE || vy > MAX_SIDE || vz > MAX_SIDE)
+                                throw new IOException("dimensão fora de 1–" + MAX_SIDE + ": " + vx + "×" + vy + "×" + vz);
                         }
                     }
                     case "XYZI" -> {
                         if (model == null) {
+                            if (vx == 0) throw new IOException("bloco XYZI antes de SIZE");
+                            if (contentSize < 4) throw new IOException("bloco XYZI truncado");
                             model = new VoxModel(vx, vz, vy);
                             int n = b.getInt();
+                            if (n < 0 || n > (contentSize - 4) / 4) throw new IOException("XYZI declara " + n + " voxels em " + contentSize + " bytes");
                             for (int i = 0; i < n; i++) {
                                 int x = b.get() & 0xFF, y = b.get() & 0xFF, z = b.get() & 0xFF;
                                 byte c = b.get();
+                                if (x >= vx || y >= vy || z >= vz) throw new IOException("voxel (" + x + "," + y + "," + z + ") fora de " + vx + "×" + vy + "×" + vz);
                                 int ex = x, ey = z, ez = vy - 1 - y;
                                 model.cells[ex + model.sx * (ey + model.sy * ez)] = c;
                             }
                         }
                     }
                     case "RGBA" -> {
+                        if (contentSize < 1024) throw new IOException("paleta RGBA truncada");
                         pal = new int[256];
                         for (int i = 0; i < 256; i++) {
                             int r = b.get() & 0xFF, g = b.get() & 0xFF, bl = b.get() & 0xFF;
@@ -101,7 +121,7 @@ public final class VoxModel implements VoxelSource {
             if (pal == null) throw new IOException("arquivo sem paleta RGBA (obrigatória neste projeto)");
             System.arraycopy(pal, 0, model.palette, 0, 256);
             return model;
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new IllegalStateException("falha ao ler " + file + ": " + e.getMessage(), e);
         }
     }
