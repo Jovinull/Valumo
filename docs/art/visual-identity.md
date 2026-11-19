@@ -48,7 +48,7 @@ sem consulta (registrar no guia do tema).
 | Cabelo = massa + poucas mechas grandes + sulcos | número de mechas (3–6), topete, franja, rabo |
 | Sombra pintada em **bandas largas** (3–4 tons, roxo → pêssego) | tons exatos dentro da família da paleta |
 | Silhueta legível em preto na escala de exploração | acessórios, número de peças, assimetria |
-| Voxel evidente (sem suavização de malha) | relevo T0–T4, chanfro de degrau de 1 voxel, margem anti-fresta |
+| Voxel evidente (sem suavização de malha) | relevo T0–T4, chanfro de degrau de 1 voxel |
 | Névoa começa depois do foco; contorno discreto | início/densidade da névoa, peso do contorno (níveis 0–3) |
 | Emissivo só em magia e habitação | intensidade do brilho, cor da luz por preset |
 | Animação procedural por partes, sem física de pano, sem capa longa | ângulos, cadência, passada, IK de pé ligado/desligado |
@@ -96,7 +96,7 @@ Resumo (números completos em [sistema-de-proporcoes.md](sistema-de-proporcoes.m
 | Voxel do herói | 1/40 u | idem |
 | Cabeça | 16 × 16 × 15 voxels (crânio) + 2 de cabelo | `charlib_e.skull` |
 
-Medidos: aventureiro 2,44; exploradora 2,53; maga 2,53. Corpo em pera (quadril mais largo que o
+Medidos: aventureiro 2,44; exploradora 2,44; maga 2,53. Corpo em pera (quadril mais largo que o
 ombro), mãos e botas maiores que o membro, braços terminam no quadril.
 
 ## 4. Linguagem de formas

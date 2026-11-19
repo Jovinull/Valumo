@@ -90,13 +90,13 @@ fantasia e é documentado só pelo que ele é no jogo (forma, paleta, roupa, atu
 linguagem da direção E (tronco em massa única, sem ênfase em busto ou decote profundo). Se a autorização for
 retirada, o personagem sai do jogo. Procedimento: skill `character-design`.
 
-O que mantém a família visual (obrigatório) e onde o autor tem liberdade (flexível). Nenhum NPC existe
-ainda; os testes de proporção dos protagonistas **não** se aplicam a eles (ganharão teste próprio com o
-primeiro NPC aprovado).
+O que mantém a família visual (obrigatório) e onde o autor tem liberdade (flexível). Os NPCs que existem
+(cartógrafa, Kelyra, Índira, Súvia e os cinco de ofício) são candidatos; os testes de proporção dos protagonistas
+**não** se aplicam a eles — têm os próprios (`ExpansionTest`, `VilaNpcTest`, `OficiosNpcTest`).
 
 | Regra | Classe | Valor / critério |
 |---|---|---|
-| Proporção | [O] faixa / [F] valor | **2,0–3,0 cabeças** (regra do projeto); dentro disso o autor escolhe: criança ~2,0, adulto robusto ~2,3, idoso curvado, alto e esguio ~2,9. Altura livre até 1,5 u (mais alto que os heróis só com motivo de história) |
+| Proporção | [O] faixa / [F] valor | **2,0–3,0 cabeças** (regra do projeto); dentro disso o autor escolhe: criança ~2,0, adulto robusto ~2,3, idoso curvado, alto e esguio ~2,9. Altura livre até 1,5 u (mais alto que os heróis só com motivo de história; acima disso só com altura narrativa, regra abaixo) |
 | Densidade | [O] | voxel 1/40 u (mesma escala dos heróis) |
 | Construção | [O] | corpo em massas arredondadas (superelipsoides), mãos em bloco, pés curtos; nada de proporção realista |
 | Rosto | [O] linguagem / [F] forma | **sempre placa plana**, brilho do olho do lado da luz, sem nariz desenhado, blush; **forma do olho livre** dentro de `FACE_DEFAULT` e variações novas (redondo, amêndoa, inclinado, olhos fechados de idoso, olho menor 2 × 3, sobrancelha grossa), desde que leia como da mesma família na câmera de exploração |

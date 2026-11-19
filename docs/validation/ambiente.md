@@ -10,7 +10,7 @@ administrador: JDK por SDKMAN, editores por Flatpak de usuário, bibliotecas Pyt
 | Memória | 15 GiB |
 | JDK | Temurin 25 via SDKMAN (`~/.sdkman/candidates/java/current`); o OpenJDK 25.0.4 do sistema também funciona |
 | Gradle | wrapper do projeto (`gradle/wrapper/gradle-wrapper.properties`) |
-| Python | 3.15.2 — scripts de assets só com a biblioteca padrão; `.venv` com numpy e Pillow para QA (`tools/sheet.py`, `tools/repro_compare.py`) |
+| Python | 3.15.2 — scripts de modelos só com a biblioteca padrão; **numpy é obrigatório** para a síntese dos efeitos do combate (`tools/audio_e.py`, parte de `./gradlew assets`); `.venv` da raiz (`tools/requirements.txt`) com numpy e, para QA, Pillow etc. (`tools/sheet.py`, `tools/repro_compare.py`) |
 | ffmpeg | 9.0.2 (`ffmpeg-free`, sem libx264: `tools/anim.sh` usa libopenh264) |
 | git | 2.56.1 |
 | Editores | Goxel 0.13.0, LibreSprite 1.1-dev, Blockbench 5.2.2 (Flatpak de usuário) — ver [ADR 0008](../decisions/0008-ferramentas-de-arte.md) |
@@ -19,7 +19,7 @@ administrador: JDK por SDKMAN, editores por Flatpak de usuário, bibliotecas Pyt
 
 | Biblioteca | Versão | Uso |
 |---|---|---|
-| LWJGL (`lwjgl`, `lwjgl-glfw`, `lwjgl-opengl`) | 3.4.3, natives `linux` | janela, entrada, OpenGL |
+| LWJGL (`lwjgl`, `lwjgl-glfw`, `lwjgl-opengl`, `lwjgl-openal`, `lwjgl-stb`) | 3.4.3, natives `linux` | janela, entrada, OpenGL, áudio (OpenAL Soft, stb_vorbis) |
 | JOML | 1.10.8 | vetores e matrizes |
 | Gson | 2.13.2 | leitura de `rig.json`, `props.json`, cena, perfis de arma |
 | JUnit Jupiter | 5.11.4 | testes |
@@ -88,7 +88,7 @@ durante a iteração; não é dependência do projeto (as pranchas de entrega s�
 
 ## Áudio e ferramentas da rodada 09.4
 
-Instalados nesta máquina (Ubuntu 24.04.4, PipeWire 1.0.5): LMMS 1.2.2, FluidR3 GM 3.1 (`fluid-soundfont-gm`, MIT),
+Instalados na máquina Ubuntu em que a 09.4 foi desenvolvida (Ubuntu 24.04.4, PipeWire 1.0.5): LMMS 1.2.2, FluidR3 GM 3.1 (`fluid-soundfont-gm`, MIT),
 Audacity 3.4.2 (sem `mod-script-pipe`), sox 14.4.2, ffmpeg/ffprobe 6.1.1, vorbis-tools, plugins LADSPA (swh, tap,
 caps), xvfb + xdotool + imagemagick (inspeção de interfaces), Goxel 0.13.0 (Flatpak de usuário). `.venv` recriada com
 numpy, Pillow, imageio, soundfile e scipy. Áudio do jogo: OpenAL Soft embutido nos natives do LWJGL 3.4.3 (ADR 0023).

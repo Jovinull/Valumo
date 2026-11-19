@@ -24,7 +24,7 @@ que estende o [ADR 0016](../decisions/0016-audio-openal-e-sons-sintetizados.md))
 
 ## Parte A — catálogo, música, ambiente e interface (rodada 09.4)
 
-Rodada 09.4 (desenvolvida em paralelo como "rodada 09.4"). Decisão: [ADR 0023](../decisions/0023-audio-openal-stb-vorbis.md). Procedimentos: skills
+Rodada 09.4 (desenvolvida em paralelo como "rodada 09"). Decisão: [ADR 0023](../decisions/0023-audio-openal-stb-vorbis.md). Procedimentos: skills
 `music-composition`, `sound-design`, `audio-qa`. Todos os sons e músicas atuais são **estudos** (aprovação do
 proprietário pendente).
 
@@ -122,7 +122,7 @@ início do laço. Pontos calibrados no próprio render do LMMS (`tools/audio/ren
 
 - Ambientes são fluxos em laço (`SoundSystem.ambient`), entram e saem em 2 s, não reiniciam se pedidos de novo.
   Posicionais exigem OGG mono; o OpenAL atenua por distância (modelo inverso com limite: `distancia_ref`,
-  `distancia_max`). O ouvinte (`SoundSystem.listener`) fica no herói, olhando para onde a câmera olha.
+  `distancia_max`). O ouvinte (`SoundSystem.listener`) fica na câmera, olhando para o herói.
 - Fontes: `fontes/audio/ambiente/ambiente.py` → `vento.mmp`/`lago.mmp` → `tools/audio/render_ambiente.py` (laço por
   crossfade de igual potência da sobra de 2 s; −24 LUFS).
 - Prova de posição: `AudioTest` mede pelo loopback o mesmo lago a 2 u e a 12 u (longe < metade do RMS); no jogo,
@@ -140,7 +140,7 @@ até 3 fluxos simultâneos: música, vento, lago); 32 fontes reservadas. Nada al
 - Efeitos curtos posicionais no mundo (NPC, criaturas): os buffers já são mono; falta a API de evento com posição.
 - Pássaros e outras camadas de ambiente (fora por risco de soar caricato por síntese); música de exploração e de
   combate; transição por região do mundo.
-- Aterrissagem quando houver pulo; passos de NPC.
+- Passos de NPC e de inimigos (o salto e o pouso do herói já soam: parte B).
 
 ## Parte B — efeitos sonoros do combate (rodada 09.1; esquiva, salto, pouso e desfazer na 09.2)
 
@@ -149,7 +149,7 @@ Primeiro som do Valumo: efeitos que melhoram a leitura das ações da luta e pas
 ```bash
 ./gradlew jogo                                       # som no dispositivo padrão; M liga/desliga; volume na pausa (Esc)
 python3 tools/audio_e.py                             # regenera os efeitos (o Gradle faz sozinho antes de run/test)
-python3 tools/audio_board.py saida.png               # prancha de revisão: forma de onda + espectrograma + números
+.venv/bin/python tools/audio_board.py saida.png      # prancha de revisão: forma de onda + espectrograma + números
 tools/review91.sh sons                               # catálogo: arquivos isolados, faixa com todos, prancha
 tools/review91.sh videos                             # vídeos com o som GRAVADO PELA APLICAÇÃO + relatório de sincronia
 JAVA_OPTS=-Dvx.som=loopback game/build/install/game/bin/game --roteiro R.txt SAIDA 30   # grava SAIDA/audio.wav

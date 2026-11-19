@@ -23,7 +23,7 @@ engine  (vx.engine)   biblioteca: não conhece estilos, personagens nem o jogo
 viewer  (vx.viewer)   aplicativo desta rodada
   Main          linha de comando: interativo, --snap, --review, --bench, --info
   App           estado (State), modos de avaliação, entrada, HUD, captura, benchmark
-  StyleProfile  parâmetros de luz/céu/névoa/pós de cada direção (A, B, C, D, neutra)
+  StyleProfile  parâmetros de luz/céu/névoa/pós de cada direção (A, B, C, D, E, neutra)
   Renderer      sombra -> cena HDR -> bloom -> composição; descarte por frustum
   Assets        carga e cache de rigs e props
   CharacterModel / CuboidMesh   rig.json -> partes (malha voxel ou cuboides texturizados)
@@ -46,8 +46,8 @@ Dependências: `game → viewer → engine`. O jogo: [jogo.md](jogo.md); a decis
 
 Interfaces de jogo: [criador de personagens](criador-de-personagens.md) (estrutura e procedimento reutilizáveis).
 
-A dependência é de mão única: `viewer -> engine`. Bibliotecas externas: LWJGL 3.4.3 (GLFW, OpenGL),
-JOML 1.10.8, Gson 2.13.2; JUnit 5 nos testes. Ver [ADR 0001](../decisions/0001-stack-java-lwjgl.md).
+A dependência é de mão única: `game -> viewer -> engine`. Bibliotecas externas: LWJGL 3.4.3 (GLFW, OpenGL, OpenAL,
+stb_vorbis), JOML 1.10.8, Gson 2.13.2; JUnit 5 nos testes. Ver [ADR 0001](../decisions/0001-stack-java-lwjgl.md).
 
 ## Fluxo de dados
 

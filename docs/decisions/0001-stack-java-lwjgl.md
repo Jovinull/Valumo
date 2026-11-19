@@ -1,6 +1,6 @@
 # ADR 0001 — Java 25 + LWJGL 3 + OpenGL 3.3 core, sem engine
 
-**Estado:** aceito (rodada 01)
+**Estado:** aceito (rodada 01). Os módulos `lwjgl-openal` e `lwjgl-stb` foram acrescentados depois pelos ADRs 0016 e 0023.
 
 ## Contexto
 O proprietário quer engine própria em Java, sem Unity/Unreal/Godot/jMonkeyEngine/LibGDX, com

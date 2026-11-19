@@ -67,7 +67,7 @@ altura. B continua disponível nos roteiros (`variant B`) para comparação; cap
 
 | Tipo | Uso | Estados |
 |---|---|---|
-| `TAB` | categorias (Modelo, Cabelo, Rosto, Pele, Chapéu) | normal, hover (madeira clara, sobe 2 px), selecionado (pergaminho, borda dourada, semente P1) |
+| `TAB` | categorias (Modelo, Cabelo, Rosto, Pele, Chapéu, Roupa) | normal, hover (madeira clara, sobe 2 px), selecionado (pergaminho, borda dourada, semente P1) |
 | `THUMB` | presets, penteados, rostos, coberturas | normal, hover (brilho quente, sobe 4 px), selecionado (borda dourada + marca), indisponível (cinza + cadeado + motivo na dica), carregando (pontos) |
 | `SWATCH` | cores de cabelo, pele, íris | faixas luz/base/sombra da própria cor; hover; selecionado (marca); nome embaixo |
 | `BUTTON` | Restaurar, Salvar, Carregar, Pronto; diálogos | normal, hover, pressionado (desce 2 px), principal (musgo), indisponível (cinza + motivo) |
@@ -117,11 +117,11 @@ negrito engrossado sem fechar vãos de 1 pixel.
 ## 5. Ações
 
 - Toda escolha passa por `Appearance.validate`. Combinação incompatível (regra `X` no catálogo) fica
-  **indisponível com o motivo** e nunca é aplicada. O catálogo atual não tem nenhuma; o caminho é coberto por
+  **indisponível com o motivo** e nunca é aplicada. O catálogo atual tem uma (cabelo crespo × capuz C3); o caminho também é coberto por
   teste com uma regra marcada só em memória.
 - **Restaurar** pede confirmação e volta ao preset canônico (idêntico, gate da rodada 07). Fica indisponível
   quando a aparência já é a original.
-- **Salvar** grava `output/aparencias/<nome>-NNN.json` no formato `valumo.aparencia` v1, nunca sobrescreve.
+- **Salvar** grava `output/aparencias/<nome>-NNN.json` no formato `valumo.aparencia` v2 (lê v1), nunca sobrescreve.
 - **Carregar** abre a lista dentro do editor; arquivo inválido mostra o erro e não muda nada.
 - **Expressão** e **pose** são prévia: não entram na aparência salva.
 - **Pronto** confirma a aparência e abre a vitrine: herói andando e girando devagar, sem painéis, com "Voltar
@@ -217,7 +217,7 @@ dos vídeos é desenhado pela interface na posição dos eventos.
 | Arrasto, roda e rolagem | arrasto com captura; roda dá zoom ou rola conforme a região; limites; rolagem com fim |
 | Câmera | suave, com limites, foco na cabeça |
 | Restaurar | confirmação, cancelar, preset canônico |
-| Salvar e carregar | v1, nome com acento, nunca sobrescreve, lista, arquivo inválido |
+| Salvar e carregar | v2 (lê v1), nome com acento, nunca sobrescreve, lista, arquivo inválido |
 | Teclado | o fluxo inteiro sem mouse |
 | Indisponível | com motivo, nunca aplicado, nos dois sentidos |
 | Cliques rápidos | 108 escolhas terminam na última; obsoletos descartados; cache limitado |

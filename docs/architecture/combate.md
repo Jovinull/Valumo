@@ -73,7 +73,7 @@ No viewer e na engine, a rodada acrescentou só ganchos:
 
 - **Mira do golpe:**
   - vai para onde o jogador empurra o movimento, senão para onde o herói já olha;
-  - com um inimigo a até 2,4 u e a menos de 55° dessa direção, gira para ele na preparação (assistência de largada; não
+  - com um inimigo a até 2,4 u e a menos de 40° dessa direção, gira para ele na preparação (assistência de largada; não
     é trava de mira).
 - **Avanço:** na execução, o corpo avança `avanco` u pela colisão, com impulso e depois frenagem.
 - **Encadeamento:**
@@ -148,9 +148,10 @@ REPOUSO ─vê/ouve─▶ ALERTA (0,55 s) ─▶ PERSEGUE ─perto e de frente�
 - **Atingido:**
   - recua e cambaleia por 0,45 s;
   - **compromete** no GOLPE (leva dano, não para);
-  - fica **imune a cambalear** por 1,1 s depois de se recompor, para não ser travado em sequência.
+  - fica **imune a cambalear** por 0,8 s depois de se recompor, para não ser travado em sequência.
 - **Bloqueado:** ricochete, com recuperação de 1,25 s e recuo.
-- **Morte:** cai de costas e some encolhendo. O resultado é "vitória", e R recomeça.
+- **Morte:** na rodada 09, caía de costas e sumia encolhendo (hoje só com `-Dvx.morte=antiga`; a atual é a desagregação em
+  blocos do §18). O resultado é "vitória", e R recomeça.
 - **Animação `brawler`** (`Animator`): EMOTE é o alerta, ATTACK usa tempo normalizado [0,1) preparação, [1,2) golpe e
   [2,3) recuperação, HIT é o recuo e DEATH é a queda. Os tempos de verdade são da lógica.
 
@@ -313,7 +314,7 @@ REPOUSO ─vê/ouve─▶ ALERTA (0,55 s) ─▶ PERSEGUE ─perto e de frente�
 > Os testes de câmera da 09.1 (`CombatCameraTest` e o de câmera do `CombatTest`) rodam agora explicitamente no modo de
 > comparação 09.1 (`combatAssist`, perfil A).
 
-- **`CombatTest` (20):**
+- **`CombatTest` (25):**
   - janela de dano e acerto único;
   - fora de alcance, atrás e ao lado;
   - golpe rápido com alvo fino;
@@ -517,7 +518,7 @@ tela ou fungo menos de 50% visível.
 | chefe | grande no topo: nome, moldura dourada, ponteiras em losango, marcas de quarto, "protótipo de teste" | engajado ou ferido |
 
 - **Esconde** a barra pequena quando o inimigo está atrás de sólido ou fora da tela. O fungo sozinho nunca vira chefe.
-- **Preferência:** em `output/preferencias.json` (`-Dvx.prefs`), separada da aparência; pausa → "Barras de inimigos".
+- **Preferência:** em `output/preferencias.json` (`-Dvx.prefs`), separada da aparência; pausa → "Barras".
   Os roteiros e os testes não leem nem gravam.
 - **Marcador do alvo travado:** quatro cantoneiras douradas fora do contorno do inimigo (não cobrem cabeça nem
   preparação) e um losango no chão.
@@ -564,7 +565,7 @@ saem em `output/` (fora do git).
 | `tools/combate92/` | `tools/review92.sh` | 09.2: mobilidade, mira, grupos, chefe, morte, barras | histórico: o `07-esquivas` mostra hoje a R2; a prancha "rolamento" usa o `dodge_f` |
 | `tools/combate93/` | `tools/review93.sh` | 09.3: esquiva R2, saltos, câmera perto, demonstração | **atual** |
 
-- **Comparações "antes":** os blocos `antes` do `review92.sh` e do `review93.sh` usam binários guardados em `output/tmp/`
+- **Comparações "antes":** os blocos `comparacoes` do `review92.sh` e `antes` do `review93.sh` usam binários guardados em `output/tmp/`
   (`G091`, `G092`). Sem eles, o script avisa e pula a comparação.
 - **Som:** os vídeos usam `-Dvx.som=loopback` (o som da própria aplicação, sem tocar nos alto-falantes). Os roteiros
   avulsos tocam mudo.

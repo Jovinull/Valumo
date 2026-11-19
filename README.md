@@ -4,11 +4,12 @@ RPG voxel 3D de fantasia em terceira pessoa, com personagens pequenos e expressi
 (Java 25 + LWJGL 3 + OpenGL 3.3 core, sem game engine pronta).
 
 **Estado: protótipo com a primeira exploração jogável e combate com som, mobilidade e grupos.** Dá para escolher ou
-criar a aparência do herói, andar, correr e pular pela vila com câmera em terceira pessoa, conversar com a Kelyra e
-lutar numa arena ao sul (espada e escudo): atacar andando, esquivar (salto baixo), travar a mira e trocar de alvo, contra um fungo-cardo,
+criar a aparência do herói, andar, correr e pular pela vila com câmera em terceira pessoa, conversar com a Kelyra e os
+cinco NPCs de ofício e lutar numa arena ao sul (espada e escudo): atacar andando, esquivar (salto baixo), travar a mira e trocar de alvo, contra um fungo-cardo,
 três ou um protótipo de chefe com dois menores (rodada 09.2; esquiva R2 e salto polidos na 09.3). O repositório também tem o visualizador que fixa a
 identidade visual, as ferramentas de modelagem e de síntese de som por script, a animação procedural com coreografia
-de armas, validadores e cenas de demonstração. Não há inventário, missões, progressão, música nem mundo aberto.
+de armas, validadores e cenas de demonstração. Há música, ambiente e efeitos sonoros por síntese própria (rodada 09.4).
+Não há inventário, missões, progressão nem mundo aberto.
 
 Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visual-identity.md),
 [contrato de qualidade](docs/art/contrato-de-qualidade.md), [referências canônicas](docs/art/reference/README.md)).
@@ -19,11 +20,11 @@ Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visu
 |---|---|
 | Heróis | aventureiro, exploradora e maga — aprovados e congelados (22 imagens canônicas) |
 | NPCs | cartógrafa; **Kelyra** (estalajadeira), **Índira** (herbalista) e **Súvia** (mensageira); de ofício, com altura narrativa e conversa na vila: **Bramor** (guardião de trilhas), **Teodor** (estudioso), **Pluma** (cronista), **Ondina** (guia costeira) e **Lunara** (cantora noturna) — candidatos |
-| Criaturas | pompom, tortuga, fungo, lumi (aprovados) e mariposa (candidata) |
+| Criaturas | pompom, tortuga, fungo, lumi (aprovados), mariposa (candidata) e fungo-cardo (o inimigo do combate) |
 | Cenário | clareira canônica; vitrine da expansão; vila (NPCs da vila) |
 | Animação | locomoção com IK de pé, golpes por perfil (espada, escudo, lâmina longa, arco, cajado), gestos de NPC com atuação por personagem |
 | Validação | testes Java, validador espacial de golpes, oclusão de rosto/arma, sonda de pegada, auditoria de voxels, reprodução determinística |
-| Personalização | **em tempo de execução**: os três heróis como presets (idênticos ao original), 4 estilos de cabelo, 10 cores, 5 tons de pele, 3 rostos, 5 íris, chapéu e capuz; salvar e carregar — [arquitetura](docs/architecture/personalizacao.md) |
+| Personalização | **em tempo de execução**: os três heróis como presets (idênticos ao original), 6 estilos de cabelo, 10 cores, 5 tons de pele, 3 rostos, 3 formatos de olhos, 5 íris, chapéu, capuz e botas; salvar e carregar — [arquitetura](docs/architecture/personalizacao.md) |
 | Criador de personagens | interface do jogador com mouse: cena própria, miniaturas reais, amostras de cor, giro e zoom, poses, salvar/carregar/restaurar — [interface](docs/architecture/criador-de-personagens.md) |
 | Jogo (exploração) | herói controlável na vila: andar/correr com aceleração, colisão com o cenário, degraus e encostas, câmera em terceira pessoa que não atravessa paredes, conversa com a Kelyra e os cinco NPCs de ofício, aparência escolhida ou criada no editor — [jogo](docs/architecture/jogo.md) |
 
@@ -31,14 +32,19 @@ Rodadas: 01 comparou quatro direções (A–D), 02 consolidou a E, 03 poliu, 04 
 05/05.1 auditaram e provaram reprodutibilidade, 06 fez a primeira expansão controlada, 06.1 refinou os NPCs e
 07 levou a personalização para dentro do viewer, com os heróis como presets idênticos, 07.2 deu a ela um
 criador clicável e **08** fez a primeira exploração jogável ([relatório](docs/validation/relatorio-rodada-08.md)).
+09–09.3 fizeram o combate; a 09.4, o áudio, cabelos/olhos/botas e os NPCs de ofício
+([relatório](docs/validation/relatorio-integracoes-09-4.md)).
 
 ## Requisitos
 
 - Linux x86-64 com OpenGL ≥ 3.3 (testado em Mesa 26.2 / Intel Iris Xe).
 - JDK 25 (o Gradle vem pelo wrapper).
-- Python ≥ 3.10 (somente stdlib) para regenerar os assets.
-- Opcional (QA): `.venv` com numpy/Pillow (`python3 -m venv .venv && .venv/bin/pip install numpy pillow`),
-  ffmpeg para vídeos. Detalhes: [docs/validation/ambiente.md](docs/validation/ambiente.md).
+- Python ≥ 3.10 **com numpy** para regenerar os assets: os efeitos do combate (`tools/audio_e.py`) são sintetizados com
+  numpy; os modelos só usam a biblioteca padrão. Instale numa `.venv` na raiz, que o Gradle usa sozinho:
+  `python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt` (outro interpretador:
+  `./gradlew assets -Pvx.python=/caminho/python3` ou a variável `VX_PYTHON`).
+- Opcional (QA): Pillow, imageio, scipy e soundfile (no mesmo `tools/requirements.txt`) e ffmpeg para vídeos. Os scripts
+  `tools/review*.sh` chamam o `python3` do PATH: ative a `.venv` antes. Detalhes: [docs/validation/ambiente.md](docs/validation/ambiente.md).
 
 ## Executar
 
@@ -79,7 +85,7 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `Q` | travar / soltar a mira no inimigo |
 | `Tab` / `Shift+Tab` | trocar o alvo travado (direita / esquerda na tela) |
 | `R` / `Enter` | recomeçar o confronto (depois de vitória / na tela de derrota) |
-| `Esc` | pausa (continuar, trocar aparência, abrir o criador, sensibilidade, inverter vertical, volume, mudo, barras de inimigos, sensação A/B/C, arena: um fungo / três / chefe + 2, sair) |
+| `Esc` | pausa (continuar, trocar aparência, abrir o criador, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sensação A/B/C, arena: um fungo / três / chefe + 2, sair) |
 | `M` | liga/desliga o som |
 | `F1` | ajuda dos controles |
 | `F12` | captura em `output/visual-review/manual/` |
@@ -94,7 +100,7 @@ físicos: [exploração](docs/validation/roteiro-de-teste-fisico.md) e [combate]
 
 `./gradlew editor` abre o criador:
 - **Mouse:**
-  - clique nas abas (Modelo, Cabelo, Rosto, Pele, Chapéu), nas miniaturas e nas cores;
+  - clique nas abas (Modelo, Cabelo, Rosto, Pele, Chapéu, Roupa), nas miniaturas e nas cores;
   - arraste sobre o personagem para girá-lo (o botão direito sobe e desce o enquadramento);
   - a roda aproxima sobre o personagem e rola sobre o painel.
 - **Botões:**
@@ -158,7 +164,7 @@ tools/review92.sh videos                                   # 09.2: golpe andando
 tools/review93.sh animacao                                 # 09.3: esquiva R2 e recuo, salto antes × depois (tools/combate93/)
 viewer/build/install/viewer/bin/viewer --check golpe-andando   # golpes com as pernas andando: 0 problemas
 viewer/build/install/viewer/bin/viewer --check esquiva         # cortes para esquivar/recuar nas janelas medidas: segura
-tools/review91.sh camera                                   # câmera de luta: antes (binário da 09) × depois, mesmo instante
+tools/review91.sh camera                                   # câmera de luta: antes × depois (o "antes" exige o binário da 09 guardado em output/tmp/game-09, local)
 tools/review91.sh videos                                   # vídeos com o som gravado pela aplicação + sincronia
 tools/review91.sh sons                                     # catálogo dos efeitos (arquivos, faixa, prancha)
 viewer/build/install/viewer/bin/viewer --check interrupcao-fina   # golpes do combate cortados a cada 0,01 s
@@ -181,12 +187,14 @@ de revisão por rodada em `tools/review*.sh` (o da 06.1 é `tools/review61.sh an
 engine/    núcleo: janela e eventos, shaders, malhas, leitor .vox, mesher, câmera, FBO, HUD, lote 2D, fonte própria
 viewer/    runtime (renderer, mundo, relevo, animador, compositor, criador, peças de interface) + visualizador:
            estilos, modos, captura, bench, validadores
-game/      o jogo: jogador, colisão, câmera de exploração, NPCs interativos, diálogo, estados, interface
+game/      o jogo: jogador, colisão, câmera, NPCs interativos, diálogo, combate, som do jogo, estados, interface
 tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_e, npcs_vila_e, npcs_oficios_e), criaturas,
            ambiente, prova de personalização (custom_e) + utilitários de QA
-assets/    feitos à mão (versionados): scenes/*.json e anim/*.json; gerados por build_assets.py (fora do git):
-           characters/ (e = heróis, npc = NPCs, custom = prova modular, r3/r4/variants = estudos), creatures/,
-           environment/, textures/, studies/, components/ (peças da personalização)
+assets/    feitos à mão (versionados): scenes/*.json, anim/*.json e audio/ (sons.json, musica/, ambiente/, sfx/);
+           gerados por build_assets.py (fora do git): characters/ (e = heróis, npc = NPCs, custom = prova modular,
+           r3/r4/variants = estudos), creatures/, environment/, textures/, studies/, components/ (peças da
+           personalização) e audio/sintese/ (efeitos do combate)
+fontes/    fontes do áudio versionado: partituras (.py), sessões LMMS (.mmp) e .mid
 docs/      documentação oficial (visão, arte, arquitetura, decisões, validação, processo) + historico/
 .claude/skills/  procedimentos para agentes
 output/    local, fora do git: capturas e pacotes de revisão por rodada (visual-review/), temporários (tmp/)
@@ -196,8 +204,8 @@ Comece por [docs/README.md](docs/README.md).
 
 ## Limitações conhecidas
 
-- Protótipo: uma vila pequena, uma conversa e um confronto (espada e escudo contra um inimigo). Sem inventário,
-  experiência, classes, missões, som nem progressão.
+- Protótipo: uma vila pequena, seis conversas curtas e um confronto (espada e escudo contra um fungo, três ou um
+  protótipo de chefe com dois menores). Sem inventário, experiência, classes, missões nem progressão.
 - A lâmina longa não é jogável: interrompê-la por dano ainda atravessa o corpo em algumas janelas (a espada foi
   resolvida na rodada 09).
 - NPCs e assets da rodada 06 são candidatos; NPCs têm só um gesto compartilhado.

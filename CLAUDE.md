@@ -11,7 +11,7 @@ proprietário**.
 3. `docs/art/reference/` — imagens canônicas e reprovados.
 4. A skill da tarefa em `.claude/skills/`: `character-design`, `voxel-art`, `weapon-animation`,
    `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`, `combat`, `audio`,
-   `music-composition`, `sound-design`, `audio-qa`.
+   `music-composition`, `sound-design`, `audio-qa`, `engineering-qa` (avisos da IDE, Gradle, vazamentos, desempenho, falso verde).
 5. `docs/validation/problemas-conhecidos.md` — o que está aberto e o que é limitação aceita
    (histórico completo: `matriz-de-problemas.md`).
 
@@ -45,6 +45,8 @@ tools/snap.sh "mode=lineup,style=e,set=herois,out=output/tmp/x.png"   # captura 
 tools/anim.sh output/tmp/x "mode=lineup,style=e,set=herois,clip=walk" 60 30   # vídeo
 tools/reference.sh [pasta]                          # refaz as referências canônicas
 python3 tools/check_links.py                        # links da documentação
+tools/qa/medir_desempenho.sh BINARIOS ROTULO [N]    # QA de engenharia: vila, combate, criador e bench, antes × depois (skill engineering-qa)
+python3 tools/qa/ide_diagnosticos.py . /tmp/jdt/ws x.json   # o que a aba Problems mostraria num import limpo (0 erros)
 python3 fontes/audio/musica/vila/vila_a.py          # partitura → sessão LMMS (.mmp) + .mid (áudio: skills de áudio)
 .venv/bin/python tools/audio/render_musica.py SESSAO.mmp SAIDA [--runtime assets/audio/musica/ID]  # render + laço + master
 .venv/bin/python tools/audio/render_sfx.py SESSAO.mmp SAIDA --alvo-rms -26   # efeitos: fatia, mono, consistência
@@ -63,7 +65,7 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   fresta se investiga com as três malhas (`-Dvx.mesh=legado`, padrão, `-Dvx.merge=false`) e em câmera lenta
   (`tools/review81.sh temporal`). As invariantes ficam em `MeshSeamTest`.
 - **Assets são gerados.** Nunca edite `assets/characters`, `assets/creatures`, `assets/environment`,
-  `assets/textures`, `assets/studies`, `assets/audio/sintese` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
+  `assets/textures`, `assets/studies`, `assets/components`, `assets/audio/sintese` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
   e `assets/anim/*.json`. Peça desenhada num editor entra via `voxlib.load_vox` (ver `pipeline-de-producao.md`).
 - **Armas:** golpe = trajetória no perfil (`assets/anim/`). `viewer --check`, `--occlusion` e `--grip` sem
   alerta + vídeo em 4 ângulos (passar no validador não basta: arma pode sumir atrás do braço). **Nunca** aumente tolerância para passar: corrija pose ou volume (`*_volumes`) com justificativa.
@@ -117,7 +119,8 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 - **Git:** sem commits nem push sem pedido explícito do proprietário. Remoto público `Jovinull/Valumo`.
   Conventional Commits em português, **só o título** (sem corpo, sem `Co-Authored-By`/trailers), commits
   pequenos e separados por assunto. **Fora do git:** `output/` inteiro e os assets gerados (`assets/characters`,
-  `creatures`, `environment`, `textures`, `studies`, `components`) — o Gradle gera antes de `run`/`editor`/`test`. Detalhes: skill
+  `creatures`, `environment`, `textures`, `studies`, `components`, `audio/sintese`) — o Gradle gera antes de `run`/`editor`/`test`
+  (precisa de numpy: `.venv` da raiz com `tools/requirements.txt`, ou `-Pvx.python=`). Detalhes: skill
   `git-commits` e `docs/processo/commits.md`.
 - Documentação e comentários em português; identificadores em inglês.
 

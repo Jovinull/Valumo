@@ -19,7 +19,7 @@ Primeira experiência jogável:
 3. andar e correr com câmera em terceira pessoa, colidindo com o cenário e subindo pequenos degraus;
 4. conversar com a Kelyra.
 
-Não há combate, inventário, missões nem progressão.
+Não há inventário, missões nem progressão (o combate veio na rodada 09: [combate.md](combate.md)).
 
 ```bash
 ./gradlew jogo                                       # janela do jogo
@@ -220,7 +220,7 @@ Percursos usados nos vídeos e testes:
 
 ## 8. Aparência personalizada no mundo
 
-- **Escolhas:** os três presets e as aparências salvas em `output/aparencias/` (formato `valumo.aparencia` v1;
+- **Escolhas:** os três presets e as aparências salvas em `output/aparencias/` (formato `valumo.aparencia` v2 — a v1 ainda é lida;
   arquivo inválido aparece com o motivo e não é escolhível).
 - **Mesmo pipeline do criador:** o herói é composto pelo `AsyncComposer`/`Composer` da rodada 07, com o mesmo
   rig e as mesmas animações.
@@ -240,11 +240,12 @@ Percursos usados nos vídeos e testes:
   - indicação de interação;
   - balão de mensagem;
   - "Preparando…" se a composição demorar.
-- **Sem barras** de vida nem de mana.
+- **Sem barras** de vida nem de mana na exploração (na luta: [combate.md](combate.md) §19).
 - **Saída limpa:**
   - **Sair do jogo** ou o X da janela fecham;
-  - `close()` libera o compositor, o renderer, o FBO de captura e o `UiKit`;
-  - abrir e fechar o criador libera o `App` e o `Creator` dele.
+  - `close()` libera o compositor, o renderer, o FBO de captura, o `UiKit`, a cena e os assets;
+  - abrir e fechar o criador libera o `App` e o `Creator` dele, com a cena e os assets que carregaram (conferido por
+    contagem de malhas vivas: `output/qa/engineering-audit/`, roteiro `vazamento-criador.txt`).
 
 ## 9.1 Áudio e volume (rodada 09.4)
 
@@ -257,15 +258,15 @@ Percursos usados nos vídeos e testes:
   com a superfície (`World.surfaceAt`: grama, terra, areia, pedra), ações do `GameLogic` (`onAction`), música da vila
   (abafada na pausa e na conversa), vento e lago (posicional) e o ouvinte no herói. Arquitetura: [audio.md](audio.md).
 - Pausa: fileiras Sensibilidade, Música e Efeitos com o mesmo componente (rótulo que cabe na escala inteira, valor
-  centrado entre − e +); preferências em `output/preferencias/audio.json` (`AudioPrefs`, `-Dvx.prefs=` muda o
-  arquivo — os roteiros usam um temporário).
+  centrado entre − e +); preferências em `output/preferencias/audio.json` (`AudioPrefs`; `-Dvx.prefs.audio=` muda o
+  arquivo, `-Dvx.prefs=ARQUIVO` leva o áudio para um arquivo irmão e `-Dvx.prefs=-`, o padrão dos roteiros, nem lê nem grava).
 - `./gradlew jogo` toca no dispositivo; roteiros e `--demo` são mudos. Gravação sincronizada:
   `JAVA_OPTS="-Dvx.audio=loopback -Dvx.audio.gravar=x.wav"`. Roteiros: `tools/jogo/07-audio.txt`, `08-pausa-volume.txt`,
   `09-ambiente.txt`.
 
 ## 10. Testes
 
-`GameplayTest` (sem OpenGL, 21 testes):
+`GameplayTest` (sem OpenGL, 22 testes):
 
 | Assunto | O que verifica |
 |---|---|

@@ -105,7 +105,7 @@ esquerdo (`x > 0`).
   `[0, NECK, 0.5]` dos heróis), `mascara` opcional (`<peça>.mask.vox`, canal pela cor: `#010000` pele,
   `#020000` cabelo, `#030000` sobrancelha, `#040000` íris). Peças próprias usam `partes` (`nome`, `pai`, `pivo`).
   O chapéu e o rabo apontam para os arquivos canônicos (`../characters/e/...`), sem cópia. A aparência salva
-  segue o contrato `valumo.aparencia` v1 (`docs/architecture/personalizacao.md` §6).
+  segue o contrato `valumo.aparencia` v2 (`docs/architecture/personalizacao.md` §6; a v1 ainda é lida).
 - Prova de personalização (rodada 06.1, mantida como histórico e com testes): `assets/characters/custom/<id>/` (`tools/custom_e.py`), com a parte
   `hair` (filha de `head`, mesmo pivô) separada do rosto e `meta.appearance` (contrato
   `valumo.aparencia/1`). Ver `docs/architecture/personalizacao.md`.
@@ -219,7 +219,7 @@ Retrocompatíveis: rigs sem `farm_*`/`shin_*` continuam animados pelo bípede da
 | captura | `party=1`, `ssaa=`, `hero=` | os três heróis juntos na cena; SSAA da captura; herói da cena |
 
 Testes novos: `AssetContractTest.consolidatedHeroesHaveElbowsAndKnees`,
-`creaturesDoNotShareTheHeroFace` (orçamento de faces por nível), `VoxelMesherTest.mergedQuadsOverlapNeighboursToHideTJunctionCracks`.
+`creaturesDoNotShareTheHeroFace` (orçamento de faces por nível), `VoxelMesherTest.mergedQuadsNeverExtendBeyondTheirFaces` e `MeshSeamTest` (malha conforme, ADR 0014).
 
 ## 9. Extensões da rodada 04 (coreografia de armas)
 
@@ -279,4 +279,3 @@ Origem: só síntese (nenhuma amostra de terceiros, nenhum gerador por IA); a pr
   `rosto.*.variantesOlhos.<id>.exprs`), slot `pes` (`botas.originais` nativo; `botas.viajante` com
   `porCorpo.<preset>.partes` = `shin_l`/`shin_r` no espaço do modelo, mesmo pivô do corpo), `"experimental": true`
   nos estudos e `"aprovado": "rodada NN"` depois da aprovação do proprietário (crespo, coque e botas: rodada 09.4). Um cabelo pode ter partes por corpo: `porCorpo.<preset>.partes` substitui `partes` naquele corpo (`cabelo.rabo`: rabo centrado fora da exploradora). Aparência `valumo.aparencia` v2 (`aparencia.olhos`, `equipamento_visual.pes`).
-

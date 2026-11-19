@@ -78,6 +78,15 @@ Os valores exatos estão em `StyleProfile`; a tabela descreve o código no fecha
 - **Pré-passo de profundidade**: implementado e medido; não trouxe ganho nesta GPU (o custo é de
   vértices, não de overdraw) e fica **desligado** por padrão (`--bench ...,prepass` para comparar).
 - **Mapa de sombra 2048²**: 4096² custava ~4,5 ms a mais por quadro sem diferença visível.
+- **Fluxo só de posição para a sombra** (auditoria de engenharia): o passo de profundidade só lê `aPos`, mas o buffer
+  intercalado tem 52 bytes por vértice — a GPU percorria 80 MB por quadro para usar 18. Cada `Mesh` de cena guarda um
+  segundo buffer de 12 bytes por vértice (`Mesh.drawDepth`): o passo de sombra caiu de 2,15 para 1,33 ms e o quadro da
+  vila de 10,4 para 9,6 ms (1080p, Iris Xe), com as mesmas imagens pixel a pixel. Custa 23% a mais de memória de
+  vértices; `-Dvx.sombra.vbo=false` volta ao buffer único para comparar. Malha dinâmica (`Mesh.update`) não usa.
+- **Onde o quadro vai** (vila, 1080p, `--bench` com `-Dvx.gpu=true`, depois da mudança acima): sombra 1,3 ms · cena
+  4,2 ms (≈ 2,7 de geometria, ≈ 1,5 de preenchimento) · bloom 0,3 · composição 1,1 (contorno 0,6, FXAA 0,2) · envio pela
+  CPU 1,7. A memória lida por vértice pesa mais que a contagem de pixels: a próxima otimização a medir é o vértice
+  compacto e indexado, não o overdraw.
 - **Terreno** é uma malha única por estilo, gerada na carga a partir do relevo analítico.
 - Não há LOD, oclusão, nem streaming: fora do escopo de uma cena fechada de 48 × 48 u.
 

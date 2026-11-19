@@ -24,7 +24,7 @@ viewer: Appearance (JSON) ──► ComponentCatalog ──► Composer.compose 
 | Exportador de componentes | `tools/components_e.py` (módulo `components_e` do `build_assets`) | separa cada cabeça canônica em rosto, cabelo e capuz; grava máscaras de canal; escreve o catálogo |
 | Catálogo | `assets/components/catalog.json` (gerado, contrato `valumo.componentes/1`) | componentes, presets, paletas, canais |
 | Grade de voxels | `engine/.../VoxGrid.java` | voxels em memória no espaço do modelo; vira `VoxelSource` para o mesher |
-| Aparência | `viewer/.../Appearance.java` | escolhas do jogador, validação, JSON versionado (`valumo.aparencia`, versão 1) |
+| Aparência | `viewer/.../Appearance.java` | escolhas do jogador, validação, JSON versionado (`valumo.aparencia`, versão 2; a versão 1 abre por migração) |
 | Catálogo (Java) | `viewer/.../ComponentCatalog.java` | leitura do catálogo, resolução de "do preset", variante da cobertura |
 | Compositor | `viewer/.../Composer.java` | composição, recoloração, variantes, assento do chapéu, malha, cache, liberação de GPU |
 | Criador do jogador (07.2) | `viewer/.../Creator*.java`, `AsyncComposer.java` (`./gradlew editor`) | interface clicável, miniaturas reais, composição fora da thread do GL — [criador de personagens](criador-de-personagens.md) |
@@ -55,7 +55,7 @@ Provas:
 |---|---|---|---|
 | `rosto` | `rosto.aventureiro`, `rosto.exploradora`, `rosto.maga` | rosto de cada herói (olho, sobrancelha, boca, atuação) | 4 expressões por rosto |
 | `cabelo` | `cabelo.topete`, `cabelo.curto`, `cabelo.chanel`, `cabelo.rabo` | topete h2 do aventureiro; **curto** (novo, rodada 07); cabelo da maga; cabelo da exploradora com o rabo (parte `tail`) | o `natural` (h1) ficou fora: tinha 82% do mesmo volume do topete |
-| `cabelo` (rodada 09.4, **aprovado** pelo proprietário) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"experimental": true` no catálogo; aprovação do proprietário pendente |
+| `cabelo` (rodada 09.4, **aprovado** pelo proprietário) | `cabelo.crespo`, `cabelo.coque` | estudos novos em `tools/chars_e.py` (`hair_crespo`, `hair_coque`), exportados como o `curto` | `"aprovado": "rodada 09.4"` no catálogo; continuam sob a regra de componente novo (`HairWeaponCheck.isNew`) |
 | `olhos` (rodada 09.4) | `olhos.redondos`, `olhos.amendoados`, `olhos.inclinados` | parâmetro `eye` do pintor (`paint_face`); o desenho de cada expressão mora no ROSTO (`variantesOlhos`), porque depende da atuação | o nativo de cada rosto = arquivos originais (preset idêntico) |
 | `pes` (rodada 09.4, **aprovado** pelo proprietário) | `botas.originais` (nativo), `botas.viajante` | `charlib_e.leg(boot_style="viajante")`, uma versão por corpo (`porCorpo`) | ocupa/substitui só `shin_l`/`shin_r`; mesmo pivô e mesma sola |
 | `cabeca` | `chapeu.maga`, `capuz.c3` | `hat.vox` canônico da maga; nó, fitas e pena da exploradora, mais a regra da faixa | |

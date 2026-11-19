@@ -1,6 +1,7 @@
 # 0010 — FXAA na qualidade padrão e margem anti-fresta (rodada 03)
 
-**Estado:** aceito pelo agente, sujeito à revisão do proprietário. Complementa o 0007.
+**Estado:** aceito pelo agente, sujeito à revisão do proprietário. Complementa o 0007. **A margem anti-fresta foi
+substituída pelo [0014](0014-malha-conforme-sem-t-junctions.md)** (malha conforme, margem 0); o FXAA continua valendo.
 
 ## Contexto
 

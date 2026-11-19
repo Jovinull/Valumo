@@ -8,9 +8,9 @@ Valumo v1, que tinha capturas e assets gerados. Ficam em `output/quarentena/`.
 
 | Entra | Não entra |
 |---|---|
-| `engine/`, `viewer/` (fontes e build Gradle), wrapper | `build/`, `bin/`, `.gradle/` |
+| `engine/`, `viewer/`, `game/` (fontes e build Gradle), wrapper | `build/`, `bin/`, `.gradle/` |
 | `tools/` (geradores e utilitários) | `__pycache__/`, `.venv/` |
-| `assets/scenes/*.json`, `assets/anim/*.json` (feitos à mão) | assets **gerados**: `assets/characters`, `creatures`, `environment`, `textures`, `studies`, `components` |
+| `assets/scenes/*.json`, `assets/anim/*.json`, `assets/audio/` (catálogo e arquivos de áudio) e `fontes/` (feitos à mão) | assets **gerados**: `assets/characters`, `creatures`, `environment`, `textures`, `studies`, `components`, `audio/sintese` |
 | `docs/` (incluindo as referências canônicas em `docs/art/reference/`) | `output/` inteiro (capturas, vídeos, zips, temporários, quarentena) |
 | `.claude/skills/`, `CLAUDE.md`, `README.md` | credenciais e qualquer vínculo de personagem com pessoa real |
 

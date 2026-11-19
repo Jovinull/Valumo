@@ -2,7 +2,7 @@
 
 > Caminhos `output/visual-review/...` citados nos relatórios são **locais** (fora do git): as capturas de
 > cada rodada são regeneradas pelos scripts `tools/review*.sh`. Os assets em `assets/characters`, `creatures`,
-> `environment`, `textures` e `studies` também saem de `python3 tools/build_assets.py`.
+> `environment`, `textures`, `studies`, `components` e `audio/sintese` também saem de `python3 tools/build_assets.py`.
 
 ## Oficial (atual — é isto que vale para criar ou alterar qualquer coisa)
 
@@ -19,7 +19,9 @@
 | [art/pipeline-de-producao.md](art/pipeline-de-producao.md) | fonte → geração → viewer → QA → correção; edição manual (Goxel) sem perda |
 | [architecture/arquitetura.md](architecture/arquitetura.md) | módulos Java, renderização, assets |
 | [architecture/personalizacao.md](architecture/personalizacao.md) | personalização modular: estudo, modelo de dados, compatibilidade, persistência (implementado × validado × planejado) |
-| [architecture/personalizacao-evolucao.md](architecture/personalizacao-evolucao.md) | evolução da personalização: rosto por partes (olhos feitos na 09), roupas por região (botas feitas na 09), criador |
+| [architecture/renderizacao.md](architecture/renderizacao.md) | renderer: passes, sombra, pós, qualidade |
+| [architecture/assets.md](architecture/assets.md) | fluxo dos assets gerados |
+| [architecture/personalizacao-evolucao.md](architecture/personalizacao-evolucao.md) | evolução da personalização: rosto por partes (olhos feitos na 09.4), roupas por região (botas feitas na 09.4), criador |
 | [architecture/criador-de-personagens.md](architecture/criador-de-personagens.md) | criador de personagens do jogador: layout, componentes, mouse, escala, fonte própria, miniaturas, composição assíncrona, roteiros e testes; guia das próximas interfaces |
 | [decisions/](decisions/README.md) | ADRs (decisões vigentes e revistas) |
 | [validation/checklist-de-aceitacao.md](validation/checklist-de-aceitacao.md), [validation/processo-de-revisao-visual.md](validation/processo-de-revisao-visual.md) | QA |
@@ -36,7 +38,7 @@
 | [validation/relatorio-rodada-09-2.md](validation/relatorio-rodada-09-2.md) | relatório da 09.2 ( mobilidade, esquiva, salto, mira opcional, grupos, ensaio de chefe, morte voxel, barras) |
 | [validation/relatorio-rodada-09-1.md](validation/relatorio-rodada-09-1.md) | relatório da rodada 09.1 (câmera de luta e primeiro som) |
 | [validation/relatorio-rodada-09.md](validation/relatorio-rodada-09.md) | relatório da rodada 09 (primeiro combate) |
-| [validation/roteiro-de-teste-fisico-combate.md](validation/roteiro-de-teste-fisico-combate.md) | teste físico do combate com câmera e som (12–15 min, para o proprietário) |
+| [validation/roteiro-de-teste-fisico-combate.md](validation/roteiro-de-teste-fisico-combate.md) | teste físico do combate com câmera e som (15–20 min, para o proprietário) |
 | [validation/relatorio-rodada-08-1.md](validation/relatorio-rodada-08-1.md) | relatório da rodada 08.1 (malha conforme — fim do tremor — e dentes) |
 | [validation/relatorio-rodada-08.md](validation/relatorio-rodada-08.md) | relatório da rodada 08 (primeira exploração jogável) |
 | [validation/relatorio-rodada-07-2.md](validation/relatorio-rodada-07-2.md) | relatório da rodada 07.2 (criador de personagens do jogador) |
@@ -48,7 +50,8 @@
 | [validation/ambiente.md](validation/ambiente.md) | máquina e versões |
 
 Procedimentos para agentes: `.claude/skills/` (character-design, character-customization, voxel-art, visual-qa,
-rendering, weapon-animation, game-ui, gameplay, git-commits, music-composition, sound-design, audio-qa). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
+rendering, weapon-animation, game-ui, gameplay, combat, audio, git-commits, music-composition, sound-design, audio-qa,
+engineering-qa). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
 
 ## Histórico (rastreabilidade — não é especificação atual)
 
