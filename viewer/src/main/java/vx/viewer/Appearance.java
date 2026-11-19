@@ -105,6 +105,16 @@ public final class Appearance {
 
     /** Lê e VALIDA contra o catálogo; qualquer problema vira {@link InvalidAppearance} com mensagem clara. */
     public static Appearance fromJson(String json, ComponentCatalog cat) {
+        try {
+            return parse(json, cat);
+        } catch (InvalidAppearance e) {
+            throw e;
+        } catch (RuntimeException e) {                     // tipo errado (versão em texto, objeto onde se espera texto…)
+            throw new InvalidAppearance("campo com tipo inválido: " + e.getMessage());
+        }
+    }
+
+    private static Appearance parse(String json, ComponentCatalog cat) {
         JsonObject d;
         try {
             d = JsonParser.parseString(json).getAsJsonObject();
@@ -175,7 +185,11 @@ public final class Appearance {
         Files.writeString(file, toJson());
     }
 
+    /** Maior arquivo de aparência aceito (bytes): um válido tem menos de 1 KB. */
+    public static final long MAX_BYTES = 256 * 1024;
+
     public static Appearance load(Path file, ComponentCatalog cat) throws IOException {
+        if (Files.size(file) > MAX_BYTES) throw new InvalidAppearance("arquivo grande demais (" + Files.size(file) + " bytes)");
         return fromJson(Files.readString(file), cat);
     }
 
