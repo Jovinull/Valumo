@@ -9,7 +9,7 @@ import java.nio.file.Path;
  * <pre>
  *   -Dvx.audio=dispositivo|loopback|mudo     (padrão: o que o chamador pedir)
  *   -Dvx.vol.geral=0..1  -Dvx.vol.musica=…  -Dvx.vol.efeitos=…  -Dvx.vol.interface=…  -Dvx.vol.ambiente=…
- *   -Dvx.musica=vila_a|vila_b|nenhuma         (estudos da rodada 09.4; nenhuma é canônica)
+ *   -Dvx.musica=vila_a|vila_b|nenhuma         (A = padrão e B = alternativa, as duas aprovadas; nenhuma = sem música)
  *   -Dvx.audio.gravar=arquivo.wav             (com loopback) grava a mixagem do jogo, {@code dt} a {@code dt},
  *                                             em sincronia com os quadros de um roteiro
  * </pre>

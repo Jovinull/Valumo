@@ -25,8 +25,20 @@ que estende o [ADR 0016](../decisions/0016-audio-openal-e-sons-sintetizados.md))
 ## Parte A — catálogo, música, ambiente e interface (rodada 09.4)
 
 Rodada 09.4 (desenvolvida em paralelo como "rodada 09"). Decisão: [ADR 0023](../decisions/0023-audio-openal-stb-vorbis.md). Procedimentos: skills
-`music-composition`, `sound-design`, `audio-qa`. Todos os sons e músicas atuais são **estudos** (aprovação do
-proprietário pendente).
+`music-composition`, `sound-design`, `audio-qa`.
+
+**Estado do áudio (fechamento do QA, 2026-11-19)** — integração técnica validada não é aprovação de ouvido:
+
+| Conjunto | Integração técnica | Escuta do proprietário |
+|---|---|---|
+| Música da vila **A** (síntese própria) | validada (QA do catálogo, laço exato, tempo real sem buraco) | **aprovada — padrão do jogo** |
+| Música da vila **B** | validada | **aprovada — alternativa** (`-Dvx.musica=vila_b`) |
+| Sem música (`-Dvx.musica=nenhuma`) | opção técnica | — |
+| Efeitos do combate (09.1–09.2, `tools/audio_e.py`) | validada (luta idêntica com e sem som, sincronia medida, um acerto = um som) | pendente (teste físico) |
+| Passos (grama, terra, areia, pedra), interface e ambiente (vento, lago) — síntese própria da 09.4 | validada (QA do catálogo, distinção de superfícies, atenuação do lago) | pendente |
+| Planejado | efeitos posicionais de NPC e criatura; pássaros ficaram de fora (risco de soar caricato por síntese) | — |
+
+O agente mede e não ouve; "aprovada" acima é decisão do proprietário.
 
 | Marca | Significa |
 |---|---|
@@ -208,7 +220,7 @@ passo lógico (1/120 s): combat.tick(...)  →  CombatAudio.afterTick(combat)  �
   - o caminho de um pedido roda 3.000 vezes, até o JIT compilá-lo;
   - antes disso, o primeiro passo custava 12 ms de lógica e cada pedido ~0,3 ms.
 - **Rodada 09.2 — vários inimigos:** o diretor guarda o estado de CADA inimigo, então cada um soa onde está. O som de
-  acerto no fungo sai do inimigo atingido (`Impact.who`). Os efeitos aprovados da 09.1 não mudaram (arquivos e mistura
+  acerto no fungo sai do inimigo atingido (`Impact.who`). Os efeitos da 09.1 não mudaram (arquivos e mistura
   iguais).
 - **Repetição no mesmo passo:** o mesmo efeito duas vezes no mesmo passo vira um só.
 - **Por efeito:** intervalo mínimo e número máximo de vozes, contados no relógio do jogo e não no de parede.
