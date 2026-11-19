@@ -1,0 +1,80 @@
+# QA de engenharia — a interface do jogo em outras resoluções (16:9 pequena, 1366×768, ultralarga, 4K).
+# Uso: game --roteiro tools/qa/resolucoes.txt SAIDA 30   (mudo, janela oculta). Olhe as capturas: nada cortado, nada sobreposto.
+size 1280 720
+wait 0.5
+shot 1-escolha-1280x720
+size 1366 768
+wait 0.5
+shot 1-escolha-1366x768
+size 2560 1080
+wait 0.5
+shot 1-escolha-2560x1080
+size 3840 2160
+wait 0.5
+shot 1-escolha-3840x2160
+size 1920 1080
+click comecar
+wait 2.0
+ir -2.2 1.9
+ir -2.6 1.3
+wait 0.5
+key E
+wait 1.4
+size 1280 720
+wait 0.5
+shot 2-dialogo-1280x720
+size 1366 768
+wait 0.5
+shot 2-dialogo-1366x768
+size 2560 1080
+wait 0.5
+shot 2-dialogo-2560x1080
+size 3840 2160
+wait 0.5
+shot 2-dialogo-3840x2160
+size 1920 1080
+key E
+key E
+key E
+wait 1.0
+key E
+wait 1.2
+key ESC
+wait 0.4
+size 1280 720
+wait 0.5
+shot 3-pausa-1280x720
+size 1366 768
+wait 0.5
+shot 3-pausa-1366x768
+size 2560 1080
+wait 0.5
+shot 3-pausa-2560x1080
+size 3840 2160
+wait 0.5
+shot 3-pausa-3840x2160
+size 1920 1080
+key ESC
+wait 0.6
+encontro chefe
+posicionar -1.6 10.2 0
+camera-recompor
+wait 1.6
+mira
+atacar
+wait 0.35
+atacar
+wait 0.6
+size 1280 720
+wait 0.5
+shot 4-luta-chefe-1280x720
+size 1366 768
+wait 0.5
+shot 4-luta-chefe-1366x768
+size 2560 1080
+wait 0.5
+shot 4-luta-chefe-2560x1080
+size 3840 2160
+wait 0.5
+shot 4-luta-chefe-3840x2160
+size 1920 1080

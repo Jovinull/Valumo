@@ -1,0 +1,24 @@
+# QA de engenharia — abrir e fechar o criador de dentro do jogo 4 vezes e contar as malhas vivas (Mesh.liveMeshes) depois
+# de cada volta. Sem vazamento, a contagem volta ao valor inicial ("malhas vivas N" igual nos cinco volta-*.txt).
+# Uso: game/build/install/game/bin/game --roteiro tools/qa/vazamento-criador.txt SAIDA 30 && grep -o "malhas vivas.*" SAIDA/volta-*.txt
+size 1280 720
+wait 0.5
+perf on
+wait 0.1
+perf off volta-0.txt
+criador tools/qa/criador-sub.txt
+perf on
+wait 0.1
+perf off volta-1.txt
+criador tools/qa/criador-sub.txt
+perf on
+wait 0.1
+perf off volta-2.txt
+criador tools/qa/criador-sub.txt
+perf on
+wait 0.1
+perf off volta-3.txt
+criador tools/qa/criador-sub.txt
+perf on
+wait 0.1
+perf off volta-4.txt

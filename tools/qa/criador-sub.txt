@@ -1,0 +1,2 @@
+# QA de engenharia: sub-roteiro mínimo do criador (abre, espera, fecha sem concluir).
+wait 0.3
