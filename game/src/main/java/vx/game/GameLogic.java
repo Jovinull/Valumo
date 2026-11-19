@@ -61,6 +61,11 @@ public final class GameLogic {
     public Appearance appearance;
     public float time;
     public boolean quit, openCreator, showHelp = true, started;
+    /** Dica de controles da exploração: some HINT_S s depois de ENTRAR NA VILA (não do início do programa). */
+    public static final float HINT_S = 40f;
+    /** Instante em que o jogador entrou na vila pela primeira vez; F1 depois disso fixa a dica ({@link #helpPinned}). */
+    public float startedAt = -1f;
+    public boolean helpPinned;
     public String message;
     public float messageUntil;
     /** Rodada 09: o confronto da cena (null = cena sem combate). */
@@ -209,7 +214,11 @@ public final class GameLogic {
 
     private void explore(float dt, Input in) {
         if (in.hit(GLFW_KEY_ESCAPE)) { action("pausar"); return; }
-        if (in.hit(GLFW_KEY_F1)) showHelp = !showHelp;
+        if (in.hit(GLFW_KEY_F1)) {                                          // alterna o que está VISÍVEL agora
+            boolean on = helpVisible();
+            showHelp = !on;
+            helpPinned = !on;
+        }
         cam.look(in.mdx, in.mdy);
         if (in.wheel != 0) cam.zoom(in.wheel);
         float[] ax = in.moveAxes();
@@ -346,6 +355,17 @@ public final class GameLogic {
         cam.frame(false, null, 0, 0, 0);
     }
 
+    /**
+     * A dica de controles aparece? Na arena: enquanto {@link #showHelp}. Fora dela: nos primeiros {@link #HINT_S} s depois
+     * de entrar na vila, ou sempre que o F1 a trouxe de volta. Antes a contagem começava na tela de escolha (quem demorava
+     * a escolher nunca a via) e o F1 não a trazia de volta depois dos 40 s.
+     */
+    public boolean helpVisible() {
+        if (!showHelp) return false;
+        if (combat != null && combat.inArena(player)) return true;
+        return helpPinned || (started && time - startedAt < HINT_S);
+    }
+
     public SceneDef.Line currentLine() { return talking == null ? null : talking.def.lines().get(line); }
 
     public boolean lastLine() { return talking != null && line >= talking.def.lines().size() - 1; }
@@ -366,6 +386,7 @@ public final class GameLogic {
             case "comecar" -> {
                 if (appearance == null) { message("Escolha uma aparência", 3f); return; }
                 state = State.EXPLORE;
+                if (!started) startedAt = time;
                 started = true;
                 cam.frame(false, null, 0, 0, 0);
                 cam.yaw = player.yaw + (float) Math.PI;                    // gira suave para trás do herói

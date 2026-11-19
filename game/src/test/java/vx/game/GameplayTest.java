@@ -348,6 +348,36 @@ class GameplayTest {
     }
 
     @Test
+    void theControlsHintCountsFromEnteringTheVillageAndF1BringsItBack() {
+        // fechamento do QA: a dica contava desde a tela de escolha (quem demorava a escolher nunca a via) e o F1 não a
+        // trazia de volta depois dos 40 s fora da arena
+        GameLogic g = village();
+        Input in = new Input();
+        for (int i = 0; i < 60 * 50; i++) frame(g, in, List.of());         // 50 s escolhendo a aparência
+        g.action("comecar");
+        frame(g, in, List.of());
+        assertTrue(g.helpVisible(), "visível ao entrar na vila, mesmo depois de 50 s na escolha");
+        for (int i = 0; i < 60 * 41; i++) frame(g, in, List.of());
+        assertFalse(g.helpVisible(), "some 40 s depois de entrar");
+        frame(g, in, key(GLFW_KEY_F1));
+        assertTrue(g.helpVisible(), "F1 traz de volta");
+        for (int i = 0; i < 60 * 5; i++) frame(g, in, List.of());
+        assertTrue(g.helpVisible(), "e ela fica");
+        frame(g, in, key(GLFW_KEY_F1));
+        assertFalse(g.helpVisible(), "F1 esconde");
+    }
+
+    @Test
+    void releasingAllInputDropsKeysHeldWhenAnotherScreenTookTheWindow() {
+        Input in = new Input();
+        in.feed(List.of(new InputEvent(Kind.KEY, 0, 0, 0, 0, GLFW_KEY_W)));
+        assertTrue(in.down.contains(GLFW_KEY_W));
+        in.releaseAll();                                                  // o criador recebeu o KEY_UP do W
+        assertTrue(in.down.isEmpty());
+        assertFalse(in.rightDown);
+    }
+
+    @Test
     void terrainUsedByGameplayIsTheDrawnOne() {
         Terrain t = Terrain.e();
         // o chão do jogo é o topo do voxel quantizado do relevo contínuo (T1 oscila o limiar em até ~0,6 voxel)

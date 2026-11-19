@@ -432,30 +432,68 @@ public final class Game implements AutoCloseable {
         float x = px0 + 24 * s, y = py + 24 * s, iw = pw - 48 * s;
         kit.text(x, y, "Aparência", px(26), true, UiKit.INK);
         y += 38 * s;
-        kit.text(x, y, "A classe não é definida pela aparência.", px(19), false, UiKit.INK_SOFT);
-        y += 40 * s;
+        // a frase quebra em linhas na largura do painel (em 1366×768 o passo inteiro da fonte de pixel passava da borda)
+        for (String line : wrap("A classe não é definida pela aparência.", px(19), iw)) {
+            kit.text(x, y, line, px(19), false, UiKit.INK_SOFT);
+            y += px(19) * 1.25f;
+        }
+        y += 40 * s - px(19) * 1.25f;
         float bh = 54 * s, gap = 8 * s;
-        int maxRows = (int) ((ph - 310 * s) / (bh + gap));
-        for (int i = 0; i < Math.min(logic.choices.size(), maxRows); i++) {
+        int maxRows = Math.max(1, (int) ((py + ph - 24 * s - 70 * s - 66 * s - 40 * s - y) / (bh + gap)));
+        // janela que segue a seleção: antes só os primeiros maxRows eram desenhados e a 10ª aparência (inclusive a recém-
+        // criada, que entra selecionada no fim da lista) não aparecia
+        int first = Math.clamp(logic.selected - maxRows + 1, 0, Math.max(0, logic.choices.size() - maxRows));
+        if (first > 0) {
+            kit.text(x + iw - kit.width("↑ " + first, px(18), false), y - px(18) * 1.4f, "↑ " + first, px(18), false, UiKit.INK_SOFT);
+        }
+        for (int i = first; i < Math.min(logic.choices.size(), first + maxRows); i++) {
             GameLogic.Choice c = logic.choices.get(i);
             boolean sel = i == logic.selected, hv = ("escolha:" + i).equals(hover);
             buttons.add(new Button("escolha:" + i, x, y, iw, bh, c.label(), false));
             kit.chamfer(x, y, iw, bh, 4 * s, sel ? UiKit.GOLD : hv ? UiKit.WOOD_L : UiKit.WOOD);
             kit.chamfer(x + 3 * s, y + 3 * s, iw - 6 * s, bh - 6 * s, 3 * s, sel ? UiKit.PARCH_L : c.valid() ? UiKit.PARCH_D : 0xcfc2b0ff);
             String tag = c.id().startsWith("preset:") ? "modelo" : c.id().startsWith("salva:") ? "salva" : "criada agora";
-            int p = px(22);
-            kit.text(x + 18 * s, y + bh / 2 - p * 0.66f, c.label(), p, true, c.valid() ? UiKit.INK : UiKit.INK_SOFT);
             String right = c.valid() ? tag : c.reason();
+            // o nome usa só o espaço à esquerda da etiqueta e do marcador (nome longo de arquivo editado à mão passava
+            // por cima da etiqueta ou da borda): primeiro um passo menor da fonte; se nem o menor couber, termina em "…"
+            float room = iw - 36 * s - kit.width(right, px(18), false) - 34 * s;
+            int p = textPx(c.label(), room, 22);
+            String label = fit(c.label(), p, room);
+            kit.text(x + 18 * s, y + bh / 2 - p * 0.66f, label, p, true, c.valid() ? UiKit.INK : UiKit.INK_SOFT);
             kit.text(x + iw - 18 * s - kit.width(right, px(18), false), y + bh / 2 - px(18) * 0.66f, right, px(18), false, UiKit.INK_SOFT);
             if (sel) kit.seed(x + iw - 40 * s - kit.width(right, px(18), false), y + bh / 2 - 4 * s, s);
             y += bh + gap;
         }
-        if (logic.choices.size() > maxRows)
-            kit.text(x, y, "+" + (logic.choices.size() - maxRows) + " (use ↑ ↓)", px(18), false, UiKit.INK_SOFT);
+        int below = logic.choices.size() - (first + maxRows);
+        if (below > 0)
+            kit.text(x, y, "+" + below + " (use ↑ ↓)", px(18), false, UiKit.INK_SOFT);
         float by = py + ph - 24 * s - 70 * s;
         button("comecar", x, by, iw, 70 * s, "Entrar na vila", true);
         button("criador", x, by - 66 * s, iw, 56 * s, "Criar no editor", false);
         controlsHint(w, h, "↑ ↓ escolher · Enter entrar · Esc sair");
+    }
+
+    /** O texto inteiro se couber em {@code room}; senão o maior prefixo que cabe seguido de "…". */
+    private String fit(String t, int p, float room) {
+        if (kit.width(t, p, true) <= room) return t;
+        int n = t.length();
+        while (n > 1 && kit.width(t.substring(0, n).stripTrailing() + "…", p, true) > room) n--;
+        return t.substring(0, n).stripTrailing() + "…";
+    }
+
+    /** Quebra o texto em linhas que cabem em {@code room} (px), por palavra; palavra maior que a linha fica sozinha. */
+    private List<String> wrap(String t, int p, float room) {
+        List<String> out = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        for (String word : t.split(" ")) {
+            String next = line.isEmpty() ? word : line + " " + word;
+            if (!line.isEmpty() && kit.width(next, p, false) > room) {
+                out.add(line.toString());
+                line = new StringBuilder(word);
+            } else line = new StringBuilder(next);
+        }
+        if (!line.isEmpty()) out.add(line.toString());
+        return out;
     }
 
     private void controlsHint(int w, int h, String t) {
@@ -470,14 +508,14 @@ public final class Game implements AutoCloseable {
         boolean arena = cb != null && cb.inArena(logic.player);
         if (cb != null) drawCombat(cb, w, h, arena);
         if (cb != null && cb.outcome == Combat.Outcome.DEFEAT) return;
-        if (arena && logic.showHelp)
-            controlsHint(w, h, "Clique atacar · direito defender · Alt (ou botão do meio) esquivar · Espaço pular · Q mira · Tab trocar alvo · F1");
-        else if (logic.showHelp && logic.time < 40f)
-            controlsHint(w, h, "WASD andar · Shift correr · mouse olhar · roda aproxima · E conversar · Esc pausa · F1 ajuda");
+        if (logic.helpVisible())
+            controlsHint(w, h, arena ? "Clique atacar · direito defender · Alt (ou botão do meio) esquivar · Espaço pular · Q mira · Tab trocar alvo · F1"
+                    : "WASD andar · Shift correr · mouse olhar · roda aproxima · E conversar · Esc pausa · F1 ajuda");
         GameLogic.Npc n = logic.candidate;
         if (n != null) {
             float gy = terrain.groundAt(n.def.x(), n.def.z());
-            float[] sc = project(n.def.x(), gy + 1.55f, n.def.z(), w, h);
+            // a placa fica acima da cabeça de QUALQUER NPC (1,55 u era fixo: no Bramor, de 1,73 u, caía sobre o cabelo)
+            float[] sc = project(n.def.x(), gy + Math.max(1.55f, n.def.height() + 0.30f), n.def.z(), w, h);
             if (sc != null) {
                 String a = "E", b = "Conversar com " + n.def.name();
                 int p = px(21);
@@ -907,6 +945,7 @@ public final class Game implements AutoCloseable {
                 logic.useCreated(cr.cs.appearance, cr.cs.name.isBlank() ? "Criada agora" : cr.cs.name.trim());
             }
         }
+        input.releaseAll();                     // teclas soltas com o criador aberto não ficam "apertadas" na volta
         logic.action("trocar-aparencia");
     }
 
@@ -993,6 +1032,7 @@ public final class Game implements AutoCloseable {
                         vx.engine.audio.Audio.recording(record);
                         if (cr.cs.finished) logic.useCreated(cr.cs.appearance, cr.cs.name.isBlank() ? "Criada agora" : cr.cs.name.trim());
                     }
+                    input.releaseAll();
                     logic.action("trocar-aparencia");
                     settle(w, h, dt, out);
                 }

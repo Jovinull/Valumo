@@ -26,6 +26,16 @@ public final class Input {
     public int middlePressed;
     private boolean haveMouse;
 
+    /**
+     * Solta tudo (teclas e botão direito). Quando outra tela tomou a janela (o criador), as solturas foram para ela: sem
+     * isto a tecla segurada na hora de abrir continuava "apertada" na volta.
+     */
+    public void releaseAll() {
+        down.clear();
+        pressed.clear();
+        rightDown = false;
+    }
+
     /** Consome os eventos do quadro (limpa o que é só deste quadro; mantém o que está segurado). */
     public void feed(List<InputEvent> events) {
         pressed.clear();
