@@ -68,3 +68,11 @@ escolhida, tudo na mesma aplicação, com mouse e teclado, sem perder o que já 
 - **Botões equivalentes, mesma escala da fonte** (`Game.groupPx`). A tela de carregamento ganhou o logotipo pequeno e as
   sementes P1, sem porcentagem.
 - **Câmera da prévia:** a atual, comparada com uma alternativa baixa nas quatro sementes de referência e mantida.
+
+### Revisão do teste físico do proprietário (fechamento)
+
+- **Sair:** numa aventura, sair SEMPRE pergunta (X, Sair do jogo, Menu principal). Perguntar só quando havia progresso
+  fora do disco parecia aleatório ("às vezes aparece, às vezes não"). Com tudo salvo, a pergunta diz isso e oferece só
+  Sair/Cancelar.
+- **Transição:** o passo pesado só roda depois de um quadro com o rótulo dele na tela. A tela escurecia e travava sem
+  aviso ("Abrindo o criador" nunca aparecia).

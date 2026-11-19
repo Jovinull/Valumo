@@ -81,9 +81,12 @@ Na aventura aberta pelo menu, a pausa troca "Aparência/Criador" por **Menu prin
 inicial** (Jogar, Configurações, Sair), não à de mundos. O personagem e o mundo escolhidos continuam guardados: Jogar
 reabre a lista com eles selecionados.
 
-**Só pergunta quando há o que perder** (`GameLogic.unsaved()`): o progresso das missões ou a posição do herói (0,25 u)
-mudou desde o último salvamento, o Continuar ou o começo. Ficar parado não conta. Sem nada a perder, Menu principal e
-Sair agem direto. Com algo a perder, os dois abrem a confirmação (`GameLogic.leaving`):
+**Numa aventura, sair SEMPRE pergunta** (Menu principal, Sair do jogo, X da janela). Perguntar só às vezes parecia
+aleatório no teste físico do proprietário. O que muda é o conteúdo, pelo `GameLogic.unsaved()` (o progresso das missões
+ou a posição do herói (0,25 u) mudou desde o último salvamento, o Continuar ou o começo; ficar parado não conta):
+
+- **tudo salvo:** "Tudo desta aventura já está salvo." → Sair do jogo / Voltar ao menu, e Cancelar;
+- **progresso fora do disco:** a confirmação completa (`GameLogic.leaving`):
 
 - **Salvar e voltar** (ou **Salvar e sair**): só quando `saveBlocker()` deixa; senão o botão aparece apagado e diz por
   quê.
@@ -101,8 +104,7 @@ desfaz o `shouldClose`; `GameMain` liga com `interceptClose(true)`. O pedido é 
 | Onde | O X faz |
 |---|---|
 | menu principal, personagens, mundos, criar mundo, configurações, carregamento, depois de uma falha de geração | fecha (nada em risco: personagens e mundos já estão no disco) |
-| aventura sem nada fora do disco | fecha |
-| aventura com progresso fora do disco: explorando, em luta, em diálogo, no diário, na pausa | a MESMA confirmação "Sair do jogo?" da pausa. Cancelar volta ao estado de antes (o diálogo na mesma fala) |
+| aventura (explorando, em luta, em diálogo, no diário, na pausa) | SEMPRE a mesma confirmação "Sair do jogo?" da pausa; com tudo salvo, só Sair e Cancelar. Cancelar volta ao estado de antes (o diálogo na mesma fala) |
 | criador sem alterações | fecha |
 | criador com alterações não confirmadas | "Sair do jogo?" do criador: Salvar e sair (grava o perfil) / Sair sem salvar / Cancelar |
 
@@ -128,6 +130,13 @@ diferentes.
 Fundo escuro quente em faixas (sem textura nem cena 3D), o logotipo pequeno, o passo REAL e as três sementes P1 em
 sequência. Nenhuma porcentagem. O congelamento que existe (montar malhas na thread do GL) aparece como o passo nomeado,
 nunca escondido.
+
+**O passo pesado só começa depois de um quadro com o RÓTULO dele na tela** (`labelShown`).
+- **Defeito anterior:** valia qualquer quadro desenhado, inclusive o da cobertura ainda subindo, sem rótulo. A janela
+  escurecia e congelava sem dizer o quê, e o teste físico do proprietário pegou isso ao abrir o criador.
+- **Por que os roteiros não pegaram:** a captura desenhava o rótulo antes do passo.
+- **Prova atual:** gravar os quadros (`record on`) durante a transição. Antes, 0 quadros com o rótulo; agora, ele chega à
+  tela antes do trabalho.
 
 ## Fundo 3D
 

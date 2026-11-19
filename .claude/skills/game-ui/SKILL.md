@@ -104,6 +104,8 @@ gerador, nome de arquivo). Espera = indicador sem texto (`MenuView.waiting`).
   - Se um par lado a lado encolheria o grupo, empilhe (personagens).
   - Nunca deixe um botão escolher sozinho a escala ao lado de outro do mesmo grupo.
 - **Carregamento:** logotipo pequeno + passo real + sementes P1 (`MenuView.waiting`); sem porcentagem, sem cena 3D.
+  - O passo pesado só roda depois de um quadro com o rótulo NA TELA (`labelShown`).
+  - Roteiro com `wait` não prova isso; grave os quadros (`record on`) e procure o rótulo.
 - **Modais e confirmações:** a confirmação de saída é uma só (pausa e X da janela).
 - **Roteiros:** `fechar-janela` (mesmo caminho do callback do GLFW), `shot-agora` (captura sem esperar),
   `menu-personagem NOME`.

@@ -168,3 +168,18 @@ README). Os commits seguintes são só de documentação.
    origin main` (o histórico fica com os commits por assunto, sem squash). Ou "Rebase and merge" no PR.
 4. **Tag:** só se você quiser um checkpoint, anotada e nova (sugestão: `entry-foundation-v0.5`). Nenhuma tag antiga se
    move. Sem Release.
+
+## Primeiro teste físico do proprietário — duas correções
+
+| O que o proprietário viu | Causa | Correção | Prova |
+|---|---|---|---|
+| "Menu principal → volta com personagem e mundo selecionados": perfeito | — | — | — |
+| **"O X às vezes pergunta, às vezes não"** | a regra perguntava só com progresso fora do disco. Logo depois de salvar, de continuar ou de um salvamento automático da missão, o X fechava direto. Era de propósito, mas parecia aleatório | numa aventura, sair SEMPRE pergunta. Com tudo salvo: "Tudo desta aventura já está salvo." (Sair / Cancelar); com progresso: Salvar e sair / Sair sem salvar / Cancelar | `MenuAdventureTest`; roteiros `13-navegacao-a…e` refeitos (todos ok) |
+| **"No criador a tela escurece e trava, sem o aviso"** (na segunda vez, rápido) | o passo pesado começava no quadro em que a cobertura ficava escura, valendo o quadro ANTERIOR, que não tinha o rótulo. "Abrindo o criador" nunca chegava à tela, e isso valia para TODAS as telas de carregamento. Os roteiros não pegaram porque a captura desenhava o rótulo antes | o passo só começa depois de um quadro com o rótulo dele desenhado (`labelShown`) | quadros gravados durante "Novo personagem": **antes 0** com o rótulo, **depois 1**, antes da montagem |
+| Tela e letras agradáveis | — | — | — |
+
+### Estado final (depois das duas correções)
+
+- 364 testes, 0 falhas; `--check` 129/129; gate de personalização 51/0.
+- Roteiros de navegação 13-a…e ok, com o X perguntando sempre na aventura e a reabertura continuando do ponto salvo.
+- Mais 4 commits locais (29 no total), sem push.

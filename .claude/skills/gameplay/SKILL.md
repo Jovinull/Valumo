@@ -199,8 +199,9 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 ## Fechamento da 11.1 — sair sem perder
 
 - **Pedido de sair** (pausa "Menu principal", "Sair do jogo", X da janela):
-  - `GameLogic.unsaved()` decide se pergunta: o progresso das missões ou a posição (0,25 u) desde o último save/Continuar/
-    começo; o tempo de jogo não conta;
+  - numa aventura, SEMPRE pergunta (`inAdventure()`); `GameLogic.unsaved()` decide só o CONTEÚDO (tudo salvo = Sair /
+    Cancelar; senão Salvar e sair / Sair sem salvar / Cancelar): o progresso das missões ou a posição (0,25 u) desde o
+    último save/Continuar/começo; o tempo de jogo não conta;
   - `requestQuit()` abre a mesma confirmação de qualquer estado e lembra o estado anterior para o Cancelar.
 - **Menu principal:** volta à tela inicial (`enterMenu(MAIN)`); as escolhas ficam no `MenuFlow`.
 - **Testes:** `MenuAdventureTest` (X em diálogo, salvamento automático intocado, falha de gravação não sai).

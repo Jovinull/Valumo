@@ -103,6 +103,7 @@ Detalhes: [catálogo de mundos](catalogo-de-mundos.md), [ADR 0028](../decisions/
 
 - **Alterações não salvas:** existem quando o progresso das missões ou a posição do herói (0,25 u) mudaram desde o último
   salvamento, o Continuar ou o começo (`GameLogic.unsaved`). O tempo de jogo sozinho não conta.
-- **Pedido de sair** (Menu principal, Sair do jogo, X da janela): sem alterações, sai direto. Com alterações, confirma.
+- **Pedido de sair** (Menu principal, Sair do jogo, X da janela): numa aventura, sempre confirma. Sem alterações, a
+  confirmação só oferece Sair e Cancelar; com alterações, Salvar e sair / Sair sem salvar / Cancelar.
   - "Salvar e sair" usa o salvamento de sempre (atômico, validado). Falhou: não sai.
   - "Sair sem salvar" não toca no arquivo: o último save (manual ou automático dos marcos) fica como estava.

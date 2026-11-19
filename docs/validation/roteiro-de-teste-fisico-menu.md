@@ -68,10 +68,11 @@ Anote o que estranhou, o que achou feio e o que achou lento. A aprovação artí
 2. Converse com alguém e, no meio da fala, clique no X → **Cancelar**: volta à MESMA fala?
 3. X → **Salvar e sair**: o jogo fecha. Abra de novo, escolha o mesmo personagem e mundo → **Continuar**: você está onde
    estava?
-4. Entre e, sem andar, clique no X: fecha direto (nada a perder)?
+4. Entre e, sem andar, clique no X: pergunta, dizendo "Tudo desta aventura já está salvo." (Sair do jogo / Cancelar)?
 5. Na pausa → **Menu principal**: volta à TELA INICIAL (Jogar, Configurações, Sair)? **Jogar** mostra o personagem e o
    mundo de antes já escolhidos?
-6. No criador (**Editar aparência**), mude o cabelo e clique no X: pergunta? **Sair sem salvar** fecha sem mudar o
+6. **Editar aparência**: aparece "Abrindo o criador" antes da espera (na primeira vez)? No criador, mude o cabelo e clique
+   no X: pergunta? **Sair sem salvar** fecha sem mudar o
    personagem?
 7. X no menu principal, em personagens e em mundos: fecha sem perguntar?
 8. Os botões vizinhos têm o mesmo tamanho de letra (720p e 1080p)? A tela de carregamento ("Preparando a vila", "Gerando
