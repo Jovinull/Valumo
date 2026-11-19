@@ -1,0 +1,9 @@
+# Sub-roteiro: muda o cabelo e pede o X da janela dentro do criador → a pergunta → sair sem salvar.
+wait 0.8
+click cat:CABELO
+click hair:cabelo.curto
+wait 0.4
+fechar-janela
+wait 0.3
+shot c5-x-no-criador-com-alteracoes
+click quit-discard

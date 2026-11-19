@@ -1,0 +1,41 @@
+# Rodada 11.1 — roteiro B: personagens. O jogo salvo de antes (cópia temporária) já virou o personagem "Aventureiro" ao
+# abrir o menu → criar pelo criador aprovado (nome e aparência) → girar o modelo → editar (mesmo id) → editar e cancelar.
+size 1920 1080
+esperar-menu 20
+wait 1
+click jogar
+esperar-menu 20
+wait 0.6
+esperar-menu 20
+shot 10-personagens
+menu-estado
+click criar-personagem
+criador tools/menu/criador-novo.txt
+esperar-menu 20
+wait 0.5
+shot 12-personagem-criado
+menu-estado
+arrastar 420 1.2
+wait 0.3
+shot 13-personagem-girado
+click editar-personagem
+criador tools/menu/criador-editar.txt
+esperar-menu 20
+wait 0.5
+shot 14-personagem-editado
+menu-estado
+click editar-personagem
+criador tools/menu/criador-cancelar.txt
+esperar-menu 20
+wait 0.3
+shot 15-edicao-cancelada
+menu-estado
+key DOWN
+wait 0.3
+key DOWN
+esperar-menu 20
+shot 16-outro-personagem
+key ESC
+wait 0.4
+menu-estado
+menu-recursos fim

@@ -1,0 +1,38 @@
+# Rodada 11.1 — roteiro A: o menu principal (leiaute oficial e o de comparação), tomadas da apresentação, configurações.
+# Rodar com -Dvx.menu=sim e pastas TEMPORÁRIAS (tools/review111.sh): nada aqui toca nos dados do proprietário.
+size 1920 1080
+esperar-menu 20
+wait 1.5
+menu-estado
+shot 01-menu-a
+menu-tomada 12.5
+wait 1
+shot 02-menu-a-tomada-estalagem
+menu-tomada 21.5
+wait 1
+shot 03-menu-a-tomada-lago
+menu-tomada 29.5
+wait 1
+shot 04-menu-a-tomada-trilha
+menu-tomada 37.5
+wait 1.5
+shot 05-menu-a-tomada-marco
+menu-tomada 0
+menu-leiaute B
+wait 0.5
+shot 06-menu-b
+menu-leiaute A
+key DOWN
+wait 0.3
+shot 07-menu-foco-teclado
+click config
+wait 0.3
+shot 08-configuracoes
+click cfg:geral-
+click cfg:sens+
+wait 0.3
+shot 09-configuracoes-ajustadas
+key ESC
+wait 0.3
+menu-estado
+menu-recursos fim

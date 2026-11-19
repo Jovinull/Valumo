@@ -1,0 +1,57 @@
+# Parte B (§3): reabrir → mesmo personagem, mesmo mundo → Continuar (o que a parte A salvou ao fechar) → Menu principal →
+# outro personagem, mesmo mundo (outra aventura) → Menu principal → mesmo personagem, outro mundo → X → sair sem salvar.
+# Sem nada novo desde o Continuar, "Menu principal" volta sem perguntar (confirmação desnecessária).
+size 1920 1080
+esperar-menu 20
+click jogar
+esperar-menu 20
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 60
+menu-mundo vila
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+estado
+missao
+shot n09-continuou-o-que-o-x-salvou
+key ESC
+click menu-principal
+esperar-menu 60
+menu-estado
+click jogar
+esperar-menu 20
+menu-personagem Brisa
+click escolher-personagem
+esperar-menu 60
+menu-mundo vila
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+estado
+missao
+shot n10-outro-personagem-mesmo-mundo
+key ESC
+click menu-principal
+esperar-menu 60
+menu-estado
+click jogar
+esperar-menu 20
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 60
+menu-mundo Gemeo
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+estado
+missao
+hold W 1.0
+shot n11-mesmo-personagem-outro-mundo
+fechar-janela
+wait 0.3
+shot n12-x-sair-sem-salvar
+click menu-sem-salvar

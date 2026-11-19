@@ -1,0 +1,60 @@
+# Rodada 11.1 — roteiro E3: as telas em 720p, 1080p, 16:10 e ultrawide, nos dois leiautes do menu principal (comparação).
+# Pede dados temporários com personagens e mundos (review111.sh).
+size 1280 720
+esperar-menu 20
+wait 1.5
+menu-leiaute A
+shot r720-menu-a
+menu-leiaute B
+shot r720-menu-b
+menu-leiaute A
+size 1920 1080
+wait 0.3
+shot r1080-menu-a
+menu-leiaute B
+shot r1080-menu-b
+menu-leiaute A
+size 1680 1050
+wait 0.3
+shot r1610-menu-a
+menu-leiaute B
+shot r1610-menu-b
+menu-leiaute A
+size 2560 1080
+wait 0.3
+shot r219-menu-a
+menu-leiaute B
+shot r219-menu-b
+menu-leiaute A
+size 1280 720
+click jogar
+esperar-menu 20
+shot r720-personagens
+size 2560 1080
+wait 0.3
+shot r219-personagens
+size 1680 1050
+wait 0.3
+shot r1610-personagens
+size 1280 720
+click escolher-personagem
+esperar-menu 60
+shot r720-mundos
+size 2560 1080
+wait 0.3
+shot r219-mundos
+size 1280 720
+click criar-mundo
+digitar Pedra_Alta
+wait 0.3
+shot r720-criar-mundo
+size 2560 1080
+wait 0.3
+shot r219-criar-mundo
+key ESC
+key ESC
+key ESC
+size 1280 720
+click config
+wait 0.3
+shot r720-configuracoes

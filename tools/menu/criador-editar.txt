@@ -1,0 +1,9 @@
+# Sub-roteiro (menu → Editar aparência): troca o chapéu e conclui (o mesmo id; o nome fica).
+wait 0.8
+shot c3-editar-aberto
+click cat:CHAPEU
+click cover:nenhum
+wait 0.4
+click done
+wait 0.5
+click finish

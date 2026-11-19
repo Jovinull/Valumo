@@ -1,0 +1,8 @@
+# Parte D: o X no criador com alterações não confirmadas → pergunta → sair sem salvar (o perfil não muda; o jogo fecha).
+size 1280 720
+esperar-menu 20
+click jogar
+esperar-menu 20
+menu-personagem Brisa
+click editar-personagem
+criador tools/menu/criador-fechar.txt

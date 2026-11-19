@@ -1,0 +1,50 @@
+# Rodada 11.1 (fechamento) — listas longas e casos de borda (dados de tools/menu/dados_qa.py): rolagem com a roda e ↑ ↓,
+# nomes longos e acentuados, retratos, mundo sem prévia (preparada ao selecionar), semente máxima, semente fora da faixa,
+# criação cancelada. 720p e 1080p.
+size 1920 1080
+esperar-menu 20
+click jogar
+esperar-menu 30
+wait 0.4
+shot l1080-1-personagens-lista-longa
+wheel -6
+esperar-menu 30
+wait 0.3
+shot l1080-2-personagens-rolados
+menu-personagem Bartolomeu_Pé-de-Vento_Andarilho
+esperar-menu 30
+wait 0.4
+shot l1080-3-nome-longo
+size 1280 720
+wait 0.3
+shot l720-3-nome-longo
+size 1920 1080
+click escolher-personagem
+esperar-menu 60
+wait 0.3
+shot l1080-4-mundos-lista-longa
+menu-mundo Planície_das_Lanternas_do_Norte
+wait 0.2
+shot-agora l1080-5-previa-sendo-preparada
+esperar-menu 60
+wait 0.3
+shot l1080-6-previa-pronta
+menu-mundo Semente_máxima
+esperar-menu 60
+wait 0.3
+shot l1080-7-semente-maxima
+click criar-mundo
+digitar Fora
+click campo:1
+digitar 18446744073709551616
+click confirmar-mundo
+wait 0.3
+shot l1080-8-semente-fora-da-faixa
+menu-estado
+click cancelar-mundo
+wait 0.3
+menu-estado
+size 1280 720
+wait 0.3
+shot l720-9-mundos-lista-longa
+menu-recursos fim

@@ -1,0 +1,79 @@
+# Rodada 11.1 — roteiro D: aventura = personagem × mundo. O "Aventureiro" (o jogo salvo de antes, adotado ao abrir o menu)
+# CONTINUA na Vila do Posto; pausa → Menu principal → confirmação → salvar e voltar. Mundo gerado (semente 1024): iniciar, andar, pausa →
+# Menu principal → voltar sem salvar; de novo, salvar; continuar. O progresso de cada par fica na pasta dele.
+size 1920 1080
+esperar-menu 20
+wait 1
+click jogar
+esperar-menu 20
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 30
+menu-mundo vila
+esperar-menu 30
+wait 0.3
+shot 30-vila-jogo-salvo-adotado
+menu-estado
+click entrar
+wait 0.25
+shot 31-carregando
+esperar-menu 60
+wait 1.5
+shot 32-vila-continuada
+missao
+estado
+hold W 1.2
+key ESC
+wait 0.3
+shot 33-pausa-com-menu-principal
+click menu-principal
+wait 0.3
+shot 34-confirmar-voltar
+click menu-salvar
+esperar-menu 60
+wait 0.5
+shot 35-de-volta-aos-mundos
+menu-estado
+menu-mundo Gemeo
+esperar-menu 30
+menu-estado
+click entrar
+esperar-menu 60
+wait 1.5
+shot 36-mundo-gerado-iniciado
+estado
+missao
+hold W 1.5
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+estado
+hold W 1.5
+wait 0.5
+key ESC
+click salvar
+wait 0.3
+click menu-principal
+click menu-salvar
+esperar-menu 60
+wait 0.5
+shot 37-mundo-com-aventura
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+shot 38-mundo-continuado
+estado
+missao
+key ESC
+click sair
+wait 0.3
+shot 39-confirmar-sair
+click menu-cancelar
+wait 0.3
+menu-recursos fim

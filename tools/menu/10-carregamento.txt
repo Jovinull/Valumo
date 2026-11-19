@@ -1,0 +1,30 @@
+# Rodada 11.1 (fechamento) — a tela de carregamento no meio das transições reais (captura sem esperar): entrar num mundo
+# gerado, voltar ao menu, entrar na vila; em 1080p e 720p. Pede dados temporários com personagens e mundos.
+size 1920 1080
+esperar-menu 20
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+menu-mundo Gemeo
+click entrar
+wait 0.3
+shot-agora c1080-gerando-regiao
+esperar-menu 60
+wait 0.5
+key ESC
+click menu-principal
+click menu-sem-salvar
+wait 0.3
+shot-agora c1080-voltando-ao-menu
+esperar-menu 60
+size 1280 720
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+menu-mundo vila
+click entrar
+wait 0.3
+shot-agora c720-preparando-a-vila
+esperar-menu 60

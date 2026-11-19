@@ -1,0 +1,142 @@
+# Rodada 11.1 — roteiro E2: 24 transições (12 idas e voltas: vila fixa e mundo gerado alternados). Uma amostra de
+# recursos (malhas, texturas, FBOs, grades de relevo, heap depois de GC, RSS, buffers do OpenAL) a cada volta: nada cresce.
+# Pede um mundo chamado "Vale das Brumas" e um personagem (o review111.sh prepara os dados temporários).
+size 1280 720
+esperar-menu 20
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+amostra recursos.csv
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-01
+amostra recursos.csv
+menu-mundo Vale_das_Brumas
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-02
+amostra recursos.csv
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-03
+amostra recursos.csv
+menu-mundo Vale_das_Brumas
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-04
+amostra recursos.csv
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-05
+amostra recursos.csv
+menu-mundo Vale_das_Brumas
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-06
+amostra recursos.csv
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-07
+amostra recursos.csv
+menu-mundo Vale_das_Brumas
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-08
+amostra recursos.csv
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-09
+amostra recursos.csv
+menu-mundo Vale_das_Brumas
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-10
+amostra recursos.csv
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-11
+amostra recursos.csv
+menu-mundo Vale_das_Brumas
+click entrar
+esperar-menu 60
+wait 0.5
+hold W 0.6
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos volta-12
+amostra recursos.csv

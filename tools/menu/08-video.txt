@@ -1,0 +1,52 @@
+# Rodada 11.1 — vídeo principal (som da aplicação por loopback): o menu vivo, personagens, criar um mundo com prévia,
+# entrar na aventura, pausa → Menu principal → salvar e voltar (progresso na lista). Dados TEMPORÁRIOS com um personagem.
+size 1920 1080
+esperar-menu 20
+record on
+wait 9
+key DOWN
+wait 0.5
+key UP
+wait 0.6
+click jogar
+esperar-menu 20
+wait 1.2
+arrastar 520 1.6
+wait 0.8
+key DOWN
+esperar-menu 20
+wait 1.0
+key UP
+esperar-menu 20
+wait 0.8
+click escolher-personagem
+esperar-menu 60
+wait 1.4
+click criar-mundo
+wait 0.6
+digitar Vale_das_Brumas
+wait 0.3
+click campo:1
+digitar 2048
+wait 0.4
+click ver-previa
+esperar-menu 60
+wait 1.6
+click confirmar-mundo
+esperar-menu 60
+wait 1.6
+click entrar
+esperar-menu 60
+wait 1.2
+hold W 2.4
+look 500 0 1.2
+hold W+SHIFT 1.6
+wait 0.6
+key ESC
+wait 0.8
+click menu-principal
+wait 1.2
+click menu-salvar
+esperar-menu 60
+wait 2.5
+record off

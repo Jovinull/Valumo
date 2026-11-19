@@ -1,0 +1,62 @@
+# Rodada 11.1 (fechamento) — as telas com grupos de botões, em 720p e 1080p (antes × depois da escala comum por grupo).
+# Pede dados temporários com personagens e mundos (02 + 03).
+size 1280 720
+esperar-menu 20
+wait 1
+shot t720-1-menu
+click config
+wait 0.3
+shot t720-2-configuracoes
+key ESC
+click jogar
+esperar-menu 20
+wait 0.4
+shot t720-3-personagens
+click escolher-personagem
+esperar-menu 60
+wait 0.4
+shot t720-4-mundos
+click criar-mundo
+wait 0.4
+shot t720-5-criar-mundo
+key ESC
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 1
+hold W 1.2
+key ESC
+wait 0.3
+shot t720-6-pausa
+click sair
+wait 0.3
+shot t720-7-confirmar-sair
+size 1920 1080
+wait 0.3
+shot t1080-7-confirmar-sair
+click menu-cancelar
+wait 0.3
+shot t1080-6-pausa
+key ESC
+wait 0.3
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+wait 1
+shot t1080-1-menu
+click config
+wait 0.3
+shot t1080-2-configuracoes
+key ESC
+click jogar
+esperar-menu 20
+wait 0.4
+shot t1080-3-personagens
+click escolher-personagem
+esperar-menu 60
+wait 0.4
+shot t1080-4-mundos
+click criar-mundo
+wait 0.4
+shot t1080-5-criar-mundo

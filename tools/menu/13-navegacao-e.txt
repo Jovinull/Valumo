@@ -1,0 +1,21 @@
+# Parte E: o X durante o carregamento (fecha: nada em risco ainda) — semente recusada antes (a falha não trava nada).
+size 1280 720
+esperar-menu 20
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+click criar-mundo
+digitar Recusado
+click campo:1
+digitar 4242
+click confirmar-mundo
+esperar-menu 60
+wait 0.3
+shot n13-semente-recusada
+key ESC
+menu-mundo Gemeo
+click entrar
+wait 0.2
+shot-agora n14-carregando
+fechar-janela

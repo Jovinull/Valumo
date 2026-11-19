@@ -1,0 +1,56 @@
+# Rodada 11.1 (fechamento) — navegação real, parte A (§9, passos 1–17): menu → personagem → mundo → aventura → pausa →
+# Menu principal → cancelar → de novo → salvar e voltar → MENU PRINCIPAL → Jogar (escolhas preservadas) → aventura → X da
+# janela → cancelar → jogar → X → salvar e sair. O X usa o mesmo caminho do callback do GLFW (janela oculta).
+size 1920 1080
+esperar-menu 20
+wait 1
+shot n01-menu-principal
+click jogar
+esperar-menu 20
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 60
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 1
+hold W 1.2
+key ESC
+wait 0.3
+click menu-principal
+wait 0.3
+shot n02-confirmar-menu-principal
+click menu-cancelar
+wait 0.3
+shot n03-cancelado-pausa
+click menu-principal
+click menu-salvar
+esperar-menu 60
+wait 1
+shot n04-de-volta-ao-menu-principal
+menu-estado
+click jogar
+esperar-menu 20
+wait 0.3
+shot n05-jogar-personagem-preservado
+menu-estado
+click escolher-personagem
+esperar-menu 60
+wait 0.3
+shot n06-mundo-preservado
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+missao
+hold W 1.0
+fechar-janela
+wait 0.3
+shot n07-x-confirmacao
+click menu-cancelar
+wait 0.3
+shot n08-x-cancelado-continua-jogando
+hold W 1.0
+estado
+fechar-janela
+click menu-salvar

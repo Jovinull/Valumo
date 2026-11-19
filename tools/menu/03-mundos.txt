@@ -1,0 +1,65 @@
+# Rodada 11.1 — roteiro C: mundos. Personagem → lista (vila legado + save antigo oferecido) → criar mundo com nome e
+# semente → prévia → criar → semente vazia (sorteada e mostrada) → semente recusada (simulada com -Dvx.qa.recusar=4242:
+# mensagem amigável, nome e semente preservados, nada criado) → mesma semente em dois mundos.
+size 1920 1080
+esperar-menu 20
+wait 1
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 30
+wait 0.5
+shot 20-mundos-so-a-vila
+menu-estado
+click criar-mundo
+wait 0.3
+shot 21-criar-mundo-vazio
+digitar Vale_das_Brumas
+click campo:1
+digitar 1024
+wait 0.3
+shot 22-criar-mundo-preenchido
+click ver-previa
+esperar-menu 60
+wait 0.3
+shot 23-criar-mundo-previa
+click confirmar-mundo
+esperar-menu 60
+wait 0.5
+shot 24-mundo-criado
+menu-estado
+click criar-mundo
+wait 0.3
+click confirmar-mundo
+esperar-menu 60
+wait 0.5
+shot 25-mundo-semente-sorteada
+menu-estado
+click criar-mundo
+digitar Recusado
+click campo:1
+digitar 4242
+click confirmar-mundo
+esperar-menu 60
+wait 0.4
+shot 26-semente-recusada
+menu-estado
+key ESC
+wait 0.3
+click criar-mundo
+digitar Gemeo
+click campo:1
+digitar 1024
+click confirmar-mundo
+esperar-menu 60
+wait 0.5
+shot 27-mesma-semente-dois-mundos
+menu-estado
+key DOWN
+key DOWN
+key DOWN
+esperar-menu 30
+wait 0.3
+shot 28-vila-do-posto
+menu-estado
+menu-recursos fim

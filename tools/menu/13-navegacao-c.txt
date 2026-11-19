@@ -1,0 +1,9 @@
+# Parte C: o X no menu principal, em personagens e em mundos fecha SEM perguntar (nada em risco) — aqui, em mundos.
+size 1280 720
+esperar-menu 20
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+menu-estado
+fechar-janela

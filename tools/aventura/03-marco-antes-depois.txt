@@ -20,7 +20,6 @@ derrubar #1
 posicionar 0.2 12.4 0
 wait 3.0
 size 1920 1080
-key F1
 posicionar 0.4 12.0 5
 camera-recompor
 wait 1.0

@@ -1,0 +1,7 @@
+# Sub-roteiro (menu → Editar aparência → Cancelar): muda o cabelo e cancela; o perfil não muda.
+wait 0.8
+click cat:CABELO
+click hair:cabelo.curto
+wait 0.4
+shot c4-antes-de-cancelar
+click cancel

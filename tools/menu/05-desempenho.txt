@@ -1,0 +1,19 @@
+# Rodada 11.1 — roteiro E1: desempenho do menu (quadro com glFinish) no menu principal, em personagens e em mundos.
+size 1920 1080
+esperar-menu 20
+aquecer 3
+perf on
+wait 12
+perf off desempenho-menu-principal.txt
+click jogar
+esperar-menu 20
+aquecer 1
+perf on
+wait 8
+perf off desempenho-personagens.txt
+click escolher-personagem
+esperar-menu 60
+aquecer 1
+perf on
+wait 8
+perf off desempenho-mundos.txt
