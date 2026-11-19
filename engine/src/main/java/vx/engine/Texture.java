@@ -16,11 +16,15 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 /** Textura 2D RGBA8. Pixel art usa {@code nearest=true} (sem mipmaps, sem suavização). */
 public final class Texture implements AutoCloseable {
     public final int id, width, height;
+    /** Texturas vivas no processo (QA de recursos: sessão longa, vazamento do criador). Thread do GL. */
+    public static int live;
+    private boolean closed;
 
     public Texture(int width, int height, ByteBuffer rgba, boolean nearest) {
         this.width = width;
         this.height = height;
         id = glGenTextures();
+        live++;
         glBindTexture(GL_TEXTURE_2D, id);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
         int f = nearest ? GL_NEAREST : GL_LINEAR;
@@ -60,5 +64,10 @@ public final class Texture implements AutoCloseable {
     }
 
     @Override
-    public void close() { glDeleteTextures(id); }
+    public void close() {
+        if (closed) return;                                    // fechar duas vezes não apaga o id de outra textura
+        closed = true;
+        live--;
+        glDeleteTextures(id);
+    }
 }

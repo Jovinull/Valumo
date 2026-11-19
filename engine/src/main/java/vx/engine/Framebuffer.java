@@ -16,10 +16,15 @@ public final class Framebuffer implements AutoCloseable {
     public final int[] color;
     public final int depth;
 
+    /** Framebuffers vivos no processo (QA de recursos). Thread do GL. */
+    public static int live;
+    private boolean closed;
+
     public Framebuffer(int width, int height, boolean withDepth, int... colorFormats) {
         this.width = width;
         this.height = height;
         id = glGenFramebuffers();
+        live++;
         glBindFramebuffer(GL_FRAMEBUFFER, id);
         color = new int[colorFormats.length];
         int[] bufs = new int[colorFormats.length];
@@ -73,6 +78,9 @@ public final class Framebuffer implements AutoCloseable {
 
     @Override
     public void close() {
+        if (closed) return;
+        closed = true;
+        live--;
         glDeleteFramebuffers(id);
         for (int c : color) glDeleteTextures(c);
         if (depth != 0) glDeleteTextures(depth);

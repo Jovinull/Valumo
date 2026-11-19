@@ -289,6 +289,11 @@ public final class OpenAlOut implements AudioOut {
 
     public int loadedBuffers() { return buffers.size(); }
 
+    /** Fluxos (música, ambiente) e vozes de efeito vivos (QA de recursos). */
+    public int liveStreams() { return streams.size(); }
+
+    public int liveVoices() { return voices.size(); }
+
     @Override public String name() { return name; }
 
     @Override
