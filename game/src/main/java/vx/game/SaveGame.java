@@ -1,6 +1,7 @@
 package vx.game;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -41,7 +42,8 @@ import java.util.random.RandomGenerator;
  */
 public final class SaveGame {
     public static final String FORMAT = "valumo.save";
-    public static final int VERSION = 1;
+    /** v1 = o mundo fixo (rodada 10, inalterado); v2 = mundo procedural (rodada 11: semente, gerador, vínculos). */
+    public static final int VERSION = 1, VERSION_PROCEDURAL = 2;
     public static final String FILE = "aventura.json", PREVIOUS = "aventura.anterior.json";
     /** Maior save aceito (bytes): um válido tem ~2 KB. */
     public static final long MAX_BYTES = 512 * 1024;
@@ -52,6 +54,16 @@ public final class SaveGame {
     public static Path dir() {
         String d = System.getProperty("vx.savegame", "output/saves");
         return d.equals("-") ? null : Path.of(d);
+    }
+
+    /**
+     * Rodada 11 — pasta do save de um mundo procedural: {@code output/saves-procedural/<mundo>/} (nunca a do save
+     * principal); com {@code -Dvx.savegame=PASTA}, {@code PASTA/<mundo>/}; {@code -} = desligado.
+     */
+    public static Path procDir(String worldId) {
+        String d = System.getProperty("vx.savegame");
+        if ("-".equals(d)) return null;
+        return (d != null ? Path.of(d) : Path.of("output/saves-procedural")).resolve(worldId);
     }
 
     /** Id novo de save (hexadecimal, 16 dígitos). */
@@ -67,12 +79,24 @@ public final class SaveGame {
     }
 
     public static JsonObject compose(String id, String scene, Appearance a, float x, float z, float yawDeg, float playTime, QuestSystem q) {
+        return compose(id, scene, a, x, z, yawDeg, playTime, q, null);
+    }
+
+    /** Rodada 11: {@code ps} != null = mundo procedural (v2, com o bloco "mundo" e os vínculos resolvidos). */
+    public static JsonObject compose(String id, String scene, Appearance a, float x, float z, float yawDeg, float playTime, QuestSystem q,
+                                     ProceduralScene ps) {
         JsonObject o = new JsonObject();
-        o.addProperty("_doc", "Valumo — jogo salvo (rodada 10). Contrato: docs/architecture/save.md. Editar à mão pode invalidar o arquivo.");
+        o.addProperty("_doc", "Valumo — jogo salvo (rodada 10; v2 = mundo procedural, rodada 11). Contrato: docs/architecture/save.md. Editar à mão pode invalidar o arquivo.");
         o.addProperty("formato", FORMAT);
-        o.addProperty("versao", VERSION);
+        o.addProperty("versao", ps == null ? VERSION : VERSION_PROCEDURAL);
         o.addProperty("id", id);
         o.addProperty("cena", scene);
+        if (ps != null) {
+            o.add("mundo", worldJson(ps));
+            JsonArray b = new JsonArray();
+            if (ps.binding != null) b.add(ps.binding.toJson());
+            o.add("vinculos", b);
+        }
         o.add("aparencia", JsonParser.parseString(a.toJson()));
         JsonObject p = new JsonObject();
         p.addProperty("x", round(x));
@@ -87,6 +111,18 @@ public final class SaveGame {
     private static float round(float v) { return Math.round(v * 1000f) / 1000f; }
 
     public static String text(JsonObject o) { return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(o) + "\n"; }
+
+    /** O que identifica o mundo procedural no save: semente, gerador e versão, tentativa aceita, região. */
+    static JsonObject worldJson(ProceduralScene ps) {
+        JsonObject m = new JsonObject();
+        m.addProperty("tipo", "procedural");
+        m.addProperty("semente", Long.toUnsignedString(ps.seed));
+        m.addProperty("gerador", vx.game.world.RegionGenerator.ID);
+        m.addProperty("versaoGerador", vx.game.world.RegionGenerator.VERSION);
+        m.addProperty("tentativa", ps.layout.attempt);
+        m.addProperty("regiao", ps.layout.regionId);
+        return m;
+    }
 
     // ------------------------------------------------------------------ escrita
 
@@ -117,6 +153,32 @@ public final class SaveGame {
         }
     }
 
+    /**
+     * Rodada 11.1 — a mesma escrita atômica para qualquer arquivo pequeno do jogo (perfis de personagem, mundos): temporário
+     * na mesma pasta → gravado e sincronizado → fechado → relido e validado → movido por cima (atômico, ou com substituição
+     * se o sistema de arquivos não suportar). Falhou em qualquer passo: o arquivo antigo fica intacto e o temporário some.
+     */
+    public static void writeFileAtomic(Path file, String text, java.util.function.Consumer<String> validate) throws IOException {
+        Path dir = file.toAbsolutePath().getParent();
+        Files.createDirectories(dir);
+        Path tmp = Files.createTempFile(dir, "valumo-", ".tmp");
+        try {
+            try (FileChannel ch = FileChannel.open(tmp, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                ByteBuffer b = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+                while (b.hasRemaining()) ch.write(b);
+                ch.force(true);
+            }
+            validate.accept(Files.readString(tmp, StandardCharsets.UTF_8));
+            try {
+                Files.move(tmp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
+    }
+
     /** Save de OUTRO jogo (id diferente) vira {@code aventura.anterior.json} antes de ser substituído. */
     private static void keepPrevious(Path dir, Path file, String json) {
         if (!Files.isRegularFile(file)) return;
@@ -134,12 +196,17 @@ public final class SaveGame {
 
     /** Lê o save da pasta (sem save = {@code Loaded(null, null, null)}); inválido = motivo + original em {@code .invalido}. */
     public static Loaded read(Path dir, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects) {
+        return read(dir, cat, scene, quests, objects, null);
+    }
+
+    public static Loaded read(Path dir, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects,
+                              ProceduralScene ps) {
         if (dir == null) return new Loaded(null, null, null);
         Path file = dir.resolve(FILE);
         if (!Files.isRegularFile(file)) return new Loaded(null, null, null);
         try {
             if (Files.size(file) > MAX_BYTES) throw new Invalid("arquivo grande demais (" + Files.size(file) + " bytes)");
-            return new Loaded(parse(Files.readString(file, StandardCharsets.UTF_8), cat, scene, quests, objects), null, null);
+            return new Loaded(parse(Files.readString(file, StandardCharsets.UTF_8), cat, scene, quests, objects, ps), null, null);
         } catch (IOException | RuntimeException e) {
             String why = e instanceof Invalid || e instanceof QuestSystem.InvalidState ? e.getMessage() : brief(e);
             return new Loaded(null, why, Prefs.preserveInvalid(file));
@@ -164,6 +231,16 @@ public final class SaveGame {
     }
 
     public static Data parse(String json, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects) {
+        return parse(json, cat, scene, quests, objects, null);
+    }
+
+    /**
+     * Rodada 11: v1 só no mundo fixo ({@code ps} null); v2 só no procedural, e só se o mundo salvo for ESTE (mesma semente,
+     * gerador, versão e tentativa) e os vínculos salvos forem os que a região gera agora — senão recusado: uma missão
+     * aceita nunca muda de lugar em silêncio porque o gerador mudou.
+     */
+    public static Data parse(String json, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects,
+                             ProceduralScene ps) {
         JsonObject o;
         try {
             JsonElement e = JsonParser.parseString(json);
@@ -175,7 +252,22 @@ public final class SaveGame {
         if (!FORMAT.equals(str(o, "formato"))) throw new Invalid("não é um save do Valumo (formato)");
         JsonElement v = o.get("versao");
         if (v == null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isNumber()) throw new Invalid("versão ausente");
-        if (v.getAsDouble() != VERSION) throw new Invalid("versão " + v.getAsString() + " não suportada (este jogo lê a " + VERSION + ")");
+        int want = ps == null ? VERSION : VERSION_PROCEDURAL;
+        if (v.getAsDouble() != want) {
+            if (v.getAsDouble() == VERSION_PROCEDURAL && ps == null) throw new Invalid("é um save de mundo procedural (v2): abra com -Dvx.mundo=procedural");
+            if (v.getAsDouble() == VERSION && ps != null) throw new Invalid("é um save do mundo fixo (v1): abra sem -Dvx.mundo");
+            throw new Invalid("versão " + v.getAsString() + " não suportada (este jogo lê a 1 e a 2)");
+        }
+        if (ps != null) {
+            JsonObject m = obj(o, "mundo");
+            JsonObject now = worldJson(ps);
+            for (String k : now.keySet())
+                if (!now.get(k).equals(m.get(k))) throw new Invalid("mundo salvo diferente deste (" + k + ": " + m.get(k) + " × " + now.get(k) + ")");
+            JsonElement b = o.get("vinculos");
+            JsonArray expect = new JsonArray();
+            if (ps.binding != null) expect.add(ps.binding.toJson());
+            if (b == null || !b.equals(expect)) throw new Invalid("os vínculos da missão salvos não batem com a região gerada agora");
+        }
         String id = str(o, "id");
         if (id == null || !id.matches("[0-9a-f]{16}")) throw new Invalid("id do save inválido");
         String sc = str(o, "cena");
