@@ -69,7 +69,6 @@ class CombatTest {
         run(g, 1.3f, (t, cc) -> {
             Hero.Intent i = !once[0] ? click() : idle();
             once[0] = true;
-            int before = cc.enemy.hp;
             return i;
         });
         for (Combat.Event e : c.events) if (e.kind().equals("acerto")) hitAt.add(e.tick() * H);
@@ -146,7 +145,6 @@ class CombatTest {
     void theThreeCutsChainOnlyWithClicksInsideTheWindow() {
         GameLogic g = arena();
         Combat c = g.combat;
-        Hero h = c.hero;
         Player p = g.player;
         p.place(-1.8f, 10.4f, 0, g.collision);
         c.enemy.state = Enemy.State.DEAD;                                // sem inimigo vivo
@@ -176,7 +174,6 @@ class CombatTest {
         GameLogic g = arena();
         Combat c = g.combat;
         c.enemy.state = Enemy.State.DEAD;
-        Hero h = c.hero;
         // clique 0,15 s antes da janela de encadear: ainda vale (buffer 0,25 s)
         float acc0 = c.def.attacks.get("slash_h").acceptFrom();
         List<String> moves = new ArrayList<>();
@@ -222,7 +219,6 @@ class CombatTest {
         p.place(-1.8f, 10.9f, 0, g.collision);
         putEnemy(c, -1.8f, 11.85f, p.x, p.z, Enemy.State.CHASE);
         face(p, c.enemy.x, c.enemy.z);
-        List<Enemy.State> seen = new ArrayList<>();
         final float[] windupAt = {-1}, hurtAt = {-1};
         run(g, 2.0f, (t, cc) -> {
             if (cc.enemy.state == Enemy.State.WINDUP && windupAt[0] < 0) windupAt[0] = t;
@@ -611,5 +607,130 @@ class CombatTest {
         run(g, 20f, (t, cc) -> idle());
         assertEquals(Enemy.State.IDLE, c.enemy.state, "inimigo saiu de casa sem o herói por perto");
         assertTrue(c.events.isEmpty(), "eventos de combate sem o herói na arena: " + c.events);
+    }
+
+    /**
+     * Auditoria de engenharia — um inimigo empurrado para fora da coleira (o herói andando contra ele na borda) voltava
+     * a nunca mais se mexer: todo passo que ainda terminasse fora da coleira era recusado, inclusive o de volta para casa.
+     */
+    @Test
+    void anEnemyShovedPastItsLeashWalksHomeInsteadOfFreezing() {
+        GameLogic g = arena();
+        Combat c = g.combat;
+        Enemy e = c.enemy;
+        g.player.place(-1.8f, 2.0f, 0, g.collision);                     // herói longe: o fungo só quer voltar
+        float out = c.def.leash + 0.15f, x = Float.NaN, z = Float.NaN;
+        for (int k = 0; k < 16 && Float.isNaN(x); k++) {                  // um ponto pisável logo depois da borda da coleira
+            double a = k * Math.PI / 8;
+            float px = e.homeX() + (float) Math.sin(a) * out, pz = e.homeZ() + (float) Math.cos(a) * out;
+            if (g.collision.walkable(px, pz) && Math.abs(g.collision.ground.height(px, pz) - g.collision.ground.height(e.homeX(), e.homeZ())) < 0.6f) { x = px; z = pz; }
+        }
+        assertFalse(Float.isNaN(x), "a cena tem chão logo depois da coleira");
+        putEnemy(c, x, z, e.homeX(), e.homeZ(), Enemy.State.RETURN);
+        run(g, 10f, (t, cc) -> idle());
+        float d = (float) Math.hypot(e.x - e.homeX(), e.z - e.homeZ());
+        assertTrue(d < 0.6f, "o fungo ficou parado fora da coleira, a " + d + " u de casa (" + e.state + ")");
+        assertEquals(Enemy.State.IDLE, e.state);
+    }
+
+    /** O herói não empurra um inimigo para fora da coleira dele: na borda, quem cede é o herói. */
+    @Test
+    void theHeroCannotPushAnEnemyOutOfItsLeash() {
+        GameLogic g = arena();
+        Combat c = g.combat;
+        Enemy e = c.enemy;
+        Player p = g.player;
+        e.def.sight = 0f;
+        e.def.hearing = 0f;
+        float in = c.def.leash - 0.02f, x = Float.NaN, z = Float.NaN, nx = 0, nz = 0;
+        for (int k = 0; k < 16 && Float.isNaN(x); k++) {                  // o fungo na borda, o herói do lado de dentro
+            double a = k * Math.PI / 8;
+            float sx = (float) Math.sin(a), sz = (float) Math.cos(a), px = e.homeX() + sx * in, pz = e.homeZ() + sz * in;
+            float hx = px - sx * 1.2f, hz = pz - sz * 1.2f;
+            if (g.collision.walkable(px, pz) && g.collision.walkable(hx, hz) && g.collision.walkable(px + sx, pz + sz)
+                    && Math.abs(g.collision.ground.height(px, pz) - g.collision.ground.height(hx, hz)) < 0.1f) { x = px; z = pz; nx = sx; nz = sz; }
+        }
+        assertFalse(Float.isNaN(x), "a cena tem chão plano na borda da coleira");
+        putEnemy(c, x, z, e.homeX(), e.homeZ(), Enemy.State.IDLE);
+        p.place(x - nx * 1.2f, z - nz * 1.2f, 0, g.collision);
+        final float fx = nx, fz = nz;
+        float max = 0f;
+        for (int i = 0; i < Math.round(3f / H); i++) {                    // 3 s andando contra o fungo, para fora
+            p.snapshot();
+            c.tick(H, new Hero.Intent().set(fx * p.walk, fz * p.walk, true, false, false, 0), p);
+            max = Math.max(max, (float) Math.hypot(e.x - e.homeX(), e.z - e.homeZ()));
+        }
+        assertTrue(max <= c.def.leash + 1e-3f, "o herói empurrou o fungo para fora da coleira: " + max + " > " + c.def.leash);
+    }
+
+    /**
+     * Auditoria de engenharia — o aperto dado DURANTE a pausa de impacto vale como o dado logo depois dela. Antes, o
+     * passo congelado descartava ataque e esquiva (a intenção era consumida sem chegar ao herói): justamente o clique
+     * de quem encadeia no instante do acerto se perdia.
+     */
+    @Test
+    void aPressDuringTheHitPauseCountsLikeOneRightAfterIt() {
+        List<List<String>> runs = new ArrayList<>();
+        for (int mode = 0; mode < 4; mode++) {                              // 0/1: ataque na pausa / logo depois; 2/3: esquiva
+            final boolean during = mode % 2 == 0, dodge = mode >= 2;
+            GameLogic g = arena();
+            Combat c = g.combat;
+            Player p = g.player;
+            p.place(-1.8f, 10.4f, 0, g.collision);
+            putEnemy(c, -1.8f, 11.25f, p.x, p.z, Enemy.State.IDLE);
+            face(p, c.enemy.x, c.enemy.z);
+            c.enemy.def.sight = 0f;
+            c.enemy.def.hearing = 0f;
+            List<String> moves = new ArrayList<>();
+            final int[] st = {0};                                          // 0 antes do acerto, 1 na pausa, 2 aperto dado
+            final boolean[] first = {true};
+            run(g, 1.6f, (t, cc) -> {
+                String m = cc.hero.layer.move();
+                if (m != null && (moves.isEmpty() || !moves.getLast().equals(m))) moves.add(m);
+                Hero.Intent i = idle();
+                if (first[0]) { first[0] = false; return click(); }
+                if (st[0] == 0 && cc.hitstop > 0f) {
+                    st[0] = 1;
+                    if (during) { st[0] = 2; press(i, dodge); }           // primeiro passo congelado
+                } else if (st[0] == 1 && cc.hitstop <= 0f) { st[0] = 2; press(i, dodge); }   // primeiro passo depois da pausa
+                return i;
+            });
+            assertEquals(2, st[0], "o golpe precisa acertar e abrir a pausa de impacto: " + c.events);
+            runs.add(moves);
+        }
+        assertEquals(runs.get(1), runs.get(0), "ataque apertado na pausa de impacto");
+        assertTrue(runs.get(1).contains("slash_d"), "o cenário encadeia o segundo corte: " + runs.get(1));
+        // a esquiva só corta o golpe nas janelas medidas (esquiva.janelas): o que importa aqui é que apertar na pausa dê
+        // exatamente o mesmo resultado que apertar logo depois dela
+        assertEquals(runs.get(3), runs.get(2), "esquiva apertada na pausa de impacto");
+    }
+
+    /** Auditoria de engenharia — na pausa de impacto a pose do herói fica parada, qualquer que seja a fração do passo desenhada. */
+    @Test
+    void theHeroPoseStaysStillDuringTheHitPause() {
+        GameLogic g = arena();
+        Combat c = g.combat;
+        Player p = g.player;
+        p.place(-1.8f, 10.4f, 0, g.collision);
+        putEnemy(c, -1.8f, 11.25f, p.x, p.z, Enemy.State.IDLE);
+        face(p, c.enemy.x, c.enemy.z);
+        c.enemy.def.sight = 0f;
+        final boolean[] first = {true};
+        final int[] frozenTicks = {0};
+        run(g, 1.0f, (t, cc) -> {
+            if (cc.hitstop > 0f && frozenTicks[0]++ > 0) {                // já passou um passo inteiro congelado
+                float a = cc.hero.motion(new vx.viewer.Animator.Motion(), p, 0.1f).moveT;
+                float b = cc.hero.motion(new vx.viewer.Animator.Motion(), p, 0.9f).moveT;
+                assertEquals(a, b, 1e-6f, "a pose andou dentro da pausa de impacto");
+            }
+            Hero.Intent i = first[0] ? click() : idle();
+            first[0] = false;
+            return i;
+        });
+        assertTrue(frozenTicks[0] > 3, "o golpe acertou e abriu a pausa: " + c.events);
+    }
+
+    private static void press(Hero.Intent i, boolean dodge) {
+        if (dodge) i.dodge = true; else i.set(0, 0, false, true, false, 0);
     }
 }

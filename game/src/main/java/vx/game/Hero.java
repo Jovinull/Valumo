@@ -160,7 +160,24 @@ public final class Hero {
 
     // ------------------------------------------------------------------ passo lógico
 
+    /**
+     * Passo congelado pela pausa de impacto ({@link Combat#hitstop}): o herói não anda, mas os apertos de ataque e de
+     * esquiva entram nos mesmos buffers do {@link #tick} (que não contam tempo enquanto a pausa dura). Antes eles eram
+     * consumidos pela intenção e descartados — o clique de quem encadeia no instante do acerto sumia (auditoria de
+     * engenharia; {@code CombatTest.aPressDuringTheHitPauseCountsLikeOneRightAfterIt}).
+     */
+    void pressDuringPause(Intent in, Player p) {
+        frozen = true;
+        if (!alive()) return;
+        if (in.attack) {
+            if (p.grounded) buffer = def.attackBuffer;
+            else airAttack = true;
+        }
+        if (in.dodge && def.roll != null) dodgeBuffer = def.dodgeBuffer;
+    }
+
     void tick(float h, Intent in, Player p, Combat c) {
+        frozen = false;
         shown.copyFrom(layer);
         pLegW = legW;
         pLocoDir = locoDir;
@@ -511,8 +528,13 @@ public final class Hero {
         out.set(p.clip, p.pAnimT + (p.animT - p.pAnimT) * a);
         if (p.fade < 1f && p.fromClip != null) { out.fromClip = p.fromClip; out.locoW = p.fade; }
         legs(out, p, a);
-        return shown.eval(out, a * GameLogic.TICK);
+        // na pausa de impacto a pose fica PARADA: sem isto ela avançava até um passo à frente e voltava a cada quadro
+        // (visível acima de 120 Hz, quando a fração do passo muda de quadro para quadro)
+        return shown.eval(out, frozen ? 0f : a * GameLogic.TICK);
     }
+
+    /** Passo congelado pela pausa de impacto (o desenho não interpola à frente). */
+    private boolean frozen;
 
     /** Rodada 09.2 — passada, rumo, pernas por baixo do golpe, salto e pouso (mesmos valores no desenho e na lâmina). */
     void legs(Animator.Motion out, Player p, float a) {

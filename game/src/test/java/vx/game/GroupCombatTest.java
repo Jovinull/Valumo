@@ -85,7 +85,6 @@ class GroupCombatTest {
     void theGroupTakesTurnsSpreadsOutAndNeverStacks() {
         GameLogic g = encounter("grupo");
         Combat c = g.combat;
-        Player p = g.player;
         int[] maxBusy = {0};
         float[] minGap = {99f}, minSep = {99f};
         List<Float> starts = new ArrayList<>();
@@ -122,7 +121,7 @@ class GroupCombatTest {
         float x = a.x, z = a.z;
         CombatTest.run(g, 3f, (t, cc) -> new Hero.Intent());
         assertEquals(Enemy.State.DEAD, a.state);
-        assertEquals(x, a.x, 0.3f, "morto quase não se move (só o empurrão do golpe)");
+        assertEquals(0f, (float) Math.hypot(a.x - x, a.z - z), 0.3f, "morto quase não se move (só o empurrão do golpe)");
         assertTrue(a.debugHit.isEmpty(), "morto não ataca");
         g.action("recomecar");
         for (Enemy e : c.enemies) { assertTrue(e.alive()); assertEquals(e.def.enemyHp, e.hp); assertEquals(Enemy.State.IDLE, e.state); }
@@ -323,7 +322,6 @@ class GroupCombatTest {
     @Test
     void theFreeCameraNeverTurnsOrClimbsOnItsOwnBecauseOfEnemies() {
         GameLogic g = encounter("grupo");
-        Player p = g.player;
         float yaw0 = g.cam.yaw;
         Input in = new Input();
         float maxPitch = 0f, maxCombatYaw = 0f;

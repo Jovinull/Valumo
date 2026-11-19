@@ -107,4 +107,17 @@ class GameAudioTest {
         java.nio.file.Files.writeString(f, "{ quebrado");
         assertEquals(1f, AudioPrefs.load(f).music, "arquivo inválido → padrão, sem exceção");
     }
+
+    /** Auditoria de engenharia: `tools/review94.sh pausa` passava -Dvx.prefs=ARQUIVO e gravava no áudio REAL do jogador. */
+    @Test
+    void redirectedPreferencesNeverTouchThePlayersAudioFile() {
+        java.nio.file.Path real = java.nio.file.Path.of("output/preferencias/audio.json");
+        assertEquals(real, AudioPrefs.fileFor(null, null), "sem propriedades: o arquivo do jogador");
+        assertNull(AudioPrefs.fileFor("-", null), "roteiros e testes: nem lê nem grava");
+        assertNull(AudioPrefs.fileFor("-", "x/audio.json"));
+        assertEquals(java.nio.file.Path.of("x/audio.json"), AudioPrefs.fileFor(null, "x/audio.json"));
+        java.nio.file.Path redirected = AudioPrefs.fileFor("output/tmp/prefs-revisao.json", null);
+        assertNotEquals(real, redirected, "preferências redirecionadas levam o áudio junto");
+        assertEquals(java.nio.file.Path.of("output/tmp/prefs-revisao.json.audio.json"), redirected);
+    }
 }

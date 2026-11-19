@@ -47,7 +47,15 @@ public final class Combat {
     public Enemy enemy;
     public String encounter;
     public final List<Event> events = new ArrayList<>();
+    /**
+     * Impactos recentes (acento visual e som). A lista é da LÓGICA: entra em {@link #impact} e sai no passo, depois de
+     * {@link #IMPACT_SHOW} s — o desenho só lê (antes ele mesmo podava a lista a cada quadro, e o diretor de som, que a
+     * percorria por índice, podia perder ou repetir um contato conforme o instante do quadro: auditoria de engenharia).
+     */
     public final List<Impact> impacts = new ArrayList<>();
+    /** Total de impactos desde o começo (nunca diminui): o som toca os que ainda não viu, sem depender do tamanho da lista. */
+    public long impactTotal;
+    public static final float IMPACT_SHOW = 0.2f;
     public float hitstop;
     public long ticks;
     public Outcome outcome = Outcome.NONE;
@@ -123,8 +131,10 @@ public final class Combat {
     void tick(float h, Hero.Intent in, Player p) {
         ticks++;
         clock += h;
+        while (!impacts.isEmpty() && clock - impacts.getFirst().time() > IMPACT_SHOW) impacts.removeFirst();   // em ordem de tempo
         if (hitstop > 0f) {
             hitstop = Math.max(0f, hitstop - h);
+            hero.pressDuringPause(in, p);                                // o aperto dado na pausa de impacto não se perde
             hero.shown.copyFrom(hero.layer);
             hero.pLegW = hero.legW;
             hero.pLocoDir = hero.locoDir;
@@ -204,11 +214,13 @@ public final class Combat {
             if (!e.alive()) continue;
             float dx = e.x - p.x, dz = e.z - p.z, d = (float) Math.hypot(dx, dz), min = Player.RADIUS + e.def.enemyRadius;
             if (d >= min || d < 1e-5f) continue;
-            float push = min - d, nx = dx / d, nz = dz / d;
+            float push = min - d, nx = dx / d, nz = dz / d, heroShare = 0.2f;
             float[] q = {e.x + nx * push * 0.8f, e.z + nz * push * 0.8f};
             collision.resolve(q, e.def.enemyRadius, e.y, Enemy.HEIGHT, Enemy.STEP);
-            if (collision.walkable(q[0], q[1])) { e.x = q[0]; e.z = q[1]; }
-            float[] r = {p.x - nx * push * 0.2f, p.z - nz * push * 0.2f};
+            // o inimigo só cede para onde ele mesmo poderia andar (chão, degrau, coleira); senão quem cede é o herói —
+            // antes dava para empurrar um fungo para fora da coleira, onde ele não conseguia mais se mexer
+            if (e.allowed(q[0], q[1], collision)) { e.x = q[0]; e.z = q[1]; } else heroShare = 1f;
+            float[] r = {p.x - nx * push * heroShare, p.z - nz * push * heroShare};
             collision.resolve(r, Player.RADIUS, p.y, Player.HEIGHT, Player.STEP);
             if (collision.walkable(r[0], r[1])) { p.x = r[0]; p.z = r[1]; }
         }
@@ -224,18 +236,23 @@ public final class Combat {
                 float[] qa = {a.x - nx * push, a.z - nz * push}, qb = {b.x + nx * push, b.z + nz * push};
                 collision.resolve(qa, a.def.enemyRadius, a.y, Enemy.HEIGHT, Enemy.STEP);
                 collision.resolve(qb, b.def.enemyRadius, b.y, Enemy.HEIGHT, Enemy.STEP);
-                if (collision.walkable(qa[0], qa[1])) { a.x = qa[0]; a.z = qa[1]; }
-                if (collision.walkable(qb[0], qb[1])) { b.x = qb[0]; b.z = qb[1]; }
+                if (a.allowed(qa[0], qa[1], collision)) { a.x = qa[0]; a.z = qa[1]; }
+                if (b.allowed(qb[0], qb[1], collision)) { b.x = qb[0]; b.z = qb[1]; }
             }
         }
     }
 
     // ------------------------------------------------------------------ dano (chamado por Hero e Enemy)
 
+    void impact(Impact im) {
+        impacts.add(im);
+        impactTotal++;
+    }
+
     void heroHits(Hero h, Enemy e, int damage, Vector3f at) {
         boolean died = e.receive(damage, player.x, player.z);
         hitstop = Math.max(hitstop, def.pauseHit);
-        impacts.add(new Impact(clock, at, "acerto", e));
+        impact(new Impact(clock, at, "acerto", e));
         log(String.format("acerto: %s −%d em %s#%d (vida %d)%s", h.attack == null ? "?" : h.attack.move(), damage, e.name(), e.id, e.hp,
                 died ? ", derrotado" : ""));
     }
@@ -247,12 +264,12 @@ public final class Combat {
             case BLOCKED -> {
                 e.bounce(p.x, p.z);
                 hitstop = Math.max(hitstop, def.pauseBlock);
-                impacts.add(new Impact(clock, at, "defesa"));
+                impact(new Impact(clock, at, "defesa"));
                 log("defesa: cabeçada bloqueada pelo escudo");
             }
             case HURT, KILLED -> {
                 hitstop = Math.max(hitstop, def.pauseHurt);
-                impacts.add(new Impact(clock, at, "dano"));
+                impact(new Impact(clock, at, "dano"));
                 log(String.format("dano no herói −%d (vida %d)%s", e.def.enemyDamage, h.hp, o == Hero.Outcome.KILLED ? ", caiu" : ""));
             }
             case DODGED -> log("esquivou: cabeçada evitada na janela da esquiva");

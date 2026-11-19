@@ -255,9 +255,15 @@ public final class Enemy {
         y = c.ground.height(x, z);
     }
 
-    private boolean allowed(float nx, float nz, Collision c) {
+    /**
+     * O inimigo pode estar em (nx, nz)? Chão pisável, dentro da coleira e sem degrau maior que o passo. Fora da coleira
+     * só vale o passo que APROXIMA de casa: antes, um inimigo posto para fora (empurrado pelo herói) tinha todo passo
+     * recusado — inclusive o de volta — e virava estátua até o recomeço (auditoria de engenharia).
+     */
+    boolean allowed(float nx, float nz, Collision c) {
         if (!c.walkable(nx, nz)) return false;
-        if (Math.hypot(nx - homeX(), nz - homeZ()) > def.leash) return false;
+        double far = Math.hypot(nx - homeX(), nz - homeZ());
+        if (far > def.leash && far >= Math.hypot(x - homeX(), z - homeZ()) - 1e-6) return false;
         return Math.abs(c.ground.height(nx, nz) - y) <= STEP;
     }
 

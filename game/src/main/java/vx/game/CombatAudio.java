@@ -28,7 +28,8 @@ public final class CombatAudio {
     private Enemy.State[] lastState = new Enemy.State[0];
     private int[] windupVoice = new int[0];
     private boolean[] broke = new boolean[0];
-    private int lastSwing, impactsSeen, lastDodges, lastJumps, lastLandings;
+    private int lastSwing, lastDodges, lastJumps, lastLandings;
+    private long impactsSeen;                                             // total já tocado (Combat.impactTotal)
     private Combat.Outcome lastOutcome = Combat.Outcome.NONE;
     private boolean whooshPending;
     private String whooshCue;
@@ -54,7 +55,7 @@ public final class CombatAudio {
         lastSwing = c.hero.swing;
         lastDodges = c.hero.dodges;
         if (c.player != null) { lastJumps = c.player.jumps; lastLandings = c.player.landings; }
-        impactsSeen = c.impacts.size();
+        impactsSeen = c.impactTotal;
         lastOutcome = c.outcome;
         whooshPending = false;
     }
@@ -94,8 +95,9 @@ public final class CombatAudio {
             }
         }
         // contatos confirmados pela lógica
-        if (c.impacts.size() < impactsSeen) impactsSeen = 0;                 // recomeço limpou a lista
-        for (int i = impactsSeen; i < c.impacts.size(); i++) {
+        // os novos são os últimos da lista (entraram neste passo; a lógica só poda os de mais de 0,2 s)
+        int fresh = (int) Math.min(c.impacts.size(), Math.max(0L, c.impactTotal - impactsSeen));
+        for (int i = c.impacts.size() - fresh; i < c.impacts.size(); i++) {
             Combat.Impact im = c.impacts.get(i);
             switch (im.kind()) {
                 case "acerto" -> {
@@ -111,7 +113,7 @@ public final class CombatAudio {
                 default -> { }
             }
         }
-        impactsSeen = c.impacts.size();
+        impactsSeen = c.impactTotal;
         // estados de cada fungo
         for (int i = 0; i < c.enemies.size(); i++) {
             Enemy e = c.enemies.get(i);

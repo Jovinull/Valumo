@@ -260,7 +260,7 @@ class CombatAudioTest {
         CombatTest.putEnemy(g.combat, -1.8f, 12.6f, -1.8f, 9.6f, Enemy.State.IDLE);
         g.combat.enemy.def.sight = 0f;
         g.combat.enemy.def.hearing = 0f;
-        run(g, 3f, (t, c) -> CombatTest.click());                        // clique em TODO passo (360 cliques)
+        run(g, 3f, (t, c) -> CombatTest.click());                        // clique a CADA passo (360 cliques)
         long whooshes = s.played.stream().filter(q -> q.cue().startsWith("golpe_ar_")).count();
         assertTrue(whooshes <= g.combat.hero.swing && whooshes >= g.combat.hero.swing - 1,
                 whooshes + " cortes no ar para " + g.combat.hero.swing + " golpes");
@@ -305,6 +305,7 @@ class CombatAudioTest {
         assertEquals(0f, r.gain, 1e-6f, "volume fora de 0–1 é limitado");
         for (String cue : s.cues()) s.cue(cue, 1000 + cue.hashCode() % 7, 0, 0, 0);
         assertEquals(loads, r.loads, "tocar não pode carregar nada");
+        s.close();
     }
 
     @Test
@@ -343,5 +344,45 @@ class CombatAudioTest {
         assertEquals(CombatTest.scriptedFight(60, 0), fight);
         assertFalse(s[0].played.isEmpty(), "o diretor continua decidindo (registro), só não há saída");
         assertTrue(s[0].played.stream().allMatch(q -> q.voice() == -1));
+    }
+
+    /**
+     * Auditoria de engenharia — cada contato soa UMA vez, no passo em que aconteceu, e a lista de impactos é da lógica
+     * (o desenho só lê). Dois contatos a menos de 0,2 s um do outro, e outro logo depois de o primeiro expirar, eram os
+     * casos em que podar a lista no desenho fazia o som repetir ou perder um contato.
+     */
+    @Test
+    void everyImpactSoundsExactlyOnceWhateverItsTiming() {
+        GameLogic g = CombatTest.arena();
+        Sfx s = attach(g, new Rec());
+        Combat c = g.combat;
+        c.enemy.def.sight = 0f;
+        c.enemy.def.hearing = 0f;
+        int[] at = {10, 22, 22 + Math.round(Combat.IMPACT_SHOW / H) + 1, 200, 201};      // passos em que um bloqueio acontece
+        int[] maxLive = {0};
+        final int[] n = {0};
+        long asked = s.cueCount;                                          // pedidos (aceitos ou não pelos limites de voz e intervalo)
+        run(g, 3f, (t, cc) -> {
+            int tick = n[0]++;
+            for (int a : at) if (a == tick) cc.impact(new Combat.Impact(cc.clock, new org.joml.Vector3f(g.player.x, 1f, g.player.z), "defesa"));
+            for (Combat.Impact im : cc.impacts) assertTrue(cc.clock - im.time() <= Combat.IMPACT_SHOW + 2 * H, "impacto velho na lista");
+            maxLive[0] = Math.max(maxLive[0], cc.impacts.size());
+            return CombatTest.idle();
+        });
+        assertEquals(at.length, c.impactTotal);
+        assertEquals(at.length, s.cueCount - asked, "um pedido de som por contato, nem mais nem menos (os limites de voz decidem depois)");
+        assertTrue(count(s, "escudo_bloqueio") >= 2, "os contatos afastados soam: " + s.played);
+        assertTrue(c.impacts.isEmpty(), "a lógica poda a lista sozinha");
+        assertTrue(maxLive[0] >= 2, "houve contatos simultâneos na lista");
+    }
+
+    /** Auditoria de engenharia: um só dispositivo por processo — o combate nunca abre o seu quando o áudio do jogo está mudo. */
+    @Test
+    void whenTheGameAudioIsMuteTheCombatNeverOpensADeviceOfItsOwn() {
+        // catálogo aberto, sem saída OpenAL (mudo pedido, --demo, máquina sem dispositivo): combate mudo, sem abrir nada
+        for (String mode : new String[]{"dispositivo", "loopback", "mudo"})
+            assertInstanceOf(SilentBackend.class, Game.combatBackend(mode, null, true), mode);
+        // sem catálogo (rodada 09.1): o combate decide pelo modo; "mudo" continua mudo
+        assertInstanceOf(SilentBackend.class, Game.combatBackend("mudo", null, false));
     }
 }

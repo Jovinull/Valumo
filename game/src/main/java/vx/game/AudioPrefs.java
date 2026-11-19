@@ -16,11 +16,23 @@ import java.util.Locale;
  * interface e de ambiente (e para os efeitos do combate). Gravadas em {@code -Dvx.prefs.audio} (padrão
  * {@code output/preferencias/audio.json}, contrato {@code valumo.preferencias} v1); arquivo ausente ou inválido → padrão
  * (100%), nunca exceção. {@code -Dvx.prefs=-} (roteiros e testes) = nem lê nem grava, como as outras preferências.
+ * {@code -Dvx.prefs=ARQUIVO} sem {@code -Dvx.prefs.audio}: o áudio vai para um arquivo IRMÃO do indicado
+ * ({@code ARQUIVO} + {@code .audio.json}) — quem redireciona as preferências (pacotes de revisão) nunca toca nas do jogador.
  */
 public final class AudioPrefs {
     /** null = não lê nem grava ({@code -Dvx.prefs=-}). */
-    public static final Path FILE = "-".equals(System.getProperty("vx.prefs")) ? null
-            : Path.of(System.getProperty("vx.prefs.audio", "output/preferencias/audio.json"));
+    public static final Path FILE = fileFor(System.getProperty("vx.prefs"), System.getProperty("vx.prefs.audio"));
+
+    /** Arquivo das preferências de áudio para os valores de {@code -Dvx.prefs} e {@code -Dvx.prefs.audio} (null = nenhum). */
+    static Path fileFor(String prefs, String audio) {
+        if ("-".equals(prefs)) return null;
+        if (audio != null) return Path.of(audio);
+        if (prefs != null) {                                             // preferências redirecionadas: o áudio acompanha
+            Path p = Path.of(prefs);
+            return p.resolveSibling(p.getFileName() + ".audio.json");
+        }
+        return Path.of("output/preferencias/audio.json");
+    }
     public static final float STEP = 0.1f;
     public float music = 1f, effects = 1f;
 

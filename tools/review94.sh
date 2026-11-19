@@ -40,7 +40,7 @@ if want ambiente; then
   python3 fontes/audio/ambiente/ambiente.py > /dev/null
   for n in vento lago; do $PY tools/audio/render_ambiente.py fontes/audio/ambiente/$n.mmp "$R/ambiente" --runtime assets/audio/ambiente/$n > /dev/null; done
   tmp="$(mktemp -d output/tmp/r9amb.XXXXXX)"; D=$R/integracao/ambiente; mkdir -p "$D"
-  JAVA_OPTS="-Dvx.audio=loopback -Dvx.musica=nenhuma -Dvx.audio.log=true -Dvx.prefs=$PWD/output/tmp/prefs-revisao.json -Dvx.audio.gravar=$PWD/$D/ambiente-mixagem.wav" \
+  JAVA_OPTS="-Dvx.audio=loopback -Dvx.musica=nenhuma -Dvx.audio.log=true -Dvx.prefs=$PWD/output/tmp/prefs-revisao.json -Dvx.prefs.audio=$PWD/output/tmp/prefs-revisao-audio.json -Dvx.audio.gravar=$PWD/$D/ambiente-mixagem.wav" \
     $G --roteiro tools/jogo/09-ambiente.txt "$tmp" 30 2>&1 | grep -E '^som|^estado|gravad' > "$D/ambiente-eventos.txt" || true
   ffmpeg -loglevel error -y -framerate 30 -i "$tmp/quadros/q_%05d.png" -i "$D/ambiente-mixagem.wav" "${enc[@]}" -pix_fmt yuv420p \
     -c:a aac -b:a 192k -shortest "$D/ambiente-com-som.mp4"; rm -rf "$tmp"
@@ -48,7 +48,7 @@ if want ambiente; then
 fi
 
 if want pausa; then
-  JAVA_OPTS="-Dvx.prefs=$PWD/output/tmp/prefs-revisao.json" $G --roteiro tools/jogo/08-pausa-volume.txt "$R/integracao/pausa" 30 2>&1 | grep -E '^jogo' || true
+  JAVA_OPTS="-Dvx.prefs=$PWD/output/tmp/prefs-revisao.json -Dvx.prefs.audio=$PWD/output/tmp/prefs-revisao-audio.json" $G --roteiro tools/jogo/08-pausa-volume.txt "$R/integracao/pausa" 30 2>&1 | grep -E '^jogo' || true
 fi
 
 if want armas; then

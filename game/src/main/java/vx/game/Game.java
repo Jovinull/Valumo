@@ -10,7 +10,6 @@ import vx.engine.Window.InputEvent;
 import vx.viewer.Actor;
 import vx.viewer.Animator;
 import vx.viewer.App;
-import vx.viewer.Appearance;
 import vx.viewer.Assets;
 import vx.viewer.AsyncComposer;
 import vx.viewer.CharacterModel;
@@ -58,7 +57,6 @@ public final class Game implements AutoCloseable {
     private final Renderer.Toggles toggles = new Renderer.Toggles();
     private final Map<GameLogic.Npc, Actor> npcActors = new HashMap<>();
     private Actor playerActor;
-    private CharacterModel playerModel;
     private String shownSig;
     private Framebuffer captureFbo;
     private final List<Button> buttons = new ArrayList<>();
@@ -147,9 +145,8 @@ public final class Game implements AutoCloseable {
         // um só dispositivo (ADR 0023): se o Audio abriu o OpenAL (catálogo presente), os efeitos do combate tocam no MESMO
         // contexto; senão (sem catálogo), o Sfx abre o seu, como na rodada 09.1.
         String mode = System.getProperty("vx.som", "dispositivo");
+        vx.engine.audio.AudioBackend b = combatBackend(mode, vx.engine.audio.Audio.output(), vx.engine.audio.Audio.get() != null);
         vx.engine.audio.OpenAlOut shared = vx.engine.audio.Audio.output();
-        vx.engine.audio.AudioBackend b = shared != null ? vx.engine.audio.OpenAlBackend.shared(shared)
-                : Sfx.backendFor(mode, vx.engine.audio.OpenAlBackend::open, () -> vx.engine.audio.OpenAlBackend.loopback(48000));
         loopback = shared == null && b instanceof vx.engine.audio.OpenAlBackend o && !o.audible() ? o : null;
         long t0 = System.nanoTime();
         sfx = new Sfx(b, assetsPath);
@@ -159,6 +156,21 @@ public final class Game implements AutoCloseable {
         // passos: os do catálogo (quatro superfícies, GameAudio) quando houver; senão o passo único da 09.1
         if (!vx.engine.audio.Audio.has("passo.grama.andar")) logic.steps = new Footsteps(sfx);
         applyVolumes();
+    }
+
+    /**
+     * Saída dos efeitos do combate — um só dispositivo por processo (ADR 0023):
+     * <ul>
+     *   <li>o {@code Audio} abriu o OpenAL → as vozes do combate entram no MESMO contexto (falha ao criá-las = mudo);</li>
+     *   <li>o {@code Audio} existe mas está mudo (pedido, ou sem dispositivo) → o combate fica mudo também: nunca abre um
+     *       segundo dispositivo por conta própria (antes, {@code --demo} e {@code -Dvx.audio=mudo} abriam o real);</li>
+     *   <li>sem catálogo (sem {@code Audio}) → o combate abre a saída dele pelo modo, como na rodada 09.1.</li>
+     * </ul>
+     */
+    static vx.engine.audio.AudioBackend combatBackend(String mode, vx.engine.audio.OpenAlOut shared, boolean catalogOpen) {
+        if (shared != null) return Sfx.backendFor("dispositivo", () -> vx.engine.audio.OpenAlBackend.shared(shared), null);
+        if (catalogOpen) return new vx.engine.audio.SilentBackend("o áudio do jogo está mudo");
+        return Sfx.backendFor(mode, vx.engine.audio.OpenAlBackend::open, () -> vx.engine.audio.OpenAlBackend.loopback(48000));
     }
 
     /** Volume principal da mistura do combate (sons_e.json), antes da preferência do jogador. */
@@ -240,7 +252,6 @@ public final class Game implements AutoCloseable {
         if (sig != null && !sig.equals(shownSig)) {
             CharacterModel m = async.model(sig);
             if (m != null) {
-                playerModel = m;
                 playerActor = new Actor(m, style.animExaggeration);
                 shownSig = sig;
             }
@@ -541,11 +552,10 @@ public final class Game implements AutoCloseable {
             }
         }
         // acentos de impacto (pixel, curtos): raios que abrem a partir do ponto de contato
-        cb.impacts.removeIf(im -> cb.clock - im.time() > 0.2f);
-        for (Combat.Impact im : cb.impacts) {
+        for (Combat.Impact im : cb.impacts) {                            // só lê: a lista é da lógica (Combat.impacts)
             float[] sc = project(im.at().x, im.at().y, im.at().z, w, h);
             if (sc == null) continue;
-            float k = (cb.clock - im.time()) / 0.2f, u = Math.max(2f, 4 * s);
+            float k = Math.min(1f, (cb.clock - im.time()) / Combat.IMPACT_SHOW), u = Math.max(2f, 4 * s);
             int col = switch (im.kind()) { case "dano" -> 0xff7a52ff; case "defesa" -> 0xcfe8ffff; default -> 0xfff1c8ff; };
             int a8 = Math.round(255 * (1f - k));
             for (int r = 0; r < 8; r++) {
@@ -830,7 +840,6 @@ public final class Game implements AutoCloseable {
     public void run(int maxFrames) {
         double last = window.time(), start = last;
         int frames = 0;
-        double sumMs = 0;
         while (!window.shouldClose() && !logic.quit && (maxFrames <= 0 || frames < maxFrames)) {
             window.poll();
             double now = window.time();
@@ -846,7 +855,6 @@ public final class Game implements AutoCloseable {
             render(null, w, h, 1f, dt);
             window.swap();
             frames++;
-            sumMs += dt * 1000;
         }
         if (window.cursorCaptured()) window.captureCursor(false);
         if (maxFrames > 0)
@@ -1394,8 +1402,11 @@ public final class Game implements AutoCloseable {
     public void close() {
         if (sfx != null) sfx.close();
         if (captureFbo != null) captureFbo.close();
+        if (deathMesh != null) deathMesh.mesh.close();
         async.close();
         renderer.close();
         kit.close();
+        world.close();
+        assets.close();
     }
 }

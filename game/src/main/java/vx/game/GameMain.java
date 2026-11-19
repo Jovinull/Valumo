@@ -34,7 +34,12 @@ public final class GameMain {
         // um só dispositivo de som no processo (Audio): música, ambiente, interface e, por cima dele, os efeitos do combate
         // (Sfx compartilha o contexto). -Dvx.som = dispositivo | loopback | mudo (-Dvx.audio vale igual). O teste de
         // fumaça fica mudo. Roteiro com loopback grava a mistura em SAIDA/audio.wav, em sincronia com os quadros.
-        String som = System.getProperty("vx.som", demo == 0 ? "dispositivo" : "mudo");
+        // Um modo só para as duas camadas: -Dvx.som, senão -Dvx.audio, senão o padrão (jogo = dispositivo; fumaça = mudo).
+        // O Game lê vx.som para os efeitos do combate: sem gravar a escolha aqui, --demo e -Dvx.audio=mudo calavam o
+        // catálogo mas abriam o dispositivo REAL para o combate (auditoria de engenharia).
+        String som = System.getProperty("vx.som", System.getProperty("vx.audio", demo == 0 ? "dispositivo" : "mudo"));
+        if (som.equals("off")) som = "mudo";
+        System.setProperty("vx.som", som);
         if (script != null && som.equals("loopback") && System.getProperty("vx.audio.gravar") == null)
             System.setProperty("vx.audio.gravar", Path.of(out).resolve("audio.wav").toString());
         Audio.start(assets, switch (som) {
