@@ -1240,6 +1240,15 @@ public final class Game implements AutoCloseable {
                     int n = Math.round(Float.parseFloat(t[1]) * fps);
                     for (int i = 0; i < n; i++) tickFrame(List.of(), dt, w, h, record, out);
                 }
+                case "tempo-real" -> {                                     // quadros no ritmo do relógio (o áudio real reabastece)
+                    int n = Math.round(Float.parseFloat(t[1]) * fps);
+                    long t0 = System.nanoTime();
+                    for (int i = 0; i < n; i++) {
+                        tickFrame(List.of(), dt, w, h, record, out);
+                        long due = t0 + Math.round((i + 1) * dt * 1e9), now = System.nanoTime();
+                        if (due > now) try { Thread.sleep((due - now) / 1_000_000, (int) ((due - now) % 1_000_000)); } catch (InterruptedException ignored) { }
+                    }
+                }
                 case "key" -> {
                     int k = keyCode(t[1]);
                     tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, k)), dt, w, h, record, out);
