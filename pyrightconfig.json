@@ -1,0 +1,9 @@
+{
+  // Pyright/Pylance (qualquer editor). Os scripts de fontes/audio põem tools/audio no sys.path ao rodar; os de tools/
+  // importam uns aos outros. Sem estes caminhos o analisador acusa "Import lmms/sintese could not be resolved".
+  "extraPaths": ["tools", "tools/audio"],
+  // Mesmo rigor do padrão do Pylance: este arquivo não pode acrescentar checagem de tipos que ninguém pediu.
+  "typeCheckingMode": "off",
+  // "exclude" substitui o padrão do Pyright: repete o padrão (ocultos, __pycache__) e tira o que é gerado.
+  "exclude": ["**/.*", "**/__pycache__", "**/node_modules", "output", "assets", "**/build"]
+}
