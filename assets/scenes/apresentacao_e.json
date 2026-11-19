@@ -1,0 +1,15 @@
+{
+  "_doc": "Rodada 11.1 — tomadas do fundo do menu principal (escrito à mão): a vila fixa da rodada 10 mostrada por uma câmera cinematográfica controlada (nada de jogo corre por baixo). Cada tomada: alvo [x, y, z] (u), rumo [início, fim] (graus; o olho fica em alvo + dist·(sen rumo·cos incl, sen incl, cos rumo·cos incl): rumo 0 = olho ao sul (+z) olhando para o norte), inclinação [início, fim] (graus), distância [início, fim] (u), duração (s). Movimento com suavização nas pontas; troca de tomada com escurecimento curto. O teste ApresentacaoTest confere que nenhum olho atravessa relevo, árvore ou parede. Para acrescentar uma tomada: docs/processo/como-adicionar-uma-tomada.md.",
+  "formato": "valumo.apresentacao",
+  "versao": 1,
+  "cena": "jogo_vila_e",
+  "transicao": 0.6,
+  "vitrine": {"_doc": "onde o herói fica na tela de personagens: [x, z, rumo em graus] (o rosto para a câmera, a vila atrás); câmera a 3,5 u, conferida no ApresentacaoTest", "heroi": [0.6, 4.4, 345]},
+  "tomadas": [
+    {"nome": "panorama da vila", "alvo": [-1.0, 1.2, -4.0], "rumo": [25, 60], "inclinacao": [24, 20], "distancia": [19, 16.5], "duracao": 11},
+    {"nome": "estalagem e moradores", "alvo": [-5.0, 1.6, -4.6], "rumo": [322, 348], "inclinacao": [13, 10], "distancia": [10.5, 9.0], "duracao": 9},
+    {"nome": "margem do lago", "alvo": [9.5, 0.5, 4.5], "rumo": [305, 335], "inclinacao": [17, 14], "distancia": [9.5, 8.5], "duracao": 8},
+    {"nome": "a trilha do sul", "alvo": [0.2, 0.8, 9.6], "rumo": [168, 192], "inclinacao": [15, 12], "distancia": [7.0, 6.2], "duracao": 8},
+    {"nome": "o marco do posto", "alvo": [-1.15, 1.0, 14.0], "rumo": [192, 170], "inclinacao": [14, 11], "distancia": [5.6, 4.9], "duracao": 9}
+  ]
+}
