@@ -158,6 +158,22 @@ guarda só o modelo.
    cabeça (perto da bochecha lê como "mão no rosto").
 5. Cena própria (`assets/scenes/vila_e.json`, `layout=vila_e`); clareira canônica e vitrine não mudam.
 
+## NPC com altura narrativa (provado com `tools/npcs_oficios_e.py`)
+
+1. Construa no tamanho de NPC (`npcs_vila_e.npc(base, **ficha)`) e **reamostre** o rig pronto (`scale_vox`) para a
+   altura da história: 0,75 u por metro narrativo. Grave `meta.escala`, `metersNarrative`, `worldUnits`; mãos e
+   `*_volumes` escalados junto. Proporção em cabeças e voxel 1/40 continuam os do contrato.
+2. O que depende do tamanho escala com ele (faces ≤ 9 000 × escala², tronco z ≤ ⌈5 × escala⌉); o resto do contrato
+   é o da vila. Nunca afrouxe o limite para um NPC de tamanho normal.
+3. O gesto compartilhado (`npc_vila.json`) está em voxels do esqueleto de origem: o `Animator` o converte com
+   `voxelSize × meta.escala` (sem `escala`, idêntico). `OficiosNpcTest.sharedGesturePassesTheSpatialValidator`.
+4. Detalhe de rosto não pode esconder a atuação: barba deixa a boca à vista (bigode fino, nada em cima da boca);
+   óculos finos ficam abaixo da sobrancelha; cabelo volumoso (afro) não cobre a testa — `expressionsActDifferently`
+   pede ≥ 6 voxels por expressão.
+5. Na vila: `jogo.interativos` com falas próprias; vaga sem nenhuma forma (corpo ou câmera) a menos de 1,6 u e sem
+   copa por cima (`GameplayTest.everyResidentStandsOnFreeGroundWithRoomToTalk`); confira a conversa capturada
+   (`tools/jogo/10-npcs-oficio.txt`) — passar no teste não garante que um poste fino não cubra o rosto.
+
 ## Rodada 06.1 — refinar NPCs sem virar recoloração
 
 1. Pergunta de aceite: **pintadas de preto, ainda se reconhecem?** Capture `set=trio`/`set=elenco` com
