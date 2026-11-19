@@ -143,6 +143,7 @@ public final class CreatorController {
             case GLFW_KEY_BACKSPACE -> action("restore");
             case GLFW_KEY_R -> action("cam:reset");
             case GLFW_KEY_ENTER -> action("done");
+            case GLFW_KEY_ESCAPE -> { if (st.cancelLabel != null) action("cancel"); }   // rodada 11.1: só aberto pelo menu
             default -> { }
         }
     }
@@ -228,6 +229,9 @@ public final class CreatorController {
             case "done" -> { st.dialog = CreatorState.Dialog.DONE; sound.accept("ui.abrir"); return; }
             case "showcase" -> { st.dialog = CreatorState.Dialog.NONE; st.showcase = true; st.pose = Animator.Clip.WALK; cam.focusFace(false); sound.accept("ui.confirmar"); return; }
             case "finish" -> { st.dialog = CreatorState.Dialog.NONE; st.finished = true; sound.accept("ui.confirmar"); return; }
+            case "cancel" -> { st.dialog = CreatorState.Dialog.NONE; st.cancelled = true; sound.accept("ui.cancelar"); return; }
+            case "quit-save" -> { st.dialog = CreatorState.Dialog.NONE; st.finished = true; st.quitRequested = true; sound.accept("ui.confirmar"); return; }
+            case "quit-discard" -> { st.dialog = CreatorState.Dialog.NONE; st.cancelled = true; st.quitRequested = true; sound.accept("ui.cancelar"); return; }
             case "showcase-exit" -> { st.showcase = false; st.pose = Animator.Clip.IDLE; sound.accept("ui.cancelar"); return; }
             case "dialog-cancel" -> { st.dialog = CreatorState.Dialog.NONE; sound.accept("ui.cancelar"); return; }
             default -> { return; }

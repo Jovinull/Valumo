@@ -131,12 +131,18 @@ public final class CreatorLayout {
         return e;
     }
 
+    /** Rodada 11.1 — aberto pelo menu: "Cancelar" no canto superior direito (fecha sem gravar nada). */
+    private void cancelButton(CreatorState st, float mg) {
+        if (st.cancelLabel != null) add("cancel", Kind.BUTTON, w - mg - 260 * s, mg, 260 * s, 60 * s, st.cancelLabel);
+    }
+
     // ------------------------------------------------------------------ variante A
 
     private void buildA(CreatorState st, ComponentCatalog cat, Measure m) {
         float mg = 28 * s, tabW = 230 * s, optW = 584 * s, top = 132 * s;
         add("title", Kind.LABEL, mg, mg, 900 * s, 54 * s, "Criar aventureiro").size = 1;
         add("subtitle", Kind.LABEL, mg, mg + 52 * s, 900 * s, 30 * s, "Escolha a aparência do seu pequeno herói").size = 2;
+        cancelButton(st, mg);
         // abas
         add("tabs-panel", Kind.PANEL, mg, top, tabW, (82 * s) * CreatorState.Category.values().length + 20 * s, null);
         float ty = top + 10 * s;
@@ -180,6 +186,7 @@ public final class CreatorLayout {
     private void buildB(CreatorState st, ComponentCatalog cat, Measure m) {
         float mg = 28 * s, stripH = 330 * s;
         add("title", Kind.LABEL, mg, mg, 700 * s, 54 * s, "Ateliê do aventureiro").size = 1;
+        cancelButton(st, mg);
         float tw = 214 * s, tx = (w - CreatorState.Category.values().length * (tw + 10 * s)) / 2, ty = mg + 64 * s;
         for (CreatorState.Category c : CreatorState.Category.values()) {
             Widget t = add("cat:" + c.name(), Kind.TAB, tx, ty, tw, 60 * s, c.label);
@@ -408,6 +415,15 @@ public final class CreatorLayout {
                 if (st.finishLabel != null) add("finish", Kind.BUTTON, dx + dw / 2 - bw - 12 * s, by, bw, bh, st.finishLabel).selected = true;
                 else add("showcase", Kind.BUTTON, dx + dw / 2 - bw - 12 * s, by, bw, bh, "Ver em movimento").selected = true;
                 add("dialog-cancel", Kind.BUTTON, dx + dw / 2 + 12 * s, by, bw, bh, "Continuar editando");
+            }
+            case CONFIRM_QUIT -> {                                         // rodada 11.1: o X da janela com alterações
+                float b3 = (dw - 80 * s - 2 * 16 * s) / 3;
+                add("d:title", Kind.LABEL, dx + 40 * s, dy + 36 * s, dw - 80 * s, 50 * s, "Sair do jogo?");
+                add("d:text", Kind.LABEL, dx + 40 * s, dy + 96 * s, dw - 80 * s, 30 * s,
+                        fit("As mudanças deste personagem ainda não foram salvas.", dw - 80 * s, px(22), false, m)).size = 2;
+                add("quit-save", Kind.BUTTON, dx + 40 * s, by, b3, bh, "Salvar e sair").selected = true;
+                add("quit-discard", Kind.BUTTON, dx + 40 * s + b3 + 16 * s, by, b3, bh, "Sair sem salvar");
+                add("dialog-cancel", Kind.BUTTON, dx + 40 * s + 2 * (b3 + 16 * s), by, b3, bh, "Cancelar");
             }
             case LOAD -> {
                 add("d:title", Kind.LABEL, dx + 40 * s, dy + 30 * s, dw - 80 * s, 50 * s, "Carregar aparência");

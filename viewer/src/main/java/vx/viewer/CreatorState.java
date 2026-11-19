@@ -14,7 +14,7 @@ public final class CreatorState {
         Category(String l) { label = l; }
     }
 
-    public enum Dialog { NONE, CONFIRM_RESTORE, LOAD, DONE }
+    public enum Dialog { NONE, CONFIRM_RESTORE, LOAD, DONE, CONFIRM_QUIT }
 
     public Category category = Category.MODELO;
     public Appearance appearance = Appearance.preset("aventureiro");
@@ -33,6 +33,14 @@ public final class CreatorState {
     /** Rodada 08: aberto pelo jogo — "Pronto" oferece este botão e encerra o criador devolvendo a aparência. */
     public String finishLabel;
     public boolean finished;
+    /**
+     * Rodada 11.1: aberto pelo menu — botão (e Esc) que fecha o criador SEM devolver nada ({@code cancelled}); null = o
+     * criador de sempre, sem o botão (os presets e o gate não mudam).
+     */
+    public String cancelLabel;
+    public boolean cancelled;
+    /** Rodada 11.1: o X da janela foi pedido dentro do criador (o jogo fecha depois de gravar ou descartar). */
+    public boolean quitRequested;
 
     // ------------------------------------------------------------------ nomes para o jogador (nunca IDs técnicos)
 

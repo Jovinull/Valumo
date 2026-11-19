@@ -67,18 +67,51 @@ public final class Creator implements AutoCloseable {
         });
         ctl.sound = vx.engine.audio.Audio::event;                        // rodada 09.4: mudo se ninguém abriu o áudio
         app.overlay = (w, h) -> { if (layout != null) view.draw(layout, ctl, thumbs, async, h); };
+        openedAs = cs.appearance.signature() + "#" + cs.name;
+    }
+
+    /** Modelos que este criador pôs no {@code App} (esquecidos ao fechar). */
+    private final java.util.Set<String> injectedSigs = new java.util.HashSet<>();
+
+    /**
+     * Rodada 11.1 — monta a cena do criador (a clareira e o pedestal, no cache do {@code App}) e desenha um quadro fora da
+     * tela: quem abre o criador chama isto num passo de carregamento, em vez de o primeiro quadro congelar a janela.
+     */
+    public void warm(int w, int h) {
+        frame(List.of(), 0f, w, h);
+        app.renderFrame(st, null, w, h, 1f, 1f);
+        org.lwjgl.opengl.GL11.glFinish();
+    }
+
+    /** Assinatura (aparência + nome) de quando o criador abriu: diferente agora = alterações não confirmadas. */
+    private String openedAs;
+
+    /** Rodada 11.1 — há alterações não confirmadas desde que o criador abriu? */
+    public boolean dirty() { return openedAs != null && !openedAs.equals(cs.appearance.signature() + "#" + cs.name); }
+
+    /**
+     * Rodada 11.1 — o X da janela dentro do criador aberto pelo jogo: sem alterações, fecha; com alterações, pergunta
+     * (Salvar e sair / Sair sem salvar / Cancelar). Fora do jogo (editor avulso) o X nunca chega aqui: a janela não
+     * intercepta e fecha como sempre.
+     */
+    private void onCloseRequest() {
+        if (!dirty()) { cs.cancelled = true; cs.quitRequested = true; return; }
+        cs.dialog = CreatorState.Dialog.CONFIRM_QUIT;
+        cs.editingName = false;
     }
 
     /** Rodada 08: abre já com uma aparência (vinda do jogo). */
     public void start(Appearance a, String name) {
         cs.appearance = a.copy();
         cs.name = name == null ? "" : name;
+        openedAs = cs.appearance.signature() + "#" + cs.name;
         bySig.put(a.signature(), a.copy());
         async.request(a);
     }
 
     /** Um quadro de lógica: eventos, resultados prontos, layout e câmera para o tamanho (w, h). */
     public void frame(List<InputEvent> events, float dt, int w, int h) {
+        if (window.takeCloseRequest()) onCloseRequest();
         vx.engine.audio.Audio.update(dt);
         ctl.time += dt;
         st.time += dt;
@@ -92,6 +125,7 @@ public final class Creator implements AutoCloseable {
             CharacterModel m = async.model(sig);
             if (m != null) {
                 app.injected.put("custom:" + sig, m);
+                injectedSigs.add(sig);
                 st.appearance = bySig.get(sig);
                 shownSig = sig;
             }
@@ -131,7 +165,7 @@ public final class Creator implements AutoCloseable {
     public void run(int maxFrames) {
         double last = window.time(), start = last;
         int frames = 0;
-        while (!window.shouldClose() && !cs.finished && (maxFrames <= 0 || frames < maxFrames)) {
+        while (!window.shouldClose() && !cs.finished && !cs.cancelled && !cs.quitRequested && (maxFrames <= 0 || frames < maxFrames)) {
             frames++;
             window.poll();
             double now = window.time();
@@ -189,6 +223,7 @@ public final class Creator implements AutoCloseable {
         frame(evs, dt, w, h);
         settle(w, h, dt);
         for (String raw : lines) {
+            if (cs.quitRequested) break;                                     // rodada 11.1: o jogo vai fechar
             String line = raw.strip();
             if (line.isEmpty() || line.startsWith("#")) continue;
             String[] t = line.split("\\s+", 3);
@@ -216,6 +251,11 @@ public final class Creator implements AutoCloseable {
                     st.captureSsaa = record ? 1f : 2f;              // vídeo: como o jogo (FXAA, sem SSAA)
                 }
                 case "settle" -> settle(w, h, dt);
+                case "fechar-janela" -> {                                  // rodada 11.1: o X da janela (caminho do callback)
+                    window.simulateCloseRequest();
+                    injectFrame(List.of(), dt, w, h, record, out, frameNo++);
+                    System.out.println("criador: fechar-janela → " + (cs.quitRequested ? "fecha" : "pergunta (" + cs.dialog + ")"));
+                }
                 case "shot" -> {
                     settle(w, h, dt);
                     Screenshot.save(app.capture(st, w, h), out.resolve(t[1] + ".png"));
@@ -410,7 +450,8 @@ public final class Creator implements AutoCloseable {
         thumbs.close();
         async.close();
         view.close();
-        if (shownSig != null) app.forget("custom:" + shownSig);
+        // rodada 11.1: o App pode continuar vivo (o jogo o reaproveita entre aberturas): nenhum modelo deste criador fica nele
+        for (String sig : injectedSigs) app.forget("custom:" + sig);
         World.layout = prevLayout;
     }
 }
