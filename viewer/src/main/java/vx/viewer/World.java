@@ -129,6 +129,18 @@ public final class World implements AutoCloseable {
     /** Rodada 09.4: centro do lago (fonte posicional da água no jogo). */
     public static float[] pondCenter() { return new float[]{POND_X, WATER_LEVEL, POND_Z}; }
 
+    /**
+     * Rodada 11 — o relevo de sempre como {@link TerrainField} (as mesmas funções estáticas, sem nenhuma conta nova): a
+     * clareira, a vila, o criador e as referências usam este.
+     */
+    public static final TerrainField LEGACY = new TerrainField() {
+        public String id() { return "legado"; }
+        public float height(float x, float z, boolean carvePath) { return World.height(x, z, carvePath); }
+        public float pathDistance(float x, float z) { return World.pathDistance(x, z); }
+        public float pondDistance(float x, float z) { return World.pondDistance(x, z); }
+        public float[] pondCenter() { return World.pondCenter(); }
+    };
+
     private static float pondDistance(float x, float z) {
         float dx = x - POND_X, dz = (z - POND_Z) * 1.2f;
         return (float) Math.sqrt(dx * dx + dz * dz) + noise(x * 0.6f, z * 0.6f) * 0.35f;
@@ -174,6 +186,18 @@ public final class World implements AutoCloseable {
 
     public World(Assets assets, StyleProfile style) { this(assets, style, E_TERRAIN); }
 
+    /** Rodada 11 — relevo e o que é posto nele (props, criaturas, NPCs): null = a clareira de sempre. */
+    public final TerrainField field;
+    private final JsonObject layoutDoc;
+
+    public World(Assets assets, StyleProfile style, int terrainMode) { this(assets, style, terrainMode, LEGACY, null); }
+
+    /**
+     * Rodada 11 — mundo com relevo e composição dados (mundo procedural): {@code doc} tem o formato de
+     * {@code assets/scenes/*.json} ("hero", "props", "scatter", "npcs", "creatures", "clouds"), já com tudo posicionado.
+     */
+    public World(Assets assets, StyleProfile style, TerrainField field, JsonObject doc) { this(assets, style, E_TERRAIN, field, doc); }
+
     /**
      * Libera o que este mundo CONSTRUIU (relevo, água, chanfros e a textura do relevo). Os props e as criaturas são do
      * {@link Assets} e continuam com ele. Thread do GL.
@@ -186,20 +210,22 @@ public final class World implements AutoCloseable {
         if (terrainTexture != null) terrainTexture.close();
     }
 
-    public World(Assets assets, StyleProfile style, int terrainMode) {
+    private World(Assets assets, StyleProfile style, int terrainMode, TerrainField field, JsonObject doc) {
+        this.field = field;
+        this.layoutDoc = doc;
         this.key = style.key;
         this.terrainMode = key.equals("e") ? terrainMode : 0;
         this.ts = TerrainStyle.of(key);
         float tv = ts.voxel;
         n = Math.round(SIZE / tv);
         int ny = Math.round((Y_MAX - Y_MIN) / tv);
-        terrainGrid = Terrain.of(key, this.terrainMode);       // rodada 08: as mesmas colunas servem à colisão do jogo
+        terrainGrid = field == LEGACY ? Terrain.of(key, this.terrainMode) : Terrain.of(field);   // rodada 08: as mesmas colunas servem à colisão do jogo
         top = terrainGrid.top;
         topColor = new int[n * n];
         for (int z = 0; z < n; z++)
             for (int x = 0; x < n; x++) {
                 float wx = (x + 0.5f) * tv - SIZE / 2, wz = (z + 0.5f) * tv - SIZE / 2;
-                float h = height(wx, wz, !key.equals("e"));
+                float h = field.height(wx, wz, !key.equals("e"));
                 topColor[x + z * n] = surfaceColor(wx, wz, h, x, z);
             }
         Path tex = assets.root().resolve("textures/" + key + "/terrain.png");
@@ -367,18 +393,25 @@ public final class World implements AutoCloseable {
      * Rodada 09.4 — classe de superfície no ponto do relevo da E (a mesma que escolhe a cor do chão): 0 grama,
      * 1 floresta, 2 caminho, 3 areia, 4 rocha. Gancho genérico para o jogo (som de passo), sem regra de jogo.
      */
-    public static int surfaceAt(float x, float z) { return surfaceClass(x, z, height(x, z, false)); }
+    public static int surfaceAt(float x, float z) { return surfaceAt(LEGACY, x, z); }
+
+    /** Rodada 11 — classe de superfície num relevo qualquer (o som de passo do mundo procedural usa esta). */
+    public static int surfaceAt(TerrainField f, float x, float z) { return surfaceClass(f, x, z, f.height(x, z, false)); }
 
     /** Classe de superfície: 0 grama, 1 floresta, 2 caminho, 3 areia, 4 rocha. */
-    private static int surfaceClass(float wx, float wz, float h) {
-        float dp = pondDistance(wx, wz);
+    private static int surfaceClass(TerrainField f, float wx, float wz, float h) {
+        float dp = f.pondDistance(wx, wz);
         if (h < WATER_LEVEL + 0.22f && dp < 6.5f) return 3;
-        float pd = pathDistance(wx, wz) + noise(wx * 1.3f, wz * 1.3f) * 0.18f;
+        float pd = f.pathDistance(wx, wz) + noise(wx * 1.3f, wz * 1.3f) * 0.18f;
         if (pd < 0.62f) return 2;
-        float slope = Math.abs(height(wx + 0.4f, wz) - height(wx - 0.4f, wz)) + Math.abs(height(wx, wz + 0.4f) - height(wx, wz - 0.4f));
+        // a inclinação usa a altura com o caminho rebaixado (como antes: height(x, z) = carvePath)
+        float slope = Math.abs(f.height(wx + 0.4f, wz, true) - f.height(wx - 0.4f, wz, true))
+                + Math.abs(f.height(wx, wz + 0.4f, true) - f.height(wx, wz - 0.4f, true));
         if (slope > 1.05f) return 4;
-        float r = (float) Math.sqrt(wx * wx + wz * wz);
-        if (r + noise(wx * 0.25f, wz * 0.25f) * 2.5f > 14.5f) return 1;
+        float[] c = f.center();
+        float cx = wx - c[0], cz = wz - c[1];
+        float r = (float) Math.sqrt(cx * cx + cz * cz);
+        if (r + noise(wx * 0.25f, wz * 0.25f) * 2.5f > f.forestRadius()) return 1;
         return 0;
     }
 
@@ -386,11 +419,11 @@ public final class World implements AutoCloseable {
     private static final int E_WORN = 0xb8bd7c, E_WORN2 = 0xc9bc86, E_DRY = 0x9fbf66;
 
     private int surfaceColor(float wx, float wz, float h, int x, int z) {
-        int cls = surfaceClass(wx, wz, h);
+        int cls = surfaceClass(field, wx, wz, h);
         if (key.equals("e")) {
             float patch = noise(wx * 0.21f + 11, wz * 0.21f - 5) * 0.8f + noise(wx * 0.55f - 3, wz * 0.55f + 8) * 0.35f;
             if (cls == 0 || cls == 1) {
-                float pd = pathDistance(wx, wz) + noise(wx * 1.3f, wz * 1.3f) * 0.18f;
+                float pd = field.pathDistance(wx, wz) + noise(wx * 1.3f, wz * 1.3f) * 0.18f;
                 if (pd < 0.80f) return pd < 0.70f ? E_WORN2 : E_WORN;
             }
             if (cls == 2) return ts.path[noise(wx * 0.9f, wz * 0.9f) > 0.35f ? 1 : 0];
@@ -432,7 +465,7 @@ public final class World implements AutoCloseable {
             for (int x = 0; x < n; x++) {
                 int t = top[x + z * n];
                 float wx = (x + 0.5f) * tv - SIZE / 2, wz = (z + 0.5f) * tv - SIZE / 2;
-                int cls = surfaceClass(wx, wz, height(wx, wz));
+                int cls = surfaceClass(field, wx, wz, field.height(wx, wz, true));
                 float x0 = (x - n / 2f) * tv, z0 = (z - n / 2f) * tv, y1 = (t + 1) * tv + Y_MIN;
                 int[] tt = topTiles[cls];
                 int tile = tt[(int) (hash(x * 3 + 1, z * 7 + 2) * tt.length) % tt.length];
@@ -496,7 +529,10 @@ public final class World implements AutoCloseable {
     }
 
     private Mesh buildWater() {
-        float x0 = POND_X - 6.5f, x1 = POND_X + 6.5f, z0 = POND_Z - 6f, z1 = POND_Z + 6f, y = WATER_LEVEL;
+        float[] pc = field.pondCenter();
+        // rodada 11: mundo sem lago = a lâmina fica embaixo do relevo (nada aparece; a malha existe como antes)
+        float px = pc != null ? pc[0] : 0f, pz = pc != null ? pc[2] : 0f;
+        float x0 = px - 6.5f, x1 = px + 6.5f, z0 = pz - 6f, z1 = pz + 6f, y = pc != null ? WATER_LEVEL : Y_MIN - 1f;
         float[][] p = {{x0, y, z0}, {x1, y, z0}, {x1, y, z1}, {x0, y, z1}};
         float[] buf = new float[6 * Mesh.SCENE_STRIDE];
         int k = 0;
@@ -519,8 +555,8 @@ public final class World implements AutoCloseable {
 
     private void loadLayout(Assets assets, StyleProfile style) {
         Map<String, Assets.Prop> props = assets.props(key);
-        JsonObject doc;
-        try {
+        JsonObject doc = layoutDoc;
+        if (doc == null) try {
             // Cada direção pode ter a sua composição (clearing_<estilo>.json); senão usa a compartilhada.
             Path own = assets.root().resolve(layout != null ? "scenes/" + layout + ".json" : "scenes/clearing_" + key + ".json");
             doc = JsonParser.parseString(Files.readString(Files.exists(own) ? own : assets.root().resolve("scenes/clearing.json"))).getAsJsonObject();
@@ -564,8 +600,8 @@ public final class World implements AutoCloseable {
                 String name = names.get(rnd.nextInt(names.size())).getAsString();
                 int rot = rnd.nextInt(4) * 90;
                 if (Math.abs(x) > SIZE / 2 - 1.5f || Math.abs(z) > SIZE / 2 - 1.5f) continue;
-                if (avoidPath && pathDistance(x, z) < 1.3f) continue;
-                if (pondDistance(x, z) < 4.9f) continue;
+                if (avoidPath && field.pathDistance(x, z) < 1.3f) continue;
+                if (field.pondDistance(x, z) < 4.9f) continue;
                 if (Math.hypot(x - HOUSE_X, z - HOUSE_Z) < 4.6f) continue;
                 if (o.has("frontGap") && z > 6 && Math.abs(x) < o.get("frontGap").getAsFloat()) continue;
                 boolean ok = true;
@@ -583,8 +619,8 @@ public final class World implements AutoCloseable {
                         double a2 = rnd.nextDouble() * Math.PI * 2, r2 = cr * (0.35 + 0.65 * rnd.nextDouble());
                         float cx = x + (float) (Math.cos(a2) * r2), cz = z + (float) (Math.sin(a2) * r2);
                         String n2 = rnd.nextFloat() < 0.75f ? name : names.get(rnd.nextInt(names.size())).getAsString();
-                        if (avoidPath && pathDistance(cx, cz) < 1.0f) continue;
-                        if (pondDistance(cx, cz) < 4.6f) continue;
+                        if (avoidPath && field.pathDistance(cx, cz) < 1.0f) continue;
+                        if (field.pondDistance(cx, cz) < 4.6f) continue;
                         place(props, n2, cx, cz, rnd.nextInt(4) * 90, 0f, false);
                     }
                 }

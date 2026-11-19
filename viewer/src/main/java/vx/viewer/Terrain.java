@@ -15,8 +15,14 @@ public final class Terrain implements Animator.Ground {
     final int[] top;
     private static final Map<String, Terrain> CACHE = new ConcurrentHashMap<>();
 
-    private Terrain(String key, int mode) {
+    /** Rodada 11 — o relevo de onde as colunas saíram ({@link World#LEGACY} ou um campo procedural). */
+    public final TerrainField field;
+
+    private Terrain(String key, int mode) { this(key, mode, World.LEGACY); }
+
+    private Terrain(String key, int mode, TerrainField field) {
         this.key = key;
+        this.field = field;
         this.mode = mode;
         this.voxel = World.TerrainStyle.of(key).voxel();
         float tv = voxel;
@@ -26,7 +32,7 @@ public final class Terrain implements Animator.Ground {
         for (int z = 0; z < n; z++)
             for (int x = 0; x < n; x++) {
                 float wx = (x + 0.5f) * tv - World.SIZE / 2, wz = (z + 0.5f) * tv - World.SIZE / 2;
-                float h = World.height(wx, wz, !key.equals("e"));
+                float h = field.height(wx, wz, !key.equals("e"));
                 top[x + z * n] = Math.clamp(World.quantize(mode, h, wx, wz, tv), 0, ny - 1);
             }
     }
@@ -38,6 +44,15 @@ public final class Terrain implements Animator.Ground {
     }
 
     public static Terrain e() { return of("e", World.E_TERRAIN); }
+
+    /**
+     * Rodada 11 — colunas da E (T1) de um relevo dado. O cache é pela identidade do campo, que inclui a semente e a versão
+     * do gerador; o mesmo campo dá sempre a mesma grade.
+     */
+    public static Terrain of(TerrainField field) {
+        if (field == World.LEGACY) return e();
+        return CACHE.computeIfAbsent("e#" + World.E_TERRAIN + "#" + field.id(), k -> new Terrain("e", World.E_TERRAIN, field));
+    }
 
     /** Altura do chão (topo do voxel) no ponto. */
     public float groundAt(float x, float z) {
@@ -52,6 +67,18 @@ public final class Terrain implements Animator.Ground {
         for (int dz = -1; dz <= 1; dz++) for (int dx = -1; dx <= 1; dx++) s += groundAt(x + dx * tv * 0.75f, z + dz * tv * 0.75f);
         return Math.max(s / 9f, groundAt(x, z) - tv * 0.5f);
     }
+
+    /**
+     * Rodada 11.1 — tira do cache a grade de um campo procedural (o jogo troca de mundo em tempo de execução: sem isso o
+     * cache cresceria a cada região visitada). A grade legada nunca sai.
+     */
+    public static void release(TerrainField field) {
+        if (field == null || field == World.LEGACY) return;
+        CACHE.remove("e#" + World.E_TERRAIN + "#" + field.id());
+    }
+
+    /** Grades no cache (QA: não pode crescer sem limite ao trocar de mundo). */
+    public static int cached() { return CACHE.size(); }
 
     @Override
     public float height(float x, float z) { return groundAt(x, z); }
