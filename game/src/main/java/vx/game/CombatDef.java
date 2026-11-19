@@ -102,8 +102,13 @@ public final class CombatDef {
     /** Rodada 09.3 — gesto lateral ("esquerda" ou "direita") com a mira travada, ou null. */
     public String dodgeSide(String side) { return dodgeSides.get(side); }
 
-    /** Inimigo de um encontro: variante e lugar. */
-    public record Spawn(String variant, float x, float z, float yawDeg) { }
+    /**
+     * Inimigo de um encontro: variante e lugar. Rodada 10: {@code key} = identidade ESTÁVEL do spawn (missões contam por ela, nunca pela ordem na lista); o 5º item
+     * do JSON, ou {@code <encontro>.<índice>} quando ausente.
+     */
+    public record Spawn(String variant, float x, float z, float yawDeg, String key) {
+        public Spawn(String variant, float x, float z, float yawDeg) { this(variant, x, z, yawDeg, null); }
+    }
 
     public final Map<String, List<Spawn>> encounters = new LinkedHashMap<>();
     public String encounterDefault = "um";
@@ -319,9 +324,12 @@ public final class CombatDef {
             for (String k : en.keySet()) {
                 if (k.startsWith("_") || k.equals("padrao")) continue;
                 List<Spawn> l = new ArrayList<>();
+                java.util.Set<String> keys = new java.util.HashSet<>();
                 for (var x : en.getAsJsonArray(k)) {
                     JsonArray a2 = x.getAsJsonArray();
-                    l.add(new Spawn(a2.get(0).getAsString(), a2.get(1).getAsFloat(), a2.get(2).getAsFloat(), a2.get(3).getAsFloat()));
+                    String key = a2.size() > 4 ? a2.get(4).getAsString() : k + "." + l.size();
+                    if (!keys.add(key)) throw new IllegalArgumentException("encontro " + k + ": identidade repetida " + key);
+                    l.add(new Spawn(a2.get(0).getAsString(), a2.get(1).getAsFloat(), a2.get(2).getAsFloat(), a2.get(3).getAsFloat(), key));
                 }
                 c.encounters.put(k, l);
             }

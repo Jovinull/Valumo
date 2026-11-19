@@ -57,6 +57,12 @@ public final class Enemy {
     public int barredBy = -1;
     /** Rodada 09.2 — identidade (ordem do encontro), escala do modelo, chefe, tempo desde a morte. */
     public final int id;
+    /**
+     * Rodada 10 — identidade estável do spawn ({@code trilha.fungo.1}); {@code gone} = já contou para uma missão e
+     * nasce/recomeça caído e invisível (não volta); {@code deathReported} = a morte já saiu em {@link Combat#defeated}.
+     */
+    public final String key;
+    public boolean gone, deathReported;
     public final float scale;
     public float deadT;
     /** Rodada 09.2 — quanto tempo seguido escondido atrás de sólido para a mira (Targeting). */
@@ -70,10 +76,13 @@ public final class Enemy {
 
     Enemy(CombatDef def, CharacterModel skel, Collision c) { this(def, skel, c, 0); }
 
-    Enemy(CombatDef def, CharacterModel skel, Collision c, int id) {
+    Enemy(CombatDef def, CharacterModel skel, Collision c, int id) { this(def, skel, c, id, "inimigo." + id); }
+
+    Enemy(CombatDef def, CharacterModel skel, Collision c, int id, String key) {
         this.def = def;
         this.skel = skel;
         this.id = id;
+        this.key = key;
         this.scale = def.enemyScale;
         anim = new Animator(skel, 1f);
         pose = anim.newPose();
@@ -98,6 +107,17 @@ public final class Enemy {
         struckBy = barredBy = -1;
         hurtT = 99f;
         deadT = hiddenT = 0f;
+        gone = deathReported = false;
+        snapshot();
+    }
+
+    /** Rodada 10 — fora de jogo para sempre (contou para uma missão): caído, sem vida, sem som nem desagregação. */
+    void retire() {
+        state = State.DEAD;
+        hp = 0;
+        stateT = deadT = 99f;
+        vx = vz = 0f;
+        gone = deathReported = true;
         snapshot();
     }
 

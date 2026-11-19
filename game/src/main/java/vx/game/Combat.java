@@ -60,6 +60,13 @@ public final class Combat {
     public long ticks;
     public Outcome outcome = Outcome.NONE;
     public float clock;
+    /**
+     * Rodada 10 — identidades que já contaram para uma missão: nascem e recomeçam fora de jogo ({@link Enemy#retire}) e
+     * não entram na conta da vitória. Escrito pelo jogo (missões), lido aqui.
+     */
+    public final java.util.Set<String> retired = new java.util.HashSet<>();
+    /** Rodada 10 — identidades que morreram neste passo (cada morte sai uma vez); o jogo esvazia depois de cada passo. */
+    public final List<String> defeated = new ArrayList<>();
     /** Liga o registro de eventos no console (roteiros). */
     public boolean echo;
     /** Medição (ns acumulados, passos medidos): herói (estado + corpo + golpe), inimigos (IA + corpo + golpe), só detecção. */
@@ -87,8 +94,12 @@ public final class Combat {
         for (CombatDef.Spawn s : def.encounter(encounter)) {
             CombatDef ed = def.forSpawn(s);
             CharacterModel skel = rigs.computeIfAbsent(ed.enemyRig, r -> CharacterModel.loadSkeleton(assets.resolve(r)));
-            enemies.add(new Enemy(ed, skel, collision, id++));
+            String key = s.key() != null ? s.key() : encounter + "." + id;
+            Enemy e = new Enemy(ed, skel, collision, id++, key);
+            if (retired.contains(key)) e.retire();
+            enemies.add(e);
         }
+        defeated.clear();
         enemy = enemies.get(0);
         outcome = Outcome.NONE;
         lastAttackStart = -99f;
@@ -98,7 +109,11 @@ public final class Combat {
     public void restart(Player p) {
         boolean wasDead = !hero.alive();
         hero.reset();
-        for (Enemy e : enemies) e.reset(collision);
+        for (Enemy e : enemies) {
+            e.reset(collision);
+            if (retired.contains(e.key)) e.retire();                   // rodada 10: o que contou para a missão não volta
+        }
+        defeated.clear();
         hitstop = 0f;
         outcome = Outcome.NONE;
         impacts.clear();
@@ -149,10 +164,15 @@ public final class Combat {
         enemyNanos += System.nanoTime() - t1;
         measuredTicks++;
         separate(p);
+        for (Enemy e : enemies)                                          // rodada 10: cada morte sai uma vez, no passo
+            if (!e.alive() && !e.deathReported) { e.deathReported = true; defeated.add(e.key); }
         if (outcome == Outcome.NONE) {
-            boolean allDead = !enemies.isEmpty();
+            // rodada 10: quem contou para uma missão não entra na conta (trilha limpa não vira "vitória — R recomeça")
+            boolean allDead = false;
+            for (Enemy e : enemies) if (!retired.contains(e.key)) { allDead = true; break; }
             float lastDeath = 99f;
             for (Enemy e : enemies) {
+                if (retired.contains(e.key)) continue;
                 if (e.alive()) { allDead = false; break; }
                 lastDeath = Math.min(lastDeath, e.deadT);
             }
