@@ -192,6 +192,44 @@ def collision_boxes(v, band=(3, 12), cell=2, skip=("foliage",)):
     return boxes
 
 
+def achas(v, x0, x1, y0, rows, z0, z1, d=4, gap=1):
+    """Lenha rachada empilhada (voxel 1/16): achas de d×d com os cantos cortados (ponta arredondada), deitadas ao longo
+    de z; na ponta, cerne claro no meio e anel de madeira; no comprido, casca escura embaixo e madeira em cima;
+    fileiras desencontradas com VÃO entre as achas (a 1/8 e sem vão, a pilha lia como xadrez ou tijolo)."""
+    step = d + gap
+    xs_all = []
+    for r in range(rows):                                       # miolo MAÇIÇO: vão só nas pontas, onde se vê (vão em
+        y = y0 + r * d                                          # toda a profundidade expunha 4 faces compridas por acha)
+        off = (r % 2) * (step // 2)
+        xs = list(range(x0 + off, x1 - d + 2, step))
+        if xs:
+            xs_all.append((y, xs[0], xs[-1] + d - 1))
+    for (y, xa, xb) in xs_all:
+        for z in range(z0 + 1, z1):
+            for x in range(xa, xb + 1):
+                for dy in range(d):
+                    v.set(x, y + dy, z, WOOD_D)
+    for r in range(rows):
+        y = y0 + r * d
+        off = (r % 2) * (step // 2)
+        for x in range(x0 + off, x1 - d + 2, step):
+            for dx in range(d):
+                for dy in range(d):
+                    corner = dx in (0, d - 1) and dy in (0, d - 1)
+                    if corner:
+                        continue
+                    core = 0 < dx < d - 1 and 0 < dy < d - 1
+                    for z in range(z0, z1 + 1):
+                        end = z in (z0, z1)
+                        if end:
+                            c = WOOD_L if core else WOOD
+                        elif dy == d - 1 or dx in (0, d - 1):
+                            c = WOOD_D if dy == 0 else (WOOD if dy < d - 1 else light(WOOD, 0.5))
+                        else:
+                            continue                            # miolo já preenchido
+                        v.set(x + dx, y + dy, z, c)
+
+
 def cross_brace(v, f, a0, a1, y0, y1):
     """Cruz de enxaimel (contraventamento em X) num painel, com traços contínuos."""
     face_line(v, f, a0, y0, a1, y1)
@@ -504,10 +542,43 @@ def asset(name, **meta):
             raise ValueError(f"id repetido: {name}")
         meta.setdefault("versao", 1)
         meta.setdefault("variacoes", {})
-        # decisão do proprietário (avaliação do lote 1, 2026-11-19): aprovação ARTÍSTICA × liberação para INTEGRAÇÃO
-        meta.setdefault("aprovacao", "aprovado")          # aprovado | aprovado_conceito | rejeitado
-        meta.setdefault("integracao", "liberado")         # liberado | depende_colisao_composta | aguardando_refinamento | nao_distribuivel
+        # aprovação ARTÍSTICA × liberação para INTEGRAÇÃO. O lote 1 foi avaliado pelo proprietário (2026-11-19): o padrão
+        # dele é aprovado/liberado e as exceções vêm no registro. Lote 2 em diante nasce candidato, aguardando avaliação.
+        evaluated = meta.get("lote") == 1
+        meta.setdefault("aprovacao", "aprovado" if evaluated else "candidato")
+        # aprovado | aprovado_conceito | candidato | rejeitado
+        meta.setdefault("integracao", "liberado" if evaluated else "aguardando_avaliacao")
+        # liberado | depende_colisao_composta | aguardando_refinamento | aguardando_avaliacao | nao_distribuivel
         meta.setdefault("dependencias", [])
+        meta.setdefault("relacoes", [])                   # [(tipo, alvo: id de asset ou "tag:<nome>", [dist_min, dist_max] u)]
         ASSETS[name] = (fn, meta)
         return fn
     return deco
+
+
+# ----------------------------------------------------------------------------- geometria de posicionamento (u)
+
+def rot_u(x, z, deg):
+    """O giro do viewer (Matrix4f.rotateY, graus): +Z do modelo vai para +X com 90°."""
+    a = math.radians(deg)
+    return x * math.cos(a) + z * math.sin(a), -x * math.sin(a) + z * math.cos(a)
+
+
+def rect_world(pegada, x, z, r, grow=(0.0, 0.0, 0.0, 0.0)):
+    """Cantos (mundo) da pegada {"min": [x0, z0], "max": [x1, z1]} crescida por (lados_esq, lados_dir, fundos, frente),
+    girada por r e transladada para (x, z)."""
+    (x0, z0), (x1, z1) = pegada["min"], pegada["max"]
+    x0, x1, z0, z1 = x0 - grow[0], x1 + grow[1], z0 - grow[2], z1 + grow[3]
+    return [tuple(a + b for a, b in zip(rot_u(cx, cz, r), (x, z))) for (cx, cz) in ((x0, z0), (x1, z0), (x1, z1), (x0, z1))]
+
+
+def rects_overlap(p, q):
+    """Separação de eixos entre dois retângulos girados (encostar não conta)."""
+    for poly in (p, q):
+        for i in range(4):
+            ax, az = poly[(i + 1) % 4][1] - poly[i][1], -(poly[(i + 1) % 4][0] - poly[i][0])
+            pa = [ax * x + az * z for (x, z) in p]
+            qa = [ax * x + az * z for (x, z) in q]
+            if max(pa) <= min(qa) + 1e-6 or max(qa) <= min(pa) + 1e-6:
+                return False
+    return True

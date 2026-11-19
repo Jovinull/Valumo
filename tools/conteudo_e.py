@@ -18,12 +18,13 @@ import os
 import conteudo_lib as L
 from voxlib import write_vox
 
-MODULES = ("conteudo_construcoes", "conteudo_vegetacao", "conteudo_poi", "conteudo_props")
+MODULES = ("conteudo_construcoes", "conteudo_vegetacao", "conteudo_poi", "conteudo_assentamento", "conteudo_props")
 CONTRACT = "valumo.conteudo"
 VERSION = 1
 HERO = "characters/e/adventurer"
 REFS = ("house", "trail_post", "well", "shrine", "tree_oak", "tree_oak3", "tree_oak4", "tree_oak2", "tree_pine",
-        "tree_birch", "tree_willow", "tree_big", "rock_l", "mushroom_big")   # aprovados, só para comparar (LINHA)
+        "tree_birch", "tree_willow", "tree_big", "rock_l", "mushroom_big", "barrel", "crate", "lantern_post", "signpost",
+        "fence", "campfire", "log", "stump")   # aprovados, só para comparar (LINHA)
 
 
 def _load_modules():
@@ -80,6 +81,53 @@ def _same_points(a, b):
     return all(a[k] == b.get(k) for k in keys)
 
 
+def _conjuntos(catalog, manifest):
+    """Valida e exporta os conjuntos de ofício (tools/conteudo_conjuntos.py): item fora da pegada da âncora e dos
+    outros itens, entradas da âncora livres (folga de 0,3 u), ids existentes no props.json. Recusa o build se falhar."""
+    try:
+        import conteudo_conjuntos as CJ
+    except ModuleNotFoundError:
+        return []
+    by_id = {c["id"]: c for c in catalog}
+    for c in catalog:
+        for v in c["variacoes"]["extremos"]:
+            if v.get("prop"):
+                by_id[v["id"]] = {**c, "id": v["id"], "medidas": {**c["medidas"], "pegada_u": v["pegada_u"]}}
+    out = []
+    for cj in CJ.CONJUNTOS:
+        anc = by_id.get(cj["ancora"])
+        if anc is None or cj["ancora"] not in manifest:
+            raise SystemExit(f"conjunto {cj['id']}: âncora {cj['ancora']} inexistente")
+        a_rect = L.rect_world(anc["medidas"]["pegada_u"], 0, 0, 0)
+        doors = [e["pos_u"] for e in anc["pontos"]["entradas"]]
+        rects, items = [], []
+        for (iid, x, z, r) in cj["itens"]:
+            it = by_id.get(iid)
+            if it is None or iid not in manifest:
+                raise SystemExit(f"conjunto {cj['id']}: item {iid} inexistente no props.json")
+            rr = L.rect_world(it["medidas"]["pegada_u"], x, z, r)
+            if L.rects_overlap(rr, a_rect):
+                raise SystemExit(f"conjunto {cj['id']}: {iid} invade a pegada da âncora")
+            for (oid, orr) in rects:
+                if L.rects_overlap(rr, orr):
+                    raise SystemExit(f"conjunto {cj['id']}: {iid} sobrepõe {oid}")
+            grown = L.rect_world(it["medidas"]["pegada_u"], x, z, r, grow=(0.3, 0.3, 0.3, 0.3))
+            for d in doors:
+                pt = [(d[0] - 0.01, d[2] - 0.01), (d[0] + 0.01, d[2] - 0.01), (d[0] + 0.01, d[2] + 0.01), (d[0] - 0.01, d[2] + 0.01)]
+                if L.rects_overlap(grown, pt):
+                    raise SystemExit(f"conjunto {cj['id']}: {iid} bloqueia a entrada da âncora em {d}")
+            rects.append((iid, rr))
+            items.append({"id": iid, "pos_u": [x, z], "rumo": r})
+        xs = [p[0] for _, rr in rects for p in rr] + [p[0] for p in a_rect]
+        zs = [p[1] for _, rr in rects for p in rr] + [p[1] for p in a_rect]
+        out.append({"id": cj["id"], "nome": cj["nome"], "oficio": cj["oficio"], "ancora": cj["ancora"],
+                    "leitura": cj["leitura"], "referencial": "u no espaço da âncora (+z = frente); gira com a âncora",
+                    "itens": items, "caixa_u": {"min": [round(min(xs), 3), round(min(zs), 3)],
+                                                 "max": [round(max(xs), 3), round(max(zs), 3)]},
+                    "estado": "candidato", "aprovacao": "aguardando avaliação do proprietário"})
+    return out
+
+
 def _cost_class(faces):
     return "leve" if faces < 3000 else "medio" if faces < 9000 else "pesado" if faces < 20000 else "muito_pesado"
 
@@ -106,7 +154,7 @@ def build(out):
         vs = meta["voxel"]
         b = vox.bounds()
         size = [b[3] - b[0] + 1, b[4] - b[1] + 1, b[5] - b[2] + 1]
-        state = "rejeitado" if meta["aprovacao"] == "rejeitado" else "aprovado"
+        state = {"rejeitado": "rejeitado", "candidato": "candidato"}.get(meta["aprovacao"], "aprovado")
         # affineWind MEDIDO: só quem ainda tem material folhagem (o vento afim do estilo E desloca só a folhagem; a flag
         # do prop autoriza o mesher a fundir essas faces). Estrutura rígida sem folhagem não declara vento.
         wind = any(c[3] == "foliage" for c in vox.v.values())
@@ -128,11 +176,23 @@ def build(out):
             vv, vpts = fn(**params)
             vb = vv.bounds()
             vname = f"{name}__{tag}"
-            vo = write_vox(os.path.join(studies, vname, "body.vox"), vv)
-            _rig(os.path.join(studies, vname), f"{meta['nome']} ({tag})", vs, "body.vox", vo,
-                 [vb[3] - vb[0] + 1, vb[4] - vb[1] + 1, vb[5] - vb[2] + 1])
+            vsize = [vb[3] - vb[0] + 1, vb[4] - vb[1] + 1, vb[5] - vb[2] + 1]
+            published = bool(meta.get("publicar_variantes")) and state != "rejeitado"
+            if published:                                       # variante publicada: prop próprio no props.json
+                vo = write_vox(os.path.join(env, vname + ".vox"), vv)
+                ventry = {"file": vname + ".vox", "voxelSize": vs, "origin": vo, "sizeVoxels": vsize, "conteudo": True,
+                          "variante_de": name}
+                if any(c[3] == "foliage" for c in vv.v.values()):
+                    ventry["affineWind"] = True
+                manifest[vname] = ventry
+                _rig(os.path.join(studies, vname), f"{meta['nome']} ({tag})", vs, f"../../../environment/e/{vname}.vox",
+                     vo, vsize)
+            else:
+                vo = write_vox(os.path.join(studies, vname, "body.vox"), vv)
+                _rig(os.path.join(studies, vname), f"{meta['nome']} ({tag})", vs, "body.vox", vo, vsize)
             vm = L.measure(vv, vs, trunk_band=meta.get("tronco_faixa"))
-            variants.append({"id": vname, "parametros": {k: v for k, v in params.items()},
+            variants.append({"id": vname, "prop": vname if published else None,
+                             "parametros": {k: v for k, v in params.items()},
                              "dimensoes_u": vm["dimensoes_u"], "pegada_u": vm["pegada_u"],
                              "faces_expostas": vm["faces_expostas"],
                              "pontos_iguais": _same_points(_points(vpts, vs), _points(pts, vs)),
@@ -140,7 +200,9 @@ def build(out):
         rec = {
             "id": name, "nome": meta["nome"], "categoria": meta["categoria"], "subcategoria": meta.get("sub"),
             "lote": meta.get("lote"), "estado": state, "versao": meta["versao"],
-            "aprovacao": {"artistica": meta["aprovacao"], "decisao": "proprietário, avaliação do lote 1 (2026-11-19)",
+            "aprovacao": {"artistica": meta["aprovacao"],
+                          "decisao": ("proprietário, avaliação do lote 1 (2026-11-19)" if meta.get("lote") == 1
+                                      else "aguardando avaliação do proprietário"),
                           "integracao": meta["integracao"],
                           "distribuicao_procedural": meta["integracao"] == "liberado",
                           "dependencias": meta["dependencias"]},
@@ -158,6 +220,7 @@ def build(out):
                       "emissivo_pct": m["emissivo_pct"]},
             "pontos": _points(pts, vs),
             "variacoes": {"parametros": meta["variacoes"], "extremos": variants},
+            "relacoes": [{"tipo": t, "alvo": a, "distancia_u": d} for (t, a, d) in meta["relacoes"]],
             "notas": meta.get("notas"), "motivo_rejeicao": meta.get("motivo_rejeicao"),
         }
         catalog.append(rec)
@@ -181,19 +244,22 @@ def build(out):
     for c in catalog:
         by_cat.setdefault(c["categoria"], []).append(c["id"])
     compare = {"vegetacao": ["tree_oak", "tree_oak3", "tree_oak4", "tree_oak2", "tree_pine", "tree_birch", "tree_willow"],
-               "construcao": ["house", "trail_post"], "poi": ["shrine", "well", "rock_l"]}
+               "construcao": ["house", "trail_post"], "poi": ["shrine", "well", "rock_l"],
+               "estrutura": ["well", "trail_post", "shrine"],
+               "prop": ["barrel", "crate", "lantern_post", "signpost", "fence", "campfire", "log", "stump"]}
     for cat, refs in compare.items():
         if cat in by_cat:
             lineups[f"conteudo-{cat}-comparacao"] = [f"ref_{r}" for r in refs if r in manifest] + by_cat[cat]
     for s, names in sorted(lineups.items()):
         cats = [L.ASSETS.get(n.split("__")[0], (None, {}))[1].get("categoria") for n in names if not n.startswith("ref_")]
-        wide = any(c in ("construcao", "poi") for c in cats)
+        wide = any(c in ("construcao", "poi", "estrutura") for c in cats)
         doc = {"dirs": [HERO] + [f"studies/conteudo/{n}" for n in names],
                "larguraMax": 9.0 if wide else 5.0, "vao": 0.6}
         with open(os.path.join(ldir, s + ".json"), "w") as f:
             json.dump(doc, f, indent=1)
+    sets = _conjuntos(catalog, manifest)
     with open(os.path.join(env, "conteudo_catalogo.json"), "w") as f:
-        json.dump({"contrato": CONTRACT, "versao": VERSION,
+        json.dump({"contrato": CONTRACT, "versao": VERSION, "conjuntos": sets,
                    "_doc": "Catálogo do laboratório de conteúdo (provisório, isolado do módulo game). Medidas tiradas dos "
                            "voxels; pontos autorados conferidos por ConteudoMundoTest. Ver docs/architecture/catalogo-de-conteudo.md.",
                    "assets": catalog}, f, indent=1, ensure_ascii=False)
