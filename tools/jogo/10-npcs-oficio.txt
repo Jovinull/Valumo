@@ -1,0 +1,86 @@
+# Integração da 09.4 — conversa com cada NPC de ofício (Bramor, Teodor, Pluma, Ondina, Lunara): o herói fica 1,3 u
+# à frente de cada um, abre a conversa, captura o quadro e lê as falas até o fim (a câmera enquadra pela altura do NPC).
+size 1920 1080
+click comecar
+wait 1.5
+# Bramor (Guardião de trilhas)
+posicionar -8.76 -1.62 253
+camera-recompor
+wait 0.6
+shot bramor-chegada
+key E
+wait 1.4
+shot bramor-fala-1
+key E
+wait 1.4
+shot bramor-fala-2
+key E
+wait 1.4
+shot bramor-fala-3
+key E
+wait 0.8
+# Teodor (Estudioso)
+posicionar 1.51 -2.79 158
+camera-recompor
+wait 0.6
+shot teodor-chegada
+key E
+wait 1.4
+shot teodor-fala-1
+key E
+wait 1.4
+shot teodor-fala-2
+key E
+wait 1.4
+shot teodor-fala-3
+key E
+wait 0.8
+# Pluma (Cronista)
+posicionar -1.43 -8.70 183
+camera-recompor
+wait 0.6
+shot pluma-chegada
+key E
+wait 1.4
+shot pluma-fala-1
+key E
+wait 1.4
+shot pluma-fala-2
+key E
+wait 1.4
+shot pluma-fala-3
+key E
+wait 0.8
+# Ondina (Guia costeira)
+posicionar 6.74 -0.69 104
+camera-recompor
+wait 0.6
+shot ondina-chegada
+key E
+wait 1.4
+shot ondina-fala-1
+key E
+wait 1.4
+shot ondina-fala-2
+key E
+wait 1.4
+shot ondina-fala-3
+key E
+wait 0.8
+# Lunara (Cantora noturna)
+posicionar 0.86 -6.71 174
+camera-recompor
+wait 0.6
+shot lunara-chegada
+key E
+wait 1.4
+shot lunara-fala-1
+key E
+wait 1.4
+shot lunara-fala-2
+key E
+wait 1.4
+shot lunara-fala-3
+key E
+wait 0.8
+estado
