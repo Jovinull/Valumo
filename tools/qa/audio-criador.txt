@@ -1,0 +1,8 @@
+# QA de áudio em tempo real — música e ambiente enquanto o criador abre e fecha de dentro do jogo.
+# Uso: tools/qa/audio_tempo_real.sh tools/qa/audio-criador.txt SAIDA   (backend wave do OpenAL Soft: nada nos alto-falantes)
+# "tempo-real" roda quadros no ritmo do relógio (o dispositivo consome em tempo real); "wait" seria mais rápido que ele.
+size 1280 720
+click comecar
+tempo-real 6
+criador tools/qa/criador-sub.txt
+tempo-real 6
