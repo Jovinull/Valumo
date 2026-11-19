@@ -106,6 +106,7 @@ primeiro NPC aprovado).
 | Paleta | [F] | 3–5 matizes, 1 destaque; rampas `P()`; sem preto/branco puros em área |
 | Rig | [O] | o mesmo bípede articulado (para reaproveitar locomoção e perfis); pivôs podem mudar com a proporção, registrados em `meta` |
 | Aprovação | [P] | primeiro NPC de cada tipo passa por aprovação do proprietário ao lado de `ref 01` |
+| Altura narrativa | [F] | NPC com altura de história (mais alto ou mais baixo que os da vila) é o rig pronto **reamostrado** (`meta.escala`, 0,75 u por metro narrativo): a proporção em cabeças e o voxel 1/40 não mudam. Os limites que dependem do tamanho escalam com ele — faces ≤ 9 000 × escala², tronco z ≤ ⌈5 × escala⌉ — e o gesto compartilhado roda em proporção (o `Animator` lê a coreografia em `voxelSize × escala`). Teste: `OficiosNpcTest` |
 
 ## Criaturas
 

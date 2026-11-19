@@ -18,14 +18,14 @@ Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visu
 | Área | Situação |
 |---|---|
 | Heróis | aventureiro, exploradora e maga — aprovados e congelados (22 imagens canônicas) |
-| NPCs | cartógrafa; **Kelyra** (estalajadeira), **Índira** (herbalista) e **Súvia** (mensageira) — candidatas |
+| NPCs | cartógrafa; **Kelyra** (estalajadeira), **Índira** (herbalista) e **Súvia** (mensageira); de ofício, com altura narrativa e conversa na vila: **Bramor** (guardião de trilhas), **Teodor** (estudioso), **Pluma** (cronista), **Ondina** (guia costeira) e **Lunara** (cantora noturna) — candidatos |
 | Criaturas | pompom, tortuga, fungo, lumi (aprovados) e mariposa (candidata) |
 | Cenário | clareira canônica; vitrine da expansão; vila (NPCs da vila) |
 | Animação | locomoção com IK de pé, golpes por perfil (espada, escudo, lâmina longa, arco, cajado), gestos de NPC com atuação por personagem |
 | Validação | testes Java, validador espacial de golpes, oclusão de rosto/arma, sonda de pegada, auditoria de voxels, reprodução determinística |
 | Personalização | **em tempo de execução**: os três heróis como presets (idênticos ao original), 4 estilos de cabelo, 10 cores, 5 tons de pele, 3 rostos, 5 íris, chapéu e capuz; salvar e carregar — [arquitetura](docs/architecture/personalizacao.md) |
 | Criador de personagens | interface do jogador com mouse: cena própria, miniaturas reais, amostras de cor, giro e zoom, poses, salvar/carregar/restaurar — [interface](docs/architecture/criador-de-personagens.md) |
-| Jogo (exploração) | herói controlável na vila: andar/correr com aceleração, colisão com o cenário, degraus e encostas, câmera em terceira pessoa que não atravessa paredes, conversa com a Kelyra, aparência escolhida ou criada no editor — [jogo](docs/architecture/jogo.md) |
+| Jogo (exploração) | herói controlável na vila: andar/correr com aceleração, colisão com o cenário, degraus e encostas, câmera em terceira pessoa que não atravessa paredes, conversa com a Kelyra e os cinco NPCs de ofício, aparência escolhida ou criada no editor — [jogo](docs/architecture/jogo.md) |
 
 Rodadas: 01 comparou quatro direções (A–D), 02 consolidou a E, 03 poliu, 04 refez a coreografia de armas,
 05/05.1 auditaram e provaram reprodutibilidade, 06 fez a primeira expansão controlada, 06.1 refinou os NPCs e
@@ -71,7 +71,7 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `Shift` | correr |
 | mouse | girar a câmera |
 | roda | aproximar e afastar |
-| `E` | conversar (perto e de frente para a Kelyra) e avançar as falas |
+| `E` | conversar (perto e de frente para um NPC: Kelyra, Bramor, Teodor, Pluma, Ondina, Lunara) e avançar as falas |
 | clique esquerdo | atacar (no ritmo, encadeia horizontal → diagonal → descendente; dá para andar durante o golpe) |
 | botão direito (segurar) | defender com o escudo (só de frente) |
 | `Espaço` | pular (sobe em caixote, barril e pedra pequena) |
@@ -182,7 +182,7 @@ engine/    núcleo: janela e eventos, shaders, malhas, leitor .vox, mesher, câm
 viewer/    runtime (renderer, mundo, relevo, animador, compositor, criador, peças de interface) + visualizador:
            estilos, modos, captura, bench, validadores
 game/      o jogo: jogador, colisão, câmera de exploração, NPCs interativos, diálogo, estados, interface
-tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_e, npcs_vila_e), criaturas,
+tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_e, npcs_vila_e, npcs_oficios_e), criaturas,
            ambiente, prova de personalização (custom_e) + utilitários de QA
 assets/    feitos à mão (versionados): scenes/*.json e anim/*.json; gerados por build_assets.py (fora do git):
            characters/ (e = heróis, npc = NPCs, custom = prova modular, r3/r4/variants = estudos), creatures/,

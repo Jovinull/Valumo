@@ -206,6 +206,16 @@ Percursos usados nos vídeos e testes:
   - mostra a plaqueta "Kelyra · Estalajadeira", a fala com quebra de linha e o progresso;
   - tem os botões **Continuar (E)**, que vira **Até logo** na última fala, e **Sair (Esc)**.
 - **Falas:** quatro, originais, na seção `jogo` da cena. Sem árvore, missões nem serviço externo.
+- **NPCs de ofício (integração da 09.4):** Bramor (guardião de trilhas), Teodor (estudioso), Pluma (cronista),
+  Ondina (guia costeira) e Lunara (cantora noturna) entram em `jogo.interativos` com três falas cada, pelo mesmo
+  sistema. Têm altura narrativa (Bramor 1,73 u); a câmera de conversa sobe o alvo e se afasta na proporção da
+  altura do rig (`SceneDef.Interactive.height`, de `meta.worldUnits`; até 1,25 u nada muda).
+- **Lado da câmera na conversa:** entre os dois lados (e, se ambos fecharem, por cima do ombro), o mais perto de
+  onde a câmera já estava **entre os que têm a vista livre** — antes, uma pedra do lado escolhido empurrava a câmera
+  para dentro do rosto.
+- **Vagas:** cada NPC de ofício fica em chão caminhável, sem nenhuma forma de corpo ou câmera a menos de 1,6 u, sem
+  copa por cima e longe dos outros (`GameplayTest.everyResidentStandsOnFreeGroundWithRoomToTalk`); roteiro de
+  captura `tools/jogo/10-npcs-oficio.txt`.
 - **Repetição automática do teclado** não reabre a conversa (teste).
 
 ## 8. Aparência personalizada no mundo
