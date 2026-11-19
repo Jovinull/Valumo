@@ -15,7 +15,8 @@ key E
 wait 2.8
 key E
 wait 2.4
-key E
+# rodada 10: a última fala é a oferta da missão (E aceitaria); Esc encerra sem decidir (tools/aventura/ mostra a missão)
+key ESC
 wait 1.2
 estado
 look -500 0 1.0

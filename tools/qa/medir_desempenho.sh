@@ -12,13 +12,13 @@ export JAVA_HOME="${JAVA_HOME:-$HOME/.sdkman/candidates/java/current}"
 OUT="${OUT_BASE:-output/qa/desempenho}/$TAG"; mkdir -p "$OUT" output/tmp
 G="$BIN/game/bin/game"; V="$BIN/viewer/bin/viewer"
 # CENARIOS="vila bench" limita o que roda (padrão: todos)
-quer() { [[ " ${CENARIOS:-vila combate-um combate-grupo combate-chefe criador bench} " == *" $1 "* ]]; }
+quer() { [[ " ${CENARIOS:-vila combate-um combate-grupo combate-chefe criador bench} " == *" $1 "* ]]; }   # combate-trilha: só se pedido
 run() {  # run NOME JAVA_OPTS ROTEIRO
   local nome="$1" opts="$2" rot="$3"
   quer "$nome" || return 0
   for r in $(seq 1 "$REPS"); do
     local t; t=$(mktemp -d output/tmp/audperf.XXXXXX)
-    JAVA_OPTS="-Dvx.som=${SOM:-mudo} -Dvx.prefs=- -Dvx.prefs.audio=- -Xlog:gc*:file=$OUT/$nome-$r.gc.log::filecount=0 ${EXTRA:-} $opts" "$G" --roteiro "$rot" "$t" 60 > "$t/log.txt" 2>&1 || echo "FALHOU $nome $r"
+    JAVA_OPTS="-Dvx.som=${SOM:-mudo} -Dvx.prefs=- -Dvx.prefs.audio=- -Dvx.savegame=- -Xlog:gc*:file=$OUT/$nome-$r.gc.log::filecount=0 ${EXTRA:-} $opts" "$G" --roteiro "$rot" "$t" 60 > "$t/log.txt" 2>&1 || echo "FALHOU $nome $r"
     cp "$t/desempenho.txt" "$OUT/$nome-$r.txt" 2>/dev/null || cp "$t/log.txt" "$OUT/$nome-$r.FALHA.txt"
     rm -rf "$t"
   done
@@ -27,6 +27,7 @@ run vila "" tools/jogo/desempenho.txt
 run combate-um "-Dvx.encontro=um" tools/combate92/desempenho.txt
 run combate-grupo "-Dvx.encontro=grupo" tools/combate92/desempenho.txt
 run combate-chefe "-Dvx.encontro=chefe" tools/combate92/desempenho.txt
+run combate-trilha "-Dvx.encontro=trilha" tools/combate92/desempenho.txt   # rodada 10: o encontro da missão (binários da 10 em diante)
 quer criador && for r in $(seq 1 "$REPS"); do
   t=$(mktemp -d output/tmp/audperf.XXXXXX)
   JAVA_OPTS="${EXTRA:-}" "$V" --editor-script tools/criador/desempenho.txt "$t" 60 > "$t/log.txt" 2>&1 || echo "FALHOU criador $r"

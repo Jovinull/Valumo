@@ -30,6 +30,7 @@ key E
 wait 2.0
 key E
 wait 1.6
-key E
+# rodada 10: a última fala da Kelyra é a oferta da missão; Esc encerra sem decidir
+key ESC
 wait 1.5
 record off

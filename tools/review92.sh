@@ -116,7 +116,8 @@ if [ "$what" = capturas ] || [ "$what" = tudo ]; then
     set -- $sz
     t=$(mktemp -d output/tmp/r92cap.XXXXXX)
     sed "s/^size .*/size $1 $2/" tools/combate92/capturas.txt > "$t/roteiro.txt"
-    $G --roteiro "$t/roteiro.txt" "$t/saida" 30 > "$t/log.txt" 2>&1 || true
+    # fechamento da 10: arena e sensação na pausa só no modo técnico (a captura 10 mostra essas opções)
+    JAVA_OPTS="${JAVA_OPTS:-} -Dvx.tecnico=true" $G --roteiro "$t/roteiro.txt" "$t/saida" 30 > "$t/log.txt" 2>&1 || true
     for p in "$t"/saida/*.png; do cp "$p" "$R/capturas/$(basename "$p" .png)-${1}x${2}.png"; done
     rm -rf "$t"
   done

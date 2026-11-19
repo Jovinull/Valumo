@@ -21,7 +21,9 @@ key E
 key E
 wait 1.0
 shot 06-dialogo-ultima-fala
-key E
+# rodada 10: a última fala da Kelyra é a oferta da missão (E escolheria "Aceitar"); Esc encerra sem decidir, igual
+# nos binários de antes e de agora — o resto do roteiro segue comparável
+key ESC
 wait 1.2
 key ESC
 wait 0.4

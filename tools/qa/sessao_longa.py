@@ -24,7 +24,8 @@ for i in range(N):
     L += [f"# ciclo {i + 1}", "encontro um", "posicionar 0.6 4.4 200", "camera-recompor",
           "segurar W", "wait 1.2", "soltar W", "segurar W+SHIFT", "wait 1.0", "soltar W+SHIFT", "look 400 0 0.6", "pular", "wait 0.8",
           f"posicionar {hx:.2f} {hz:.2f} {(r + 180) % 360:.0f}", "camera-recompor", "wait 0.4"]
-    L += ["key E", "wait 0.5"] * (falas + 1)
+    # rodada 10: Esc encerra a conversa sem decidir (na Kelyra a última fala é a oferta da missão, e E aceitaria)
+    L += ["key E", "wait 0.5"] * falas + ["key ESC", "wait 0.5"]
     # o mudo (a cada 10 ciclos) deixa ~0,4 s de silêncio de propósito: os buracos ESPERADOS no áudio são N/10
     L += ["key ESC", "wait 0.3", "click mus-", "click mus+", "click efe-", "click efe+"]
     if i % 10 == 9:

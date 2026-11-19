@@ -1,4 +1,5 @@
 # Rodada 09.2 — capturas da aplicação (o tamanho é trocado pelo review92.sh: 1920×1080 e 1280×720)
+# fechamento da rodada 10: rode com -Dvx.tecnico=true (a pausa só mostra arena e sensação no modo técnico)
 size 1920 1080
 click comecar
 wait 1.0
