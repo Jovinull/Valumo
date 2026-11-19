@@ -26,6 +26,10 @@
 | [0022](0022-morte-por-desagregacao-voxel.md) | Morte por desagregação voxel: o corpo se desfaz nos próprios blocos (rodada 09.2) |
 | [0023](0023-audio-openal-stb-vorbis.md) | Áudio com OpenAL Soft e stb_vorbis (módulos do LWJGL), um dispositivo por processo com os efeitos do combate, catálogo de eventos, laço exato, loopback para testes e gravação (rodada 09.4) |
 | [0024](0024-missoes-e-save.md) | Missões como dados + camada lógica sem interface, identidade estável de inimigo (o que contou não volta), falas por contexto, jogo salvo v1 com escrita atômica e sem migração falsa (rodada 10) |
+| [0025](0025-mundo-procedural-por-composicao.md) | Mundo procedural por composição validada: relevo como dado (`TerrainField`, o legado sem nenhuma conta nova), região por semente com RNG derivado por rótulo, conferência na colisão real com tentativas limitadas, missão como modelo + instância a partir de fatos (rodada 11, fundação) |
+| [0026](0026-save-v2-mundo-procedural.md) | Save v2 só para o mundo procedural: semente, gerador, versão e vínculos resolvidos conferidos na volta; v1 intacto, sem migração (rodada 11) |
+| [0027](0027-porta-de-entrada-e-sessoes.md) | Porta de entrada: menu principal com a vila fixa como cenário (estado MENU, câmera de tomadas validadas), sessões trocáveis em tempo de execução e transições em passos com rótulo real (rodada 11.1) |
+| [0028](0028-personagens-mundos-e-aventuras.md) | Personagens e mundos com id estável; aventura = pasta do par personagem × mundo nos formatos v1/v2 (sem v3); saves e aparências antigos trazidos por cópia validada e registrada (rodada 11.1) |
 
 Só entram aqui decisões que mudam o rumo do projeto ou que alguém poderia querer desfazer. Escolhas
 locais ficam em comentários no código ou nos guias de arte.
