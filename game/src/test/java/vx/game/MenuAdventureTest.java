@@ -57,8 +57,9 @@ class MenuAdventureTest {
         g.beginAdventure(Appearance.preset("aventureiro"), "A", false);
         g.action("pausar");
         g.action("menu-principal");
-        assertTrue(g.wantMenu, "nada jogado ainda: volta sem perguntar (confirmação desnecessária)");
-        g.wantMenu = false;
+        assertEquals("menu", g.leaving, "numa aventura, sair sempre pergunta (revisto no teste físico: só às vezes parecia aleatório)");
+        assertFalse(g.unsaved(), "e o texto diz que tudo está salvo");
+        g.action("menu-cancelar");
         g.action("continuar");
         AdventureTest.frames(g, 60);
         assertFalse(g.unsaved(), "parado: tempo de jogo sozinho não é progresso a perder");
@@ -102,7 +103,11 @@ class MenuAdventureTest {
         g.beginAdventure(Appearance.preset("aventureiro"), "A", false);
         AdventureTest.frames(g, 120);
         g.requestQuit();
-        assertTrue(g.quit, "começou e ficou parado: fecha sem perguntar");
+        assertFalse(g.quit, "numa aventura o X sempre pergunta");
+        assertEquals("sair", g.leaving);
+        assertFalse(g.unsaved(), "parado: a pergunta só oferece Sair e Cancelar");
+        g.action("menu-sem-salvar");
+        assertTrue(g.quit);
         g = AdventureTest.adventure(d);
         g.beginAdventure(Appearance.preset("aventureiro"), "A", false);
         AdventureTest.frames(g, 60);

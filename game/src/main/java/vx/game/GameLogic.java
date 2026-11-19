@@ -558,10 +558,7 @@ public final class GameLogic {
                 else if (lastLine()) endDialog(); else line++;
             }
             case "diario" -> { if (state == State.EXPLORE && quests != null) state = State.JOURNAL; }
-            case "menu-principal" -> {
-                if (!menuAvailable || state != State.PAUSE) return;
-                if (unsaved()) leaving = "menu"; else wantMenu = true;   // nada a perder: sem pergunta
-            }
+            case "menu-principal" -> { if (menuAvailable && state == State.PAUSE) leaving = "menu"; }   // sempre pergunta (o texto diz se há o que perder)
             case "menu-salvar" -> {                                    // salva e sai (só se dá para salvar agora)
                 if (leaving == null) return;
                 String why = saveBlocker();
@@ -611,7 +608,7 @@ public final class GameLogic {
                 cam.yaw = player.yaw + (float) Math.PI;
             }
             case "sair" -> {                                           // rodada 11.1: na aventura do menu, confirma antes
-                if (menuAvailable && state == State.PAUSE && unsaved()) leaving = "sair";
+                if (menuAvailable && state == State.PAUSE && inAdventure()) leaving = "sair";
                 else quit = true;
             }
             case "barras" -> prefs.cycleBars();                       // rodada 09.2: barras de inimigos comuns
@@ -722,6 +719,9 @@ public final class GameLogic {
      * Rodada 11.1 — há progresso que ainda não está no disco? A aventura começou, tem o que salvar, o save está ligado e o
      * progresso ou a posição mudaram desde o último salvamento (manual, automático dos marcos), o Continuar ou o começo.
      */
+    /** Há uma aventura em andamento que pode ser salva (é dela que o jogador sai)? */
+    public boolean inAdventure() { return started && quests != null && saveDir != null; }
+
     public boolean unsaved() {
         return started && quests != null && saveDir != null && !progressSnapshot().equals(savedSnapshot);
     }
@@ -735,11 +735,13 @@ public final class GameLogic {
     }
 
     /**
-     * Rodada 11.1 — o X da janela: sem nada a perder, fecha; senão abre a MESMA confirmação da pausa ("Sair do jogo?"),
-     * de qualquer estado (exploração, luta, diálogo, diário, pausa). Cancelar volta ao estado de antes.
+     * Rodada 11.1 — o X da janela: fora de uma aventura, fecha; numa aventura, SEMPRE abre a mesma confirmação da pausa
+     * ("Sair do jogo?"), de qualquer estado (exploração, luta, diálogo, diário, pausa); o texto e os botões dizem se há algo
+     * a perder ({@link #unsaved}). Cancelar volta ao estado de antes. Revisto no teste físico do proprietário: perguntar só
+     * às vezes (quando havia progresso fora do disco) parecia aleatório.
      */
     public void requestQuit() {
-        if (!unsaved()) { quit = true; return; }
+        if (!inAdventure()) { quit = true; return; }
         if (leaving == null && state != State.PAUSE) resumeState = state;
         state = State.PAUSE;
         leaving = "sair";
