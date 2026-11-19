@@ -230,6 +230,56 @@ class QuestTest {
         assertNotNull(b.object(MARCO));
     }
 
+    @Test
+    void missaoPodeTerminarNoUltimoObjetivoSemVoltarAoDoador() {
+        // rodada 11: "descobrir/derrotar e pronto" — sem a entrega obrigatória; a recompensa sai uma vez, no último objetivo
+        String json = "{\"formato\":\"valumo.missoes\",\"versao\":1,\"missoes\":[{\"id\":\"quest.teste.caca\",\"nome\":\"Caça\","
+                + "\"descricao\":\"d\",\"doador\":\"bramor\",\"conclusao\":\"ultimo_objetivo\",\"objetivos\":["
+                + "{\"id\":\"derrubar\",\"tipo\":\"derrotar\",\"texto\":\"t\",\"alvos\":[\"a.1\"]}],\"recompensa\":{\"moedas\":5}}]}";
+        var defs = QuestDefinition.parse(json);
+        assertEquals(QuestDefinition.Completion.ULTIMO_OBJETIVO, defs.get("quest.teste.caca").completion());
+        QuestSystem s = new QuestSystem(defs.values());
+        s.accept("quest.teste.caca");
+        s.handle(new QuestEvent.EnemyDefeated("a.1"));
+        assertEquals(QuestState.CONCLUIDA, s.get("quest.teste.caca").state());
+        assertEquals(5, s.coins());
+        assertTrue(s.talkTo("bramor").isEmpty(), "nada a entregar");
+        s.handle(new QuestEvent.EnemyDefeated("a.1"));
+        assertEquals(5, s.coins());
+        assertNull(s.check(Set.of()));
+        QuestSystem r = new QuestSystem(defs.values());
+        r.fromJson(s.toJson(), Set.of());
+        assertEquals(QuestState.CONCLUIDA, r.get("quest.teste.caca").state());
+        // a regra antiga continua para quem não diz nada (o padrão é falar com o doador)
+        assertEquals(QuestDefinition.Completion.FALAR_DOADOR, fresh().get(Q).def.completion());
+        assertThrows(QuestDefinition.InvalidQuestFile.class, () -> QuestDefinition.parse(json.replace("ultimo_objetivo", "voar")));
+        assertThrows(QuestDefinition.InvalidQuestFile.class, () -> QuestDefinition.parse(json.replace(",\"conclusao\":\"ultimo_objetivo\"", "")),
+                "sem a conclusão explícita, terminar em derrotar continua inválido");
+    }
+
+    @Test
+    void npcPodeTerMaisDeUmaMissaoEmSequencia() {
+        String q = "{\"formato\":\"valumo.missoes\",\"versao\":1,\"missoes\":["
+                + "{\"id\":\"quest.a\",\"nome\":\"A\",\"descricao\":\"d\",\"doador\":\"x\",\"objetivos\":[{\"id\":\"o\",\"tipo\":\"falar\",\"texto\":\"t\",\"npc\":\"x\"}]},"
+                + "{\"id\":\"quest.b\",\"nome\":\"B\",\"descricao\":\"d\",\"doador\":\"x\",\"objetivos\":[{\"id\":\"o\",\"tipo\":\"falar\",\"texto\":\"t\",\"npc\":\"x\"}]}]}";
+        StringBuilder ctx = new StringBuilder();
+        for (String c : DialogueBook.GIVER_CONTEXTS) ctx.append(ctx.isEmpty() ? "" : ",").append("\"").append(c).append("\":{\"falas\":[{\"texto\":\"").append(c).append(" %s\"}]}");
+        String d = "{\"formato\":\"valumo.dialogos\",\"versao\":1,\"npcs\":{\"x\":{\"missoes\":["
+                + "{\"missao\":\"quest.a\",\"contextos\":{" + ctx.toString().replace("%s", "A") + "}},"
+                + "{\"missao\":\"quest.b\",\"contextos\":{" + ctx.toString().replace("%s", "B") + "}}]}}}";
+        DialogueBook b = DialogueBook.parse(d);
+        QuestSystem s = new QuestSystem(QuestDefinition.parse(q).values());
+        assertEquals("quest.a", b.questOf("x", s));
+        s.accept("quest.a");
+        s.talkTo("x");                                                      // conclui A (só falar)
+        assertEquals("quest.b", b.questOf("x", s), "concluída a primeira, vale a seguinte");
+        assertEquals("oferta B", b.linesFor("x", List.of(), s).lines().getFirst().text());
+        s.accept("quest.b");
+        s.talkTo("x");
+        assertEquals("quest.b", b.questOf("x", s), "todas concluídas: a última (o agradecimento)");
+        assertEquals("concluida B", b.linesFor("x", List.of(), s).lines().getFirst().text());
+    }
+
     /** 0 nova · 1 aceita · 2 um fungo · 3 trilha limpa · 4 marco aceso · 5 concluída. */
     static QuestSystem upTo(int step) {
         QuestSystem s = fresh();
