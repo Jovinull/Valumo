@@ -1,58 +1,137 @@
-# QA de engenharia — a interface do jogo em outras resoluções (16:9 pequena, 1366×768, ultralarga, 4K).
-# Uso: game --roteiro tools/qa/resolucoes.txt SAIDA 30   (mudo, janela oculta). Olhe as capturas: nada cortado, nada sobreposto.
+# Fechamento do QA — a interface do jogo em 7 resoluções (16:9 pequena e grande, 1366×768, ultralarga, 4K, 16:10, 4:3).
+# Uso: game -Dvx.saves=PASTA_COM_12_APARENCIAS --roteiro tools/qa/resolucoes.txt SAIDA 30 (mudo, janela oculta).
+# Telas: escolha com a seleção no fim de uma lista longa, placa e conversa do NPC mais alto (Bramor), pausa, luta de
+# chefe com barras e mira, e o criador. Olhe as capturas: nada cortado, nada sobreposto, nada fora do painel.
+size 1920 1080
+wait 0.5
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+key DOWN
+wait 0.4
 size 1280 720
 wait 0.5
 shot 1-escolha-1280x720
 size 1366 768
 wait 0.5
 shot 1-escolha-1366x768
+size 1920 1080
+wait 0.5
+shot 1-escolha-1920x1080
 size 2560 1080
 wait 0.5
 shot 1-escolha-2560x1080
 size 3840 2160
 wait 0.5
 shot 1-escolha-3840x2160
+size 1680 1050
+wait 0.5
+shot 1-escolha-1680x1050
+size 1024 768
+wait 0.5
+shot 1-escolha-1024x768
 size 1920 1080
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+key UP
+wait 0.3
 click comecar
 wait 2.0
-ir -2.2 1.9
-ir -2.6 1.3
+posicionar -8.76 -1.62 253
+camera-recompor
+wait 1.0
+size 1280 720
 wait 0.5
+shot 2-placa-npc-alto-1280x720
+size 1366 768
+wait 0.5
+shot 2-placa-npc-alto-1366x768
+size 1920 1080
+wait 0.5
+shot 2-placa-npc-alto-1920x1080
+size 2560 1080
+wait 0.5
+shot 2-placa-npc-alto-2560x1080
+size 3840 2160
+wait 0.5
+shot 2-placa-npc-alto-3840x2160
+size 1680 1050
+wait 0.5
+shot 2-placa-npc-alto-1680x1050
+size 1024 768
+wait 0.5
+shot 2-placa-npc-alto-1024x768
+size 1920 1080
 key E
 wait 1.4
 size 1280 720
 wait 0.5
-shot 2-dialogo-1280x720
+shot 3-dialogo-npc-alto-1280x720
 size 1366 768
 wait 0.5
-shot 2-dialogo-1366x768
+shot 3-dialogo-npc-alto-1366x768
+size 1920 1080
+wait 0.5
+shot 3-dialogo-npc-alto-1920x1080
 size 2560 1080
 wait 0.5
-shot 2-dialogo-2560x1080
+shot 3-dialogo-npc-alto-2560x1080
 size 3840 2160
 wait 0.5
-shot 2-dialogo-3840x2160
+shot 3-dialogo-npc-alto-3840x2160
+size 1680 1050
+wait 0.5
+shot 3-dialogo-npc-alto-1680x1050
+size 1024 768
+wait 0.5
+shot 3-dialogo-npc-alto-1024x768
 size 1920 1080
-key E
-key E
-key E
-wait 1.0
-key E
-wait 1.2
+key ESC
+wait 0.6
 key ESC
 wait 0.4
 size 1280 720
 wait 0.5
-shot 3-pausa-1280x720
+shot 4-pausa-1280x720
 size 1366 768
 wait 0.5
-shot 3-pausa-1366x768
+shot 4-pausa-1366x768
+size 1920 1080
+wait 0.5
+shot 4-pausa-1920x1080
 size 2560 1080
 wait 0.5
-shot 3-pausa-2560x1080
+shot 4-pausa-2560x1080
 size 3840 2160
 wait 0.5
-shot 3-pausa-3840x2160
+shot 4-pausa-3840x2160
+size 1680 1050
+wait 0.5
+shot 4-pausa-1680x1050
+size 1024 768
+wait 0.5
+shot 4-pausa-1024x768
 size 1920 1080
 key ESC
 wait 0.6
@@ -67,14 +146,24 @@ atacar
 wait 0.6
 size 1280 720
 wait 0.5
-shot 4-luta-chefe-1280x720
+shot 5-luta-chefe-1280x720
 size 1366 768
 wait 0.5
-shot 4-luta-chefe-1366x768
+shot 5-luta-chefe-1366x768
+size 1920 1080
+wait 0.5
+shot 5-luta-chefe-1920x1080
 size 2560 1080
 wait 0.5
-shot 4-luta-chefe-2560x1080
+shot 5-luta-chefe-2560x1080
 size 3840 2160
 wait 0.5
-shot 4-luta-chefe-3840x2160
+shot 5-luta-chefe-3840x2160
+size 1680 1050
+wait 0.5
+shot 5-luta-chefe-1680x1050
+size 1024 768
+wait 0.5
+shot 5-luta-chefe-1024x768
 size 1920 1080
+criador tools/qa/criador-resolucoes.txt

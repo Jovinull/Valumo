@@ -1,0 +1,25 @@
+# Fechamento do QA — o criador nas mesmas 7 resoluções (sub-roteiro de tools/qa/resolucoes.txt).
+size 1280 720
+settle
+shot 6-criador-1280x720
+size 1366 768
+settle
+shot 6-criador-1366x768
+size 1920 1080
+settle
+shot 6-criador-1920x1080
+size 2560 1080
+settle
+shot 6-criador-2560x1080
+size 3840 2160
+settle
+shot 6-criador-3840x2160
+size 1680 1050
+settle
+shot 6-criador-1680x1050
+size 1024 768
+settle
+shot 6-criador-1024x768
+size 1920 1080
+key ESC
+wait 0.3
