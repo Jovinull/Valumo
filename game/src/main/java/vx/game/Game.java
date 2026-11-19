@@ -1229,22 +1229,28 @@ public final class Game implements AutoCloseable {
     private void drawLeaving(int w, int h) {
         buttons.clear();
         kit.rect(0, 0, w, h, 0x1a1210b0);
-        boolean quit = "sair".equals(logic.leaving);
-        float pw = Math.min(760 * s, w - 56 * s), ph = 430 * s, x = (w - pw) / 2, y = (h - ph) / 2;
+        boolean quit = "sair".equals(logic.leaving), dirty = logic.unsaved();
+        String why = dirty ? logic.saveBlocker() : null;
+        int n = dirty ? 3 : 2;
+        float pw = Math.min(760 * s, w - 56 * s), bh = 58 * s, ph = 260 * s + n * (bh + 12 * s), x = (w - pw) / 2, y = (h - ph) / 2;
         kit.panel(x, y, pw, ph, s, true);
         kit.text(x + 40 * s, y + 32 * s, quit ? "Sair do jogo?" : "Voltar ao menu principal?", px(36), true, UiKit.INK);
-        String why = logic.saveBlocker();
         String kept = " O que já foi salvo, inclusive nos marcos da missão, continua salvo.";
-        String t = why == null ? "Sair sem salvar perde só o que aconteceu desde o último salvamento." + kept
+        String t = !dirty ? "Tudo desta aventura já está salvo."
+                : why == null ? "Sair sem salvar perde só o que aconteceu desde o último salvamento." + kept
                 : "Agora não dá para salvar (" + why.toLowerCase(java.util.Locale.ROOT) + "). Sair sem salvar perde só o que aconteceu desde o último salvamento." + kept;
         float ty = y + 96 * s;
         for (String l : wrap(t, px(20), pw - 80 * s)) { kit.text(x + 40 * s, ty, l, px(20), false, UiKit.INK_SOFT); ty += px(20) * 1.35f; }
-        float bw = pw - 80 * s, bh = 58 * s, by = y + ph - 34 * s - 3 * bh - 2 * 12 * s;
-        groupPx = groupPx(quit ? "Salvar e sair" : "Salvar e voltar ao menu", bw, quit ? "Sair sem salvar" : "Voltar sem salvar", bw, "Cancelar", bw);
-        if (why == null) button("menu-salvar", x + 40 * s, by, bw, bh, quit ? "Salvar e sair" : "Salvar e voltar ao menu", true);
-        else disabledButton("menu-salvar", x + 40 * s, by, bw, bh, quit ? "Salvar e sair" : "Salvar e voltar ao menu");
-        button("menu-sem-salvar", x + 40 * s, by + bh + 12 * s, bw, bh, quit ? "Sair sem salvar" : "Voltar sem salvar", false);
-        button("menu-cancelar", x + 40 * s, by + 2 * (bh + 12 * s), bw, bh, "Cancelar", false);
+        float bw = pw - 80 * s, by = y + ph - 34 * s - n * bh - (n - 1) * 12 * s;
+        String go = quit ? "Sair do jogo" : "Voltar ao menu";
+        groupPx = groupPx(quit ? "Salvar e sair" : "Salvar e voltar ao menu", bw, quit ? "Sair sem salvar" : "Voltar sem salvar", bw, go, bw, "Cancelar", bw);
+        if (dirty) {
+            if (why == null) button("menu-salvar", x + 40 * s, by, bw, bh, quit ? "Salvar e sair" : "Salvar e voltar ao menu", true);
+            else disabledButton("menu-salvar", x + 40 * s, by, bw, bh, quit ? "Salvar e sair" : "Salvar e voltar ao menu");
+            by += bh + 12 * s;
+            button("menu-sem-salvar", x + 40 * s, by, bw, bh, quit ? "Sair sem salvar" : "Voltar sem salvar", false);
+        } else button("menu-sem-salvar", x + 40 * s, by, bw, bh, go, true);   // nada a perder: só sair (ou cancelar)
+        button("menu-cancelar", x + 40 * s, by + bh + 12 * s, bw, bh, "Cancelar", false);
         groupPx = 0;
     }
 
@@ -1266,6 +1272,8 @@ public final class Game implements AutoCloseable {
     /** Cobertura da transição (0–1): escurece antes do primeiro passo e clareia depois do último (sem clarão). */
     private float overlay;
     private boolean renderedSinceStep;
+    /** O rótulo do passo atual já foi desenhado num quadro (com a cobertura inteira). */
+    private boolean labelShown;
     private Renderer previewRenderer;
     private final Camera previewCam = new Camera();
     /** Transições concluídas e prévias feitas nesta execução (QA: dezenas de idas e voltas sem crescer recursos). */
@@ -1366,6 +1374,7 @@ public final class Game implements AutoCloseable {
         steps.addAll(List.of(s));
         stepLabel = steps.peek().label();
         renderedSinceStep = false;
+        labelShown = false;
     }
 
     /** Roda o próximo passo quando a tela já está coberta e um quadro com o rótulo foi desenhado. true = ocupado. */
@@ -1376,8 +1385,11 @@ public final class Game implements AutoCloseable {
             return false;
         }
         overlay = Math.min(1f, overlay + step / 0.2f);
-        if (overlay < 1f || !renderedSinceStep) return true;
+        // o passo pesado só começa depois de um quadro com o RÓTULO dele na tela (antes valia qualquer quadro desenhado:
+        // o da cobertura ainda subindo, sem rótulo, e a janela congelava escura sem dizer o quê — "Abrindo o criador")
+        if (overlay < 1f || !labelShown) return true;
         Step st = steps.poll();
+        labelShown = false;
         renderedSinceStep = false;
         long t0 = System.nanoTime();
         try {
@@ -1403,6 +1415,7 @@ public final class Game implements AutoCloseable {
         if (overlay <= 0f) return;
         kit.rect(0, 0, w, h, 0x0e0a0800 | Math.round(255 * overlay));
         if (stepLabel == null || overlay < 1f) return;
+        labelShown = true;
         // rodada 11.1 (fechamento): o logotipo pequeno, o passo REAL e as sementes P1 em sequência sobre um fundo quente
         // (faixas de cor, sem textura nem cena 3D: nada a carregar para mostrar o carregamento)
         int bands = 24;
