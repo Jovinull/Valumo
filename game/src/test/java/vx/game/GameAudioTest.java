@@ -120,4 +120,28 @@ class GameAudioTest {
         assertNotEquals(real, redirected, "preferências redirecionadas levam o áudio junto");
         assertEquals(java.nio.file.Path.of("output/tmp/prefs-revisao.json.audio.json"), redirected);
     }
+
+    @Test
+    void missaoSoaPorEventoDoCatalogo() throws Exception {
+        // rodada 10: aceitar, objetivo, marco e recompensa; o objetivo cumprido no MESMO uso do marco não toca duas vezes
+        java.util.function.BiFunction<vx.game.quest.QuestSystem.NoticeKind, String, vx.game.quest.QuestSystem.Notice> n =
+                (k, o) -> new vx.game.quest.QuestSystem.Notice(k, "quest.trilha.luzes_do_posto", o, 0);
+        assertEquals("missao.aceita", GameAudio.questEvent(n.apply(vx.game.quest.QuestSystem.NoticeKind.ACEITA, "limpar_trilha"), null));
+        assertEquals("missao.objetivo", GameAudio.questEvent(n.apply(vx.game.quest.QuestSystem.NoticeKind.OBJETIVO, "limpar_trilha"),
+                n.apply(vx.game.quest.QuestSystem.NoticeKind.PROGRESSO, "limpar_trilha")));
+        var obj = n.apply(vx.game.quest.QuestSystem.NoticeKind.OBJETO, "acender_marco");
+        assertEquals("missao.sinal", GameAudio.questEvent(obj, null));
+        assertNull(GameAudio.questEvent(n.apply(vx.game.quest.QuestSystem.NoticeKind.OBJETIVO, "acender_marco"), obj));
+        assertEquals("missao.recompensa", GameAudio.questEvent(n.apply(vx.game.quest.QuestSystem.NoticeKind.RECOMPENSA, "voltar_kelyra"), null));
+        assertNull(GameAudio.questEvent(n.apply(vx.game.quest.QuestSystem.NoticeKind.PROGRESSO, "limpar_trilha"), null), "o combate já soa");
+        var cat = com.google.gson.JsonParser.parseString(java.nio.file.Files.readString(java.nio.file.Path.of("assets/audio/sons.json")))
+                .getAsJsonObject().getAsJsonObject("eventos");
+        for (String e : new String[]{"missao.aceita", "missao.objetivo", "missao.sinal", "missao.recompensa", "ui.salvar", "ui.abrir"}) {
+            assertTrue(cat.has(e), e + " no catálogo");
+            for (var f : cat.getAsJsonObject(e).getAsJsonArray("arquivos"))
+                assertTrue(java.nio.file.Files.isRegularFile(java.nio.file.Path.of("assets/audio").resolve(f.getAsString())), f.getAsString());
+        }
+        for (String a : new String[]{"diario", "fechar-diario", "salvo", "continuar-jogo"}) assertNotNull(GameAudio.uiEvent(a), a);
+        assertNull(GameAudio.uiEvent("salvo-auto"), "o salvamento automático não soa por cima do som da missão");
+    }
 }

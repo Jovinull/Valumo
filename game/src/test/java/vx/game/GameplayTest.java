@@ -514,12 +514,21 @@ class GameplayTest {
         for (int i = 0; i < 90; i++) frame(g, in, List.of());
         float want = (float) Math.atan2(g.player.x - k.def.x(), g.player.z - k.def.z());
         assertEquals(0, Math.atan2(Math.sin(want - k.yaw), Math.cos(want - k.yaw)), 0.05f);
-        int n = k.def.lines().size();
+        // rodada 10: a Kelyra oferece a missão — as falas vêm do contexto e a última tem escolha (E = a selecionada)
+        assertEquals("oferta", g.dialogContext);
+        int n = g.dialogLines.size();
         for (int i = 0; i < n - 1; i++) {
             frame(g, in, key(GLFW_KEY_E));
             assertEquals(GameLogic.State.DIALOG, g.state);
             assertEquals(i + 1, g.line);
         }
+        assertFalse(g.dialogChoices.isEmpty());
+        frame(g, in, key(GLFW_KEY_DOWN));                                  // "Agora não"
+        assertEquals(1, g.choiceSelected);
+        frame(g, in, key(GLFW_KEY_E));                                     // recusa: a reação da Kelyra
+        assertEquals(GameLogic.State.DIALOG, g.state);
+        assertTrue(g.quests.get("quest.trilha.luzes_do_posto").declined());
+        for (int i = 0; i < g.dialogLines.size() - 1; i++) frame(g, in, key(GLFW_KEY_E));
         frame(g, in, key(GLFW_KEY_E));                                    // última fala → volta a explorar
         assertEquals(GameLogic.State.EXPLORE, g.state);
         assertNull(g.talking);
