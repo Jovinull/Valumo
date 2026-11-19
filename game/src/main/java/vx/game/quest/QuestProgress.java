@@ -30,7 +30,8 @@ public final class QuestProgress {
     public QuestState state() {
         if (completed) return QuestState.CONCLUIDA;
         if (!accepted) return QuestState.DISPONIVEL;
-        if (objective >= def.objectives().size() - 1) return QuestState.PRONTA_PARA_ENTREGAR;
+        if (def.completion() == QuestDefinition.Completion.FALAR_DOADOR && objective >= def.objectives().size() - 1)
+            return QuestState.PRONTA_PARA_ENTREGAR;
         if (objective == 0 && defeated.isEmpty()) return QuestState.ACEITA;
         return QuestState.EM_ANDAMENTO;
     }

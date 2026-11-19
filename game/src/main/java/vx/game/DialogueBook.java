@@ -40,7 +40,17 @@ public final class DialogueBook {
             "aceita", "em_andamento", "caiu", "trilha_limpa", "entrega", "concluida");
     public static final Set<String> ACTIONS = Set.of("aceitar", "recusar");
 
-    record Npc(String quest, boolean append, Map<String, Entry> contexts) { }
+    /** Uma missão de um NPC e as falas dela. */
+    record Offer(String quest, Map<String, Entry> contexts) { }
+
+    /**
+     * Rodada 11: um NPC pode ter VÁRIAS missões em sequência ({@code "missoes": [...]}; o formato da rodada 10,
+     * {@code "missao"} + {@code "contextos"}, é uma lista de uma). Vale a primeira ainda não concluída; com todas
+     * concluídas, a última (o agradecimento). Sem missão nenhuma, {@code offers} fica vazia.
+     */
+    record Npc(List<Offer> offers, boolean append) {
+        String quest() { return offers.isEmpty() ? null : offers.getFirst().quest(); }
+    }
 
     private final Map<String, Npc> npcs = new HashMap<>();
     private final Map<String, ObjectText> objects = new HashMap<>();
@@ -75,17 +85,27 @@ public final class DialogueBook {
         JsonObject ns = obj(d, "npcs", "");
         for (String id : ns.keySet()) {
             JsonObject n = obj(ns, id, "npcs");
-            Map<String, Entry> ctx = new HashMap<>();
-            JsonObject cs = obj(n, "contextos", "npcs." + id);
-            for (String c : cs.keySet()) ctx.put(c, entry(obj(cs, c, "npcs." + id + ".contextos"), "npcs." + id + "." + c));
             boolean append = n.has("acrescenta") && n.get("acrescenta").getAsBoolean();
-            String quest = opt(n, "missao");
-            if (quest != null && !append)
-                for (String c : GIVER_CONTEXTS) if (!ctx.containsKey(c)) throw new InvalidDialogue("npcs." + id + ": falta o contexto \"" + c + "\"");
-            for (var e : ctx.entrySet())
-                for (Choice ch : e.getValue().choices())
-                    if (!ctx.containsKey(ch.next())) throw new InvalidDialogue("npcs." + id + "." + e.getKey() + ": escolha segue para contexto inexistente \"" + ch.next() + "\"");
-            b.npcs.put(id, new Npc(quest, append, Map.copyOf(ctx)));
+            List<JsonObject> raw = new ArrayList<>();
+            if (n.has("missoes")) for (JsonElement e : n.getAsJsonArray("missoes")) {
+                if (!e.isJsonObject()) throw new InvalidDialogue("npcs." + id + ".missoes: item não é objeto");
+                raw.add(e.getAsJsonObject());
+            } else raw.add(n);
+            List<Offer> offers = new ArrayList<>();
+            for (JsonObject m : raw) {
+                Map<String, Entry> ctx = new HashMap<>();
+                JsonObject cs = obj(m, "contextos", "npcs." + id);
+                for (String c : cs.keySet()) ctx.put(c, entry(obj(cs, c, "npcs." + id + ".contextos"), "npcs." + id + "." + c));
+                String quest = opt(m, "missao");
+                if (quest != null && !append)
+                    for (String c : GIVER_CONTEXTS) if (!ctx.containsKey(c)) throw new InvalidDialogue("npcs." + id + ": falta o contexto \"" + c + "\"");
+                for (var e : ctx.entrySet())
+                    for (Choice ch : e.getValue().choices())
+                        if (!ctx.containsKey(ch.next())) throw new InvalidDialogue("npcs." + id + "." + e.getKey() + ": escolha segue para contexto inexistente \"" + ch.next() + "\"");
+                if (quest == null && n.has("missoes")) throw new InvalidDialogue("npcs." + id + ".missoes: item sem \"missao\"");
+                if (quest != null || !ctx.isEmpty()) offers.add(new Offer(quest, Map.copyOf(ctx)));
+            }
+            b.npcs.put(id, new Npc(List.copyOf(offers), append));
         }
         if (d.has("objetos")) {
             JsonObject os = obj(d, "objetos", "");
@@ -151,6 +171,22 @@ public final class DialogueBook {
         return n == null ? null : n.quest();
     }
 
+    /** Rodada 11 — a missão ATUAL do NPC: a primeira ainda não concluída (ou a última, se todas acabaram). */
+    public String questOf(String npc, QuestSystem quests) {
+        Offer o = active(npcs.get(npc), quests);
+        return o == null ? null : o.quest();
+    }
+
+    private static Offer active(Npc n, QuestSystem quests) {
+        if (n == null || n.offers().isEmpty()) return null;
+        if (quests != null)
+            for (Offer o : n.offers()) {
+                QuestProgress p = o.quest() == null ? null : quests.get(o.quest());
+                if (p != null && !p.completed()) return o;
+            }
+        return n.offers().getLast();
+    }
+
     public boolean gives(String npc) {
         Npc n = npcs.get(npc);
         return n != null && n.quest() != null && !n.append();
@@ -158,7 +194,15 @@ public final class DialogueBook {
 
     public Entry entry(String npc, String context) {
         Npc n = npcs.get(npc);
-        return n == null ? null : n.contexts().get(context);
+        return n == null || n.offers().isEmpty() ? null : n.offers().getFirst().contexts().get(context);
+    }
+
+    /** Rodada 11 — contexto de uma missão específica do NPC (reações às escolhas da oferta atual). */
+    public Entry entry(String npc, String quest, String context) {
+        Npc n = npcs.get(npc);
+        if (n == null) return null;
+        for (Offer o : n.offers()) if (java.util.Objects.equals(o.quest(), quest)) return o.contexts().get(context);
+        return null;
     }
 
     public ObjectText object(String id) { return objects.get(id); }
@@ -202,16 +246,17 @@ public final class DialogueBook {
     /** Falas a mostrar para um NPC agora: as de sempre (cena) ou as do contexto. Escolhas só para a última fala. */
     public Entry linesFor(String npc, List<SceneDef.Line> base, QuestSystem quests) {
         Npc n = npcs.get(npc);
-        if (n == null || n.quest() == null || quests == null || quests.get(n.quest()) == null) return new Entry(base, List.of());
-        QuestProgress p = quests.get(n.quest());
+        Offer o = active(n, quests);
+        if (o == null || o.quest() == null || quests == null || quests.get(o.quest()) == null) return new Entry(base, List.of());
+        QuestProgress p = quests.get(o.quest());
         if (n.append()) {
             String c = commentContext(p);
-            Entry e = c == null ? null : n.contexts().get(c);
+            Entry e = c == null ? null : o.contexts().get(c);
             if (e == null) return new Entry(base, List.of());
             List<SceneDef.Line> all = new ArrayList<>(base);
             all.addAll(e.lines());
             return new Entry(List.copyOf(all), List.of());
         }
-        return n.contexts().get(giverContext(p));
+        return o.contexts().get(giverContext(p));
     }
 }

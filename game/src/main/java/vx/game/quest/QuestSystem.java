@@ -174,25 +174,33 @@ public final class QuestSystem {
         for (QuestProgress p : quests.values()) {
             QuestDefinition.Objective o = p.current();
             if (o == null || o.kind() != QuestDefinition.Kind.FALAR || !o.npc().equals(npc)) continue;
-            if (!p.rewardGiven) {
-                int c = p.def.reward("moedas");
-                coins = (int) Math.min(MAX_COINS, (long) coins + c);
-                p.rewardGiven = true;
-                notices.add(new Notice(NoticeKind.RECOMPENSA, p.def.id(), o.id(), c));
-            }
-            p.objective = p.def.objectives().size();
-            p.completed = true;
-            p.completedAt = clock;
-            p.facts.clear();
-            notices.add(new Notice(NoticeKind.CONCLUIDA, p.def.id(), o.id(), 0));
+            complete(p, o.id());
             done.add(p.def.id());
         }
         return done;
     }
 
+    /** Conclui: a recompensa sai UMA vez (a marca e o estado concluído mudam juntos) e as lembranças se apagam. */
+    private void complete(QuestProgress p, String objective) {
+        if (!p.rewardGiven) {
+            int c = p.def.reward("moedas");
+            coins = (int) Math.min(MAX_COINS, (long) coins + c);
+            p.rewardGiven = true;
+            notices.add(new Notice(NoticeKind.RECOMPENSA, p.def.id(), objective, c));
+        }
+        p.objective = p.def.objectives().size();
+        p.completed = true;
+        p.completedAt = clock;
+        p.facts.clear();
+        notices.add(new Notice(NoticeKind.CONCLUIDA, p.def.id(), objective, 0));
+    }
+
     private void advance(QuestProgress p) {
-        notices.add(new Notice(NoticeKind.OBJETIVO, p.def.id(), p.current().id(), 0));
+        String id = p.current().id();
+        notices.add(new Notice(NoticeKind.OBJETIVO, p.def.id(), id, 0));
         p.objective++;
+        // rodada 11: missão que termina no último objetivo (sem volta ao doador) conclui aqui
+        if (p.def.completion() == QuestDefinition.Completion.ULTIMO_OBJETIVO && p.objective >= p.def.objectives().size()) complete(p, id);
     }
 
     private static boolean wants(QuestDefinition d, String object) {

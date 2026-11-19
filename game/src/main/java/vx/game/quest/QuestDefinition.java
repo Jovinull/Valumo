@@ -25,9 +25,17 @@ import java.util.regex.Pattern;
  * fungos não conta). O último é sempre {@link Kind#FALAR} com quem deu a missão (a entrega).
  */
 public record QuestDefinition(String id, String name, String description, String giver, String encounter,
-                              List<Objective> objectives, List<Reward> rewards) {
+                              List<Objective> objectives, List<Reward> rewards, Completion completion) {
 
     public enum Kind { DERROTAR, INTERAGIR, FALAR }
+
+    /**
+     * Rodada 11 — como a missão termina. {@code FALAR_DOADOR} (o padrão, o da rodada 10): o último objetivo é falar com
+     * quem deu a missão, e a recompensa sai na conversa de entrega. {@code ULTIMO_OBJETIVO}: termina (e paga) quando o
+     * último objetivo, de qualquer tipo, é cumprido — descobrir, derrotar, usar um objeto. Missões futuras não ficam
+     * presas a "derrotar → interagir → falar".
+     */
+    public enum Completion { FALAR_DOADOR, ULTIMO_OBJETIVO }
 
     /**
      * Um passo da missão. {@code targets}: identidades estáveis dos inimigos que contam ({@link Kind#DERROTAR});
@@ -137,9 +145,18 @@ public record QuestDefinition(String id, String name, String description, String
                 }
                 objs.add(new Objective(oid, kind, str(o, "texto", ot), targets, object, npc));
             }
+            Completion completion = Completion.FALAR_DOADOR;
+            if (q.has("conclusao")) {
+                String c = str(q, "conclusao", at);
+                completion = switch (c) {
+                    case "falar_doador" -> Completion.FALAR_DOADOR;
+                    case "ultimo_objetivo" -> Completion.ULTIMO_OBJETIVO;
+                    default -> throw new InvalidQuestFile(at + ".conclusao desconhecida: " + c);
+                };
+            }
             Objective last = objs.getLast();
-            if (last.kind() != Kind.FALAR || !last.npc().equals(giver))
-                throw new InvalidQuestFile(at + ": o último objetivo precisa ser falar com quem deu a missão (" + giver + ")");
+            if (completion == Completion.FALAR_DOADOR && (last.kind() != Kind.FALAR || !last.npc().equals(giver)))
+                throw new InvalidQuestFile(at + ": com conclusao falar_doador o último objetivo precisa ser falar com quem deu a missão (" + giver + ")");
             List<Reward> rewards = new ArrayList<>();
             JsonObject ro = q.has("recompensa") ? obj(q.get("recompensa"), at + ".recompensa") : new JsonObject();
             for (String k : ro.keySet()) {
@@ -154,7 +171,8 @@ public record QuestDefinition(String id, String name, String description, String
                 rewards.add(new Reward(k, n));
             }
             String enc = q.has("encontro") ? key(q, "encontro", at) : null;
-            out.put(id, new QuestDefinition(id, str(q, "nome", at), str(q, "descricao", at), giver, enc, List.copyOf(objs), List.copyOf(rewards)));
+            out.put(id, new QuestDefinition(id, str(q, "nome", at), str(q, "descricao", at), giver, enc, List.copyOf(objs), List.copyOf(rewards),
+                    completion));
         }
         if (out.isEmpty()) throw new InvalidQuestFile("nenhuma missão");
         return out;
