@@ -167,3 +167,16 @@ Tudo com `UiKit` + `PixelFont`.
 | `AdventureTest` (10) | a aventura inteira pela lógica do jogo, com save e continuar; a matriz §16 (antes, durante, depois); não salvar na luta; posição salva inválida; save inválido; determinismo 30 × 144 quadros/s |
 | `SaveGameTest` (6) | ida e volta (presets idênticos, aparência personalizada); escrita atômica; ausente; 19 formas de arquivo corrompido; aparência incompatível; versão |
 | `GameAudioTest` (+1) | aviso → evento de som; eventos no catálogo |
+
+## Rodada 11 — modelos, instâncias e o fim da missão
+
+- **Mundo gerado:** a missão vem de um **modelo** (`quest.template.restaurar_sinal`, em `modelos_missao_e.json`) que
+  vira **instância** a partir dos fatos da região ([contrato](contrato-instancias-de-missao.md)). A instância é um
+  `QuestDefinition` comum: tudo acima vale sem mudança.
+- **Fim da missão:** `"conclusao": "ultimo_objetivo"` (rodada 11) termina e paga no último objetivo, sem voltar ao
+  doador. O padrão (`falar_doador`) é o da rodada 10, e sem a conclusão explícita terminar em outro tipo continua
+  inválido.
+- **Um NPC, várias missões:** em `dialogos`, `"missoes": [{"missao", "contextos"}, …]`. Vale a primeira ainda não
+  concluída e, com todas concluídas, a última (o agradecimento). `DialogueBook.questOf(npc, quests)`. O formato da rodada
+  10 é uma lista de uma.
+- **Regra de texto:** ninguém afirma o que não vê (fechamento da 10); no gerado, o rumo é o real.

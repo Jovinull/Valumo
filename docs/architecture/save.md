@@ -76,3 +76,33 @@ Um save recusado não impede o "Jogo novo". O primeiro salvamento dele substitui
 
 Testes: `SaveGameTest` (ida e volta, escrita atômica, 19 corrupções, aparência, versão) e `AdventureTest` (posição
 inválida, save inválido, continuar em cada fase).
+
+## Rodada 11 — v2 para o mundo procedural
+
+O mundo gerado usa `versao: 2`, com os blocos `mundo` (semente, gerador, versão, tentativa, região) e `vinculos` (as
+missões instanciadas resolvidas), numa pasta própria (`output/saves-procedural/s<semente>/`). A v1 acima continua sendo
+o formato do mundo fixo, sem mudança e sem migração. Detalhes: [persistência do mundo
+procedural](persistencia-mundo-procedural.md), [ADR 0026](../decisions/0026-save-v2-mundo-procedural.md).
+
+## Rodada 11.1 — onde os saves moram agora
+
+A aventura é a pasta do par personagem × mundo: `output/mundos/<mundo>/aventuras/<personagem>/aventura.json`.
+
+- **Formatos:** v1 na vila (`mundos/vila/…`), v2 num mundo gerado. Nenhum formato novo (sem v3).
+- **Saves antigos** (`output/saves/aventura.json`, `output/saves-procedural/s<N>/`):
+  - ficam onde estão, intactos;
+  - entram no catálogo por **importação explícita por cópia**, validada antes, com registro por sha256 (nunca duas
+    vezes);
+  - nunca por cima de uma aventura existente.
+- **Continuar:** a aparência vem do personagem, não do save; o resto (missões, moedas, objetos, posição, tempo) vem do
+  save, pelas mesmas regras de leitura acima.
+
+Detalhes: [catálogo de mundos](catalogo-de-mundos.md), [ADR 0028](../decisions/0028-personagens-mundos-e-aventuras.md).
+
+## Fechamento da 11.1 — sair sem perder
+
+- **Alterações não salvas:** existem quando o progresso das missões ou a posição do herói (0,25 u) mudaram desde o último
+  salvamento, o Continuar ou o começo (`GameLogic.unsaved`). O tempo de jogo sozinho não conta.
+- **Pedido de sair** (Menu principal, Sair do jogo, X da janela): sem alterações, sai direto. Com alterações, confirma.
+  - "Salvar e sair" usa o salvamento de sempre (atômico, validado). Falhou: não sai.
+  - "Sair sem salvar" não toca no arquivo: o último save (manual ou automático dos marcos) fica como estava.

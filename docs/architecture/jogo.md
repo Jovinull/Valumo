@@ -1,5 +1,14 @@
 # Jogo — protótipo de exploração (rodada 08), combate (rodada 09) e mobilidade (rodada 09.2)
 
+> **Rodada 11.1:**
+> - **Abertura:** o jogo abre no **menu principal** ([menus.md](menus.md)): personagem → mundo → aventura. A escolha de
+>   aparência da vila (abaixo) continua sendo a entrada dos roteiros (`-Dvx.menu=nao`, padrão dos roteiros) e do modo
+>   `-Dvx.mundo=procedural`.
+> - **Estado `MENU`:** a vila como cenário, sem jogo rodando.
+> - **Sessão trocável:** `Game.openSession`/`closeSession`.
+> - **Pausa:** na aventura do menu, "Menu principal" e "Sair do jogo" pedem confirmação (salvar e sair / sair sem salvar /
+>   cancelar).
+
 > **Rodada 09:**
 > - **Combate:** a cena ganhou uma arena ao sul e o primeiro combate. Sistema completo em [combate.md](combate.md).
 > - **Passo fixo:** a exploração passou a andar em passos lógicos fixos de 1/120 s, com o desenho interpolado e a câmera
@@ -22,7 +31,7 @@ Primeira experiência jogável:
 Não há inventário, missões nem progressão (o combate veio na rodada 09: [combate.md](combate.md)).
 
 ```bash
-./gradlew jogo                                       # janela do jogo
+./gradlew jogo                                       # janela do jogo (rodada 11.1: abre no menu principal)
 game/build/install/game/bin/game --demo 400          # fumaça: abre, 400 quadros, FPS médio
 game/build/install/game/bin/game --roteiro ROTEIRO SAIDA [FPS]   # entrada por roteiro (janela oculta)
 tools/review8.sh [capturas|videos|desempenho|testes|zip|tudo]   # pacote em output/visual-review/round-08/
@@ -76,7 +85,7 @@ No viewer e na engine, a rodada só acrescentou ganchos:
 | Estado | Entrada | Câmera | Cursor |
 |---|---|---|---|
 | `SELECT` | clique ou ↑↓ escolhe a aparência; Enter ou **Jogo novo** começa; **Continuar o jogo salvo** (C) carrega o save (apagado, com o motivo, sem save válido — rodada 10); **Criar no editor** abre o criador | herói de frente (3/4), à esquerda do painel | livre |
-| `EXPLORE` | `WASD`/setas, `Shift`, mouse, roda, `E`, `Esc`, `F1` | terceira pessoa | preso (clique recaptura se a janela perder o foco) |
+| `EXPLORE` | `WASD`/setas, `Shift`, mouse, roda, `E`, `Esc` | terceira pessoa | preso (clique recaptura se a janela perder o foco) |
 | `DIALOG` | `E`/`Enter`/`Espaço` ou **Continuar**; `Esc` ou **Sair** | enquadra herói e NPC de lado | livre |
 | `PAUSE` | **Continuar**, **Aparência**, **Criador**, **Salvar jogo**, **Diário** (rodada 10), sensibilidade, inverter vertical, som, combate, **Sair do jogo** | parada | livre |
 | `JOURNAL` | diário (rodada 10): `J`/`Esc` fecha, `T` mostra/esconde o rastreador; a lógica para como na pausa | parada | livre |
@@ -241,7 +250,6 @@ Percursos usados nos vídeos e testes:
 - **Componentes:** `UiKit` (as mesmas peças do criador: madeira, pergaminho, fonte de pixel própria, P1 só na
   escolha ativa).
 - **HUD mínima:**
-  - linha de controles no começo (some em 40 s; `F1` alterna);
   - indicação de interação;
   - balão de mensagem;
   - "Preparando…" se a composição demorar.
@@ -351,7 +359,6 @@ perfil (`combate_e.json → sensacao`; ver [combate.md](combate.md) §14).
 | E | conversar |
 | Esc | pausa (volume, mudo, barras de inimigos; sensação e arena só no modo técnico, desde o fechamento da 10) |
 | M | mudo |
-| F1 | ajuda |
 
 As teclas ficam em um só lugar: `GameLogic.explore` (entrada → intenção) e `Input` (botão do meio).
 
@@ -421,3 +428,35 @@ Roteiros e testes usam sempre os padrões e não gravam.
 - **Falas:** nenhuma afirma o que o NPC não vê. O marco não aparece da estalagem nem do lugar do Bramor, então a
   Kelyra deduz pelo retorno do herói e o Bramor "soube".
 
+## 15. Rodada 11 — modo procedural (experimental)
+
+- **Como abrir:** `./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024` gera a região da semente ([mundo
+  procedural](mundo-procedural.md)). O modo padrão continua a vila fixa da rodada 10.
+- **O que muda:** o `Game` cria o `World` com o campo e o documento gerados (`ProceduralScene`), e o `GameLogic` recebe
+  a cena gerada (`SceneDef.fromDoc`, com `scene.procedural`).
+- **O que é igual:** controles, câmera, combate, missão, diário, save e som. O som de passo e o do lago leem o relevo da
+  cena (`scene.field`); região sem lago não toca o lago.
+- **Na tela:** a semente aparece no subtítulo da tela inicial e no canto da pausa.
+- **Roteiros:** `tools/mundo/` e `tools/review11.sh`. Comandos novos:
+  - `regiao`, `vista-lugar`, `vista-fim`;
+  - `ir-lugar [andando]`, `seguir-trilha`, `conversar`;
+  - `medir-geracao`.
+  - A vista técnica (`FollowCamera.technicalView`) não encurta por obstáculo e esconde as placas. Ela só existe nos
+    roteiros.
+
+## 16. Rodada 11.1 — porta de entrada
+
+Detalhes em [menus.md](menus.md), [perfis-de-personagem.md](perfis-de-personagem.md) e
+[catalogo-de-mundos.md](catalogo-de-mundos.md); decisões nas ADRs [0027](../decisions/0027-porta-de-entrada-e-sessoes.md)
+e [0028](../decisions/0028-personagens-mundos-e-aventuras.md).
+
+- **Estados:** `MENU` entra na lista (`SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL, MENU`). Em `MENU`, a lógica só assenta o
+  herói e a câmera; nada de combate, IA, missão ou save.
+- **Começar:** `GameLogic.beginAdventure(aparência, nome, continuar)` começa ou continua a aventura da pasta `saveDir`
+  (a pasta do par personagem × mundo). A aparência é sempre a do personagem.
+- **Sair:** `GameLogic.leaving` ("menu" | "sair") é a confirmação aberta. `menu-salvar` só sai se o save der certo;
+  `wantMenu` pede ao `Game` a troca de sessão.
+- **Preferências:** `Prefs` ganhou `sensibilidade` e `inverterVertical` (antes viviam só na câmera da sessão);
+  `AudioPrefs` ganhou `geral` (volume principal).
+- **Roteiros:** `click` desenha um quadro antes de procurar o botão (os botões da tela atual). Os comandos novos estão em
+  [menus.md](menus.md#como-acrescentar).
