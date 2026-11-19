@@ -11,7 +11,7 @@ import math
 
 import env_b as EB
 import conteudo_lib as L
-from conteudo_lib import (BIG, IRON, LEAF_BUSH, MOSS, PLASTER, ROOF, ROOF_D, SEED_P1, STONE, STONE_D, STONE_L, TIMBER,
+from conteudo_lib import (BIG, IRON, IVY, LEAF_BUSH, MOSS_FIX as MOSS, PLASTER, ROOF, ROOF_D, SEED_P1, STONE, STONE_D, STONE_L, TIMBER,
                           WOOD_D, Face, asset, light, sblob, shade, shadow)
 from envlib import hash3
 from voxlib import Vox
@@ -140,7 +140,7 @@ def ruin_tower(semente=1, hera=True):
                     if hash3(int(off * 10), y // 3, i, s) < 0.85:
                         a2 = a + 0.06 * ((y // 5) % 2)
                         v.set(int(math.floor(math.cos(a2) * (Ro + 0.6))), y, int(math.floor(math.sin(a2) * (Ro + 0.6))),
-                              LEAF_BUSH if hash3(i, y, 1, s) < 0.6 else light(LEAF_BUSH))
+                              IVY if hash3(i, y, 1, s) < 0.6 else light(IVY))
     for k in [k for k in v.v if k[1] < -6]:
         del v.v[k]
     import charlib_e
@@ -347,7 +347,7 @@ def ruin_house(semente=1, telhado_caido=True):
         for y in range(4, 19):
             for k in (0, 1):
                 if hash3(a + k, y, 0, s) < 0.8:
-                    f.put(v, a + k + (y // 5) % 2, y, LEAF_BUSH if hash3(a, y, 1, s) < 0.6 else light(LEAF_BUSH), d=1)
+                    f.put(v, a + k + (y // 5) % 2, y, IVY if hash3(a, y, 1, s) < 0.6 else light(IVY), d=1)
     _rubble(v, [(-2, 4, 3), (6, -4, 2), (x1 + 4, -10, 2), (-20, 8, 2)], seed=s + 7)
     import charlib_e
     charlib_e.prune_specks(v, label="ruin_house")

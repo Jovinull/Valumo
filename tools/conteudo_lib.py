@@ -39,6 +39,13 @@ CORAL, PINK, YELLOW, BLUE = _c("CORAL"), _c("PINK"), _c("YELLOW"), _c("BLUE")
 IRON, GLOW, GLOW_HI, FIRE, FIRE_R = _c("IRON"), _c("GLOW"), _c("GLOW_HI"), _c("FIRE"), _c("FIRE_R")
 WATER = _c("WATER")
 MOSS, LEAF_BUSH, LEAF = _c("MOSS"), _c("LEAF_BUSH"), _c("LEAF")
+# Vegetação PRESA a estrutura rígida (musgo em telhado e pedra, hera de parede, folhas de floreira) é FOSCA, não
+# folhagem: o vento afim da E desloca só o material folhagem, proporcional à altura acima da base do prop (shader
+# scene.vert), e musgo de folhagem a 4 u desliza ~0,07 u sobre as telhas e abre fresta (a face do vizinho rígido foi
+# descartada pelo mesher). Reproduzido no laboratório — inclusive na casa aprovada. Folhagem fica só no que balança de
+# verdade e solto: copas, arbustos, ervas penduradas (testado: nenhum contato folhagem × rígido acima de 1,7 u).
+MOSS_FIX = P("#92b54e")
+IVY = P("#6a9f47")
 BARK, BARK_D = _c("BARK"), _c("BARK_D")
 GOLD = EB.GOLD
 
@@ -214,7 +221,7 @@ def window(v, f, a0, a1, y0, y1, shutters=True, box=True, mullion=True, flowers=
             for y in (y0 - 3, y0 - 2):
                 f.put(v, a, y, WOOD_D, d=1)
                 f.put(v, a, y, WOOD_D, d=2)
-            f.put(v, a, y0 - 1, LEAF_BUSH, d=2)
+            f.put(v, a, y0 - 1, IVY, d=2)
             if flowers and (a - a0 + 1) % 2 == 0:
                 f.put(v, a, y0, flowers[((a - a0 + 1) // 2) % len(flowers)], d=2)
 
@@ -309,7 +316,7 @@ def vine(v, f, a, y0, y1, width=2, seed=6, flowers=True):
         ao = a + (y // 5) % 2
         for k in range(width):
             if hash3(y, k, a, seed) < 0.85:
-                f.put(v, ao + k, y, LEAF_BUSH if hash3(y, k, 1, seed) < 0.65 else light(LEAF_BUSH), d=1)
+                f.put(v, ao + k, y, IVY if hash3(y, k, 1, seed) < 0.65 else light(IVY), d=1)
         if flowers and hash3(y, 3, a, seed) < 0.10:
             f.put(v, ao, y, PINK, d=2)
 
@@ -319,7 +326,7 @@ def moss_patches(v, cols, amount=0.25, max_y=None, seed=21):
     for (x, y, z), c in list(v.v.items()):
         if c in cols and (x, y + 1, z) not in v.v and (max_y is None or y <= max_y):
             if hash3(x // 2, 0, z // 2, seed) < amount:
-                v.v[(x, y, z)] = MOSS if hash3(x // 2, y, z // 2, seed + 1) < 0.7 else light(MOSS)
+                v.v[(x, y, z)] = MOSS_FIX if hash3(x // 2, y, z // 2, seed + 1) < 0.7 else light(MOSS_FIX)
 
 
 # ----------------------------------------------------------------------------- telhados

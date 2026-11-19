@@ -159,7 +159,7 @@ def tree_gnarled(semente=1, musgo=True):
     if musgo:
         for (x, y, z), c in list(v.v.items()):
             if y > 15 and (x, y + 1, z) not in v.v and hash3(x // 2, 0, z // 2, 81) < 0.55:
-                v.v[(x, y, z)] = L.MOSS
+                v.v[(x, y, z)] = L.MOSS_FIX                       # musgo preso ao galho: fosco (não desliza com o vento)
     pads = [(-15.5, 25.0, 4.5, 7.2, 3.8, 6.0), (-9.5, 28.5, 6.5, 4.6, 3.0, 4.0), (15.0, 24.0, -3.0, 6.6, 3.6, 5.6),
             (1.0, 32.0, -5.0, 7.8, 4.0, 6.6), (6.5, 28.5, 1.5, 4.0, 2.8, 3.6)]
     leaf = _flat_masses(v, pads, LEAF_OLD, 82 + s)
