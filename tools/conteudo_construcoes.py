@@ -31,7 +31,7 @@ def barrel(v, cx, cz, y0, h, water=True):
 
 # ============================================================================= sobrado (dois pavimentos)
 
-@asset("house_tall", estado="recomendado", nome="Sobrado de enxaimel com balanço", categoria="construcao", sub="residencia_comercio", lote=1,
+@asset("house_tall", nome="Sobrado de enxaimel com balanço", categoria="construcao", sub="residencia_comercio", lote=1,
        voxel=BIG, frequencia="incomum", wind=True,
        tags=["vila", "residencia", "comercio", "dois_pavimentos", "centro_da_vila"],
        funcao="casa de comerciante no centro do assentamento: balcão de venda no térreo, moradia em cima",
@@ -40,6 +40,7 @@ def barrel(v, cx, cz, y0, h, water=True):
        colisao={"tipo": "caixa", "escala": 0.82},
        notas="a porta dos fundos é acabamento, não entrada: a caixa de colisão simples (centrada na malha, que a "
              "chaminé e a escada deslocam) cobre 0,4 u atrás da parede; com formas compostas ela vira entrada",
+       restricoes=["centro do assentamento ou beira do caminho principal", "frente (balcão) virada para o caminho ou a praça"],
        variacoes={"telhado": ["coral", "teal", "mostarda"], "toldo": ["coral", "teal", "nenhum"], "trepadeira": [True, False]})
 def house_tall(telhado="coral", toldo="coral", trepadeira=True):
     """Sobrado: térreo de PEDRA (mais estreito) e pavimento de cima em enxaimel que avança 2 voxels sobre a rua
@@ -140,13 +141,14 @@ def _ring_put(v, r, ang, y, col, width=2):
         v.set(int(math.floor(math.cos(a) * r)), y, int(math.floor(math.sin(a) * r)), col)
 
 
-@asset("hut_herbalist", estado="recomendado", nome="Cabana redonda da herbalista", categoria="construcao", sub="oficio", lote=1,
+@asset("hut_herbalist", nome="Cabana redonda da herbalista", categoria="construcao", sub="oficio", lote=1,
        voxel=BIG, frequencia="incomum", wind=True,
        tags=["vila", "borda_da_mata", "oficio", "ervas", "planta_redonda"],
        funcao="casa de ofício na borda do assentamento ou isolada na mata: ervas, poções, cura (missões de coleta)",
        terreno=["grama", "mata"], apoio={"tipo": "patamar", "margem_u": 0.5}, inclinacao_max_u=0.45,
        area_livre={"frente_u": 2.2, "lados_u": 0.8, "fundos_u": 0.6},
        colisao={"tipo": "circulo", "raio": 1.55},
+       restricoes=["borda do assentamento ou clareira na mata", "≥ 4 u de fogo aberto (telhado de palha)"],
        variacoes={"telhado": ["palha", "mostarda", "teal"], "ervas": [True, False]})
 def hut_herbalist(telhado="palha", ervas=True):
     """Planta REDONDA (cilindro de estuque com prumos radiais e cinta de enxaimel), telhado CÔNICO côncavo de palha com
@@ -254,7 +256,8 @@ def _logpile(v, x0, x1, z0, z1, y0, rows):
                     v.set(x + 2, y, z, WOOD_D)
 
 
-@asset("workshop_forge", estado="recomendado", nome="Oficina com forja", categoria="construcao", sub="oficio", lote=1,
+@asset("workshop_forge", integracao="depende_colisao_composta",
+       dependencias=["formas compostas no Collision (interior caminhável): sem elas o interior fica dentro do sólido"], nome="Oficina com forja", categoria="construcao", sub="oficio", lote=1,
        voxel=BIG, frequencia="incomum", wind=True,
        tags=["vila", "oficio", "ferreiro", "artesao", "fogo", "aberto"],
        funcao="oficina de ferreiro/artesão: forja acesa, bigorna, bancada; lugar de NPC de ofício e de missões de "
@@ -388,8 +391,11 @@ def workshop_forge(telhado="coral", placa=True):
        terreno=["mata", "grama"], apoio={"tipo": "patamar", "margem_u": 0.5}, inclinacao_max_u=0.5,
        area_livre={"frente_u": 2.0, "lados_u": 0.8, "fundos_u": 0.8},
        colisao={"tipo": "caixa", "escala": 0.8},
-       notas="paredes de TRONCOS: desvio deliberado do estuque [O] da gramática; oitões mantêm estuque + enxaimel para "
-             "ligar à família. Precisa de decisão do proprietário.",
+       notas="APROVADA COM PAREDES DE TRONCOS (decisão do proprietário, lote 1): exemplo aprovado de arquitetura "
+             "RÚSTICA ISOLADA — florestas, trilhas, regiões afastadas, abrigos de caçador, pequenos acampamentos. NÃO "
+             "autoriza casas da vila a abandonar pedra + estuque + enxaimel. Preservar o telhado assimétrico (saltbox) e "
+             "os oitões de estuque.",
+       restricoes=["fora do núcleo da vila: mata, trilha, borda ou isolada", "não substitui casas de estuque no assentamento"],
        variacoes={"telhado": ["teal", "coral", "mostarda"], "couro": [True, False]})
 def cabin_hunter(telhado="teal", couro=True):
     """Cabana baixa de TRONCOS empilhados (cantos cruzados com pontas claras), telhado assimétrico ("saltbox"): água da
@@ -486,7 +492,7 @@ def cabin_hunter(telhado="teal", couro=True):
 
 # ============================================================================= torre de vigia
 
-@asset("tower_watch", estado="recomendado", nome="Torre de vigia", categoria="construcao", sub="defesa_orientacao", lote=1,
+@asset("tower_watch", nome="Torre de vigia", categoria="construcao", sub="defesa_orientacao", lote=1,
        voxel=BIG, frequencia="rara", wind=True,
        tags=["vila", "borda", "estrada", "marco", "orientacao", "mirante"],
        funcao="torre na borda do assentamento ou da estrada: referência de orientação vista de longe, mirante, posto "
@@ -494,6 +500,7 @@ def cabin_hunter(telhado="teal", couro=True):
        terreno=["grama", "terra", "colina"], apoio={"tipo": "patamar", "margem_u": 0.4}, inclinacao_max_u=0.6,
        area_livre={"frente_u": 1.8, "lados_u": 0.6, "fundos_u": 0.6},
        colisao={"tipo": "caixa", "escala": 0.62},
+       restricoes=["borda do assentamento ou saída da trilha, com vista livre", "no máximo 1 por assentamento"],
        variacoes={"telhado": ["coral", "teal", "mostarda"], "hera": [True, False]})
 def tower_watch(telhado="coral", hera=True):
     """Fuste de pedra quadrado com talude em degrau (cornija clara), porta em arco e seteiras iluminadas; no alto, o

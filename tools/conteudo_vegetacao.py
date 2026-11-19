@@ -44,13 +44,14 @@ def _leaf_wins(v, leaf):
 
 # ============================================================================= bifurcada
 
-@asset("tree_forked", estado="recomendado", nome="Árvore bifurcada (copas gêmeas)", categoria="vegetacao", sub="arvore", lote=1,
+@asset("tree_forked", nome="Árvore bifurcada (copas gêmeas)", categoria="vegetacao", sub="arvore", lote=1,
        voxel=BIG, frequencia="comum", wind=True, tronco_faixa=(3, 8),
        tags=["mata", "clareira", "beira_de_trilha", "comum"],
        funcao="massa de floresta com vão no meio: quebra a repetição das copas cheias; emoldura caminhos",
        terreno=["grama", "mata"], apoio={"tipo": "ponto"}, inclinacao_max_u=0.8,
        area_livre={"raio_u": 0.5},
        colisao={"tipo": "tronco", "raio": 0.4, "copa": 0.32, "copaDe": 0.45},
+       restricoes=["fora da área livre de construções e POIs"],
        variacoes={"semente": [1, 2, 3], "cor": ["verde", "outono"]})
 def tree_forked(semente=1, cor="verde"):
     """O tronco abre em V a 1,3 u em dois líderes; cada um carrega a própria copa (duas massas achatadas com franja)
@@ -76,13 +77,14 @@ def tree_forked(semente=1, cor="verde"):
 
 # ============================================================================= álamo (copa vertical)
 
-@asset("tree_poplar", estado="recomendado", nome="Álamo (copa em fuso)", categoria="vegetacao", sub="arvore", lote=1,
+@asset("tree_poplar", nome="Álamo (copa em fuso)", categoria="vegetacao", sub="arvore", lote=1,
        voxel=BIG, frequencia="comum", wind=True, tronco_faixa=(2, 6),
        tags=["beira_de_agua", "alameda", "estrada", "quebra_vento", "comum"],
        funcao="vertical estreito: alamedas ao longo da estrada, quebra-vento de vila, beira d'água; separa planos",
        terreno=["grama", "margem", "caminho"], apoio={"tipo": "ponto"}, inclinacao_max_u=0.8,
        area_livre={"raio_u": 0.4},
        colisao={"tipo": "tronco", "raio": 0.25, "copa": 0.42, "copaDe": 0.2},
+       restricoes=["em fileira ao longo de caminho ou margem (alameda), não solto no meio da clareira"],
        variacoes={"semente": [1, 2, 3], "altura": [1.0, 0.85, 1.12]})
 def tree_poplar(semente=1, altura=1.0):
     """Fuso alto e estreito (≈ 1,4 u de largura × 6 u), mais largo no terço de baixo e fechando numa ponta
@@ -130,13 +132,14 @@ def tree_poplar(semente=1, altura=1.0):
 
 # ============================================================================= antiga retorcida (copa em pratos)
 
-@asset("tree_gnarled", estado="recomendado", nome="Árvore antiga retorcida", categoria="vegetacao", sub="arvore_marco", lote=1,
+@asset("tree_gnarled", nome="Árvore antiga retorcida", categoria="vegetacao", sub="arvore_marco", lote=1,
        voxel=BIG, frequencia="rara", wind=True, tronco_faixa=(2, 6),
        tags=["colina", "ruina", "mirante", "marco_natural", "rara"],
        funcao="marco natural raro: topo de colina, junto a ruínas e mirantes; lugar de encontro ou de descanso",
        terreno=["grama", "colina", "rocha"], apoio={"tipo": "ponto"}, inclinacao_max_u=1.0,
        area_livre={"raio_u": 1.2},
        colisao={"tipo": "tronco", "raio": 0.55, "copa": 0.3, "copaDe": 0.5},
+       restricoes=["no máximo 1 por região", "topo de colina, junto a ruína ou mirante"],
        variacoes={"semente": [1, 2, 3], "musgo": [True, False]})
 def tree_gnarled(semente=1, musgo=True):
     """Tronco grosso, inclinado e torcido, com raízes expostas; três galhos longos quase horizontais terminam em
@@ -168,7 +171,7 @@ def tree_gnarled(semente=1, musgo=True):
 
 # ============================================================================= seca
 
-@asset("tree_dead", estado="recomendado", nome="Árvore seca", categoria="vegetacao", sub="arvore", lote=1,
+@asset("tree_dead", nome="Árvore seca", categoria="vegetacao", sub="arvore", lote=1,
        voxel=BIG, frequencia="rara", wind=False, tronco_faixa=(2, 6),
        tags=["ruina", "pantano", "mistério", "encruzilhada", "rara"],
        funcao="esparsa e sem folhas: marca lugares estranhos (ruínas, círculo de pedras, encruzilhada); leitura de "
@@ -176,6 +179,7 @@ def tree_gnarled(semente=1, musgo=True):
        terreno=["grama", "terra", "rocha"], apoio={"tipo": "ponto"}, inclinacao_max_u=1.0,
        area_livre={"raio_u": 0.6},
        colisao={"tipo": "tronco", "raio": 0.35, "copa": 0.0, "copaDe": 1.0},
+       restricoes=["no máximo 2 por região", "junto a ruína, círculo de pedras ou encruzilhada; nunca dentro da vila"],
        variacoes={"semente": [1, 2, 3], "ninho": [True, False]})
 def tree_dead(semente=1, ninho=True):
     """Tronco acinzentado com oco escuro, cinco galhos que se bifurcam e afinam até gravetos (traço 6-conexo, sem
@@ -215,14 +219,16 @@ def tree_dead(semente=1, ninho=True):
 
 # ============================================================================= em andares (exploração — ver estado)
 
-@asset("tree_tiered", nome="Árvore em andares (pratos empilhados)", categoria="vegetacao", sub="arvore", lote=1,
-       voxel=BIG, frequencia="comum", wind=True, tronco_faixa=(2, 6), estado="rejeitado",
+@asset("tree_tiered", aprovacao="rejeitado", integracao="nao_distribuivel", nome="Árvore em andares (pratos empilhados)", categoria="vegetacao", sub="arvore", lote=1,
+       voxel=BIG, frequencia="comum", wind=True, tronco_faixa=(2, 6),
        motivo_rejeicao="hipótese de partida (confundir-se com o pinheiro) NÃO se confirmou: em preto os vãos entre os "
                        "pratos a separam do cone do pinheiro. Rejeitada por outro motivo, visto na captura: pratos "
                        "simétricos e regulares num tronco reto leem como TOPIARIA ou suporte de bolo (artificial, sem a "
                        "irregularidade orgânica das copas da E); o prato do topo parece flutuar; é um clichê de árvore "
                        "estilizada sem identidade própria. A árvore antiga (pratos em galhos tortos, alturas desiguais) "
-                       "cumpre o papel de copa horizontal com mais caráter.",
+                       "cumpre o papel de copa horizontal com mais caráter. Decisão do proprietário (lote 1): REJEITADA para "
+                       "florestas naturais; pode voltar no futuro como estudo ORNAMENTAL de jardim, se houver motivo "
+                       "artístico. Não é publicada como árvore de floresta.",
        tags=["mata", "comum"], funcao="exploração: copa em andares horizontais", terreno=["grama", "mata"],
        apoio={"tipo": "ponto"}, inclinacao_max_u=0.8, area_livre={"raio_u": 0.5},
        colisao={"tipo": "tronco", "raio": 0.3, "copa": 0.4, "copaDe": 0.3},

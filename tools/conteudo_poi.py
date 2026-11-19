@@ -39,7 +39,8 @@ def _rubble(v, spots, seed=0):
 
 # ============================================================================= torre arruinada
 
-@asset("ruin_tower", estado="recomendado", nome="Torre arruinada", categoria="poi", sub="ruina", lote=1,
+@asset("ruin_tower", integracao="depende_colisao_composta",
+       dependencias=["formas compostas no Collision (interior caminhável): sem elas o interior fica dentro do sólido"], nome="Torre arruinada", categoria="poi", sub="ruina", lote=1,
        voxel=BIG, frequencia="rara", wind=True,
        tags=["ruina", "exploracao", "abrigo", "orientacao", "encontro", "colina", "isolada"],
        funcao="exploração e orientação: visível de longe; interior caminhável serve de abrigo, covil de inimigos "
@@ -156,7 +157,8 @@ def ruin_tower(semente=1, hera=True):
 
 # ============================================================================= círculo de pedras
 
-@asset("stone_circle", nome="Círculo de pedras com semente de luz", categoria="poi", sub="santuario", lote=1,
+@asset("stone_circle", aprovacao="aprovado_conceito", integracao="aguardando_refinamento",
+       dependencias=["refinamento artístico no lote 4 (proporções próprias, composição assimétrica, centro reconhecível, P1 legível na câmera de jogo, marcas de cultura do Valumo; sem portal genérico, sem P2)", "formas compostas no Collision (7 pedras + centro livre)"], nome="Círculo de pedras com semente de luz", categoria="poi", sub="santuario", lote=1,
        voxel=BIG, frequencia="rara", wind=True,
        tags=["misterio", "descoberta", "magia", "clareira", "colina", "encontro"],
        funcao="descoberta e mistério: lugar mágico antigo (a semente P1 no altar = 'vida mágica do lugar'); missão "
@@ -166,9 +168,10 @@ def ruin_tower(semente=1, hera=True):
        colisao={"tipo": "nenhum", "formas": "pedras", "_nota": "7 pedras = 7 círculos (formas_u); uma forma só "
                 "bloquearia o centro"},
        restricoes=["clareira aberta (sem árvore a menos de 1,5 u do anel)", "no máximo 1 por região"],
-       notas="candidato, não recomendado ainda: o mais genérico do lote (pedras em pé num anel são arquétipo); as pedras "
-             "leem um pouco como pilares de rocha e o anel some no gramado de longe. Refinar no lote 4 (elemento só do "
-             "Valumo, pedras mais largas que altas).",
+       notas="CONCEITO APROVADO, refinamento artístico pendente (decisão do proprietário, lote 1): as pedras agradam, "
+             "mas o conjunto ainda lembra monólitos genéricos e a semente P1 quase some na câmera de jogo. Fica no "
+             "catálogo como candidato artístico aceito, NÃO liberado para distribuição procedural definitiva. Estudo "
+             "controlado de refinamento no lote 4 (sem refazer do zero).",
        variacoes={"semente": [1, 2, 3], "pedra_caida": [True, False]})
 def stone_circle(semente=1, pedra_caida=True):
     """Sete pedras em pé, ovais e arredondadas (sem lintel: não é nenhum monumento conhecido), de alturas
@@ -234,7 +237,8 @@ def stone_circle(semente=1, pedra_caida=True):
 
 # ============================================================================= ruína de casa coberta de vegetação
 
-@asset("ruin_house", estado="recomendado", nome="Ruína de casa tomada pela mata", categoria="poi", sub="ruina", lote=1,
+@asset("ruin_house", integracao="depende_colisao_composta",
+       dependencias=["formas compostas no Collision (interior caminhável): sem elas o interior fica dentro do sólido"], nome="Ruína de casa tomada pela mata", categoria="poi", sub="ruina", lote=1,
        voxel=BIG, frequencia="incomum", wind=True,
        tags=["ruina", "narrativa", "descoberta", "recompensa", "mata", "beira_de_trilha"],
        funcao="narrativa ambiental e recompensa: restos de uma casa da mesma cultura da vila (alguém morou aqui); "
@@ -243,6 +247,7 @@ def stone_circle(semente=1, pedra_caida=True):
        area_livre={"frente_u": 1.5, "raio_u": 2.8},
        colisao={"tipo": "nenhum", "formas": "paredes", "_nota": "dois cantos de parede + chaminé: formas compostas "
                 "(formas_u); o interior é caminhável"},
+       restricoes=["fora do núcleo da vila (≥ 12 u do assentamento)", "beira de trilha ou dentro da mata"],
        variacoes={"semente": [1, 2, 3], "telhado_caido": [True, False]})
 def ruin_house(semente=1, telhado_caido=True):
     """Planta da casa de referência em ruína: piso de pedra inteiro, dois CANTOS de parede (o de trás-esquerda alto,

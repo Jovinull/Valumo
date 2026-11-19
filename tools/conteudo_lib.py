@@ -497,6 +497,10 @@ def asset(name, **meta):
             raise ValueError(f"id repetido: {name}")
         meta.setdefault("versao", 1)
         meta.setdefault("variacoes", {})
+        # decisão do proprietário (avaliação do lote 1, 2026-11-19): aprovação ARTÍSTICA × liberação para INTEGRAÇÃO
+        meta.setdefault("aprovacao", "aprovado")          # aprovado | aprovado_conceito | rejeitado
+        meta.setdefault("integracao", "liberado")         # liberado | depende_colisao_composta | aguardando_refinamento | nao_distribuivel
+        meta.setdefault("dependencias", [])
         ASSETS[name] = (fn, meta)
         return fn
     return deco
