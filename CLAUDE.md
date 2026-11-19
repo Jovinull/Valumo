@@ -4,6 +4,10 @@
 "Fábula Voxel"**. A–D existem só para comparação. Produção de assets novos **só com aprovação do
 proprietário**.
 
+**Estado:** checkpoint `engineering-foundation-v0.3` (fechamento do QA de engenharia,
+[relatório](docs/validation/relatorio-fechamento-qa.md)). **Próxima etapa: Rodada 10** — não começou. O Titã Celeste
+(Velária) é candidato num ramo LOCAL (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
+
 ## Leia antes de mexer
 
 1. `docs/README.md` — índice (oficial × histórico).
@@ -46,6 +50,8 @@ tools/anim.sh output/tmp/x "mode=lineup,style=e,set=herois,clip=walk" 60 30   # 
 tools/reference.sh [pasta]                          # refaz as referências canônicas
 python3 tools/check_links.py                        # links da documentação
 tools/qa/medir_desempenho.sh BINARIOS ROTULO [N]    # QA de engenharia: vila, combate, criador e bench, antes × depois (skill engineering-qa)
+tools/qa/audio_tempo_real.sh ROTEIRO SAIDA          # som em TEMPO REAL pelo backend wave do OpenAL Soft (nada nos alto-falantes) + buracos
+python3 tools/qa/sessao_longa.py N > R              # sessão longa: vila, conversa, pausa, combate, criador; "amostra" = recursos vivos
 python3 tools/qa/ide_diagnosticos.py . /tmp/jdt/ws x.json   # o que a aba Problems mostraria num import limpo (0 erros)
 python3 fontes/audio/musica/vila/vila_a.py          # partitura → sessão LMMS (.mmp) + .mid (áudio: skills de áudio)
 .venv/bin/python tools/audio/render_musica.py SESSAO.mmp SAIDA [--runtime assets/audio/musica/ID]  # render + laço + master
@@ -91,6 +97,11 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   nada de dano em área. Chefe = variante `chefe: true`; protótipo ampliado sempre marcado `prototipo`.
 - **Morte** (ADR 0022): desagregação nos próprios blocos (`DeathFx`/`VoxelCloud`, uma malha dinâmica); a antiga só em
   `-Dvx.morte=antiga`.
+- **QA de engenharia** (skill `engineering-qa`): validador conta o que conferiu e falha com zero (golpe inexistente, rig
+  sem volumes ou sem item = erro; exceção é lista explícita com motivo, como `OcclusionCheck.FACE_EXCEPTIONS`); quem cria
+  `App`/`World`/`Assets`/malha fecha; o desenho nunca escreve em estado da lógica; leitor de arquivo recusa o malformado
+  com o motivo (nunca laço, nunca alocação sem limite); preferência ilegível = padrão + original guardado em `.invalido`.
+  CI (`.github/workflows/ci.yml`) roda o que não precisa de GPU; capturas, gate, referências e bench são QA local.
 - **Som** (ADRs 0016 e 0023): um só dispositivo OpenAL por processo (`Audio`); os efeitos do combate tocam no mesmo
   contexto (`OpenAlBackend.shared`). O som **só lê** a lógica depois de cada passo (luta idêntica com e sem som, teste);
   jogo e interface emitem eventos (`Audio.event("ui.confirmar")`), nunca caminhos. Combate: síntese em

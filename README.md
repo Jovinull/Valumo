@@ -8,7 +8,8 @@ criar a aparência do herói, andar, correr e pular pela vila com câmera em ter
 cinco NPCs de ofício e lutar numa arena ao sul (espada e escudo): atacar andando, esquivar (salto baixo), travar a mira e trocar de alvo, contra um fungo-cardo,
 três ou um protótipo de chefe com dois menores (rodada 09.2; esquiva R2 e salto polidos na 09.3). O repositório também tem o visualizador que fixa a
 identidade visual, as ferramentas de modelagem e de síntese de som por script, a animação procedural com coreografia
-de armas, validadores e cenas de demonstração. Há música, ambiente e efeitos sonoros por síntese própria (rodada 09.4).
+de armas, validadores e cenas de demonstração. Há música, ambiente e efeitos sonoros por síntese própria (rodada 09.4): as músicas A (padrão) e B foram aprovadas pelo
+proprietário; efeitos, passos, interface e ambiente têm integração validada e escuta pendente.
 Não há inventário, missões, progressão nem mundo aberto.
 
 Direção de arte oficial: **E — "Fábula Voxel"** ([identidade](docs/art/visual-identity.md),
@@ -33,7 +34,10 @@ Rodadas: 01 comparou quatro direções (A–D), 02 consolidou a E, 03 poliu, 04 
 07 levou a personalização para dentro do viewer, com os heróis como presets idênticos, 07.2 deu a ela um
 criador clicável e **08** fez a primeira exploração jogável ([relatório](docs/validation/relatorio-rodada-08.md)).
 09–09.3 fizeram o combate; a 09.4, o áudio, cabelos/olhos/botas e os NPCs de ofício
-([relatório](docs/validation/relatorio-integracoes-09-4.md)).
+([relatório](docs/validation/relatorio-integracoes-09-4.md)). Depois veio a auditoria de engenharia e o **fechamento do QA**
+(checkpoint `engineering-foundation-v0.3`, [relatório](docs/validation/relatorio-fechamento-qa.md)): validadores que
+reprovam o que não conferiram, leitores resistentes a arquivo corrompido, sessão longa sem vazamento, interface em sete
+resoluções, referências canônicas refeitas e integração contínua. **Próxima etapa: a Rodada 10** (ainda não começou).
 
 ## Requisitos
 
@@ -170,7 +174,11 @@ tools/review91.sh sons                                     # catálogo dos efeit
 viewer/build/install/viewer/bin/viewer --check interrupcao-fina   # golpes do combate cortados a cada 0,01 s
 viewer/build/install/viewer/bin/viewer --check             # golpes e gestos sem interseção (0 falhas)
 tools/review7.sh gate                                      # presets recompostos × originais, pixel a pixel (0 diferenças)
-viewer/build/install/viewer/bin/viewer --occlusion         # rosto coberto / arma escondida (exceção conhecida: arco)
+viewer/build/install/viewer/bin/viewer --occlusion         # rosto coberto / arma escondida (a exceção do arco é explícita: saída 0)
+viewer/build/install/viewer/bin/viewer --check-cabelos     # arma e broquel × cabeça composta (penteados, chapéu, capuz, salto)
+tools/qa/audio_tempo_real.sh tools/qa/audio-criador.txt output/tmp/a   # buracos de áudio em tempo real, sem alto-falante
+python3 tools/qa/sessao_longa.py 160 > R && tools/qa/audio_tempo_real.sh R output/tmp/s 50   # sessão longa (~35 min)
+game/build/install/game/bin/game -Dvx.saves=PASTA --roteiro tools/qa/resolucoes.txt SAIDA 30  # interface em 7 resoluções
 python3 tools/asset_audit.py assets/characters/npc         # voxels soltos e fragmentos
 tools/reference.sh output/tmp/ref && .venv/bin/python tools/repro_compare.py imgs docs/art/reference output/tmp/ref
 python3 tools/check_links.py                               # links da documentação
