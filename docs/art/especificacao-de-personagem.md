@@ -168,7 +168,7 @@ Iterações e defeitos encontrados (não repetir):
    cabeça. Verifique SEMPRE em `sil=1` ao lado dos heróis.
 5. Traços finos em diagonal (lápis) perdem pedaços na limpeza → `connect_path`.
 
-## 10. NPCs da vila — Kelyra, Índira e Súvia (`tools/npcs_trio.py`, candidatas; refeitas na rodada 06.1)
+## 10. NPCs da vila — Kelyra, Índira e Súvia (`tools/npcs_vila_e.py`, candidatas; refeitas na rodada 06.1)
 
 Um construtor só (`npc(key, **override)`) e três fichas em `SPECS`; esqueleto do NPC da cartógrafa (importado
 de `npcs_e`). Gesto compartilhado `acenar` (`assets/anim/npc_vila.json`) com **atuação por personagem**

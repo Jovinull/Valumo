@@ -177,7 +177,7 @@ a mais fraca (sutil à distância de jogo) e a exploradora "mira" pode ler como 
 
 ## 11. Adendo — NPCs da vila: Kelyra, Índira e Súvia (pedido do proprietário)
 
-Fonte: `tools/npcs_trio.py` (um construtor, três fichas), gesto `assets/anim/npc_vila.json` (acenar), cena
+Fonte: `tools/npcs_vila_e.py` (um construtor, três fichas), gesto `assets/anim/npc_vila.json` (acenar), cena
 `assets/scenes/vila_e.json` (`layout=vila_e`), lineup `set=vila`, pacote `round-06/npcs-vila/`
 (`tools/review_vila.sh`). Ficha de cada uma: `especificacao-de-personagem.md` §10. São **candidatas**.
 

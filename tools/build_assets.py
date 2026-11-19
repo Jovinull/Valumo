@@ -25,7 +25,7 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            # rodada 06: primeira expansão controlada (NPC, criatura, árvore, estrutura)
            "npcs_e",
            # NPCs da vila (Kelyra, Índira, Súvia)
-           "npcs_trio",
+           "npcs_vila_e",
            # rodada 06.1: prova técnica de personalização modular (lê assets de chars_e)
            "custom_e",
            # rodada 07: componentes de personalização em tempo de execução (lê assets de chars_e)

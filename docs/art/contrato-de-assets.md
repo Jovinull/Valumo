@@ -94,7 +94,7 @@ esquerdo (`x > 0`).
   ciclo de heróis nem deslocarem os índices `char=` das referências). `meta.npc = true`; mesmas partes do
   bípede articulado + opcionais `skirt_l/r`, `pack`, `tool`, `ear_l/r` (acessório filho de `head`, fora da
   medida de cabeças), `lock` (mecha/trança longa presa ao **tronco**, rígida; rodada 06.1). NPCs atuais:
-  `cartografa` (`npcs_e.py`), `kelyra`, `indira`, `suvia` (`npcs_trio.py`).
+  `cartografa` (`npcs_e.py`), `kelyra`, `indira`, `suvia` (`npcs_vila_e.py`).
 - Metadados de NPC (rodada 06.1): `role` (papel na vila), `actingStyle` (desenho das expressões:
   `confident`/`sweet`/`playful`), `acting` (objeto de atuação de animação — `guia-de-animacao.md`).
 - Estudos de alternativa: `assets/studies/<nome>/` (ex.: `kelyra_estalajadeira`, `kelyra_tecela`), gerados

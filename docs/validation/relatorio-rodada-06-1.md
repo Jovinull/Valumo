@@ -13,7 +13,7 @@ testes, `--check` TODOS OK, links OK. Linha de base em `round-06-1/linha-de-base
 
 | Item | Mudança | Fonte |
 |---|---|---|
-| Kelyra | estalajadeira: mecha varrida à frente do ombro esquerdo (parte `lock`), ponta em V, saia do casaco em sino, avental claro, chaves; atuação confiante | `tools/npcs_trio.py` |
+| Kelyra | estalajadeira: mecha varrida à frente do ombro esquerdo (parte `lock`), ponta em V, saia do casaco em sino, avental claro, chaves; atuação confiante | `tools/npcs_vila_e.py` |
 | Índira | herbalista: cabelo rente com franja em cortina e trança de gomos (parte `lock`), mangas bufantes creme, jardineira índigo, avental de sálvia, bolsa de ervas, raminho de lavanda; atuação doce | idem |
 | Súvia | mensageira: corpete vinho, mangas ardósia, gola e punhos claros, cinto e punhos de cobre, bolsa de cartas; cabelo, orelhas e expressões preservados; atuação travessa | idem |
 | Cartógrafa | queixo afinado (cabeça deixa de ser quadrada de frente); o resto preservado | `tools/npcs_e.py` |

@@ -15,7 +15,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * NPCs da vila (Kelyra, Índira, Súvia; tools/npcs_trio.py): contrato de NPC, partes, expressões com atuação
+ * NPCs da vila (Kelyra, Índira, Súvia; tools/npcs_vila_e.py): contrato de NPC, partes, expressões com atuação
  * própria, nada de recoloração entre elas, tronco sem volume extra, gesto compartilhado validado e cena da
  * vila separada da clareira canônica. Rode build_assets antes.
  */

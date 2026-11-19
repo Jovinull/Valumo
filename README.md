@@ -182,7 +182,7 @@ engine/    núcleo: janela e eventos, shaders, malhas, leitor .vox, mesher, câm
 viewer/    runtime (renderer, mundo, relevo, animador, compositor, criador, peças de interface) + visualizador:
            estilos, modos, captura, bench, validadores
 game/      o jogo: jogador, colisão, câmera de exploração, NPCs interativos, diálogo, estados, interface
-tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_e, npcs_trio), criaturas,
+tools/     fontes dos assets (Python): heróis (chars_e, charlib_e), NPCs (npcs_e, npcs_vila_e), criaturas,
            ambiente, prova de personalização (custom_e) + utilitários de QA
 assets/    feitos à mão (versionados): scenes/*.json e anim/*.json; gerados por build_assets.py (fora do git):
            characters/ (e = heróis, npc = NPCs, custom = prova modular, r3/r4/variants = estudos), creatures/,

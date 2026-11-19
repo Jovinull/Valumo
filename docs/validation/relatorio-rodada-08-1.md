@@ -27,7 +27,7 @@ tools/review81.sh tudo                           # validação temporal, dentes,
 
 - **Cor:** `TEETH = #dccbbb` (marfim quente) no lugar de `EYE_HI` (o branco do brilho do olho) em dois lugares:
   - `charlib_e.act_face`: aventureiro, expressão determinada;
-  - `npcs_trio.face`: Kelyra, alegre.
+  - `npcs_vila_e.face`: Kelyra, alegre.
 - **Verificação:** close e distância de jogo, em luz de dia, tarde e neutra (`round-08-1/dentes/`):
   - os dentes leem como dentes, sem mancha;
   - o olho continua o ponto mais claro do rosto;

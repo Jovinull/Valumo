@@ -143,7 +143,7 @@ guarda só o modelo.
 6. Autorização retirada → o personagem sai do jogo (mova para `output/quarentena/` só o que não tem vínculo e
    regenere).
 
-## NPCs em lote — um construtor, várias fichas (provado com `tools/npcs_trio.py`)
+## NPCs em lote — um construtor, várias fichas (provado com `tools/npcs_vila_e.py`)
 
 1. Um `npc(key)` + `SPECS` com paleta e escolhas estruturais (`collar`, `belt`, `charm`, `tails`,
    `hair_bottom`, `crown`, `flare`, `fringe`, `front_bottom`, `ears`, `acting`). Esqueleto importado de
