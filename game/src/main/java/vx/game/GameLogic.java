@@ -30,7 +30,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public final class GameLogic {
     /** Rodada 10: JOURNAL = diário aberto (J); a lógica para como na pausa. */
-    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL }
+    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL, MENU }
 
     /** NPC com quem dá para conversar. */
     public static final class Npc {
@@ -69,12 +69,7 @@ public final class GameLogic {
     public int selected;
     public Appearance appearance;
     public float time;
-    public boolean quit, openCreator, showHelp = true, started;
-    /** Dica de controles da exploração: some HINT_S s depois de ENTRAR NA VILA (não do início do programa). */
-    public static final float HINT_S = 40f;
-    /** Instante em que o jogador entrou na vila pela primeira vez; F1 depois disso fixa a dica ({@link #helpPinned}). */
-    public float startedAt = -1f;
-    public boolean helpPinned;
+    public boolean quit, openCreator, started;
     public String message;
     public float messageUntil;
     /** Rodada 09: o confronto da cena (null = cena sem combate). */
@@ -138,6 +133,17 @@ public final class GameLogic {
     public int saves;
     public String saveError;
     private boolean autosavePending;
+    /**
+     * Rodada 11.1 — a aventura veio do menu principal (a pausa oferece "Menu principal" e "Sair do jogo" COM confirmação:
+     * nenhum progresso se perde em silêncio), a confirmação aberta ({@code leaving} = "menu" ou "sair"; null = nenhuma) e o
+     * pedido de voltar ao menu (o {@code Game} troca a sessão no próximo quadro).
+     */
+    public boolean menuAvailable, wantMenu;
+    public String leaving;
+    /** O estado de antes da confirmação aberta pelo X da janela (Cancelar volta a ele: diálogo, diário, exploração). */
+    private State resumeState;
+    /** O que o save guarda (progresso das missões + posição em quartos de u) no último salvamento, Continuar ou começo. */
+    private String savedSnapshot;
     private Combat.Outcome lastOutcome = Combat.Outcome.NONE;
 
     public GameLogic(SceneDef scene, Collision collision) {
@@ -169,7 +175,13 @@ public final class GameLogic {
         }
         player.place(scene.startX, scene.startZ, (float) Math.toRadians(scene.startYawDeg), collision);
         cam.yaw = player.yaw + (float) Math.PI;                           // atrás do herói, olhando para onde ele olha
-        if (scene.questsFile != null) {                                   // rodada 10
+        if (scene.procedural != null) {                                   // rodada 11: a missão instanciada da região
+            ProceduralScene ps = scene.procedural;
+            questDefs = ps.quest != null ? Map.of(ps.quest.id(), ps.quest) : Map.of();
+            quests = new QuestSystem(questDefs.values());
+            dialogues = ps.dialogues;
+            saveDir = SaveGame.procDir(ps.worldId());
+        } else if (scene.questsFile != null) {                            // rodada 10
             questDefs = QuestDefinition.load(scene.assets.resolve(scene.questsFile));
             quests = new QuestSystem(questDefs.values());
             dialogues = scene.dialoguesFile != null ? DialogueBook.load(scene.assets.resolve(scene.dialoguesFile)) : null;
@@ -275,7 +287,11 @@ public final class GameLogic {
             case EXPLORE -> explore(dt, in);
             case DIALOG -> dialog(dt, in);
             case PAUSE -> {
-                if (in.hit(GLFW_KEY_ESCAPE)) action("continuar");
+                if (in.hit(GLFW_KEY_ESCAPE)) action(leaving != null ? "menu-cancelar" : "continuar");
+                cam.update(dt, player.x, player.visualY, player.z, collision);
+            }
+            case MENU -> {                                                 // rodada 11.1: apresentação do menu (nada de jogo corre)
+                player.update(dt, 0, 0, false, collision);
                 cam.update(dt, player.x, player.visualY, player.z, collision);
             }
             case JOURNAL -> {                                              // rodada 10: diário (a lógica para)
@@ -302,11 +318,6 @@ public final class GameLogic {
     private void explore(float dt, Input in) {
         if (in.hit(GLFW_KEY_ESCAPE)) { action("pausar"); return; }
         if (in.hit(GLFW_KEY_J) && quests != null) { action("diario"); return; }
-        if (in.hit(GLFW_KEY_F1)) {                                          // alterna o que está VISÍVEL agora
-            boolean on = helpVisible();
-            showHelp = !on;
-            helpPinned = !on;
-        }
         cam.look(in.mdx, in.mdy);
         if (in.wheel != 0) cam.zoom(in.wheel);
         float[] ax = in.moveAxes();
@@ -446,7 +457,7 @@ public final class GameLogic {
         dialogLines = entry.lines();
         dialogChoices = entry.choices();
         if (quests != null) {                                              // rodada 10: o contexto antes da entrega
-            String q = dialogues != null ? dialogues.questOf(n.def.id()) : null;
+            String q = dialogues != null ? dialogues.questOf(n.def.id(), quests) : null;
             if (q != null && dialogues.gives(n.def.id()) && quests.get(q) != null) {
                 dialogContext = DialogueBook.giverContext(quests.get(q));
                 if (dialogContext.equals("caiu")) quests.forget(q, QuestSystem.FACT_FELL);
@@ -496,11 +507,11 @@ public final class GameLogic {
     void choose(int i) {
         if (talking == null || i < 0 || i >= dialogChoices.size() || !lastLine()) return;
         DialogueBook.Choice c = dialogChoices.get(i);
-        String npc = talking.def.id(), q = dialogues.questOf(npc);
+        String npc = talking.def.id(), q = dialogues.questOf(npc, quests);
         boolean ok = c.action().equals("aceitar") ? quests.accept(q) : quests.decline(q);
         onAction.accept(c.action().equals("aceitar") ? "fala-aceitar" : "fala-recusar");
         processNotices();
-        DialogueBook.Entry e = ok ? dialogues.entry(npc, c.next()) : null;
+        DialogueBook.Entry e = ok ? dialogues.entry(npc, q, c.next()) : null;
         if (e == null) { endDialog(); return; }
         dialogLines = e.lines();
         dialogChoices = e.choices();
@@ -514,17 +525,6 @@ public final class GameLogic {
         talking = null;
         state = State.EXPLORE;
         cam.frame(false, null, 0, 0, 0);
-    }
-
-    /**
-     * A dica de controles aparece? Na arena: enquanto {@link #showHelp}. Fora dela: nos primeiros {@link #HINT_S} s depois
-     * de entrar na vila, ou sempre que o F1 a trouxe de volta. Antes a contagem começava na tela de escolha (quem demorava
-     * a escolher nunca a via) e o F1 não a trazia de volta depois dos 40 s.
-     */
-    public boolean helpVisible() {
-        if (!showHelp) return false;
-        if (combat != null && combat.inArena(player)) return true;
-        return helpPinned || (started && time - startedAt < HINT_S);
     }
 
     public SceneDef.Line currentLine() { return talking == null || line >= dialogLines.size() ? null : dialogLines.get(line); }
@@ -547,7 +547,6 @@ public final class GameLogic {
             case "comecar" -> {
                 if (appearance == null) { message("Escolha uma aparência", 3f); return; }
                 state = State.EXPLORE;
-                if (!started) startedAt = time;
                 started = true;
                 cam.frame(false, null, 0, 0, 0);
                 cam.yaw = player.yaw + (float) Math.PI;                    // gira suave para trás do herói
@@ -559,6 +558,21 @@ public final class GameLogic {
                 else if (lastLine()) endDialog(); else line++;
             }
             case "diario" -> { if (state == State.EXPLORE && quests != null) state = State.JOURNAL; }
+            case "menu-principal" -> {
+                if (!menuAvailable || state != State.PAUSE) return;
+                if (unsaved()) leaving = "menu"; else wantMenu = true;   // nada a perder: sem pergunta
+            }
+            case "menu-salvar" -> {                                    // salva e sai (só se dá para salvar agora)
+                if (leaving == null) return;
+                String why = saveBlocker();
+                if (why != null) { message(why, 4f); return; }
+                if (save(false)) leave();
+            }
+            case "menu-sem-salvar" -> { if (leaving != null) leave(); }
+            case "menu-cancelar" -> {
+                leaving = null;
+                if (resumeState != null) { state = resumeState; resumeState = null; }   // de volta ao que estava (X cancelado)
+            }
             case "diario-pausa" -> { if (state == State.PAUSE && quests != null) state = State.JOURNAL; }
             case "fechar-diario" -> { if (state == State.JOURNAL) state = State.EXPLORE; }
             case "rastreador" -> { prefs.tracker = !prefs.tracker; prefs.save(); }
@@ -569,7 +583,7 @@ public final class GameLogic {
             case "continuar-jogo" -> continueSaved();
             case "encerrar-fala" -> endDialog();
             case "pausar" -> { if (state == State.EXPLORE) state = State.PAUSE; }
-            case "continuar" -> { if (state == State.PAUSE) state = State.EXPLORE; }
+            case "continuar" -> { if (state == State.PAUSE) { state = State.EXPLORE; leaving = null; resumeState = null; } }
             case "trocar-aparencia" -> { state = State.SELECT; frameSelect(); }
             case "criador" -> openCreator = true;
             case "recomecar" -> {                                      // rodada 09: recomeça o confronto
@@ -596,7 +610,10 @@ public final class GameLogic {
                 state = State.EXPLORE;
                 cam.yaw = player.yaw + (float) Math.PI;
             }
-            case "sair" -> quit = true;
+            case "sair" -> {                                           // rodada 11.1: na aventura do menu, confirma antes
+                if (menuAvailable && state == State.PAUSE && unsaved()) leaving = "sair";
+                else quit = true;
+            }
             case "barras" -> prefs.cycleBars();                       // rodada 09.2: barras de inimigos comuns
             case "sensacao" -> {                                       // rodada 09.2: próximo perfil de sensação
                 if (combat == null || !technical) return;                // fechamento da 10: só no modo técnico
@@ -694,6 +711,63 @@ public final class GameLogic {
         lastOutcome = combat.outcome;
     }
 
+    /** Rodada 11.1 — cumpre a saída confirmada: volta ao menu ou fecha o jogo. */
+    private void leave() {
+        if ("sair".equals(leaving)) quit = true; else wantMenu = true;
+        leaving = null;
+        resumeState = null;
+    }
+
+    /**
+     * Rodada 11.1 — há progresso que ainda não está no disco? A aventura começou, tem o que salvar, o save está ligado e o
+     * progresso ou a posição mudaram desde o último salvamento (manual, automático dos marcos), o Continuar ou o começo.
+     */
+    public boolean unsaved() {
+        return started && quests != null && saveDir != null && !progressSnapshot().equals(savedSnapshot);
+    }
+
+    /**
+     * O que um save novo mudaria: o progresso (missões, objetivos, moedas, objetos acesos) e a posição do herói com
+     * tolerância de 0,25 u. O tempo de jogo não conta: ficar parado não é progresso a perder.
+     */
+    String progressSnapshot() {
+        return (quests == null ? "" : quests.toJson().toString()) + "|" + Math.round(player.x * 4) + "," + Math.round(player.z * 4);
+    }
+
+    /**
+     * Rodada 11.1 — o X da janela: sem nada a perder, fecha; senão abre a MESMA confirmação da pausa ("Sair do jogo?"),
+     * de qualquer estado (exploração, luta, diálogo, diário, pausa). Cancelar volta ao estado de antes.
+     */
+    public void requestQuit() {
+        if (!unsaved()) { quit = true; return; }
+        if (leaving == null && state != State.PAUSE) resumeState = state;
+        state = State.PAUSE;
+        leaving = "sair";
+    }
+
+    /**
+     * Rodada 11.1 — começa a aventura escolhida no menu: o PERSONAGEM manda na aparência (também ao continuar: o save guarda
+     * a aparência da época, o perfil guarda a atual). {@code resume} = continuar o save da pasta {@link #saveDir}. Devolve o
+     * motivo quando não dá para continuar (save inválido), sem mudar nada.
+     */
+    public String beginAdventure(Appearance a, String name, boolean resume) {
+        menuAvailable = true;
+        if (resume) {
+            refreshSaved();
+            String why = continueBlocker();
+            if (why != null) return why;
+        }
+        useCreated(a, name);
+        if (!resume) { action("comecar"); savedSnapshot = progressSnapshot(); return null; }
+        boolean lookProblem = saved.data().appearanceProblem() != null;
+        continueSaved();
+        savedSnapshot = progressSnapshot();                               // o que acabou de vir do disco
+        appearance = a.copy();
+        onAppearance.accept(appearance);
+        if (lookProblem) message("Jogo carregado", 3f);                 // a aparência do save não importa: vale a do personagem
+        return null;
+    }
+
     /** Por que não dá para salvar agora (null = dá). Nunca no meio da luta, na pausa de impacto, caído ou no ar. */
     public String saveBlocker() {
         if (quests == null) return "Esta cena não tem jogo para salvar";
@@ -713,11 +787,13 @@ public final class GameLogic {
     public boolean save(boolean auto) {
         autosavePending = false;
         try {
-            var json = SaveGame.compose(saveId, scene.layout, appearance, player.x, player.z, (float) Math.toDegrees(player.yaw), playTime, quests);
-            SaveGame.write(saveDir, SaveGame.text(json), t -> SaveGame.parse(t, catalog, scene.layout, questDefs.values(), objectIds()));
+            var json = SaveGame.compose(saveId, scene.layout, appearance, player.x, player.z, (float) Math.toDegrees(player.yaw), playTime, quests,
+                    scene.procedural);
+            SaveGame.write(saveDir, SaveGame.text(json), t -> SaveGame.parse(t, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural));
             saves++;
             saveError = null;
-            saved = SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds());
+            savedSnapshot = progressSnapshot();
+            saved = SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural);
             onAction.accept(auto ? "salvo-auto" : "salvo");
             if (auto) toastIfQuiet("Jogo salvo"); else message("Jogo salvo", 3f);
             return true;
@@ -735,7 +811,7 @@ public final class GameLogic {
     /** Relê o save (tela inicial: habilita ou explica o Continuar). */
     public void refreshSaved() {
         saved = quests == null || catalog == null ? new SaveGame.Loaded(null, null, null)
-                : SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds());
+                : SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural);
     }
 
     /** Por que o Continuar está indisponível (null = disponível). */

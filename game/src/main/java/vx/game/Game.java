@@ -39,6 +39,15 @@ import static org.lwjgl.opengl.GL11.glFinish;
  */
 public final class Game implements AutoCloseable {
     public static final String SCENE = "jogo_vila_e";
+    /**
+     * Rodada 11 — modo experimental: {@code -Dvx.mundo=procedural -Dvx.semente=1024} gera a região pela semente (o modo
+     * padrão continua a vila fixa da rodada 10). Save à parte: {@code output/saves-procedural/s<semente>/}.
+     */
+    static final boolean PROCEDURAL = "procedural".equals(System.getProperty("vx.mundo"));
+    static final long SEED = Long.parseUnsignedLong(System.getProperty("vx.semente", "1024"));
+    /** A região gerada (null no modo padrão) e o tempo de gerar + conferir (ms). */
+    ProceduralScene procedural;
+    double generateMs;
     /** Pasta das aparências salvas pelo criador (-Dvx.saves=... muda; os roteiros usam uma pasta própria). */
     public static final Path SAVES = Path.of(System.getProperty("vx.saves", "output/aparencias"));
 
@@ -46,12 +55,13 @@ public final class Game implements AutoCloseable {
     private final Path assetsPath;
     private final Assets assets;
     private final StyleProfile style;
-    private final World world;
-    public final Terrain terrain;
-    public final GameLogic logic;
-    private final AsyncComposer async;
+    /** Rodada 11.1 — a SESSÃO (mundo, relevo, lógica) troca em tempo de execução: menu ⇄ aventura, mundo A ⇄ mundo B. */
+    private World world;
+    public Terrain terrain;
+    public GameLogic logic;
+    final AsyncComposer async;
     private final Renderer renderer = new Renderer();
-    private final UiKit kit = new UiKit();
+    final UiKit kit = new UiKit();
     private final Camera cam = new Camera();
     private final Input input = new Input();
     private final Renderer.Toggles toggles = new Renderer.Toggles();
@@ -59,12 +69,12 @@ public final class Game implements AutoCloseable {
     private Actor playerActor;
     private String shownSig;
     private Framebuffer captureFbo;
-    private final List<Button> buttons = new ArrayList<>();
-    private String hover;
+    final List<Button> buttons = new ArrayList<>();
+    String hover;
     public boolean drawCursor, scripted;
-    final GameAudio gameAudio;
+    GameAudio gameAudio;
     final AudioPrefs audioPrefs = AudioPrefs.load(AudioPrefs.FILE);
-    private float mouseX = -1, mouseY = -1;
+    float mouseX = -1, mouseY = -1;
     private final Animator.Motion pMotion = new Animator.Motion(), nMotion = new Animator.Motion(), eMotion = new Animator.Motion();
     /** Rodada 09: ator do inimigo (fungo-cardo) e modo técnico (caixas de golpe e de dano; F3 com -Dvx.tecnico=1). */
     private Actor enemyActor;
@@ -75,6 +85,11 @@ public final class Game implements AutoCloseable {
     private DeathFxMesh deathMesh;
     /** Rodada 10: os modelos dos objetos com estado (props da E) e a semente de luz do efeito do marco. */
     private final Map<String, Assets.Prop> props;
+    /**
+     * Rodada 11.1 — o jogo abre no menu principal ({@code -Dvx.menu=nao}: direto na escolha de aparência da vila, como os
+     * roteiros das rodadas 08–11, que o {@code GameMain} mantém assim para as comparações históricas).
+     */
+    static final boolean MENU = !"nao".equals(System.getProperty("vx.menu", "sim"));
     private vx.engine.Mesh mote;
     /** Estilo da morte: D2 (padrão), D1 ou "antiga" (rodada 09: cai e encolhe — só para comparar). */
     public static String deathStyle = System.getProperty("vx.morte", "D2");
@@ -101,35 +116,103 @@ public final class Game implements AutoCloseable {
         this.window = window;
         this.assetsPath = assetsPath;
         assets = new Assets(assetsPath);
+        style = StyleProfile.of(4, 0);
+        props = assets.props("e");
+        async = new AsyncComposer(assetsPath, 8);
+        initSfx();
+        long w0 = System.nanoTime();
+        if (PROCEDURAL) {                                                 // rodada 11: região gerada pela semente (modo técnico)
+            long g0 = System.nanoTime();
+            ProceduralScene ps = ProceduralScene.create(assetsPath, SEED);
+            generateMs = (System.nanoTime() - g0) / 1e6;
+            System.out.printf(java.util.Locale.ROOT, "mundo: procedural, semente %s, %s v%d, tentativa %d, gerado e conferido em %.0f ms%s%n",
+                    Long.toUnsignedString(SEED), vx.game.world.RegionGenerator.ID, vx.game.world.RegionGenerator.VERSION, ps.layout.attempt,
+                    generateMs, ps.log.isEmpty() ? "" : " (" + ps.log.size() + " tentativa(s) recusada(s))");
+            w0 = System.nanoTime();
+            openSession(new World(assets, style, ps.field, ps.worldDoc), ps.scene(), ps, SaveGame.procDir(ps.worldId()));
+        } else openSession(villageWorld(), SceneDef.load(assetsPath, SCENE), null, MENU ? null : SaveGame.dir());
+        worldBuildMs = (System.nanoTime() - w0) / 1e6;
+        toggles.fxaa = true;
+        toggles.terrainFar = true;
+        if (MENU && !PROCEDURAL) enterMenu();                             // rodada 11.1: o jogo abre no menu principal
+    }
+
+    /** A vila fixa (rodada 10): o mundo legado e o cenário da apresentação do menu. */
+    private World villageWorld() {
         String prev = World.layout;
         World.layout = SCENE;
-        style = StyleProfile.of(4, 0);
-        long w0 = System.nanoTime();
-        world = new World(assets, style);
-        worldBuildMs = (System.nanoTime() - w0) / 1e6;
-        World.layout = prev;
-        terrain = world.terrainGrid;
-        props = assets.props(world.key);
-        SceneDef scene = SceneDef.load(assetsPath, SCENE);
+        try {
+            return new World(assets, style);
+        } finally {
+            World.layout = prev;
+        }
+    }
+
+    /**
+     * Rodada 11.1 — monta a sessão: o mundo já construído (thread do GL), a colisão, a lógica, o som da sessão, os atores.
+     * A anterior precisa ter sido fechada ({@link #closeSession}).
+     */
+    private void openSession(World w, SceneDef scene, ProceduralScene ps, Path saveDir) {
+        world = w;
+        terrain = w.terrainGrid;
+        procedural = ps;
         Collision col = Collision.build(terrain, Collision.profiles(assetsPath), world.placements(), world.bodies(), scene);
         logic = new GameLogic(scene, col);
         logic.technical = technical;
+        logic.saveDir = saveDir;                                          // rodada 11.1: a pasta da aventura (menu = nenhuma)
         gameAudio = new GameAudio(logic);
         audioPrefs.apply();
-        async = new AsyncComposer(assetsPath, 8);
         if (logic.combat != null) {                                       // rodada 09: espada e broquel em qualquer aparência
             async.kit(logic.combat.def.heroKit);
             enemyActor = new Actor(assets.rig(logic.combat.def.enemyRig), style.animExaggeration);
             // rodada 09.2: blocos da morte e malha dinâmica prontos antes da luta (sem ler arquivo no meio do combate)
             VoxelCloud.of(assetsPath.resolve(logic.combat.def.enemyRig), 2);
-            deathMesh = new DeathFxMesh();
+            if (deathMesh == null) deathMesh = new DeathFxMesh();
         }
-        initAudio();
+        if (logic.combat != null) logic.audio = new CombatAudio(sfx, logic.combat);
+        if (!vx.engine.audio.Audio.has("passo.grama.andar")) logic.steps = new Footsteps(sfx);
+        applyVolumes();
         logic.onAppearance = async::request;
         logic.loadChoices(async.catalog(), SAVES);
+        logic.cam.sensitivity = logic.prefs.sensitivity;                  // rodada 11.1: câmera guardada nas preferências
+        logic.cam.invertY = logic.prefs.invertY;
+        npcActors.clear();
         for (GameLogic.Npc n : logic.npcs) npcActors.put(n, new Actor(assets.rig(n.def.rig()), style.animExaggeration));
-        toggles.fxaa = true;
-        toggles.terrainFar = true;
+        sessions++;
+    }
+
+    /** Rodada 11.1 — fecha a sessão: malhas do mundo, a grade do relevo procedural, atores e efeitos (nada fica vivo). */
+    private void closeSession() { closeSession(false); }
+
+    /**
+     * {@code keepWorld}: a vila fixa continua montada para a próxima sessão (menu ⇄ aventura na vila: o mesmo cenário, sem
+     * refazer 1,4 s de malhas); a lógica, os atores e o som da sessão fecham do mesmo jeito. Quem chama reabre com o
+     * mundo devolvido por {@link #takeWorld}.
+     */
+    private void closeSession(boolean keepWorld) {
+        if (world == null) return;
+        if (sfx != null) sfx.stopAll();
+        if (keepWorld) kept = world; else world.close();
+        if (procedural != null) Terrain.release(procedural.field);
+        enemyActors.clear();
+        deaths.clear();
+        broken.clear();
+        npcActors.clear();
+        enemyActor = null;
+        world = null;
+        procedural = null;
+    }
+
+    /** Sessões abertas desde o início (QA: troca de mundo). */
+    int sessions;
+    /** A vila guardada entre duas sessões ({@link #closeSession(boolean)}). */
+    private World kept;
+
+    /** A vila guardada (ou uma nova, se não houver). */
+    private World takeWorld() {
+        World w = kept != null ? kept : villageWorld();
+        kept = null;
+        return w;
     }
 
     // ------------------------------------------------------------------ som (rodada 09.1, ADR 0016)
@@ -146,7 +229,7 @@ public final class Game implements AutoCloseable {
      * -Dvx.som = dispositivo (padrão do jogo), mudo (padrão dos roteiros) ou loopback (roteiros com som gravado em
      * audio.wav). Qualquer falha ao abrir o OpenAL: o jogo segue sem som, avisando no console.
      */
-    private void initAudio() {
+    private void initSfx() {
         // um só dispositivo (ADR 0023): se o Audio abriu o OpenAL (catálogo presente), os efeitos do combate tocam no MESMO
         // contexto; senão (sem catálogo), o Sfx abre o seu, como na rodada 09.1.
         String mode = System.getProperty("vx.som", "dispositivo");
@@ -157,10 +240,7 @@ public final class Game implements AutoCloseable {
         sfx = new Sfx(b, assetsPath);
         sfxMaster = sfx.master;
         System.out.printf("som: %s (efeitos carregados em %.1f ms)%n", b.describe(), (System.nanoTime() - t0) / 1e6);
-        if (logic.combat != null) logic.audio = new CombatAudio(sfx, logic.combat);
-        // passos: os do catálogo (quatro superfícies, GameAudio) quando houver; senão o passo único da 09.1
-        if (!vx.engine.audio.Audio.has("passo.grama.andar")) logic.steps = new Footsteps(sfx);
-        applyVolumes();
+        // por sessão (openSession): o som do combate e, sem catálogo, o passo único da 09.1
     }
 
     /**
@@ -184,21 +264,21 @@ public final class Game implements AutoCloseable {
     /** Preferências do jogador → catálogo (música, efeitos, interface, ambiente) e efeitos do combate. */
     private void applyVolumes() {
         audioPrefs.apply();
-        if (sfx != null) sfx.setVolumes(sfxMaster * audioPrefs.effects, sfx.effects, sfx.muted);
+        if (sfx != null) sfx.setVolumes(sfxMaster * audioPrefs.effects * audioPrefs.master, sfx.effects, sfx.muted);
     }
 
     /** Mudo (M ou botão da pausa): tudo — combate, música, ambiente e interface. */
     private void setMuted(boolean m) {
         sfx.setVolumes(sfx.master, sfx.effects, m);
         vx.engine.audio.SoundSystem ss = vx.engine.audio.Audio.get();
-        if (ss != null) ss.volume("geral", m ? 0f : 1f);
+        if (ss != null) ss.volume("geral", m ? 0f : audioPrefs.master);   // rodada 11.1: volta ao volume geral escolhido
     }
 
     private final org.joml.Vector3f earEye = new org.joml.Vector3f();
 
     /** Pausa, mudo (M) e ouvinte na câmera, depois da lógica do quadro. */
     private void audioFrame() {
-        if (input.hit(GLFW_KEY_M)) setMuted(!sfx.muted);
+        if (input.hit(GLFW_KEY_M) && !(menuActive() && menuFlow.typing())) setMuted(!sfx.muted);   // digitando: M é letra
         sfx.setPaused(logic.state == GameLogic.State.PAUSE);
         FollowCamera c = logic.cam;
         c.position(earEye);
@@ -235,20 +315,29 @@ public final class Game implements AutoCloseable {
     /** Lógica de um quadro com os eventos dados (fila da janela). */
     public void tick(List<InputEvent> events, float dt, int w, int h) {
         long t0 = System.nanoTime();
+        lastW = w;
+        lastH = h;
+        if (window.takeCloseRequest()) closeRequest();                    // rodada 11.1: o X da janela
         input.feed(events);
         for (InputEvent e : events) if (e.kind() == InputEvent.Kind.MOVE) { mouseX = e.x(); mouseY = e.y(); }
         hover = null;
         for (Button b : buttons) if (b.contains(mouseX, mouseY)) hover = b.id;
+        boolean busy = transitionTick(dt);                                // rodada 11.1: troca de sessão em passos
+        boolean menuOn = menuActive();
         boolean defeat = logic.combat != null && logic.combat.outcome == Combat.Outcome.DEFEAT;
         boolean uiState = logic.state != GameLogic.State.EXPLORE || defeat;
-        if (uiState) for (float[] c : input.clicks) for (Button b : buttons) if (b.contains(c[0], c[1])) { logic.action(b.id); break; }
+        if (uiState && !menuOn && !busy)
+            for (float[] c : input.clicks) for (Button b : buttons) if (b.contains(c[0], c[1])) { logic.action(b.id); break; }
+        if (menuOn && !busy) menuInput(events);
         if (logic.state == GameLogic.State.EXPLORE && !defeat && !scripted) {
             if (!window.cursorCaptured() && (window.focused() || !input.clicks.isEmpty())) { window.captureCursor(true); input.resetMouse(); input.leftPressed = 0; }
         } else if (window.cursorCaptured()) { window.captureCursor(false); input.resetMouse(); }
         if (logic.state == GameLogic.State.EXPLORE && !window.cursorCaptured() && !scripted) { input.mdx = 0; input.mdy = 0; input.leftPressed = 0; }
         if (defeat && input.hit(GLFW_KEY_ENTER)) logic.action("recomecar");
         if (technical && input.hit(GLFW_KEY_F3)) debugCombat = !debugCombat;
-        logic.update(dt, input);
+        if (!busy) logic.update(dt, input);
+        if (logic.wantMenu) { logic.wantMenu = false; backToMenu(); }
+        if (menuActive()) menuTick(dt);
         if (logic.state == GameLogic.State.EXPLORE) updateDeaths(dt);
         audioFrame();                                                     // efeitos do combate: pausa, mudo
         gameAudio.tick(dt);                                               // passos, interface, música, ambiente, ouvinte, mistura
@@ -267,8 +356,24 @@ public final class Game implements AutoCloseable {
     /** Desenha a cena e a interface no alvo (null = janela). */
     public void render(Framebuffer target, int w, int h, float ssaa, float dt) {
         long t0 = System.nanoTime();
+        renderedSinceStep = true;
+        if (world == null) {                                              // rodada 11.1: entre sessões só a tela de carregamento
+            if (target != null) target.bind(); else Framebuffer.bindDefault(w, h);
+            org.lwjgl.opengl.GL11.glClearColor(0.055f, 0.04f, 0.03f, 1f);
+            org.lwjgl.opengl.GL11.glClear(org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT | org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT);
+            drawUi(w, h);
+            lastRenderMs = (System.nanoTime() - t0) / 1e6;
+            return;
+        }
+        boolean menuOn = menuActive();
+        if (menuOn && menuReadyMs < 0) {
+            menuReadyMs = ProcessHandle.current().info().startInstant().map(i -> (double) (System.currentTimeMillis() - i.toEpochMilli())).orElse(0.0);
+            System.out.printf(java.util.Locale.ROOT, "menu: primeiro quadro %.0f ms depois do início do processo (cena da vila montada em %.0f ms)%n", menuReadyMs, worldBuildMs);
+        }
+        if (menuOn) menu.pump();                                          // retratos prontos (FBO próprio) antes da cena
         Renderer.Frame f = new Renderer.Frame();
-        logic.cam.apply(cam, logic.alpha);
+        if (menuOn) menuCamera();
+        else logic.cam.apply(cam, logic.alpha);
         cam.update((float) w / h);
         f.camera = cam;
         f.style = style;
@@ -278,8 +383,9 @@ public final class Game implements AutoCloseable {
         float blend = Math.min(1f, dt * 12f), a = logic.alpha;
         Player p = logic.player;
         Combat cb = logic.combat;
-        if (playerActor != null) {
-            Matrix4f pw = new Matrix4f().translate(p.rx(a), p.rVisualY(a), p.rz(a)).rotateY(p.rYaw(a));
+        boolean showHero = !menuOn || menuFlow.screen == vx.game.menu.MenuFlow.Screen.CHARACTERS && menuFlow.profile() != null;
+        if (playerActor != null && showHero) {
+            Matrix4f pw = new Matrix4f().translate(p.rx(a), p.rVisualY(a), p.rz(a)).rotateY(p.rYaw(a) + (menuOn ? menu.previewYaw : 0f));
             if (cb != null) {
                 // pose EXATA (blend 1): as trajetórias e transições já são as validadas; suavizar por cima as deformaria
                 playerActor.flash = flash(cb.hero.hurtT);
@@ -287,7 +393,7 @@ public final class Game implements AutoCloseable {
                 playerActor.submit(f, pw, cb.hero.motion(pMotion, p, a), 1f, heroExpression(cb.hero), terrain);
             } else playerActor.submit(f, pw, p.motion(pMotion), blend, null, terrain);
         }
-        if (cb != null && enemyActor != null) {
+        if (cb != null && enemyActor != null && !menuOn) {                // o fundo do menu não mostra inimigos
             boolean old = deathStyle.equals("antiga");
             for (Enemy e : cb.enemies) {
                 boolean show = e.alive() || (old ? e.stateT < Animator.BRAWLER_DEATH + 0.05f : !broken.contains(e));
@@ -300,7 +406,10 @@ public final class Game implements AutoCloseable {
             if (!old) drawDeaths(f, cb);
         }
         drawObjects(f);
+        boolean showcase = menuOn && menuFlow.screen == vx.game.menu.MenuFlow.Screen.CHARACTERS;
         for (GameLogic.Npc n : logic.npcs) {
+            // vitrine dos personagens: morador colado no herói confunde a silhueta (só desenho; a lógica não muda)
+            if (showcase && behindHero(n.def.x(), n.def.z(), p)) continue;
             SceneDef.Line l = n == logic.talking ? logic.currentLine() : null;
             String expr = l != null ? l.expression() : null;
             npcActors.get(n).submit(f, new Matrix4f().translate(n.def.x(), terrain.groundAt(n.def.x(), n.def.z()), n.def.z()).rotateY(n.yaw),
@@ -323,7 +432,7 @@ public final class Game implements AutoCloseable {
     /** O marco no estado da missão (apagado/aceso) e, logo depois de acender, o efeito discreto. */
     private void drawObjects(Renderer.Frame f) {
         for (SceneDef.WorldObject o : logic.scene.objects) {
-            boolean on = logic.quests != null && logic.quests.objectOn(o.id());
+            boolean on = menuActive() || logic.quests != null && logic.quests.objectOn(o.id());   // menu: o marco aceso
             Assets.Prop pr = props.get(on ? o.modelOn() : o.modelOff());
             if (pr == null) continue;
             Matrix4f m = new Matrix4f().translate(o.x(), terrain.groundAt(o.x(), o.z()), o.z()).rotateY((float) Math.toRadians(o.yawDeg()));
@@ -410,7 +519,7 @@ public final class Game implements AutoCloseable {
 
     // ------------------------------------------------------------------ interface
 
-    private float s;
+    float s;
 
     private void drawUi(int w, int h) {
         s = Math.clamp(Math.min(w / 1920f, h / 1080f), 0.6f, 1.8f);
@@ -422,6 +531,7 @@ public final class Game implements AutoCloseable {
             case DIALOG -> drawDialog(w, h);
             case PAUSE -> drawPause(w, h);
             case JOURNAL -> drawJournal(w, h);
+            case MENU -> { if (menu != null) { menu.drawFade(w, h); menu.draw(w, h); } }
         }
         if (logic.state == GameLogic.State.EXPLORE || logic.state == GameLogic.State.DIALOG) drawToast(w, h);
         if (async.busy() && async.waitingMs() > 150) {
@@ -442,13 +552,14 @@ public final class Game implements AutoCloseable {
             kit.text((w - bw) / 2 + 30 * s, my0 + 26 * s - p * 0.66f, msg, p, true, UiKit.INK);
         }
         boolean defeatUi = logic.combat != null && logic.combat.outcome == Combat.Outcome.DEFEAT && logic.state == GameLogic.State.EXPLORE;
-        if (drawCursor && (logic.state != GameLogic.State.EXPLORE || defeatUi) && mouseX >= 0) kit.cursor(mouseX, mouseY, s, false);
+        drawOverlay(w, h);
+        if (drawCursor && (logic.state != GameLogic.State.EXPLORE || defeatUi) && mouseX >= 0 && overlay < 1f) kit.cursor(mouseX, mouseY, s, false);
         kit.end();
     }
 
-    private int px(float base) { return Math.max(9, Math.round(base * s)); }
+    int px(float base) { return Math.max(9, Math.round(base * s)); }
 
-    private void button(String id, float x, float y, float w, float h, String label, boolean primary) {
+    void button(String id, float x, float y, float w, float h, String label, boolean primary) {
         Button b = new Button(id, x, y, w, h, label, primary);
         buttons.add(b);
         boolean hv = id.equals(hover);
@@ -457,18 +568,36 @@ public final class Game implements AutoCloseable {
         kit.chamfer(x + 3 * s, y + 3 * s, w - 6 * s, h - 7 * s, 4 * s,
                 primary ? (hv ? 0x74a26cff : UiKit.MOSS) : hv ? UiKit.WOOD_L : UiKit.WOOD);
         kit.rect(x + 9 * s, y + 4 * s, w - 18 * s, Math.max(1, 2 * s), 0xffffff38);
-        int p = textPx(label, w - 20 * s, 22);
+        int p = groupPx > 0 && kit.width(label, groupPx, true) <= w - 20 * s ? groupPx : textPx(label, w - 20 * s, 22);
         kit.text(x + (w - kit.width(label, p, true)) / 2, y + h / 2 - p * 0.66f, label, p, true, UiKit.PARCH_L);
     }
 
+    /**
+     * Rodada 11.1 — escala comum de um grupo de botões equivalentes (Jogar/Configurações/Sair; Voltar/Criar mundo…): a
+     * maior escala inteira que serve a TODOS os rótulos, cada um na largura do seu botão. Antes cada botão escolhia a sua
+     * e vizinhos saíam com tamanhos diferentes. 0 = sem grupo.
+     */
+    int groupPx;
+
+    /** Pares (rótulo, largura do botão) → a escala comum ({@link #groupPx}), a partir do tamanho base 22. */
+    int groupPx(Object... labelAndWidth) { return groupPxFrom(22, labelAndWidth); }
+
+    /** Idem a partir de {@code base} (telas de menu: botões maiores que os da pausa, mesma regra de caber). */
+    int groupPxFrom(float base, Object... labelAndWidth) {
+        int p = Integer.MAX_VALUE;
+        for (int i = 0; i < labelAndWidth.length; i += 2)
+            p = Math.min(p, textPx((String) labelAndWidth[i], ((Number) labelAndWidth[i + 1]).floatValue() - 20 * s, base));
+        return p == Integer.MAX_VALUE ? 0 : p;
+    }
+
     /** Maior passo inteiro da fonte de pixel que cabe na largura. */
-    private int textPx(String t, float room, float base) {
+    int textPx(String t, float room, float base) {
         int p = px(base);
         while (kit.width(t, p, true) > room && vx.engine.PixelFont.scale(p) > 1) p = 9 * (vx.engine.PixelFont.scale(p) - 1);
         return p;
     }
 
-    private void title(String t, String sub) {
+    void title(String t, String sub) {
         float m = 28 * s;
         for (int i = 0; i < 24; i++) {
             int y0 = Math.round(i * 7.5f * s), y1 = Math.round((i + 1) * 7.5f * s);
@@ -481,8 +610,10 @@ public final class Game implements AutoCloseable {
 
     private void drawSelect(int w, int h) {
         boolean fresh = !logic.started && logic.quests != null;           // rodada 10: Jogo novo / Continuar
-        title("Valumo", fresh ? "As Luzes do Posto — escolha a aparência e comece, ou continue o jogo salvo"
-                : "Protótipo de exploração — escolha a aparência e entre na vila");
+        if (procedural != null) title("Valumo", "Mundo procedural (experimental) · semente " + Long.toUnsignedString(procedural.seed)
+                + " · " + (procedural.quest != null ? procedural.quest.name() : "sem missão nesta região"));
+        else title("Valumo", fresh ? "As Luzes do Posto — escolha a aparência e comece, ou continue o jogo salvo"
+                : "Escolha a aparência e entre na vila");
         float pw = 560 * s, px0 = w - 28 * s - pw, py = 132 * s, ph = h - py - 28 * s;
         kit.panel(px0, py, pw, ph, s, false);
         float x = px0 + 24 * s, y = py + 24 * s, iw = pw - 48 * s;
@@ -522,7 +653,7 @@ public final class Game implements AutoCloseable {
         }
         int below = logic.choices.size() - (first + maxRows);
         if (below > 0)
-            kit.text(x, y, "+" + below + " (use ↑ ↓)", px(18), false, UiKit.INK_SOFT);
+            kit.text(x, y, "+" + below, px(18), false, UiKit.INK_SOFT);
         float by = py + ph - 24 * s - 70 * s;
         if (fresh) {
             String why = logic.continueBlocker();
@@ -531,20 +662,18 @@ public final class Game implements AutoCloseable {
             if (can) button("continuar-jogo", x, by - 66 * s, iw, 56 * s, "Continuar o jogo salvo", true);
             else disabledButton("continuar-jogo", x, by - 66 * s, iw, 56 * s, "Continuar — " + shortReason(why));
             button("criador", x, by - 132 * s, iw, 56 * s, "Criar no editor", false);
-            controlsHint(w, h, can ? "↑ ↓ escolher · Enter jogo novo · C continuar · Esc sair" : "↑ ↓ escolher · Enter jogo novo · Esc sair");
             return;
         }
         button("comecar", x, by, iw, 70 * s, logic.started ? "Voltar ao jogo" : "Entrar na vila", true);
         button("criador", x, by - 66 * s, iw, 56 * s, "Criar no editor", false);
-        controlsHint(w, h, "↑ ↓ escolher · Enter entrar · Esc sair");
     }
 
     /** Botão desabilitado: desenhado apagado; o clique ainda chega à lógica, que explica o motivo. */
-    private void disabledButton(String id, float x, float y, float w, float h, String label) {
+    void disabledButton(String id, float x, float y, float w, float h, String label) {
         buttons.add(new Button(id, x, y, w, h, label, false));
         kit.chamfer(x, y, w, h, 5 * s, 0x6b544480);
         kit.chamfer(x + 3 * s, y + 3 * s, w - 6 * s, h - 7 * s, 4 * s, 0xcfc2b0ff);
-        int p = textPx(label, w - 20 * s, 20);
+        int p = groupPx > 0 && kit.width(label, groupPx, true) <= w - 24 * s ? groupPx : textPx(label, w - 20 * s, 20);
         String t = fit(label, p, w - 24 * s);
         kit.text(x + (w - kit.width(t, p, true)) / 2, y + h / 2 - p * 0.66f, t, p, true, UiKit.INK_SOFT);
     }
@@ -557,7 +686,7 @@ public final class Game implements AutoCloseable {
     }
 
     /** O texto inteiro se couber em {@code room}; senão o maior prefixo que cabe seguido de "…". */
-    private String fit(String t, int p, float room) {
+    String fit(String t, int p, float room) {
         if (kit.width(t, p, true) <= room) return t;
         int n = t.length();
         while (n > 1 && kit.width(t.substring(0, n).stripTrailing() + "…", p, true) > room) n--;
@@ -565,7 +694,7 @@ public final class Game implements AutoCloseable {
     }
 
     /** Quebra o texto em linhas que cabem em {@code room} (px), por palavra; palavra maior que a linha fica sozinha. */
-    private List<String> wrap(String t, int p, float room) {
+    List<String> wrap(String t, int p, float room) {
         List<String> out = new ArrayList<>();
         StringBuilder line = new StringBuilder();
         for (String word : t.split(" ")) {
@@ -579,22 +708,12 @@ public final class Game implements AutoCloseable {
         return out;
     }
 
-    private void controlsHint(int w, int h, String t) {
-        int p = px(19);
-        float tw = kit.width(t, p, false) + 40 * s;
-        kit.chamfer(28 * s, h - 28 * s - 44 * s, tw, 44 * s, 5 * s, 0x2a1e18b0);
-        kit.text(48 * s, h - 28 * s - 22 * s - p * 0.66f, t, p, false, UiKit.PARCH_L);
-    }
-
     private void drawExplore(int w, int h) {
         Combat cb = logic.combat;
         boolean arena = cb != null && cb.inArena(logic.player);
         if (cb != null) drawCombat(cb, w, h, arena);
         if (cb != null && cb.outcome == Combat.Outcome.DEFEAT) return;
-        if (logic.helpVisible())
-            controlsHint(w, h, arena ? "Clique atacar · direito defender · Alt (ou botão do meio) esquivar · Espaço pular · Q mira · Tab trocar alvo · F1"
-                    : "WASD andar · Shift correr · mouse olhar · roda aproxima · E conversar · J diário · Esc pausa · F1 ajuda");
-        GameLogic.Npc n = logic.candidate;
+        GameLogic.Npc n = logic.cam.technicalView ? null : logic.candidate;   // rodada 11: vista técnica sem placas
         if (n != null) {
             float gy = terrain.groundAt(n.def.x(), n.def.z());
             // a placa fica acima da cabeça de QUALQUER NPC (1,55 u era fixo: no Bramor, de 1,73 u, caía sobre o cabelo)
@@ -612,15 +731,12 @@ public final class Game implements AutoCloseable {
 
     /** Placa "E ação" acima de quem/que se pode usar (sc = ponto projetado na tela). */
     private void interactPlate(float[] sc, String b) {
-        String a = "E";
         int p = px(21);
-        float tw = kit.width(b, p, true), kw = 34 * s, bw = tw + kw + 46 * s, bh = 46 * s;
+        float tw = kit.width(b, p, true), bw = tw + 44 * s, bh = 46 * s;
         float x = sc[0] - bw / 2, y = sc[1] - bh;
         kit.chamfer(x, y, bw, bh, 5 * s, UiKit.WOOD_D);
         kit.chamfer(x + 3 * s, y + 3 * s, bw - 6 * s, bh - 6 * s, 4 * s, UiKit.PARCH_L);
-        kit.chamfer(x + 10 * s, y + 8 * s, kw, bh - 16 * s, 3 * s, UiKit.GOLD);
-        kit.text(x + 10 * s + (kw - kit.width(a, p, true)) / 2, y + bh / 2 - p * 0.66f, a, p, true, UiKit.INK);
-        kit.text(x + kw + 26 * s, y + bh / 2 - p * 0.66f, b, p, true, UiKit.INK);
+        kit.text(x + 22 * s, y + bh / 2 - p * 0.66f, b, p, true, UiKit.INK);
         kit.rect(sc[0] - 4 * s, y + bh, 8 * s, 6 * s, UiKit.WOOD_D);
     }
 
@@ -721,8 +837,8 @@ public final class Game implements AutoCloseable {
             for (String l : wrap("Nenhuma missão ainda. Converse com os moradores da vila.", pt, cw)) { kit.text(cx, cy, l, pt, false, UiKit.INK_SOFT); cy += pt * 1.4f; }
         }
         float bw = (pw - 100 * s) / 2, bh = 58 * s, by = y + ph - 30 * s - bh;
-        button("rastreador", x + 40 * s, by, bw, bh, logic.prefs.tracker ? "Rastreador: visível (T)" : "Rastreador: oculto (T)", false);
-        button("fechar-diario", x + 60 * s + bw, by, bw, bh, "Fechar  (J)", true);
+        button("rastreador", x + 40 * s, by, bw, bh, logic.prefs.tracker ? "Rastreador: visível" : "Rastreador: oculto", false);
+        button("fechar-diario", x + 60 * s + bw, by, bw, bh, "Fechar", true);
     }
 
     /** Tempo de jogo como "12 min" (ou "40 s" no primeiro minuto). */
@@ -827,7 +943,7 @@ public final class Game implements AutoCloseable {
             kit.text(x + 40 * s, y + 96 * s, cb.enemies.size() == 1 ? "O " + cb.def.enemyName.toLowerCase() + " voltou para a toca."
                     : "Os inimigos voltaram para a toca.", px(21), false, UiKit.INK_SOFT);
             float bw2 = pw - 80 * s, bh2 = 62 * s;
-            button("recomecar", x + 40 * s, y + 150 * s, bw2, bh2, "Tentar de novo  (Enter)", true);
+            button("recomecar", x + 40 * s, y + 150 * s, bw2, bh2, "Tentar de novo", true);
             button("voltar-vila", x + 40 * s, y + 226 * s, bw2, bh2, "Voltar à vila", false);
         }
     }
@@ -1014,17 +1130,17 @@ public final class Game implements AutoCloseable {
         if (last && !logic.dialogChoices.isEmpty()) {                    // rodada 10: escolha (← → escolher, E confirmar)
             float cx = dx + dw - 36 * s;
             for (int i = logic.dialogChoices.size() - 1; i >= 0; i--) {
-                String t = logic.dialogChoices.get(i).text() + (i == logic.choiceSelected ? "  (E)" : "");
+                String t = logic.dialogChoices.get(i).text();
                 float cw = Math.max(200 * s, kit.width(t, px(22), true) + 48 * s);
                 cx -= cw;
                 button("fala-escolha:" + i, cx, dy + dh - 30 * s - bh, cw, bh, t, i == logic.choiceSelected);
                 cx -= 16 * s;
             }
-            button("encerrar-fala", cx - 190 * s, dy + dh - 30 * s - bh, 190 * s, bh, "Sair  (Esc)", false);
+            button("encerrar-fala", cx - 190 * s, dy + dh - 30 * s - bh, 190 * s, bh, "Sair", false);
             return;
         }
-        button("continuar-fala", dx + dw - 36 * s - bw, dy + dh - 30 * s - bh, bw, bh, last ? "Até logo  (E)" : "Continuar  (E)", true);
-        button("encerrar-fala", dx + dw - 36 * s - bw - 16 * s - 190 * s, dy + dh - 30 * s - bh, 190 * s, bh, "Sair  (Esc)", false);
+        button("continuar-fala", dx + dw - 36 * s - bw, dy + dh - 30 * s - bh, bw, bh, last ? "Até logo" : "Continuar", true);
+        button("encerrar-fala", dx + dw - 36 * s - bw - 16 * s - 190 * s, dy + dh - 30 * s - bh, 190 * s, bh, "Sair", false);
     }
 
     private List<String> wrap(String t, float maxW, int p) {
@@ -1044,7 +1160,7 @@ public final class Game implements AutoCloseable {
      * esquerda dos botões (escala inteira que cabe, como nos botões: em 720p ele era atravessado pelo "−") e o valor
      * fica centrado entre − e +.
      */
-    private void stepperRow(String id, String label, String value, float bx, float bw, float y) {
+    void stepperRow(String id, String label, String value, float bx, float bw, float y) {
         float minusX = bx + bw - 236 * s, plusX = bx + bw - 56 * s, room = minusX - bx - 12 * s;
         int lp = textPx(label, room, 21);
         kit.text(bx, y + 25 * s - lp * 0.66f, label, lp, true, UiKit.INK);
@@ -1061,14 +1177,24 @@ public final class Game implements AutoCloseable {
         float pw = 620 * s, ph = (cmb ? (logic.technical ? 990 : 866) : 800) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
         kit.panel(x, y, pw, ph, s, true);
         kit.text(x + 40 * s, y + 34 * s, "Pausa", px(40), true, UiKit.INK);
+        float hw0 = (pw - 80 * s - 14 * s) / 2, bw0 = pw - 80 * s;
+        groupPx = groupPx("Continuar", bw0, "Menu principal", bw0, "Aparência", hw0, "Criador", hw0, "Salvar jogo", hw0, "Diário", hw0,
+                "Inverter vertical: não", bw0, "Som: ligado", bw0, "Barras: com dano ou alvo", bw0, "Sair do jogo", bw0);
+        if (procedural != null) {                                          // rodada 11: a semente sempre à vista
+            String sd = "semente " + Long.toUnsignedString(procedural.seed);
+            kit.text(x + pw - 40 * s - kit.width(sd, px(20), false), y + 50 * s, sd, px(20), false, UiKit.INK_SOFT);
+        }
         float bx = x + 40 * s, bw = pw - 80 * s, bh = 62 * s, by = y + 110 * s;
         button("continuar", bx, by, bw, bh, "Continuar", true);
         float hw = (bw - 14 * s) / 2;                                     // rodada 10: dois por linha
-        button("trocar-aparencia", bx, by + 76 * s, hw, bh, "Aparência", false);
-        button("criador", bx + hw + 14 * s, by + 76 * s, hw, bh, "Criador", false);
+        if (logic.menuAvailable) button("menu-principal", bx, by + 76 * s, bw, bh, "Menu principal", false);   // rodada 11.1
+        else {
+            button("trocar-aparencia", bx, by + 76 * s, hw, bh, "Aparência", false);
+            button("criador", bx + hw + 14 * s, by + 76 * s, hw, bh, "Criador", false);
+        }
         if (logic.quests != null) {
             button("salvar", bx, by + 152 * s, hw, bh, "Salvar jogo", false);
-            button("diario-pausa", bx + hw + 14 * s, by + 152 * s, hw, bh, "Diário  (J)", false);
+            button("diario-pausa", bx + hw + 14 * s, by + 152 * s, hw, bh, "Diário", false);
         }
         // sensibilidade do mouse
         float sy = by + 240 * s;
@@ -1078,7 +1204,7 @@ public final class Game implements AutoCloseable {
         // som: volumes do jogador (música; efeitos = combate, passos, interface e ambiente), gravados nas preferências, e mudo
         stepperRow("mus", "Música", AudioPrefs.percent(audioPrefs.music), bx, bw, sy + 132 * s);
         stepperRow("efe", "Efeitos", AudioPrefs.percent(audioPrefs.effects), bx, bw, sy + 198 * s);
-        button("mudo", bx, sy + 264 * s, bw, 50 * s, sfx.muted ? "Som: mudo (M)" : "Som: ligado (M)", false);
+        button("mudo", bx, sy + 264 * s, bw, 50 * s, sfx.muted ? "Som: mudo" : "Som: ligado", false);
         if (cmb) {                                                         // rodada 09.2: combate
             float cy = sy + 334 * s;
             String bars = switch (logic.prefs.bars) { case "nunca" -> "nunca"; case "sempre" -> "sempre"; default -> "com dano ou alvo"; };
@@ -1092,6 +1218,699 @@ public final class Game implements AutoCloseable {
             }
         }
         button("sair", bx, y + ph - 40 * s - bh, bw, bh, "Sair do jogo", false);
+        groupPx = 0;
+        if (logic.leaving != null) drawLeaving(w, h);
+    }
+
+    /**
+     * Rodada 11.1 — confirmação antes de sair da aventura (menu principal ou fechar o jogo): nada se perde em silêncio.
+     * Os botões da pausa por baixo deixam de valer (só os do painel).
+     */
+    private void drawLeaving(int w, int h) {
+        buttons.clear();
+        kit.rect(0, 0, w, h, 0x1a1210b0);
+        boolean quit = "sair".equals(logic.leaving);
+        float pw = Math.min(760 * s, w - 56 * s), ph = 430 * s, x = (w - pw) / 2, y = (h - ph) / 2;
+        kit.panel(x, y, pw, ph, s, true);
+        kit.text(x + 40 * s, y + 32 * s, quit ? "Sair do jogo?" : "Voltar ao menu principal?", px(36), true, UiKit.INK);
+        String why = logic.saveBlocker();
+        String kept = " O que já foi salvo, inclusive nos marcos da missão, continua salvo.";
+        String t = why == null ? "Sair sem salvar perde só o que aconteceu desde o último salvamento." + kept
+                : "Agora não dá para salvar (" + why.toLowerCase(java.util.Locale.ROOT) + "). Sair sem salvar perde só o que aconteceu desde o último salvamento." + kept;
+        float ty = y + 96 * s;
+        for (String l : wrap(t, px(20), pw - 80 * s)) { kit.text(x + 40 * s, ty, l, px(20), false, UiKit.INK_SOFT); ty += px(20) * 1.35f; }
+        float bw = pw - 80 * s, bh = 58 * s, by = y + ph - 34 * s - 3 * bh - 2 * 12 * s;
+        groupPx = groupPx(quit ? "Salvar e sair" : "Salvar e voltar ao menu", bw, quit ? "Sair sem salvar" : "Voltar sem salvar", bw, "Cancelar", bw);
+        if (why == null) button("menu-salvar", x + 40 * s, by, bw, bh, quit ? "Salvar e sair" : "Salvar e voltar ao menu", true);
+        else disabledButton("menu-salvar", x + 40 * s, by, bw, bh, quit ? "Salvar e sair" : "Salvar e voltar ao menu");
+        button("menu-sem-salvar", x + 40 * s, by + bh + 12 * s, bw, bh, quit ? "Sair sem salvar" : "Voltar sem salvar", false);
+        button("menu-cancelar", x + 40 * s, by + 2 * (bh + 12 * s), bw, bh, "Cancelar", false);
+        groupPx = 0;
+    }
+
+    // ------------------------------------------------------------------ rodada 11.1: menu principal e transições
+
+    /** Estado e regras da porta de entrada (sem GL) e o desenho dela (com os recursos de GL do menu). */
+    vx.game.menu.MenuFlow menuFlow;
+    MenuView menu;
+    /** Pedido de abrir o criador (o laço da janela ou o roteiro o cumpre: o criador tem o laço dele). */
+    private vx.game.menu.MenuFlow.Request creatorReq;
+    /** Prévia de mundo a fazer depois de um quadro com o "preparando a prévia..." na tela. */
+    private vx.game.menu.WorldStore.World previewJob;
+
+    /** Um passo da transição: rótulo real do que vai acontecer + o trabalho (thread do GL). */
+    private record Step(String label, Runnable run) { }
+
+    private final java.util.ArrayDeque<Step> steps = new java.util.ArrayDeque<>();
+    private String stepLabel;
+    /** Cobertura da transição (0–1): escurece antes do primeiro passo e clareia depois do último (sem clarão). */
+    private float overlay;
+    private boolean renderedSinceStep;
+    private Renderer previewRenderer;
+    private final Camera previewCam = new Camera();
+    /** Transições concluídas e prévias feitas nesta execução (QA: dezenas de idas e voltas sem crescer recursos). */
+    int transitions, previewsMade;
+
+    boolean menuActive() { return menu != null && logic.state == GameLogic.State.MENU; }
+
+    /**
+     * Rodada 11.1 — o X da janela (pedido interceptado pelo {@code Window}). Menu, carregamento ou aventura sem nada
+     * por salvar: fecha. Aventura com progresso fora do disco: a confirmação "Sair do jogo?" da pausa
+     * ({@link GameLogic#requestQuit}). O criador atende o seu próprio X (ele tem o laço dele).
+     */
+    private void closeRequest() {
+        if (!steps.isEmpty() || menuActive() || world == null) { logic.quit = true; return; }
+        logic.requestQuit();
+        if (window.cursorCaptured()) { window.captureCursor(false); input.resetMouse(); }
+        System.out.println("janela: pedido de fechar → " + (logic.quit ? "fecha" : "confirmação (" + logic.state + ")"));
+    }
+
+    /**
+     * Vitrine: o morador está perto do herói ou atrás dele, visto do olho (até 16° do eixo olho → herói)? Esconder só no
+     * desenho, para a silhueta do personagem ficar limpa.
+     */
+    private boolean behindHero(float nx, float nz, Player p) {
+        org.joml.Vector3f e = cam.position();
+        if (Math.hypot(nx - p.x, nz - p.z) < 3.2f) return true;
+        double a = Math.atan2(nx - e.x, nz - e.z), b = Math.atan2(p.x - e.x, p.z - e.z);
+        double d = Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+        return d < Math.toRadians(16) && Math.hypot(nx - e.x, nz - e.z) > Math.hypot(p.x - e.x, p.z - e.z);
+    }
+
+    /** Tempo do início do processo até o primeiro quadro do menu (ms; -1 = ainda não). */
+    double menuReadyMs = -1;
+
+    private void enterMenu() { enterMenu(vx.game.menu.MenuFlow.Screen.MAIN); }
+
+    /** Põe a sessão atual (a vila da apresentação) no estado MENU, na tela pedida, com as listas relidas do disco. */
+    private void enterMenu(vx.game.menu.MenuFlow.Screen screen) {
+        if (menuFlow == null) {
+            var rnd = new java.security.SecureRandom();
+            menuFlow = new vx.game.menu.MenuFlow(new vx.game.menu.CharacterStore(vx.game.menu.CharacterStore.defaultDir(), async.catalog(), rnd),
+                    new vx.game.menu.WorldStore(vx.game.menu.WorldStore.defaultRoot(), rnd));
+            // os jogos salvos de antes (vila e sementes) viram aventuras uma vez, por cópia validada; os originais ficam
+            if (!menuFlow.worlds.oldSaves(SaveGame.dir(), procSaveRoot()).isEmpty())
+                transition(new Step("Preparando seus jogos salvos", () -> {
+                    adoptOldSaves(assetsPath, async.catalog(), menuFlow.characters, menuFlow.worlds, SaveGame.dir(), procSaveRoot(),
+                            vx.game.menu.CharacterStore.now()).forEach(m -> System.out.println("adoção: " + m));
+                    menuFlow.refreshCharacters();
+                    menuFlow.refreshWorlds();
+                }));
+        }
+        if (menu == null) menu = new MenuView(this, menuFlow, vx.game.menu.Cinematic.load(assetsPath));
+        menu.cine.restart();
+        menu.pose = menu.cine.at(0f);
+        float[] sh = menu.cine.showcase;                                   // o herói na vitrine (tela de personagens)
+        logic.player.place(sh[0], sh[1], sh[2], logic.collision);
+        logic.player.snapshot();
+        menu.invalidate();
+        logic.state = GameLogic.State.MENU;
+        logic.saveDir = null;                                             // o cenário do menu nunca lê nem grava save
+        logic.menuAvailable = false;
+        menuFlow.refreshCharacters();
+        menuFlow.refreshWorlds();
+        menuFlow.screen = screen;
+        menuFlow.loading = null;
+        shownProfileSig = null;
+    }
+
+    /** Raiz dos saves por semente da rodada 11 (para oferecer a importação): a mesma regra de {@link SaveGame#procDir}. */
+    static Path procSaveRoot() {
+        String d = System.getProperty("vx.savegame");
+        if ("-".equals(d)) return null;
+        return d != null ? Path.of(d) : Path.of("output/saves-procedural");
+    }
+
+    /** Câmera do menu: a tomada da apresentação, ou (personagens) o herói enquadrado à direita da lista. */
+    private void menuCamera() {
+        cam.fovDeg = FollowCamera.FOV;
+        cam.near = 0.1f;
+        if (menuFlow.screen == vx.game.menu.MenuFlow.Screen.CHARACTERS) {
+            Player p = logic.player;
+            float[] v = vx.game.menu.Cinematic.showcaseCamera(p.x, terrain.groundAt(p.x, p.z), p.z, p.yaw);
+            cam.target.set(v[0], v[1], v[2]);
+            cam.yaw = v[3];
+            cam.pitch = v[4];
+            cam.distance = v[5];
+            return;
+        }
+        vx.game.menu.Cinematic.Pose q = menu.pose;
+        cam.target.set(q.tx(), q.ty(), q.tz());
+        cam.yaw = q.yaw();
+        cam.pitch = q.pitch();
+        cam.distance = q.dist();
+    }
+
+    /** Enfileira uma transição (a tela escurece, os passos rodam um por quadro com o rótulo real, a tela clareia). */
+    private void transition(Step... s) {
+        steps.addAll(List.of(s));
+        stepLabel = steps.peek().label();
+        renderedSinceStep = false;
+    }
+
+    /** Roda o próximo passo quando a tela já está coberta e um quadro com o rótulo foi desenhado. true = ocupado. */
+    private boolean transitionTick(float dt) {
+        float step = Math.max(dt, 1f / 60f);
+        if (steps.isEmpty()) {
+            overlay = Math.max(0f, overlay - step / 0.35f);
+            return false;
+        }
+        overlay = Math.min(1f, overlay + step / 0.2f);
+        if (overlay < 1f || !renderedSinceStep) return true;
+        Step st = steps.poll();
+        renderedSinceStep = false;
+        long t0 = System.nanoTime();
+        try {
+            st.run().run();
+        } catch (RuntimeException e) {
+            e.printStackTrace();                                          // detalhes no console; na tela, só a frase
+            steps.clear();
+            recoverToMenu("Algo deu errado ao " + st.label().toLowerCase(java.util.Locale.ROOT) + ": " + brief(e));
+        }
+        System.out.printf(java.util.Locale.ROOT, "transição: %s em %.0f ms%n", st.label(), (System.nanoTime() - t0) / 1e6);
+        stepLabel = steps.isEmpty() ? null : steps.peek().label();
+        if (steps.isEmpty()) transitions++;
+        return true;
+    }
+
+    static String brief(Throwable e) {
+        String m = e.getMessage();
+        return m == null || m.isBlank() ? e.getClass().getSimpleName() : m.length() > 160 ? m.substring(0, 157) + "..." : m;
+    }
+
+    /** A cobertura da transição: escuro e o passo atual (texto real); nada de porcentagem inventada. */
+    private void drawOverlay(int w, int h) {
+        if (overlay <= 0f) return;
+        kit.rect(0, 0, w, h, 0x0e0a0800 | Math.round(255 * overlay));
+        if (stepLabel == null || overlay < 1f) return;
+        // rodada 11.1 (fechamento): o logotipo pequeno, o passo REAL e as sementes P1 em sequência sobre um fundo quente
+        // (faixas de cor, sem textura nem cena 3D: nada a carregar para mostrar o carregamento)
+        int bands = 24;
+        for (int i = 0; i < bands; i++) {
+            float k = Math.abs(i - bands / 2f) / (bands / 2f);
+            kit.rect(0, i * h / (float) bands, w, h / (float) bands + 1, (0x2a1d14 << 8) | Math.round(255 * (1f - 0.55f * k * k)) & 0xff);
+        }
+        int lp = px(64);
+        MenuView.logo(this, w / 2f, h * 0.36f, lp, true);
+        int p = px(26);
+        float tw = kit.width(stepLabel, p, true), ty = h * 0.36f + lp * 1.9f;
+        kit.text((w - tw) / 2, ty, stepLabel, p, true, UiKit.PARCH_L);
+        MenuView.waiting(this, logic.time, 0, ty + p * 1.6f, w, 24 * s, 1.6f);
+    }
+
+    private String shownProfileSig;
+    private float dragX;
+
+    /** Entrada do menu: cliques, teclas, texto digitado, arrastar (girar o herói) e a roda (andar na lista). */
+    private void menuInput(List<InputEvent> events) {
+        vx.game.menu.MenuFlow f = menuFlow;
+        String[] mains = vx.game.menu.MenuFlow.mainItems();
+        for (int i = 0; i < mains.length; i++) if (mains[i].equals(hover) && f.screen == vx.game.menu.MenuFlow.Screen.MAIN) f.mainFocus = i;
+        for (InputEvent e : events) {
+            switch (e.kind()) {
+                case KEY -> {
+                    var before = f.screen;
+                    f.key(e.code());
+                    uiSound(f.screen != before ? (e.code() == GLFW_KEY_ESCAPE ? "ui.cancelar" : "ui.confirmar")
+                            : e.code() == GLFW_KEY_UP || e.code() == GLFW_KEY_DOWN ? "ui.selecionar" : null);
+                }
+                case CHAR -> f.chr(e.code());
+                case SCROLL -> { if (!f.typing()) f.key(e.scroll() > 0 ? GLFW_KEY_UP : GLFW_KEY_DOWN); }
+                case DOWN -> {
+                    if (e.button() != 0) break;
+                    Button hit = null;
+                    for (Button b : buttons) if (b.contains(e.x(), e.y())) hit = b;
+                    if (hit == null && f.screen == vx.game.menu.MenuFlow.Screen.CHARACTERS) { menu.dragging = true; dragX = e.x(); }
+                }
+                case MOVE -> {
+                    if (menu.dragging) { menu.previewYaw += (e.x() - dragX) * 0.012f; dragX = e.x(); }
+                }
+                case UP -> {
+                    if (e.button() != 0) break;
+                    if (menu.dragging) { menu.dragging = false; break; }
+                    for (Button b : buttons) if (b.contains(e.x(), e.y())) { menuClick(b.id); break; }
+                }
+                default -> { }
+            }
+        }
+    }
+
+    private static void uiSound(String ev) { if (ev != null) vx.engine.audio.Audio.event(ev); }
+
+    /** Clique num controle do menu: ajustes (cfg:*) aqui; o resto é do MenuFlow. */
+    private void menuClick(String id) {
+        if (id.startsWith("cfg:")) {
+            Prefs pr = logic.prefs;
+            switch (id) {
+                case "cfg:geral-", "cfg:geral+", "cfg:musica-", "cfg:musica+", "cfg:efeitos-", "cfg:efeitos+" -> {
+                    String key = id.substring(4, id.length() - 1);
+                    if (audioPrefs.nudge(key, id.endsWith("+") ? 1 : -1)) {
+                        applyVolumes();
+                        audioPrefs.save(AudioPrefs.FILE);
+                    }
+                }
+                case "cfg:sens-", "cfg:sens+" -> {
+                    pr.sensitivity = Math.clamp(pr.sensitivity + (id.endsWith("+") ? 0.0008f : -0.0008f), 0.0008f, 0.012f);
+                    logic.cam.sensitivity = pr.sensitivity;
+                    pr.save();
+                }
+                case "cfg:inverter" -> { pr.invertY = !pr.invertY; logic.cam.invertY = pr.invertY; pr.save(); }
+                case "cfg:barras" -> { pr.cycleBars(); pr.save(); }
+                default -> { }
+            }
+            uiSound("ui.selecionar");
+            return;
+        }
+        var before = menuFlow.screen;
+        menuFlow.action(id);
+        uiSound(id.equals("voltar") || id.equals("cancelar-mundo") ? "ui.cancelar"
+                : id.startsWith("personagem:") || id.startsWith("mundo:") || id.startsWith("campo:") || id.equals("gerar-semente") ? "ui.selecionar"
+                : menuFlow.screen != before || menuFlow.pending != null ? "ui.confirmar" : "ui.selecionar");
+    }
+
+    /** Depois da lógica: câmera da apresentação, aparência do personagem escolhido, pedidos e prévias atrasadas. */
+    private void menuTick(float dt) {
+        vx.game.menu.MenuFlow f = menuFlow;
+        f.tick(dt);
+        menu.pose = menu.cine.advance(dt);
+        var prof = f.profile();
+        if (f.screen == vx.game.menu.MenuFlow.Screen.CHARACTERS && prof != null && !prof.appearance().signature().equals(shownProfileSig)) {
+            shownProfileSig = prof.appearance().signature();
+            async.request(prof.appearance());                              // o modelo de verdade, pelo cache do compositor
+        }
+        if (!steps.isEmpty()) return;
+        if (previewJob != null && renderedSinceStep) {                     // um quadro com "preparando a prévia..." já saiu
+            var wd = previewJob;
+            previewJob = null;
+            try {
+                long t0 = System.nanoTime();
+                worldPreview(wd, null);
+                System.out.printf(java.util.Locale.ROOT, "prévia: %s (semente %s) em %.0f ms%n", wd.name(), wd.seedText(), (System.nanoTime() - t0) / 1e6);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                menu.previewFailed.add(wd.id());
+            }
+        }
+        vx.game.menu.MenuFlow.Request r = f.take();
+        if (r != null) request(r);
+        if (f.screen == vx.game.menu.MenuFlow.Screen.WORLDS && menu.legacyPic == null && procedural == null) legacyPreview();   // barata: o cenário já está montado
+        if (f.screen == vx.game.menu.MenuFlow.Screen.WORLDS && previewJob == null && steps.isEmpty()) {
+            var wd = f.world();
+            if (wd != null && menu.needsPreview(wd) && !menu.previewFailed.contains(wd.id())) {
+                if (wd.legacy()) legacyPreview();
+                else { previewJob = wd; renderedSinceStep = false; }
+            }
+        }
+    }
+
+    /** Cumpre um pedido do menu. */
+    private void request(vx.game.menu.MenuFlow.Request r) {
+        var f = menuFlow;
+        switch (r.kind()) {
+            case QUIT -> logic.quit = true;
+            case NEW_CHARACTER, EDIT_CHARACTER -> transition(new Step("Abrindo o criador", () -> prepareCreator(r)));
+            case PREVIEW -> {
+                ProceduralScene[] ps = new ProceduralScene[1];
+                transition(new Step("Gerando a região da semente " + Long.toUnsignedString(r.seed()), () -> {
+                    try {
+                        ps[0] = generate(r.seed());
+                    } catch (ProceduralScene.Rejected e) {
+                        steps.clear();
+                        f.failed(r, rejected(r.seed()));
+                    }
+                }), new Step("Desenhando a prévia", () -> {
+                    World w = new World(assets, style, ps[0].field, ps[0].worldDoc);
+                    try {
+                        menu.formPic = renderOverview(w, w.terrainGrid, overviewOf(ps[0], w.terrainGrid), menu.formPic);
+                        menu.formSeed = r.seed();
+                        previewsMade++;
+                    } finally {
+                        w.close();
+                        Terrain.release(ps[0].field);
+                    }
+                    f.done(r, null);
+                }));
+            }
+            case CREATE_WORLD -> {
+                ProceduralScene[] ps = new ProceduralScene[1];
+                vx.game.menu.WorldStore.World[] made = new vx.game.menu.WorldStore.World[1];
+                transition(new Step("Gerando e conferindo a região", () -> {
+                    try {
+                        made[0] = f.worlds.create(r.name(), r.seed(), vx.game.menu.CharacterStore.now(), seed -> {
+                            try {
+                                ps[0] = generate(seed);
+                            } catch (ProceduralScene.Rejected e) {
+                                throw new vx.game.menu.WorldStore.CreateFailed(rejected(seed));
+                            }
+                        });
+                    } catch (vx.game.menu.WorldStore.CreateFailed e) {
+                        steps.clear();
+                        if (ps[0] != null) Terrain.release(ps[0].field);
+                        f.failed(r, e.getMessage());
+                    }
+                }), new Step("Desenhando a prévia", () -> {
+                    try {
+                        worldPreview(made[0], ps[0]);
+                    } catch (RuntimeException e) {                         // o mundo existe; a prévia sai depois
+                        e.printStackTrace();
+                    }
+                    f.done(r, made[0].id());
+                }));
+            }
+            case ENTER -> enterAdventure(r);
+        }
+    }
+
+    /**
+     * Gera a região da semente pelo caminho do jogo. QA: {@code -Dvx.qa.recusar=SEMENTE} simula a recusa do gerador para
+     * essa semente (nenhuma semente conhecida é recusada; o caminho de falha da interface precisa ser exercitado).
+     */
+    ProceduralScene generate(long seed) {
+        if (Long.toUnsignedString(seed).equals(System.getProperty("vx.qa.recusar")))
+            throw new ProceduralScene.Rejected("semente " + Long.toUnsignedString(seed) + " recusada por -Dvx.qa.recusar (simulação de QA)");
+        return ProceduralScene.create(assetsPath, seed);
+    }
+
+    /** Mensagem para o jogador quando a semente não gera região jogável (o motivo técnico vai para o console). */
+    static String rejected(long seed) {
+        return "A semente " + Long.toUnsignedString(seed) + " não gerou uma região jogável. Tente outra (o nome e a semente ficaram aqui).";
+    }
+
+    /**
+     * Rodada 11.1 (fechamento) — vista ALTERNATIVA da prévia (comparação): mais baixa e inclinada, o olho atrás do
+     * assentamento olhando a trilha que sai dele (a estalagem em primeiro plano, o caminho para o posto ao fundo). O rumo
+     * desvia até ±60° se a linha de visão (colisão real da região) estiver cortada. {alvo x, y, z, rumo, inclinação,
+     * distância, fração livre}.
+     */
+    static float[] closeViewOf(ProceduralScene ps, Terrain t, Collision col) {
+        var L = ps.layout;
+        float dx = L.px - L.sx, dz = L.pz - L.sz, len = (float) Math.hypot(dx, dz);
+        float tx = L.sx + dx * 0.32f, tz = L.sz + dz * 0.32f, ty = t.groundAt(tx, tz) + 0.6f;
+        float base = (float) Math.atan2(-dx, -dz), pitch = (float) Math.toRadians(30), dist = 0.42f * len + 9f;
+        float bestYaw = base, best = -1f;
+        org.joml.Vector3f tg = new org.joml.Vector3f(tx, ty, tz);
+        for (float off : new float[]{0, 20, -20, 40, -40, 60, -60}) {
+            float yaw = base + (float) Math.toRadians(off);
+            org.joml.Vector3f eye = new org.joml.Vector3f(tx + dist * (float) (Math.cos(pitch) * Math.sin(yaw)), ty + dist * (float) Math.sin(pitch),
+                    tz + dist * (float) (Math.cos(pitch) * Math.cos(yaw)));
+            float clear = col.cameraInside(eye) ? 0f : col.rayClear(tg, eye, 0.3f);
+            if (clear > best + 0.02f) { best = clear; bestYaw = yaw; }
+            if (clear >= 0.999f) break;
+        }
+        return new float[]{tx, ty, tz, bestYaw, pitch, dist, best};
+    }
+
+    /** A vista geral de uma região gerada: alvo entre o assentamento e o posto, inclinada, com tudo no quadro. */
+    static float[] overviewOf(ProceduralScene ps, Terrain t) {
+        var L = ps.layout;
+        float cx = (L.sx + L.px) / 2, cz = (L.sz + L.pz) / 2, dx = L.px - L.sx, dz = L.pz - L.sz, len = (float) Math.hypot(dx, dz);
+        return new float[]{cx, t.groundAt(cx, cz) + 0.6f, cz, (float) Math.atan2(-dz, dx), (float) Math.toRadians(50), 0.95f * len + 13f};
+    }
+
+    /** Fração livre da linha de visão alvo → olho da vista {@code v} (colisão real). */
+    static float clearOf(Collision col, float[] v) {
+        org.joml.Vector3f tg = new org.joml.Vector3f(v[0], v[1], v[2]);
+        org.joml.Vector3f eye = new org.joml.Vector3f(v[0] + v[5] * (float) (Math.cos(v[4]) * Math.sin(v[3])), v[1] + v[5] * (float) Math.sin(v[4]),
+                v[2] + v[5] * (float) (Math.cos(v[4]) * Math.cos(v[3])));
+        return col.cameraInside(eye) ? 0f : col.rayClear(tg, eye, 0.3f);
+    }
+
+    /** Desenha a vista {@code v} (alvo x y z, rumo, inclinação, distância) do mundo {@code w} num FBO 640×360. */
+    private Framebuffer renderOverview(World w, Terrain t, float[] v, Framebuffer into) {
+        if (previewRenderer == null) previewRenderer = new Renderer();
+        if (into == null) into = new Framebuffer(MenuView.PREVIEW_W, MenuView.PREVIEW_H, false, GL_RGBA8);
+        Camera c = previewCam;
+        c.target.set(v[0], v[1], v[2]);
+        c.yaw = v[3];
+        c.pitch = v[4];
+        c.distance = v[5];
+        c.fovDeg = FollowCamera.FOV;
+        c.near = 0.1f;
+        c.update((float) into.width / into.height);
+        Renderer.Frame f = new Renderer.Frame();
+        f.camera = c;
+        f.style = style;
+        f.time = 0f;
+        f.toggles = toggles;
+        w.submit(f, 0f);
+        f.shadowFocus.set(v[0], v[1], v[2]);
+        f.shadowRadius = 26f;
+        previewRenderer.render(f, into, into.width, into.height, 1.5f);
+        return into;
+    }
+
+    /** A prévia da vila fixa: a primeira tomada da apresentação, desenhada do cenário do menu (já carregado). */
+    private void legacyPreview() {
+        var q = menu.cine.at(0f);
+        menu.legacyPic = renderOverview(world, terrain, new float[]{q.tx(), q.ty(), q.tz(), q.yaw(), q.pitch(), q.dist()}, menu.legacyPic);
+    }
+
+    /**
+     * Gera (ou reaproveita {@code ps}) a região do mundo, desenha a vista geral, grava {@code previa.png} (troca atômica) e
+     * a chave da prévia no {@code mundo.json}. Mundo, relevo e FBO temporários fecham aqui.
+     */
+    private void worldPreview(vx.game.menu.WorldStore.World wd, ProceduralScene ps) {
+        if (ps == null) ps = generate(wd.seed());
+        World w = new World(assets, style, ps.field, ps.worldDoc);
+        Framebuffer fb = null;
+        try {
+            fb = renderOverview(w, w.terrainGrid, overviewOf(ps, w.terrainGrid), null);
+            fb.bind();
+            glFinish();
+            java.awt.image.BufferedImage img = Screenshot.read(fb.width, fb.height);
+            Path file = menuFlow.worlds.previewFile(wd.id());
+            Path tmp = file.resolveSibling("previa-" + Long.toHexString(System.nanoTime()) + ".tmp");
+            try {
+                javax.imageio.ImageIO.write(img, "png", tmp.toFile());
+                Files.move(tmp, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+                menuFlow.worlds.save(wd.withPreview(wd.expectedPreviewKey(), ps.summary()));
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            } finally {
+                try { Files.deleteIfExists(tmp); } catch (IOException ignored) { }
+            }
+            menu.forget(wd.id());
+            menu.previewFailed.remove(wd.id());
+            menuFlow.refreshWorlds();
+            previewsMade++;
+        } finally {
+            if (fb != null) fb.close();
+            w.close();
+            Terrain.release(ps.field);
+        }
+    }
+
+    /**
+     * Entra na aventura (personagem × mundo) em três passos com rótulo real: gerar a região (procedural), montar o mundo,
+     * preparar a aventura (save da pasta da aventura: continuar ou começar). Falha antes de fechar o menu = mensagem e o
+     * menu fica; falha depois = volta ao menu com a mensagem (nada gravado).
+     */
+    private void enterAdventure(vx.game.menu.MenuFlow.Request r) {
+        var f = menuFlow;
+        var prof = r.profile();
+        var wd = r.world();
+        Path dir = f.worlds.adventureDir(wd.id(), prof.id());
+        boolean resume = vx.game.menu.MenuFlow.hasSave(dir);
+        if (!wd.legacy() && wd.generatorVersion() != vx.game.world.RegionGenerator.VERSION) {
+            f.failed(r, "Este mundo foi criado pelo gerador v" + wd.generatorVersion() + "; esta versão do jogo gera v"
+                    + vx.game.world.RegionGenerator.VERSION + ". A mesma semente daria outra região.");
+            return;
+        }
+        ProceduralScene[] ps = new ProceduralScene[1];
+        World[] built = new World[1];
+        List<Step> l = new ArrayList<>();
+        if (!wd.legacy()) l.add(new Step("Gerando a região da semente " + wd.seedText(), () -> {
+            try {
+                ps[0] = generate(wd.seed());
+            } catch (ProceduralScene.Rejected e) {
+                steps.clear();
+                f.failed(r, rejected(wd.seed()));
+            }
+        }));
+        l.add(new Step(wd.legacy() ? "Preparando a vila" : "Montando o mundo", () -> {
+            closeSession(wd.legacy());                                    // a vila do menu É a vila da aventura: fica montada
+            menu.close();
+            menu = null;
+            long w0 = System.nanoTime();
+            built[0] = ps[0] != null ? new World(assets, style, ps[0].field, ps[0].worldDoc) : takeWorld();
+            worldBuildMs = (System.nanoTime() - w0) / 1e6;
+        }));
+        l.add(new Step(resume ? "Carregando a aventura de " + prof.name() : "Preparando a aventura de " + prof.name(), () -> {
+            SceneDef scene = ps[0] != null ? ps[0].scene() : SceneDef.load(assetsPath, SCENE);
+            openSession(built[0], scene, ps[0], dir);
+            String why = logic.beginAdventure(prof.appearance(), prof.name(), resume);
+            if (why != null) {
+                recoverToMenu("Não consegui continuar a aventura: " + why + ". O arquivo ficou como estava.");
+                return;
+            }
+            long now = vx.game.menu.CharacterStore.now();
+            try {
+                f.characters.touch(prof, now);
+                f.worlds.save(wd.used(now));
+            } catch (IOException e) {
+                System.err.println("menu: não consegui anotar o último uso: " + e.getMessage());
+            }
+        }));
+        transition(l.toArray(Step[]::new));
+    }
+
+    /** O save do arquivo vale para a cena (vila fixa, ou a região de {@code ps})? null = vale; senão o motivo. Só lê. */
+    static String validateSave(Path assetsPath, vx.viewer.ComponentCatalog catalog, Path file, ProceduralScene ps) {
+        try {
+            readSave(assetsPath, catalog, file, ps);
+            return null;
+        } catch (IOException | RuntimeException e) {
+            return brief(e);
+        }
+    }
+
+    /** Lê um save com o mesmo leitor do Continuar, contra a cena da vila fixa ou da região {@code ps}. Inválido = exceção. */
+    static SaveGame.Data readSave(Path assetsPath, vx.viewer.ComponentCatalog catalog, Path file, ProceduralScene ps) throws IOException {
+        if (Files.size(file) > SaveGame.MAX_BYTES) throw new IOException("arquivo grande demais");
+        SceneDef sc = ps != null ? ps.scene() : SceneDef.load(assetsPath, SCENE);
+        java.util.Collection<vx.game.quest.QuestDefinition> quests = ps != null
+                ? (ps.quest != null ? List.of(ps.quest) : List.of())
+                : vx.game.quest.QuestDefinition.load(sc.assets.resolve(sc.questsFile)).values();
+        java.util.Set<String> objs = new java.util.HashSet<>();
+        for (SceneDef.WorldObject o : sc.objects) objs.add(o.id());
+        return SaveGame.parse(Files.readString(file), catalog, sc.layout, quests, objs, ps);
+    }
+
+    /**
+     * Rodada 11.1 — os jogos salvos de antes do menu (o da vila, {@code output/saves/aventura.json}; os por semente,
+     * {@code output/saves-procedural/s<N>/}) viram aventuras do catálogo UMA vez, sem pedir nada ao jogador:
+     * <ol>
+     *   <li>o save é lido com o leitor do Continuar (v1 na vila, v2 na região da semente); inválido = registrado como
+     *       recusado, nada criado, o arquivo fica onde está;</li>
+     *   <li>o personagem é o da aparência gravada no save (um que já exista com a mesma aparência e sem aventura nesse mundo,
+     *       ou um novo com o nome da aparência ou do modelo);</li>
+     *   <li>o mundo é a Vila do Posto, ou o mundo da mesma semente (um novo, "Mundo N", se não houver);</li>
+     *   <li>a cópia entra pela importação de sempre ({@link vx.game.menu.WorldStore#importSave}): atômica, registrada por
+     *       sha256, nunca por cima de uma aventura, nunca duas vezes.</li>
+     * </ol>
+     * Devolve uma linha por save (para o console e os testes).
+     */
+    static List<String> adoptOldSaves(Path assetsPath, vx.viewer.ComponentCatalog catalog, vx.game.menu.CharacterStore cs,
+                                      vx.game.menu.WorldStore ws, Path legacyDir, Path procRoot, long now) {
+        List<String> out = new ArrayList<>();
+        for (vx.game.menu.WorldStore.OldSave o : ws.oldSaves(legacyDir, procRoot)) {
+            boolean proc = o.kind() == vx.game.menu.WorldStore.Kind.PROCEDURAL;
+            ProceduralScene ps = null;
+            try {
+                if (proc) ps = ProceduralScene.create(assetsPath, o.seed());
+                ProceduralScene psf = ps;
+                vx.viewer.Appearance a = readSave(assetsPath, catalog, o.file(), ps).appearance();
+                vx.game.menu.WorldStore.World w = proc
+                        ? ws.list(null).stream().filter(x -> !x.legacy() && x.seed() == o.seed()).findFirst().orElse(null)
+                        : vx.game.menu.WorldStore.legacy();
+                vx.game.menu.WorldStore.World wf = w;
+                var p = cs.list(null).stream().filter(x -> x.appearance().signature().equals(a.signature())
+                        && (wf == null || !ws.hasAdventure(wf.id(), x.id()))).findFirst().orElse(null);
+                if (p == null) {
+                    String n = vx.game.menu.CharacterStore.cleanName(a.name);
+                    p = cs.create(n != null ? n : GameLogic.presetName(a.preset), a, now);
+                }
+                if (w == null) w = ws.create("", o.seed(), now, s -> { });
+                ws.importSave(o, w.id(), p.id(), now, f -> validateSave(assetsPath, catalog, f, psf));
+                cs.touch(p, Files.getLastModifiedTime(o.file()).toMillis());   // a última aventura = quando o save foi gravado
+                out.add(o.file() + " → " + w.name() + " / " + p.name());
+            } catch (IOException | RuntimeException | vx.game.menu.WorldStore.CreateFailed e) {
+                out.add(o.file() + " recusado: " + brief(e));
+                try {
+                    ws.recordRejected(o, brief(e), now);
+                } catch (IOException ex) {
+                    out.add("registro: " + brief(ex));
+                }
+            } finally {
+                if (ps != null) Terrain.release(ps.field);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Pausa → "Menu principal" (confirmado, ou sem nada a perder): a aventura fecha (malhas, relevo, som da sessão, combate,
+     * missão, diálogo) e a vila do menu volta na TELA INICIAL (Jogar, Configurações, Sair). O personagem e o mundo
+     * escolhidos ficam guardados no {@code MenuFlow}: Jogar abre a lista com eles selecionados.
+     */
+    private void backToMenu() {
+        transition(new Step("Voltando ao menu", () -> {
+            closeSession(procedural == null);                             // da vila fixa: o mesmo cenário serve ao menu
+            openSession(takeWorld(), SceneDef.load(assetsPath, SCENE), null, null);
+            enterMenu(vx.game.menu.MenuFlow.Screen.MAIN);                 // o menu principal de verdade (escolhas guardadas)
+        }));
+    }
+
+    /** Algo falhou no meio de uma transição: o menu volta (sessão nova se a anterior já tinha fechado) com a mensagem. */
+    private void recoverToMenu(String msg) {
+        steps.clear();
+        if (world == null || !menuActive()) {
+            closeSession();
+            if (menu != null && logic.state != GameLogic.State.MENU) { menu.close(); menu = null; }
+            openSession(takeWorld(), SceneDef.load(assetsPath, SCENE), null, null);
+            enterMenu(vx.game.menu.MenuFlow.Screen.WORLDS);
+        }
+        menuFlow.loading = null;
+        menuFlow.say(msg, 8f);
+        System.err.println("menu: " + msg);
+    }
+
+    /**
+     * Criar/editar personagem: o criador aprovado (rodada 07.2) na mesma janela. Concluir grava o perfil (criar = id novo;
+     * editar = o mesmo id, só a aparência e o nome); Cancelar (botão ou Esc) não grava nada.
+     */
+    /** O {@code App} do criador: montado uma vez (a cena dele fica no cache) e fechado com o jogo. */
+    private App creatorApp;
+    /** O criador já preparado pelo passo "Abrindo o criador" (o laço da janela ou o roteiro o abre). */
+    private Creator preparedCreator;
+    private int lastW = 1920, lastH = 1080;
+
+    /**
+     * Passo de carregamento: o criador com a aparência certa e a cena dele montada (a primeira montagem da clareira leva
+     * ~1 s; antes ela acontecia no primeiro quadro do criador e congelava a janela sem aviso).
+     */
+    private void prepareCreator(vx.game.menu.MenuFlow.Request r) {
+        long o0 = System.nanoTime();
+        if (creatorApp == null) creatorApp = new App(window, assetsPath);
+        Creator cr = new Creator(creatorApp, window, assetsPath);
+        boolean edit = r.kind() == vx.game.menu.MenuFlow.RequestKind.EDIT_CHARACTER;
+        cr.cs.finishLabel = edit ? "Salvar personagem" : "Criar personagem";
+        cr.cs.cancelLabel = "Cancelar";
+        if (edit) cr.start(r.profile().appearance(), r.profile().name());
+        cr.warm(lastW, lastH);
+        preparedCreator = cr;
+        creatorReq = r;
+        System.out.printf(java.util.Locale.ROOT, "criador: preparado em %.0f ms%n", (System.nanoTime() - o0) / 1e6);
+    }
+
+    private void openMenuCreator(Path script, Path out, int fps) {
+        var r = creatorReq;
+        creatorReq = null;
+        var f = menuFlow;
+        boolean edit = r.kind() == vx.game.menu.MenuFlow.RequestKind.EDIT_CHARACTER;
+        if (window.cursorCaptured()) window.captureCursor(false);
+        try (Creator cr = preparedCreator) {
+            preparedCreator = null;
+            if (script != null) {
+                cr.recorded = recorded;
+                cr.script(script, out, fps);
+                recorded = cr.recorded;
+            } else cr.run(0);
+            if (cr.cs.finished) {
+                String name = vx.game.menu.CharacterStore.cleanName(cr.cs.name);
+                if (name == null) name = edit ? r.profile().name() : "Personagem " + (f.profiles.size() + 1);
+                var p = edit ? f.characters.update(r.profile(), cr.cs.appearance, name)
+                        : f.characters.create(name, cr.cs.appearance, vx.game.menu.CharacterStore.now());
+                f.done(r, p.id());
+                f.say(edit ? "Personagem atualizado" : "Personagem criado: " + p.name(), 3f);
+            } else f.say(edit ? "Edição cancelada: nada mudou" : "Criação cancelada", 3f);
+            if (cr.cs.quitRequested) logic.quit = true;                    // o X da janela dentro do criador
+        } catch (IOException | RuntimeException e) {
+            e.printStackTrace();
+            f.failed(r, "Não consegui gravar o personagem: " + brief(e));
+        }
+        input.releaseAll();
+        shownProfileSig = null;
     }
 
     // ------------------------------------------------------------------ janela interativa
@@ -1111,6 +1930,7 @@ public final class Game implements AutoCloseable {
             uiAction(window.events());
             tick(window.events(), dt, w, h);
             if (logic.openCreator) { openCreator(); continue; }
+            if (creatorReq != null) { openMenuCreator(null, null, 30); continue; }
             render(null, w, h, 1f, dt);
             window.swap();
             frames++;
@@ -1128,9 +1948,16 @@ public final class Game implements AutoCloseable {
             for (Button b : buttons) {
                 if (!b.contains(e.x(), e.y())) continue;
                 switch (b.id) {
-                    case "sens-" -> logic.cam.sensitivity = Math.max(0.0008f, logic.cam.sensitivity - 0.0008f);
-                    case "sens+" -> logic.cam.sensitivity = Math.min(0.012f, logic.cam.sensitivity + 0.0008f);
-                    case "inverter" -> logic.cam.invertY = !logic.cam.invertY;
+                    case "sens-", "sens+" -> {                             // rodada 11.1: gravada nas preferências
+                        logic.cam.sensitivity = Math.clamp(logic.cam.sensitivity + (b.id.endsWith("+") ? 0.0008f : -0.0008f), 0.0008f, 0.012f);
+                        logic.prefs.sensitivity = logic.cam.sensitivity;
+                        logic.prefs.save();
+                    }
+                    case "inverter" -> {
+                        logic.cam.invertY = !logic.cam.invertY;
+                        logic.prefs.invertY = logic.cam.invertY;
+                        logic.prefs.save();
+                    }
                     case "mus-", "mus+", "efe-", "efe+" -> {
                         if (audioPrefs.nudge(b.id.startsWith("mus") ? "musica" : "efeitos", b.id.endsWith("+") ? 1 : -1)) {
                             applyVolumes();
@@ -1193,6 +2020,7 @@ public final class Game implements AutoCloseable {
         tickFrame(List.of(), dt, w, h, false, out);
         settle(w, h, dt, out);
         for (String raw : lines) {
+            if (logic.quit) { System.out.println("jogo: fechado durante o roteiro (o resto não roda)"); break; }
             String line = raw.strip();
             if (line.isEmpty() || line.startsWith("#")) continue;
             String[] t = line.split("\\s+");
@@ -1242,6 +2070,16 @@ public final class Game implements AutoCloseable {
                                 pl.cue(), pl.file(), pl.gain(), pl.pitch(), pl.spatial() ? String.format(" em (%.2f, %.2f, %.2f)", pl.x(), pl.y(), pl.z()) : "");
                 }
                 case "criador" -> {                                        // abre o criador com um roteiro dele (mesma janela)
+                    for (int i = 0; i < 600 && (!steps.isEmpty() || menuActive() && menuFlow.pending != null); i++) {
+                        tickFrame(List.of(), dt, w, h, record, out);       // "Abrindo o criador": o passo roda depois de um quadro
+                        render(null, w, h, 1f, dt);
+                    }
+                    if (creatorReq != null) {                              // rodada 11.1: pedido do menu (novo/editar personagem)
+                        openMenuCreator(Path.of(t[1]), out, fps);
+                        vx.engine.audio.Audio.recording(record);
+                        settle(w, h, dt, out);
+                        break;
+                    }
                     logic.openCreator = false;
                     if (window.cursorCaptured()) window.captureCursor(false);
                     try (App app = new App(window, assetsPath); Creator cr = new Creator(app, window, assetsPath)) {
@@ -1282,6 +2120,101 @@ public final class Game implements AutoCloseable {
                     System.out.println(sb);
                 }
                 case "settle" -> settle(w, h, dt, out);
+                // ---- rodada 11.1: menu principal
+                case "digitar" -> {                                        // texto (sublinhado = espaço), um caractere por quadro
+                    String txt = line.substring(line.indexOf(' ') + 1).replace('_', ' ');
+                    for (int i = 0; i < txt.length(); ) {
+                        int cp = txt.codePointAt(i);
+                        tickFrame(List.of(new InputEvent(InputEvent.Kind.CHAR, mx, my, 0, 0, cp)), dt, w, h, record, out);
+                        i += Character.charCount(cp);
+                    }
+                }
+                case "arrastar" -> {                                       // arrastar dx px em s segundos (girar o herói)
+                    float dx = Float.parseFloat(t[1]);
+                    int n = Math.max(1, Math.round(Float.parseFloat(t[2]) * fps));
+                    float ax = w * 0.74f, ay = h * 0.5f;
+                    tickFrame(List.of(new InputEvent(InputEvent.Kind.MOVE, ax, ay, 0, 0, 0)), dt, w, h, record, out);
+                    tickFrame(List.of(new InputEvent(InputEvent.Kind.DOWN, ax, ay, 0, 0, 0)), dt, w, h, record, out);
+                    for (int i = 1; i <= n; i++) tickFrame(List.of(new InputEvent(InputEvent.Kind.MOVE, ax + dx * i / n, ay, 0, 0, 0)), dt, w, h, record, out);
+                    tickFrame(List.of(new InputEvent(InputEvent.Kind.UP, ax + dx, ay, 0, 0, 0)), dt, w, h, record, out);
+                    mx = ax + dx;
+                    my = ay;
+                }
+                case "esperar-menu" -> {                                   // até a transição, a prévia e os retratos terminarem
+                    long end = System.currentTimeMillis() + Math.round(Float.parseFloat(t.length > 1 ? t[1] : "60") * 1000);
+                    render(null, w, h, 1f, dt);                            // a tela atual pede retratos e prévias ao ser desenhada
+                    int n = 0;
+                    while (System.currentTimeMillis() < end && (!steps.isEmpty() || overlay > 0f || previewJob != null || async.busy()
+                            || menuActive() && (!menu.portraitsIdle() || menuFlow.pending != null))) {
+                        tickFrame(List.of(), dt, w, h, record, out);
+                        render(null, w, h, 1f, dt);
+                        n++;
+                    }
+                    System.out.printf("esperar-menu: %d quadros; %s%n", n, menuState());
+                }
+                case "menu-estado" -> System.out.println("menu-estado: " + menuState());
+                case "previa-comparar" -> {                                // rodada 11.1: vista atual × alternativa da prévia (semente, pasta)
+                    long seed = Long.parseUnsignedLong(t[1]);
+                    ProceduralScene ps = ProceduralScene.create(assetsPath, seed);
+                    World pw = new World(assets, style, ps.field, ps.worldDoc);
+                    try {
+                        Collision col = Collision.build(pw.terrainGrid, Collision.profiles(assetsPath), pw.placements(), pw.bodies(), ps.scene());
+                        float[] a0 = overviewOf(ps, pw.terrainGrid), b0 = closeViewOf(ps, pw.terrainGrid, col);
+                        float ca = clearOf(col, a0);
+                        for (Object[] v : new Object[][]{{"A", a0}, {"B", b0}}) {
+                            Framebuffer fb = renderOverview(pw, pw.terrainGrid, (float[]) v[1], null);
+                            fb.bind();
+                            glFinish();
+                            Screenshot.save(Screenshot.read(fb.width, fb.height), out.resolve("previa-s" + t[1] + "-" + v[0] + ".png"));
+                            fb.close();
+                        }
+                        System.out.printf(java.util.Locale.ROOT, "previa-comparar s%s: atual livre %.2f; alternativa rumo %.0f° livre %.2f%n", t[1], ca,
+                                Math.toDegrees(b0[3]), b0[6]);
+                    } finally {
+                        pw.close();
+                        Terrain.release(ps.field);
+                    }
+                }
+                case "shot-agora" -> {                                     // captura SEM esperar (a tela de carregamento no meio)
+                    Screenshot.save(capture(w, h, 1f), out.resolve(t[1] + ".png"));
+                    System.out.println("jogo: " + out.resolve(t[1] + ".png"));
+                }
+                case "fechar-janela" -> {                                  // o X da janela: o mesmo caminho do callback do GLFW
+                    window.simulateCloseRequest();
+                    tickFrame(List.of(), dt, w, h, record, out);
+                    render(null, w, h, 1f, dt);
+                    System.out.println("fechar-janela: " + (logic.quit ? "o jogo fecha" : "confirmação aberta: " + logic.leaving + " (" + logic.state + ")"));
+                }
+                case "vitrine" -> {                                        // QA: moradores e o que a vitrine esconde
+                    render(null, w, h, 1f, dt);
+                    Player pl = logic.player;
+                    org.joml.Vector3f e = cam.position();
+                    StringBuilder sb = new StringBuilder(String.format(java.util.Locale.ROOT, "vitrine: herói (%.2f, %.2f) olho (%.2f, %.2f)", pl.x, pl.z, e.x, e.z));
+                    for (GameLogic.Npc n : logic.npcs)
+                        sb.append(String.format(java.util.Locale.ROOT, " | %s (%.1f, %.1f) %s", n.def.name(), n.def.x(), n.def.z(), behindHero(n.def.x(), n.def.z(), pl) ? "escondido" : "visível"));
+                    System.out.println(sb);
+                }
+                case "menu-personagem" -> {                                // escolhe o personagem pelo nome (sublinhado = espaço)
+                    String want = line.substring(line.indexOf(' ') + 1).replace('_', ' ');
+                    int i = 0;
+                    for (; i < menuFlow.profiles.size(); i++) if (menuFlow.profiles.get(i).name().equals(want)) break;
+                    if (i == menuFlow.profiles.size()) throw new IllegalArgumentException("personagem não está na lista: " + want);
+                    menuFlow.action("personagem:" + i);
+                    tickFrame(List.of(), dt, w, h, record, out);
+                }
+                case "menu-mundo" -> {                                     // escolhe o mundo pelo nome (sublinhado = espaço) ou id
+                    String want = line.substring(line.indexOf(' ') + 1).replace('_', ' ');
+                    int i = 0;
+                    for (; i < menuFlow.worldList.size(); i++) if (menuFlow.worldList.get(i).name().equals(want) || menuFlow.worldList.get(i).id().equals(want)) break;
+                    if (i == menuFlow.worldList.size()) throw new IllegalArgumentException("mundo não está na lista: " + want);
+                    menuFlow.action("mundo:" + i);
+                    tickFrame(List.of(), dt, w, h, record, out);
+                }
+                case "menu-tomada" -> { if (menu != null) { menu.cine.seek(Float.parseFloat(t[1])); menu.pose = menu.cine.advance(0f); } }
+                case "menu-leiaute" -> MenuView.layout = t[1];
+                case "menu-recursos" -> System.out.printf(java.util.Locale.ROOT, "menu-recursos %s: malhas %d (%.1f MB), texturas %d, fbos %d, grades de relevo %d, sessões %d, transições %d, prévias %d, heap %.0f MB%n",
+                        t.length > 1 ? t[1] : "", vx.engine.Mesh.liveMeshes, vx.engine.Mesh.liveBytes / 1048576.0, vx.engine.Texture.live, Framebuffer.live,
+                        Terrain.cached(), sessions, transitions, previewsMade, (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576.0);
                 // ---- rodada 09: combate
                 case "atacar" -> {                                         // clique esquerdo (aperta e solta)
                     tickFrame(List.of(new InputEvent(InputEvent.Kind.DOWN, mx, my, 0, 0, 0)), dt, w, h, record, out);
@@ -1369,6 +2302,190 @@ public final class Game implements AutoCloseable {
                     long bytes = logic.saveDir != null && Files.exists(logic.saveDir.resolve(SaveGame.FILE)) ? Files.size(logic.saveDir.resolve(SaveGame.FILE)) : -1;
                     System.out.printf(java.util.Locale.ROOT, "medir-save: %d vezes, gravar+validar mediana %.2f ms (máx %.2f), ler mediana %.2f ms (máx %.2f), %d bytes%n",
                             n, wr[n / 2], wr[n - 1], rd[n / 2], rd[n - 1], bytes);
+                }
+                case "vista" -> {                                          // rodada 11: câmera técnica — alvo x z, rumo°, inclinação°, distância
+                    float vx = Float.parseFloat(t[1]), vz = Float.parseFloat(t[2]);
+                    logic.cam.frame(true, new org.joml.Vector3f(vx, terrain.groundAt(vx, vz) + 0.6f, vz), (float) Math.toRadians(Float.parseFloat(t[3])),
+                            (float) Math.toRadians(Float.parseFloat(t[4])), Float.parseFloat(t[5]));
+                    logic.cam.reset();
+                    logic.cam.snapshot();
+                }
+                case "vista-lugar" -> {                                    // rodada 11: vistas calculadas da região gerada
+                    var L = procedural.layout;
+                    float[] v = switch (t[1]) {                               // alvo x, z, rumo do olho (graus), inclinação, distância
+                        case "geral" -> {
+                            float cx = (L.sx + L.px) / 2, cz = (L.sz + L.pz) / 2, dx = L.px - L.sx, dz = L.pz - L.sz;
+                            float len = (float) Math.hypot(dx, dz);
+                            yield new float[]{cx, cz, (float) Math.toDegrees(Math.atan2(-dz, dx)), 50f, 0.95f * len + 13f};
+                        }
+                        case "assentamento" -> new float[]{L.sx, L.sz, (float) Math.toDegrees(Math.atan2(L.fx, L.fz)) + 25f, 32f, 13f};
+                        case "posto" -> new float[]{L.px + L.gx, L.pz + L.gz, (float) Math.toDegrees(Math.atan2(-L.gx, -L.gz)) + 20f, 26f, 8.5f};
+                        case "trilha" -> {
+                            float[] m = L.path.get(L.path.size() / 2), m2 = L.path.get(L.path.size() / 2 + 2);
+                            yield new float[]{m[0], m[1], (float) Math.toDegrees(Math.atan2(-(m2[1] - m[1]), m2[0] - m[0])), 34f, 9.5f};
+                        }
+                        default -> throw new IllegalArgumentException("vista desconhecida: " + t[1]);
+                    };
+                    logic.cam.technicalView = true;
+                    // rumo com a vista livre (copas e troncos são formas de câmera): o desvio menor que não atravessa nada
+                    org.joml.Vector3f tg = new org.joml.Vector3f(v[0], terrain.groundAt(v[0], v[1]) + 0.6f, v[1]);
+                    float bestYaw = v[2], bestClear = -1f;
+                    for (float off : new float[]{0, 25, -25, 50, -50, 75, -75, 105, -105, 135, -135, 180}) {
+                        double y = Math.toRadians(v[2] + off), p = Math.toRadians(v[3]);
+                        org.joml.Vector3f eye = new org.joml.Vector3f(tg.x + v[4] * (float) (Math.cos(p) * Math.sin(y)), tg.y + v[4] * (float) Math.sin(p),
+                                tg.z + v[4] * (float) (Math.cos(p) * Math.cos(y)));
+                        float clear = logic.collision.rayClear(tg, eye, 0.3f);
+                        if (clear > bestClear + 0.02f) { bestClear = clear; bestYaw = v[2] + off; }
+                        if (clear >= 0.999f) break;
+                    }
+                    System.out.printf(java.util.Locale.ROOT, "vista-lugar %s: rumo %.0f° (livre %.2f)%n", t[1], bestYaw, bestClear);
+                    logic.cam.frame(true, tg, (float) Math.toRadians(bestYaw), (float) Math.toRadians(v[3]), v[4]);
+                    logic.cam.reset();
+                    logic.cam.snapshot();
+                }
+                case "ir-lugar" -> {                                       // rodada 11: montagem técnica — herói num lugar da região
+                    var L = procedural.layout;
+                    float[] q = switch (t[1]) {                               // x, z, rumo (graus)
+                        case "assentamento" -> new float[]{L.startX, L.startZ, L.startYawDeg};
+                        case "posto" -> new float[]{L.px - L.gx * 2.6f, L.pz - L.gz * 2.6f, (float) Math.toDegrees(Math.atan2(L.gx, L.gz))};
+                        case "marco" -> {
+                            var f = L.features.getFirst();
+                            float a = (float) Math.toRadians(f.yawDeg());
+                            float x = f.x() + (float) Math.sin(a) * 1.15f, z = f.z() + (float) Math.cos(a) * 1.15f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(f.x() - x, f.z() - z))};
+                        }
+                        case "doador" -> {
+                            SceneDef.Interactive n = logic.scene.interactives.stream().filter(i -> i.id().equals(procedural.binding.giver())).findFirst().orElseThrow();
+                            float a = (float) Math.toRadians(n.yawDeg());
+                            float x = n.x() + (float) Math.sin(a) * 1.1f, z = n.z() + (float) Math.cos(a) * 1.1f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(n.x() - x, n.z() - z))};
+                        }
+                        case "trilha" -> {
+                            float[] m = L.path.get(L.path.size() / 2), m2 = L.path.get(L.path.size() / 2 + 2);
+                            yield new float[]{m[0], m[1], (float) Math.toDegrees(Math.atan2(m2[0] - m[0], m2[1] - m[1]))};
+                        }
+                        case "casa" -> {                                        // diante da estalagem, de frente para a parede
+                            var house = L.props.stream().filter(p -> p.name().equals("house")).findFirst().orElseThrow();
+                            float a = (float) Math.toRadians(house.rotDeg());
+                            float x = house.x() + (float) Math.sin(a + 1.2f) * 4.6f, z = house.z() + (float) Math.cos(a + 1.2f) * 4.6f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(house.x() - x, house.z() - z))};
+                        }
+                        default -> throw new IllegalArgumentException("lugar desconhecido: " + t[1]);
+                    };
+                    if (t.length > 2 && t[2].equals("andando")) {             // entrada real: W + mouse até o ponto
+                        List<InputEvent> downs = new ArrayList<>(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_W)));
+                        tickFrame(downs, dt, w, h, record, out);
+                        for (int i = 0; i < Math.round(25f * fps); i++) {
+                            Player pl = logic.player;
+                            if (Math.hypot(q[0] - pl.x, q[1] - pl.z) < 0.35f) break;
+                            float want = (float) Math.atan2(pl.x - q[0], pl.z - q[1]);
+                            float d = (float) Math.atan2(Math.sin(want - logic.cam.curYaw), Math.cos(want - logic.cam.curYaw));
+                            mx += Math.clamp(-d / logic.cam.sensitivity * 0.25f, -40f, 40f);
+                            tickFrame(List.of(new InputEvent(InputEvent.Kind.MOVE, mx, my, 0, 0, 0)), dt, w, h, record, out);
+                        }
+                        tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_W)), dt, w, h, record, out);
+                        float want = (float) Math.toRadians(q[2]) + (float) Math.PI;   // vira para o alvo com o mouse
+                        float d = (float) Math.atan2(Math.sin(want - logic.cam.curYaw), Math.cos(want - logic.cam.curYaw));
+                        int n = Math.round(0.4f * fps);
+                        for (int i = 0; i < n; i++) { mx += -d / logic.cam.sensitivity / n; tickFrame(List.of(new InputEvent(InputEvent.Kind.MOVE, mx, my, 0, 0, 0)), dt, w, h, record, out); }
+                        List<InputEvent> nudge = List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_W));   // um passo curto para o corpo virar
+                        tickFrame(nudge, dt, w, h, record, out);
+                        for (int i = 0; i < Math.round(0.12f * fps); i++) tickFrame(List.of(), dt, w, h, record, out);
+                        tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_W)), dt, w, h, record, out);
+                        System.out.printf(java.util.Locale.ROOT, "ir-lugar %s andando: (%.2f, %.2f)%n", t[1], logic.player.x, logic.player.z);
+                        break;
+                    }
+                    logic.player.place(q[0], q[1], (float) Math.toRadians(q[2]), logic.collision);
+                    logic.player.snapshot();
+                    logic.cam.yaw = logic.player.yaw + (float) Math.PI;
+                    logic.cam.curYaw = logic.cam.yaw;
+                    logic.cam.reset();
+                    logic.cam.snapshot();
+                }
+                case "seguir-trilha" -> {                                  // rodada 11: entrada real — W + mouse pelo eixo da trilha
+                    var L = procedural.layout;
+                    boolean back = t[1].equals("volta"), run = t.length > 2 && t[2].equals("correndo");
+                    List<float[]> pts = new ArrayList<>();
+                    for (int i = 0; i < L.path.size(); i += 3) pts.add(L.path.get(i));
+                    pts.add(L.path.getLast());
+                    if (back) { java.util.Collections.reverse(pts); pts.add(new float[]{L.startX, L.startZ}); }
+                    else pts.add(new float[]{L.px - L.gx * 1.2f, L.pz - L.gz * 1.2f});
+                    int wp = 0;                                               // começa do ponto mais perto (na direção pedida)
+                    float best = Float.MAX_VALUE;
+                    for (int i = 0; i < pts.size(); i++) {
+                        float d = (float) Math.hypot(pts.get(i)[0] - logic.player.x, pts.get(i)[1] - logic.player.z);
+                        if (d < best) { best = d; wp = i; }
+                    }
+                    List<InputEvent> downs = new ArrayList<>(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_W)));
+                    if (run) downs.add(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_LEFT_SHIFT));
+                    tickFrame(downs, dt, w, h, record, out);
+                    int limit = Math.round(60f * fps);
+                    for (int i = 0; i < limit && wp < pts.size(); i++) {
+                        Player pl = logic.player;
+                        float[] g = pts.get(wp);
+                        if (Math.hypot(g[0] - pl.x, g[1] - pl.z) < (wp == pts.size() - 1 ? 0.45f : 1.0f)) { wp++; continue; }
+                        float want = (float) Math.atan2(pl.x - g[0], pl.z - g[1]);
+                        float d = (float) Math.atan2(Math.sin(want - logic.cam.curYaw), Math.cos(want - logic.cam.curYaw));
+                        mx += Math.clamp(-d / logic.cam.sensitivity * 0.25f, -40f, 40f);
+                        tickFrame(List.of(new InputEvent(InputEvent.Kind.MOVE, mx, my, 0, 0, 0)), dt, w, h, record, out);
+                    }
+                    List<InputEvent> ups = new ArrayList<>(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_W)));
+                    if (run) ups.add(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_LEFT_SHIFT));
+                    tickFrame(ups, dt, w, h, record, out);
+                    System.out.printf(java.util.Locale.ROOT, "seguir-trilha %s: %s em (%.2f, %.2f)%n", t[1], wp >= pts.size() ? "chegou" : "parou no ponto " + wp,
+                            logic.player.x, logic.player.z);
+                }
+                case "conversar" -> {                                      // rodada 11: entrada real — E até o fim; aceitar | recusar
+                    boolean accept = t.length < 2 || !t[1].equals("recusar");
+                    float pause = t.length > 2 ? Float.parseFloat(t[2]) : 1.2f;
+                    tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_E)), dt, w, h, record, out);
+                    tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_E)), dt, w, h, record, out);
+                    for (int k = 0; k < 30 && logic.state == GameLogic.State.DIALOG; k++) {
+                        for (int i = 0; i < Math.round(pause * fps); i++) tickFrame(List.of(), dt, w, h, record, out);
+                        if (logic.lastLine() && !logic.dialogChoices.isEmpty() && (accept ? logic.choiceSelected != 0 : logic.choiceSelected == 0)) {
+                            tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_RIGHT)), dt, w, h, record, out);
+                            tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_RIGHT)), dt, w, h, record, out);
+                            for (int i = 0; i < Math.round(0.4f * fps); i++) tickFrame(List.of(), dt, w, h, record, out);
+                        }
+                        tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_E)), dt, w, h, record, out);
+                        tickFrame(List.of(new InputEvent(InputEvent.Kind.KEY_UP, mx, my, 0, 0, GLFW_KEY_E)), dt, w, h, record, out);
+                    }
+                    System.out.println("conversar: " + logic.state + (logic.dialogContext != null ? " (contexto " + logic.dialogContext + ")" : ""));
+                }
+                case "medir-geracao" -> {                                  // rodada 11: N gerações completas da semente (ms)
+                    int n = Integer.parseInt(t[1]);
+                    double[] comp = new double[n], val = new double[n], tot = new double[n];
+                    long mem0 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                    for (int i = 0; i < n; i++) {
+                        long a0 = System.nanoTime();
+                        ProceduralScene ps = ProceduralScene.create(assetsPath, procedural.seed);
+                        tot[i] = (System.nanoTime() - a0) / 1e6;
+                        comp[i] = ps.composeNanos / 1e6;
+                        val[i] = ps.validateNanos / 1e6;
+                    }
+                    java.util.Arrays.sort(comp); java.util.Arrays.sort(val); java.util.Arrays.sort(tot);
+                    // consulta de POI e escolha da missão (o que um modelo faz com os fatos): 10 000 vezes
+                    long q0 = System.nanoTime();
+                    int hits = 0;
+                    for (int i = 0; i < 10000; i++) if (procedural.layout.poi("trail_post") != null) hits++;
+                    double poiUs = (System.nanoTime() - q0) / 1e3 / 10000;
+                    var tpl = ProceduralScene.read(assetsPath, "modelos_missao_e.json").getAsJsonArray("modelos").get(0).getAsJsonObject();
+                    var res = ProceduralScene.read(assetsPath, "habitantes_e.json").getAsJsonObject("habitantes");
+                    long i0 = System.nanoTime();
+                    for (int i = 0; i < 200; i++) ProceduralScene.instantiate(assetsPath, procedural.layout, tpl, res, procedural.binding.rumo());
+                    double instMs = (System.nanoTime() - i0) / 1e6 / 200;
+                    long mem1 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                    System.out.printf(java.util.Locale.ROOT, "medir-geracao: %d vezes; total mediana %.1f ms (máx %.1f), compor %.2f ms, conferir na colisão real %.1f ms; consulta de POI %.2f µs (%d); instanciar a missão %.3f ms; memória Java +%d MB durante a medição%n",
+                            n, tot[n / 2], tot[n - 1], comp[n / 2], val[n / 2], poiUs, hits, instMs, (mem1 - mem0) >> 20);
+                }
+                case "vista-fim" -> { logic.cam.technicalView = false; logic.cam.frame(false, null, 0, 0, 0); logic.cam.reset(); logic.cam.snapshot(); }
+                case "regiao" -> {                                         // rodada 11: o que a semente gerou, no log
+                    if (procedural == null) { System.out.println("regiao: mundo fixo"); break; }
+                    var L = procedural.layout;
+                    System.out.printf(java.util.Locale.ROOT, "regiao: semente %s tentativa %d arranjo %d lago %s assentamento (%.2f, %.2f) posto (%.2f, %.2f) marco %s doador %s moradores %s props %d%n",
+                            Long.toUnsignedString(procedural.seed), L.attempt, L.arrangement, L.pond != null ? String.format(java.util.Locale.ROOT, "(%.1f, %.1f)", L.pond[0], L.pond[1]) : "não",
+                            L.sx, L.sz, L.px, L.pz, L.features.isEmpty() ? "-" : L.features.getFirst().id(), procedural.binding != null ? procedural.binding.giver() : "-",
+                            L.npcs.stream().map(vx.game.world.RegionLayout.Npc::id).toList(), L.props.size());
                 }
                 case "missao" -> {                                         // rodada 10: estado das missões no log
                     var q = logic.quests;
@@ -1595,6 +2712,7 @@ public final class Game implements AutoCloseable {
                     }
                 }
                 case "click" -> {
+                    render(null, w, h, 1f, dt);                            // rodada 11.1: botões da tela ATUAL (o desenho só lê a lógica)
                     Button b = null;
                     for (Button x : buttons) if (x.id.equals(t[1])) b = x;
                     if (b == null) throw new IllegalArgumentException("botão não está na tela: " + t[1]);
@@ -1615,6 +2733,16 @@ public final class Game implements AutoCloseable {
         }
         if (recorded > 0) System.out.println("jogo: " + recorded + " quadros gravados");
         saveRecordedAudio(out);
+    }
+
+    /** Uma linha do estado do menu (roteiros). */
+    String menuState() {
+        if (!menuActive()) return "fora do menu: " + logic.state + (logic.saveDir != null ? " save " + logic.saveDir : "") + (logic.started ? " começado" : "");
+        var f = menuFlow;
+        return String.format("tela %s, %d personagem(ns) (escolhido %s), %d mundo(s) (escolhido %s), aventura %s, erro %s, mensagem %s",
+                f.screen, f.profiles.size(), f.profile() == null ? "-" : f.profile().name() + "/" + f.profile().id(), f.worldList.size(),
+                f.world() == null ? "-" : f.world().name() + "/" + f.world().id() + "/" + f.world().seedText(), f.hasAdventure() ? "sim" : "não",
+                f.error, f.message != null && f.time < f.messageUntil ? f.message : "-");
     }
 
     private int recorded, recordFrame;
@@ -1769,6 +2897,7 @@ public final class Game implements AutoCloseable {
             case "R" -> GLFW_KEY_R; case "F3" -> GLFW_KEY_F3; case "M" -> GLFW_KEY_M;
             case "Q" -> GLFW_KEY_Q; case "TAB" -> GLFW_KEY_TAB; case "ALT" -> GLFW_KEY_LEFT_ALT;
             case "J" -> GLFW_KEY_J; case "T" -> GLFW_KEY_T; case "C" -> GLFW_KEY_C;   // rodada 10: diário, rastreador, continuar
+            case "N" -> GLFW_KEY_N; case "BACKSPACE" -> GLFW_KEY_BACKSPACE;          // rodada 11.1: menu
             default -> throw new IllegalArgumentException("tecla desconhecida: " + name);
         };
     }
@@ -1779,10 +2908,15 @@ public final class Game implements AutoCloseable {
         if (captureFbo != null) captureFbo.close();
         if (deathMesh != null) deathMesh.mesh.close();
         if (mote != null) mote.close();
+        if (menu != null) menu.close();
+        if (previewRenderer != null) previewRenderer.close();
+        if (preparedCreator != null) preparedCreator.close();
+        if (creatorApp != null) creatorApp.close();
         async.close();
         renderer.close();
         kit.close();
-        world.close();
+        if (world != null) world.close();
+        if (kept != null) kept.close();
         assets.close();
     }
 }

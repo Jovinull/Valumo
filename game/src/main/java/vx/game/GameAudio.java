@@ -22,6 +22,17 @@ final class GameAudio {
     private final GameLogic logic;
     private int lastSteps;
     private final String music = Audio.musicChoice(DEFAULT_MUSIC);
+    /**
+     * Rodada 11.1 — música do menu principal: a outra faixa aprovada da vila ({@code vila_b}), para a entrada não repetir a
+     * da aventura; {@code -Dvx.musica.menu=ID|nenhuma} troca. Mesmo dispositivo, mesmo catálogo (ADR 0023).
+     */
+    static final String MENU_MUSIC = "vila_b";
+    private final String menuMusic = menuMusic();
+
+    static String menuMusic() {
+        String m = System.getProperty("vx.musica.menu", System.getProperty("vx.musica", MENU_MUSIC));
+        return m == null || m.equals("nenhuma") ? null : m;
+    }
     private final boolean log = Boolean.getBoolean("vx.audio.log");     // relatório: o que tocou, quando e onde
     String lastEvent;                                                    // testes
     private final org.joml.Vector3f eye = new org.joml.Vector3f();
@@ -89,19 +100,20 @@ final class GameAudio {
         Audio.event(e);
         if (log && Audio.get() != null)
             System.out.printf("som t=%.3f %s herói (%.2f, %.2f) superfície %d%n", Audio.get().time(), e, logic.player.x,
-                    logic.player.z, World.surfaceAt(logic.player.x, logic.player.z));
+                    logic.player.z, World.surfaceAt(logic.scene.field, logic.player.x, logic.player.z));
     }
 
     void tick(float dt) {
         Player p = logic.player;
-        if (p.steps != lastSteps) {
+        if (p.steps != lastSteps && logic.state != GameLogic.State.MENU) {
             lastSteps = p.steps;
-            emit(stepEvent(World.surfaceAt(p.x, p.z), p.stepRun));
+            emit(stepEvent(World.surfaceAt(logic.scene.field, p.x, p.z), p.stepRun));   // rodada 11: o relevo da cena
         }
-        Audio.music(music);
+        Audio.music(logic.state == GameLogic.State.MENU ? menuMusic : music);
         // ambiente: cama de vento + água do lago no lugar do lago; ouvinte na câmera, olhando para o pivô (o herói)
         Audio.ambient("vento", null);
-        Audio.ambient("lago", World.pondCenter());
+        float[] pond = logic.scene.field.pondCenter();                     // rodada 11: região sem lago = sem som de lago
+        if (pond != null) Audio.ambient("lago", pond);
         FollowCamera c = logic.cam;
         c.position(eye);
         float fx = c.pivot.x - eye.x, fy = c.pivot.y - eye.y, fz = c.pivot.z - eye.z, l = (float) Math.sqrt(fx * fx + fy * fy + fz * fz);

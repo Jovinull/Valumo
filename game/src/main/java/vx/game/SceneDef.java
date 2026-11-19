@@ -72,14 +72,29 @@ public final class SceneDef {
     private SceneDef(String layout) { this.layout = layout; }
 
     public static SceneDef load(Path assets, String layout) {
-        SceneDef d = new SceneDef(layout);
-        d.assets = assets;
         JsonObject doc;
         try {
             doc = JsonParser.parseString(Files.readString(assets.resolve("scenes/" + layout + ".json"))).getAsJsonObject();
         } catch (IOException e) {
             throw new UncheckedIOException("cena ausente: " + layout, e);
         }
+        return fromDoc(assets, layout, doc, null, World.LEGACY);
+    }
+
+    /** Rodada 11 — relevo da cena (o legado para as cenas em arquivo; o gerado para o mundo procedural). */
+    public vx.viewer.TerrainField field = World.LEGACY;
+    /** Rodada 11 — a região procedural de onde a cena saiu (missão instanciada, vínculos, semente); null = cena em arquivo. */
+    public ProceduralScene procedural;
+
+    /**
+     * Rodada 11 — a cena a partir de um documento já montado (o mundo procedural gera o mesmo formato de
+     * {@code assets/scenes/jogo_vila_e.json}). {@code combatDoc}: o combate já ajustado ao lugar (arena e encontros
+     * gerados); null = {@code jogo.combate} lido de {@code assets/scenes}.
+     */
+    public static SceneDef fromDoc(Path assets, String layout, JsonObject doc, JsonObject combatDoc, vx.viewer.TerrainField field) {
+        SceneDef d = new SceneDef(layout);
+        d.assets = assets;
+        d.field = field;
         JsonObject game = doc.getAsJsonObject("jogo");
         if (game == null) throw new IllegalArgumentException("a cena " + layout + " não tem a seção \"jogo\"");
         JsonArray s = game.getAsJsonArray("inicio");
@@ -90,7 +105,14 @@ public final class SceneDef {
         d.limitX = lim.getAsJsonArray("centro").get(0).getAsFloat();
         d.limitZ = lim.getAsJsonArray("centro").get(1).getAsFloat();
         d.limitR = lim.get("raio").getAsFloat();
-        if (game.has("combate")) {                                         // rodada 09: arena unida ao limite
+        if (game.has("limitesExtras")) for (JsonElement el : game.getAsJsonArray("limitesExtras")) {   // rodada 11: trilha gerada
+            JsonArray c = el.getAsJsonArray();
+            d.extraLimits.add(new float[]{c.get(0).getAsFloat(), c.get(1).getAsFloat(), c.get(2).getAsFloat()});
+        }
+        if (combatDoc != null) {                                           // rodada 11: arena e encontros gerados
+            d.combat = CombatDef.parse(combatDoc);
+            d.extraLimits.add(new float[]{d.combat.arenaX, d.combat.arenaZ, d.combat.arenaR});
+        } else if (game.has("combate")) {                                  // rodada 09: arena unida ao limite
             d.combat = CombatDef.load(assets, game.get("combate").getAsString());
             d.extraLimits.add(new float[]{d.combat.arenaX, d.combat.arenaZ, d.combat.arenaR});
         }
@@ -116,7 +138,7 @@ public final class SceneDef {
                     o.get("placa").getAsFloat()));
         }
         Map<String, float[]> boxes = propBounds(assets, "e");
-        Terrain t = Terrain.e();
+        Terrain t = Terrain.of(field);
         for (JsonElement el : doc.getAsJsonArray("props")) {
             JsonObject o = el.getAsJsonObject();
             String n = o.get("n").getAsString();

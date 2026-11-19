@@ -29,6 +29,8 @@ public final class FollowCamera {
     private boolean first = true;
     // enquadramento de diálogo
     private boolean framing;
+    /** Rodada 11 — vista técnica dos roteiros (vista geral da região): enquadrando, não encurta por obstáculo. */
+    public boolean technicalView;
     private final Vector3f frameTarget = new Vector3f();
     private float frameYaw, framePitch, frameDist;
     private float lastClear = 1f;
@@ -355,7 +357,7 @@ public final class FollowCamera {
         curYaw += (unwrapNear(targetYaw, curYaw) - curYaw) * ky2;
         curPitch += (targetPitch - curPitch) * ky2;
         float allowed = want;
-        if (c != null) {
+        if (c != null && !(framing && technicalView)) {
             Vector3f desired = position(want, new Vector3f());
             lastClear = c.rayClear(pivot, desired, 0.18f);
             if (lastClear < 1f) {

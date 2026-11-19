@@ -8,7 +8,7 @@ import java.nio.file.Path;
 /**
  * Rodada 08 — entrada do protótipo jogável.
  * <pre>
- *   (sem argumentos)               escolha de aparência → vila
+ *   (sem argumentos)               menu principal (rodada 11.1) → personagem → mundo → aventura
  *   --demo N                       fecha depois de N quadros e imprime o FPS (teste de fumaça)
  *   --roteiro ROTEIRO SAIDA [FPS]  entrada por roteiro na fila da janela (janela oculta): capturas, vídeo, medição
  * </pre>
@@ -31,6 +31,9 @@ public final class GameMain {
         }
         if (script != null && System.getProperty("vx.som") == null) System.setProperty("vx.som", "mudo");   // roteiro não faz barulho
         if (script != null && System.getProperty("vx.prefs") == null) System.setProperty("vx.prefs", "-");  // nem lê nem grava preferências
+        // rodada 11.1: os roteiros das rodadas 08–11 começam na escolha de aparência (comparações históricas); os do menu
+        // pedem -Dvx.menu=sim
+        if (script != null && System.getProperty("vx.menu") == null) System.setProperty("vx.menu", "nao");
         // um só dispositivo de som no processo (Audio): música, ambiente, interface e, por cima dele, os efeitos do combate
         // (Sfx compartilha o contexto). -Dvx.som = dispositivo | loopback | mudo (-Dvx.audio vale igual). O teste de
         // fumaça fica mudo. Roteiro com loopback grava a mistura em SAIDA/audio.wav, em sincronia com os quadros.
@@ -48,6 +51,7 @@ public final class GameMain {
             default -> Audio.Mode.DEVICE;
         });
         try (Window window = new Window("Valumo", 1600, 900, script == null); Game game = new Game(window, assets)) {
+            window.interceptClose(true);                                   // rodada 11.1: o X pede confirmação quando há o que perder
             if (script != null) game.script(Path.of(script), Path.of(out), fps);
             else game.run(demo);
         } finally {
