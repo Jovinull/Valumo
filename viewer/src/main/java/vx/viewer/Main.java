@@ -160,6 +160,7 @@ public final class Main {
         int frames = 1;
         float fps = 30f;
         boolean move = false;
+        String kit = null;                       // kit=DIR: equipamento da aparência composta (o do jogo: characters/r4/adventurer_shield)
         for (String kv : spec.split(",")) {
             String[] p = kv.split("=", 2);
             if (p.length != 2) throw new IllegalArgumentException("esperado chave=valor: " + kv);
@@ -184,6 +185,7 @@ public final class Main {
                 case "ssaa" -> st.captureSsaa = Float.parseFloat(v);
                 case "party" -> st.party = v.equals("1");
                 case "act" -> st.act = v;
+                case "kit" -> kit = v;
                 case "lab" -> st.lab = v;
                 case "far" -> st.terrainFar = v.equals("1");
                 case "seq" -> st.seq = v.replace('+', ',');
@@ -239,6 +241,10 @@ public final class Main {
                 case "out" -> out = v;
                 default -> throw new IllegalArgumentException("chave desconhecida: " + p[0]);
             }
+        }
+        if (!java.util.Objects.equals(app.composer().kit, kit)) {   // cada captura começa do seu próprio equipamento
+            app.composer().clear();
+            app.composer().kit = kit;
         }
         app.prepareCamera(st);
         if (yaw != null) st.cam.yaw = yaw;
