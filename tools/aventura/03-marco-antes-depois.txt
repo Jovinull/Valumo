@@ -1,0 +1,42 @@
+# Rodada 10 — o marco apagado × aceso, do mesmo ponto de câmera (de lado, sem o herói na frente). Montagem técnica: a
+# missão é aceita pela conversa real; os fungos da trilha caem com "derrubar" (a luta real está no 01-aventura); o herói
+# é posto ao lado do marco para o E e volta ao MESMO ponto, com a câmera recomposta (mesmo enquadramento antes e depois).
+size 1280 720
+click comecar
+wait 0.8
+ir -2.7 1.1
+key E
+wait 0.4
+key E
+key E
+key E
+key E
+wait 0.4
+key E
+key E
+wait 0.5
+derrubar #0
+derrubar #1
+posicionar 0.2 12.4 0
+wait 3.0
+size 1920 1080
+key F1
+posicionar 0.4 12.0 5
+camera-recompor
+wait 1.0
+shot marco-antes
+record on
+posicionar -0.9 13.3 -15
+wait 0.2
+key E
+posicionar 0.4 12.0 5
+camera-recompor
+wait 0.3
+shot marco-0-4s
+wait 0.6
+shot marco-1-0s
+wait 0.6
+shot marco-1-6s
+wait 2.0
+shot marco-depois
+missao

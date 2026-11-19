@@ -1,0 +1,23 @@
+# Rodada 10 — lançamento novo depois da aventura: Continuar fica disponível, carrega a aparência, a posição, a missão
+# concluída, as moedas e o marco aceso; a Kelyra agradece sem pagar de novo; a trilha continua limpa.
+size 1280 720
+settle
+record on
+wait 1.5
+shot 19-titulo-continuar
+click continuar-jogo
+wait 1.5
+missao
+shot 20-carregado
+key E
+wait 1.4
+shot 21-kelyra-concluida
+key E
+wait 1.0
+key E
+wait 0.6
+missao
+key J
+wait 1.4
+shot 22-diario-carregado
+key J

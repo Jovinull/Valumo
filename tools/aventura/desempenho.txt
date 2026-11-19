@@ -1,0 +1,35 @@
+# Rodada 10 — medição com a missão ATIVA: o mesmo percurso de tools/jogo/desempenho.txt (vila), com o rastreador na
+# tela, mais 3 s de diário aberto; depois 20 gravações e leituras do save (pasta temporária). Comparar com o percurso
+# sem missão no MESMO binário e com o binário do checkpoint.
+size 1920 1080
+click comecar
+wait 1.0
+ir -2.7 1.1
+key E
+wait 0.3
+key E
+key E
+key E
+key E
+wait 0.3
+key E
+key E
+wait 0.3
+posicionar 0.6 4.4 200
+aquecer 7
+perf on
+ir 0.6 -1.6 correndo
+ir 0.0 -5.2 correndo
+ir -0.6 -8.0
+ir -3.0 -9.6
+look 900 0 3.0
+ir 1.0 -6.0 correndo
+ir 4.5 -1.0 correndo
+ir 2.0 6.4 correndo
+ir -2.2 1.9
+key J
+wait 3.0
+key J
+perf off desempenho.txt
+missao
+medir-save 20

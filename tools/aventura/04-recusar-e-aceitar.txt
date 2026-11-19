@@ -1,0 +1,51 @@
+# Rodada 10 — §16 antes da missão: derruba o fungo de TESTE (não é alvo da missão: nem conta nem vira "já lutou") e
+# olha o marco ANTES de falar (nada acende; a Kelyra lembra que ele viu o marco),
+# recusa ("Agora não"), volta e aceita (a oferta continua de pé; os fungos da missão chegam inteiros).
+size 1280 720
+click comecar
+wait 0.8
+posicionar -1.6 10.6 0
+camera-recompor
+derrubar #0
+wait 2.5
+missao
+posicionar -0.9 13.3 -15
+wait 0.3
+key E
+wait 0.8
+shot a1-marco-antes-de-aceitar
+missao
+ir 0.4 8.0 correndo
+ir -0.6 3.6 correndo
+ir -2.7 1.1
+key E
+wait 1.0
+shot a2-kelyra-ja-viu-o-marco
+key E
+key E
+wait 0.6
+key RIGHT
+wait 0.4
+shot a3-agora-nao
+key E
+wait 1.0
+shot a4-recusou
+key E
+missao
+wait 0.6
+posicionar -2.9 1.3 220
+key E
+wait 1.0
+shot a5-oferta-apos-recusa
+key E
+wait 0.6
+key E
+wait 0.8
+key E
+wait 0.4
+key E
+missao
+key J
+wait 1.0
+shot a6-diario-aceita-depois
+key J

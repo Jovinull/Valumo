@@ -1,0 +1,49 @@
+# Rodada 10 — §16 durante: derruba UM fungo da missão, cai (derrota real: o outro fungo bate no herói sem defesa),
+# recomeça (R): o fungo contado não volta, o outro está inteiro; a Kelyra comenta a queda; salvar no meio da luta é
+# recusado com o motivo.
+size 1280 720
+click comecar
+wait 0.8
+ir -2.7 1.1
+key E
+wait 0.4
+key E
+key E
+key E
+key E
+wait 0.4
+key E
+key E
+wait 0.4
+missao
+vida-heroi 1
+posicionar -1.6 10.6 0
+camera-recompor
+derrubar #0
+wait 1.0
+missao
+estado
+key ESC
+wait 0.3
+shot b0-pausa-na-luta
+click salvar
+wait 0.4
+shot b1-salvar-na-luta-recusado
+key ESC
+esperar-resultado 20
+wait 0.6
+shot b2-derrota
+missao
+key R
+wait 1.5
+shot b3-recomeco-um-fungo
+missao
+ir 0.4 8.0 correndo
+ir -0.6 3.6 correndo
+ir -2.7 1.1
+key E
+wait 1.0
+shot b4-kelyra-caiu
+key E
+key E
+missao

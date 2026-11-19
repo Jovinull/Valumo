@@ -1,0 +1,95 @@
+# Rodada 10 — "As Luzes do Posto" de ponta a ponta, só com entrada da janela (teclado e mouse injetados): tela inicial,
+# jogo novo, Kelyra, oferta, aceitar, rastreador, diário, trilha, luta real com os dois fungos, marco apagado → aceso,
+# volta a pé (sem teletransporte), entrega, recompensa, diário concluído, salvar na pausa e sair.
+# Rode com saves e preferências TEMPORÁRIOS: -Dvx.savegame=PASTA -Dvx.prefs=- (tools/review10.sh faz isso).
+size 1280 720
+settle
+record on
+wait 1.5
+shot 01-titulo
+click comecar
+wait 1.2
+missao
+ir -2.7 1.1
+wait 0.4
+shot 02-kelyra-perto
+key E
+wait 1.4
+shot 03-oferta
+key E
+wait 1.2
+key E
+wait 1.2
+key E
+wait 1.0
+shot 04-escolha
+key E
+wait 1.6
+shot 05-aceitou
+key E
+wait 1.2
+key E
+wait 1.0
+shot 06-rastreador
+missao
+key J
+wait 1.6
+shot 07-diario-aceita
+key J
+wait 0.5
+ir -0.6 3.6 correndo
+ir 0.3 6.2 correndo
+ir 0.4 8.0 correndo
+wait 0.3
+shot 08-trilha-placa
+ir -0.9 9.8
+wait 0.2
+shot 09-fungos
+lutar 25
+wait 2.5
+missao
+shot 10-trilha-limpa
+ir -1.15 13.3
+mirar -1.15 14.35 0.4
+wait 0.6
+shot 11-marco-apagado
+key E
+wait 0.2
+shot 12-marco-acendendo
+ir 0.4 11.3 correndo
+ir 0.4 12.0
+mirar 0.4 16.0 0.4
+wait 0.2
+shot 13-marco-sementes
+wait 1.6
+shot 14-marco-aceso
+missao
+ir -0.6 10.6 correndo
+ir 0.4 8.0 correndo
+ir 0.3 6.0 correndo
+ir -0.6 3.6 correndo
+ir -2.7 1.1
+wait 0.4
+key E
+wait 1.4
+shot 15-entrega
+key E
+wait 1.4
+shot 16-recompensa
+key E
+wait 1.2
+key E
+wait 1.0
+missao
+key J
+wait 1.6
+shot 17-diario-concluida
+key J
+key ESC
+wait 0.6
+click salvar
+wait 1.0
+shot 18-salvo
+missao
+click sair
+wait 0.5
