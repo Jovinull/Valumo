@@ -16,12 +16,11 @@ public record Pcm(short[] data, int channels, int rate) {
 
     public float seconds() { return frames() / (float) rate; }
 
-    /** Lê um WAV PCM 16 bits. Erro claro para qualquer outro formato (o catálogo exige 16 bits). */
     /** Maior WAV aceito (bytes): ~5 min de mono 48 kHz; os efeitos do projeto têm menos de 1 MB. */
     public static final long MAX_BYTES = 32L << 20;
 
     /**
-     * Lê um WAV PCM 16 bits. Malformado (tamanho de bloco negativo, "fmt " curto, canais fora de 1–2, taxa ≤ 0, grande
+     * Lê um WAV PCM 16 bits; erro claro para qualquer outro formato (o catálogo exige 16 bits). Malformado (tamanho de bloco negativo, "fmt " curto, canais fora de 1–2, taxa ≤ 0, grande
      * demais) = {@link IOException} com o motivo; nunca laço infinito (antes, um tamanho negativo voltava a posição).
      * Um "data" maior que o arquivo é aceito até o fim do arquivo (gravação interrompida).
      */

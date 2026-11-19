@@ -181,9 +181,8 @@ final class OcclusionCheck {
         return tot == 0 ? 1f : vis / (float) tot;
     }
 
-    /** {@code viewer --occlusion} (todos os golpes canônicos) ou {@code viewer --occlusion rig golpe}. */
     /**
-     * Saída 1: rig ausente, golpe inexistente, nada conferido (sem arma em nenhum instante), rosto coberto fora de
+     * {@code viewer --occlusion} (todos os golpes canônicos) ou {@code viewer --occlusion rig golpe}. Saída 1: rig ausente, golpe inexistente, nada conferido (sem arma em nenhum instante), rosto coberto fora de
      * {@link #FACE_EXCEPTIONS} ou exceção que deixou de acontecer.
      */
     static boolean run(String[] args) {
