@@ -1240,6 +1240,7 @@ public final class Game implements AutoCloseable {
                     int n = Math.round(Float.parseFloat(t[1]) * fps);
                     for (int i = 0; i < n; i++) tickFrame(List.of(), dt, w, h, record, out);
                 }
+                case "amostra" -> sample(out.resolve(t[1]));               // sessão longa: uma linha de recursos por chamada
                 case "tempo-real" -> {                                     // quadros no ritmo do relógio (o áudio real reabastece)
                     int n = Math.round(Float.parseFloat(t[1]) * fps);
                     long t0 = System.nanoTime();
@@ -1341,6 +1342,10 @@ public final class Game implements AutoCloseable {
     private int testCue;
     private List<Double> perf, perfLogic, perfRender;
 
+    /** Sessão longa: tempo de cada quadro (ms, com glFinish) desde a última {@code amostra}. */
+    private final List<Double> sampleFrames = new ArrayList<>();
+    private long sampleT0;
+
     private void tickFrame(List<InputEvent> evs, float dt, int w, int h, boolean record, Path out) {
         long t0 = System.nanoTime();
         window.poll();
@@ -1356,6 +1361,7 @@ public final class Game implements AutoCloseable {
             perf.add((t2 - t0) / 1e6);
             perfLogic.add((t1 - t0) / 1e6);
             perfRender.add((t2 - t1) / 1e6);
+            sampleFrames.add((t2 - t0) / 1e6);
             return;
         }
         if (record) {
@@ -1372,6 +1378,43 @@ public final class Game implements AutoCloseable {
         }
         render(null, w, h, 1f, dt);
         glFinish();
+    }
+
+    /**
+     * Uma linha CSV de recursos (sessão longa): relógio, tempo do jogo, heap antes e depois de um GC pedido, memória
+     * não-heap, buffers diretos, RSS do processo, malhas/texturas/FBOs vivos, buffers/fluxos/vozes do OpenAL, threads,
+     * coletas e o tempo dos quadros desde a amostra anterior (com {@code perf on}).
+     */
+    private void sample(Path f) throws IOException {
+        if (sampleT0 == 0) sampleT0 = System.nanoTime();
+        Runtime rt = Runtime.getRuntime();
+        long heap = rt.totalMemory() - rt.freeMemory();
+        System.gc();
+        long heapGc = rt.totalMemory() - rt.freeMemory();
+        long direct = 0;
+        for (var p : java.lang.management.ManagementFactory.getPlatformMXBeans(java.lang.management.BufferPoolMXBean.class))
+            if (p.getName().equals("direct")) direct = p.getMemoryUsed();
+        long nonHeap = java.lang.management.ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
+        long rss = 0;
+        for (String l : Files.readAllLines(Path.of("/proc/self/status")))
+            if (l.startsWith("VmRSS:")) rss = Long.parseLong(l.replaceAll("[^0-9]", "")) * 1024;
+        long gcN = 0, gcMs = 0;
+        for (var g : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) { gcN += g.getCollectionCount(); gcMs += g.getCollectionTime(); }
+        vx.engine.audio.OpenAlOut al = vx.engine.audio.Audio.output();
+        List<Double> fr = new ArrayList<>(sampleFrames);
+        sampleFrames.clear();
+        java.util.Collections.sort(fr);
+        java.util.function.DoubleUnaryOperator q = p -> fr.isEmpty() ? 0 : fr.get(Math.min(fr.size() - 1, (int) Math.floor(p * fr.size())));
+        boolean head = !Files.exists(f);
+        String line = String.format(java.util.Locale.ROOT, "%.1f,%.1f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.1f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f%n",
+                (System.nanoTime() - sampleT0) / 1e9, logic.time, heap / 1048576.0, heapGc / 1048576.0, nonHeap / 1048576.0,
+                direct / 1048576.0, rss / 1048576.0, vx.engine.Mesh.liveMeshes, vx.engine.Mesh.liveBytes / 1048576.0,
+                vx.engine.Texture.live, vx.engine.Framebuffer.live, al == null ? -1 : al.loadedBuffers(), al == null ? -1 : al.liveStreams(),
+                al == null ? -1 : al.liveVoices(), java.lang.management.ManagementFactory.getThreadMXBean().getThreadCount(), gcN, gcMs,
+                fr.size(), q.applyAsDouble(0.5), q.applyAsDouble(0.95), q.applyAsDouble(0.99), fr.isEmpty() ? 0 : fr.getLast());
+        Files.writeString(f, (head ? "relogio_s,jogo_s,heap_mb,heap_pos_gc_mb,nao_heap_mb,diretos_mb,rss_mb,malhas,malhas_mb,texturas,fbos,"
+                + "al_buffers,al_fluxos,al_vozes,threads,gc_coletas,gc_ms,quadros,quadro_mediana_ms,quadro_p95_ms,quadro_p99_ms,quadro_max_ms\n" : "")
+                + line, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
     }
 
     private void report(Path f) throws IOException {
