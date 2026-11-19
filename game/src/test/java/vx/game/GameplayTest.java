@@ -304,7 +304,7 @@ class GameplayTest {
     @Test
     void playableSceneLoadsWithCollidersAndKelyra() {
         GameLogic g = village();
-        assertEquals(1, g.npcs.size());
+        assertEquals(6, g.npcs.size(), "Kelyra e os cinco NPCs de ofício");
         GameLogic.Npc k = g.npcs.getFirst();
         assertEquals("Kelyra", k.def.name());
         assertTrue(k.def.lines().size() >= 3);
@@ -321,6 +321,30 @@ class GameplayTest {
         // a cena canônica e a vila continuam sem a seção de jogo (cópia controlada)
         assertThrows(IllegalArgumentException.class, () -> SceneDef.load(A, "vila_e"));
         assertThrows(IllegalArgumentException.class, () -> SceneDef.load(A, "clearing_e"));
+    }
+
+    @Test
+    void everyResidentStandsOnFreeGroundWithRoomToTalk() {
+        // integração da 09.4: os NPCs de ofício ficam em vagas medidas — chão caminhável dentro do limite, ocupando
+        // espaço, sem NENHUMA forma (corpo ou câmera: pedra, poste, cerca, copa) a menos de 1,6 u, céu livre acima da
+        // cabeça (a câmera de conversa não entra numa copa) e longe uns dos outros. A Kelyra fica junto à estalagem
+        // por desenho (08) e só entra nas regras gerais.
+        GameLogic g = village();
+        for (GameLogic.Npc n : g.npcs) {
+            float x = n.def.x(), z = n.def.z();
+            assertTrue(g.collision.walkable(x, z) && g.collision.insideLimit(x, z), n.def.name() + ": chão caminhável na vila");
+            assertFalse(g.collision.named(n.def.rig()).isEmpty(), n.def.name() + " ocupa espaço");
+            assertTrue(n.def.lines().size() >= 3, n.def.name() + ": pelo menos três falas");
+            for (GameLogic.Npc o : g.npcs)
+                if (o != n) assertTrue(Math.hypot(x - o.def.x(), z - o.def.z()) > 2.5f, n.def.name() + " colado em " + o.def.name());
+            if (n.def.name().equals("Kelyra")) continue;
+            for (Collision.Shape sh : g.collision.named(""))
+                if (!sh.name.startsWith(n.def.rig()))
+                    assertNull(sh.push(x, z, 1.6f), n.def.name() + ": " + sh.name + " a menos de 1,6 u");
+            float y = Terrain.e().groundAt(x, z);
+            assertTrue(g.collision.rayClear(new Vector3f(x, y + 1.2f, z), new Vector3f(x, y + 4.5f, z), 0f) > 0.999f,
+                    n.def.name() + ": copa por cima da cabeça");
+        }
     }
 
     @Test
