@@ -120,11 +120,17 @@ def _conjuntos(catalog, manifest):
             items.append({"id": iid, "pos_u": [x, z], "rumo": r})
         xs = [p[0] for _, rr in rects for p in rr] + [p[0] for p in a_rect]
         zs = [p[1] for _, rr in rects for p in rr] + [p[1] for p in a_rect]
+        members = [by_id[cj["ancora"]]] + [by_id[i] for (i, *_r) in cj["itens"]]
+        blocking = sorted({m["id"] for m in members if m["aprovacao"]["integracao"] == "depende_colisao_composta"})
         out.append({"id": cj["id"], "nome": cj["nome"], "oficio": cj["oficio"], "ancora": cj["ancora"],
                     "leitura": cj["leitura"], "referencial": "u no espaço da âncora (+z = frente); gira com a âncora",
                     "itens": items, "caixa_u": {"min": [round(min(xs), 3), round(min(zs), 3)],
                                                  "max": [round(max(xs), 3), round(max(zs), 3)]},
-                    "estado": "candidato", "aprovacao": "aguardando avaliação do proprietário"})
+                    "estado": "aprovado",
+                    "aprovacao": {"artistica": "aprovado_como_proposta",
+                                  "decisao": "proprietário, avaliação do lote 2 (2026-11-19): proposta de composição",
+                                  "integracao": "depende_colisao_composta" if blocking else "liberado",
+                                  "dependencias": [f"formas compostas no Collision ({', '.join(blocking)})"] if blocking else []}})
     return out
 
 
@@ -201,8 +207,8 @@ def build(out):
             "id": name, "nome": meta["nome"], "categoria": meta["categoria"], "subcategoria": meta.get("sub"),
             "lote": meta.get("lote"), "estado": state, "versao": meta["versao"],
             "aprovacao": {"artistica": meta["aprovacao"],
-                          "decisao": ("proprietário, avaliação do lote 1 (2026-11-19)" if meta.get("lote") == 1
-                                      else "aguardando avaliação do proprietário"),
+                          "decisao": (f"proprietário, avaliação do lote {meta.get('lote')} (2026-11-19)"
+                                      if meta.get("lote") in (1, 2) else "aguardando avaliação do proprietário"),
                           "integracao": meta["integracao"],
                           "distribuicao_procedural": meta["integracao"] == "liberado",
                           "dependencias": meta["dependencias"]},

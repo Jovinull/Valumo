@@ -542,13 +542,14 @@ def asset(name, **meta):
             raise ValueError(f"id repetido: {name}")
         meta.setdefault("versao", 1)
         meta.setdefault("variacoes", {})
-        # aprovação ARTÍSTICA × liberação para INTEGRAÇÃO. O lote 1 foi avaliado pelo proprietário (2026-11-19): o padrão
-        # dele é aprovado/liberado e as exceções vêm no registro. Lote 2 em diante nasce candidato, aguardando avaliação.
-        evaluated = meta.get("lote") == 1
+        # aprovação ARTÍSTICA × liberação para INTEGRAÇÃO. Os lotes 1 e 2 foram avaliados pelo proprietário (2026-11-19):
+        # o padrão deles é aprovado/liberado e as exceções vêm no registro. Lote 3 em diante nasce candidato.
+        evaluated = meta.get("lote") in (1, 2)
         meta.setdefault("aprovacao", "aprovado" if evaluated else "candidato")
         # aprovado | aprovado_conceito | candidato | rejeitado
         meta.setdefault("integracao", "liberado" if evaluated else "aguardando_avaliacao")
-        # liberado | depende_colisao_composta | aguardando_refinamento | aguardando_avaliacao | nao_distribuivel
+        # liberado | depende_colisao_composta | aguardando_refinamento | aguardando_avaliacao | restrito_a_conjuntos |
+        # nao_distribuivel
         meta.setdefault("dependencias", [])
         meta.setdefault("relacoes", [])                   # [(tipo, alvo: id de asset ou "tag:<nome>", [dist_min, dist_max] u)]
         ASSETS[name] = (fn, meta)

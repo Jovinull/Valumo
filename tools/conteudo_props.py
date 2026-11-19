@@ -238,6 +238,9 @@ def crate_stack(semente=1):
        relacoes=[("perto_de", "crop_field", [0.3, 2.0]), ("perto_de", "hut_herbalist", [0.5, 3.0]),
                  ("perto_de", "market_stall", [0.3, 2.0])],
        publicar_variantes=True,
+       integracao="restrito_a_conjuntos",
+       notas="decisão do proprietário (lote 2): só como COMPLEMENTO contextual de um conjunto ou de uma construção "
+             "(horta, feira, herbalista); nunca decoração isolada — em preto vira mancha, lê por cor e contexto",
        variacoes={"conteudo": ["horta", "ervas", "cogumelos"]})
 def basket_group(conteudo="horta"):
     """Três cestos de vime (trama em xadrez largo de 2 voxels, borda clara), alturas diferentes, um tombado: repolhos
@@ -545,6 +548,8 @@ def scarecrow(chapeu="palha"):
        area_livre={"frente_u": 1.5, "lados_u": 0.4, "fundos_u": 0.6},
        colisao={"tipo": "caixa", "escala": 0.8, "formas": "medidas",
                 "_nota": "o feirante fica ATRÁS do balcão, sob o toldo: com a caixa única ele estaria dentro do sólido"},
+       integracao="depende_colisao_composta",
+       dependencias=["formas compostas no Collision: o feirante fica atrás do balcão, sob o toldo"],
        restricoes=["frente (balcão) virada para a praça ou o caminho"],
        relacoes=[("perto_de", "fountain_square", [3.0, 6.0]), ("perto_de", "crate_stack", [0.3, 2.5]),
                  ("acompanha", "house_tall", [2.0, 6.0])],

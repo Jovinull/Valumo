@@ -215,7 +215,8 @@ def well_windlass(telhado="coral"):
        restricoes=["no máximo 1 por assentamento", "praça: espaço aberto em volta (bancos, barraca, quadro)"],
        relacoes=[("centro_de", "tag:praca", None), ("perto_de", "bench_wood", [2.0, 4.0]),
                  ("perto_de", "market_stall", [3.0, 6.0]), ("perto_de", "notice_board", [2.5, 6.0])],
-       notas="a variação 'sem lampião' saiu: baixava a altura em 23%, e o lampião é parte da leitura de 'centro'",
+       notas="aprovado (lote 2); refinamento futuro OPCIONAL: a coluna central é um pouco fina para a bacia. A variação "
+             "'sem lampião' saiu: baixava a altura em 23%, e o lampião é parte da leitura de 'centro'",
        variacoes={})
 def fountain_square(lampiao=True):
     """Bacia octogonal baixa de pedra com borda clara larga (dá para sentar), água; coluna central em degraus com
@@ -294,8 +295,9 @@ def fountain_square(lampiao=True):
        restricoes=["encostado em construção ou na borda da mata"],
        relacoes=[("acompanha", "cabin_hunter", [1.5, 5.0]), ("acompanha", "hut_herbalist", [2.0, 6.0]),
                  ("perto_de", "woodpile_axe", [0.8, 3.0])],
-       notas="v1 era 1/8: as pontas das toras de 2×2 liam como xadrez (o defeito da lenha do lote 1); refeito em 1/16 "
-             "com achas de ponta arredondada e vão entre elas",
+       notas="INCOMUM (decisão do proprietário, lote 2): custa 8 mil triângulos (achas a 1/16) e, de frente, a silhueta "
+             "é uma caixa coberta parecida com o depósito — lê bem em 3/4 (achas). v1 era 1/8: as pontas das toras liam "
+             "como xadrez; refeito em 1/16 com achas de ponta arredondada e vão só nas pontas.",
        variacoes={"telhado": ["coral", "teal", "palha"], "cheio": [True, False]})
 def woodshed_open(telhado="coral", cheio=True):
     """Quatro esteios 3×3 em sapatas de pedra, telhado de uma água (mais alto na frente aberta), estrado de tábuas e o
