@@ -103,6 +103,7 @@ public final class CreatorController {
                     st.name += new String(Character.toChars(e.code()));
             }
             case KEY -> key(e.code());
+            case KEY_UP -> { }                                  // o criador não usa a soltura das teclas
         }
     }
 

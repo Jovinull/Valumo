@@ -86,7 +86,6 @@ class VoxelMesherTest {
     @Test
     void mergedMeshKeepsSurfaceAndUsesFewerTriangles() {
         // laje 4x1x3 de mesma cor: mesma área exposta, bem menos triângulos
-        int[] cells = new int[4 * 3 * 3];
         java.util.List<Integer> s = new java.util.ArrayList<>();
         for (int x = 0; x < 4; x++) for (int z = 0; z < 3; z++) { s.add(x); s.add(0); s.add(z); }
         VoxelSource src = grid(4, 1, 3, s.stream().mapToInt(Integer::intValue).toArray());

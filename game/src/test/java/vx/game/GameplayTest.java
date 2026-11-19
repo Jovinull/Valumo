@@ -380,7 +380,7 @@ class GameplayTest {
         float dt = 1 / 60f;
         // passeio: começa no caminho, vai até a casa, desvia, volta pelo lado do lago
         float[][] targets = {{-2.0f, 0.5f}, {-4.0f, -4.0f}, {0.5f, -3.0f}, {4.5f, 0.5f}, {3.0f, 6.0f}, {-3.0f, 6.0f}};
-        int reached = 0, checks = 0;
+        int reached = 0;
         for (float[] t : targets) {
             int noProgress = 0, side = 1;
             for (int i = 0; i < 60 * 15; i++) {
@@ -393,7 +393,7 @@ class GameplayTest {
                 p.update(dt, ix, iz, i % 240 > 120, c);
                 if (Math.hypot(p.x - bx, p.z - bz) < 1e-4f) {
                     if (++noProgress % 30 == 0) side = -side;
-                    if (noProgress % 60 == 1) { checks++; assertTrue(canEscape(p, c), "preso de verdade em " + p.x + "," + p.z); }
+                    if (noProgress % 60 == 1) { assertTrue(canEscape(p, c), "preso de verdade em " + p.x + "," + p.z); }
                 } else noProgress = 0;
                 if (p.grounded) assertEquals(c.ground.height(p.x, p.z), p.y, 1e-4f, "pés fora do chão");
                 assertTrue(c.walkable(p.x, p.z), "fora do pisável");

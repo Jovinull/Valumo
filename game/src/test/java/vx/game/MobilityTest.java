@@ -161,7 +161,6 @@ class MobilityTest {
             int frames = Math.round(3.0f * fps);
             List<String> trace = new ArrayList<>();
             for (int f = 0; f < frames; f++) {
-                float t = f * dt;
                 List<vx.engine.Window.InputEvent> ev = new ArrayList<>();
                 if (f == 0) ev.add(key(org.lwjgl.glfw.GLFW.GLFW_KEY_W, true));      // instantes múltiplos de 1/2 s: o mesmo
                 if (f == Math.round(0.5f * fps)) ev.add(new vx.engine.Window.InputEvent(vx.engine.Window.InputEvent.Kind.DOWN, 0, 0, 0, 0, 0));

@@ -1,9 +1,7 @@
 package vx.viewer;
 
-import vx.engine.FontAtlas;
 import vx.engine.UiBatch;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL33.*;

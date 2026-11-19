@@ -157,8 +157,8 @@ class CombatCameraTest {
         }
     }
 
-    /**
-     * Joga um cenário a 60 quadros/s pela entrada real ({@link GameLogic#update}): o jogador mira o fungo com o mouse
+    /*
+     * Joga um cenário a 60 quadros/s pela entrada real (GameLogic.update): o jogador mira o fungo com o mouse
      * como uma pessoa (corrige 8×/s, com o desvio do plano), segura as teclas do plano e ataca/defende. O fungo luta de
      * verdade. Mede o enquadramento a cada quadro.
      */

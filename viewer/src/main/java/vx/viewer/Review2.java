@@ -21,7 +21,7 @@ public final class Review2 {
     private final App app;
     private final Path out;
     private final String only;
-    private static final int E = 4, B = 1, D = 3;
+    private static final int E = 4, B = 1;
 
     public Review2(App app, Path out, String only) {
         this.app = app;

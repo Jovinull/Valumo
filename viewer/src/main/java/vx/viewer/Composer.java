@@ -409,7 +409,7 @@ public final class Composer {
     private static Prepared skeletonOnly(ComposedRig r) {
         Prepared p = new Prepared();
         p.rig = r;
-        for (Piece pc : r.pieces) { p.data.add(null); p.alts.add(Map.of()); }
+        for (int i = 0; i < r.pieces.size(); i++) { p.data.add(null); p.alts.add(Map.of()); }
         return p;
     }
 

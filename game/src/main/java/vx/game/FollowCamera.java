@@ -67,7 +67,6 @@ public final class FollowCamera {
     /** Rodada 09 (só no diagnóstico {@link #legacy09}): giro até o inimigo ficar a SIDE_ANGLE da vista, do lado mais perto. */
     public static final float SIDE_ANGLE = (float) Math.toRadians(35);
     public float combatYaw;
-    private float heroX, heroZ;
     private final Vector3f focus = new Vector3f();
     private float focusWant;
     public float assist;
@@ -129,14 +128,14 @@ public final class FollowCamera {
      */
     boolean freeFight() { return shoulderWant > 0f && !lockOn && !combatAssist; }
     private boolean lockOn;
-    private float lockX, lockY, lockZ, lockOff;
+    private float lockX, lockZ, lockOff;
     /** Peso suave da mira (0 livre → 1 travada): pivô e inclinação entram e saem sem salto. */
     public float lockW;
 
     /** Trava (alvo em x, y, z) ou solta ({@code on} = false). */
     public void lockOn(boolean on, float x, float y, float z) {
         lockOn = on;
-        if (on) { lockX = x; lockY = y; lockZ = z; }
+        if (on) { lockX = x; lockZ = z; }                               // a altura do alvo entra pelo combatFocus
         else lockOff = 0f;
     }
 

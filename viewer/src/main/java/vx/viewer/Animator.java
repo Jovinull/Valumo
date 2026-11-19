@@ -512,6 +512,7 @@ public final class Animator {
                 rot("tail", 0.1f + 1.2f * air * (1 - jump * 0.5f), 0, 0);
                 rot("hat", -0.1f * air, 0, 0);
             }
+            default -> { }      // DEATH nunca chega aqui (evaluateInner já o trocou por HIT)
         }
         secondary(clip, t, mode, weaponRest);
     }
@@ -888,6 +889,7 @@ public final class Animator {
                 scale("torso", 1, 1 - 0.08f * crouch + 0.05f * air, 1);
                 tilt = 0.12f * crouch;
             }
+            default -> { }      // DEATH nunca chega aqui (evaluateInner já o trocou por HIT)
         }
 
         if (choreo && (base == Clip.IDLE || base == Clip.WALK || base == Clip.RUN)) {
@@ -1086,11 +1088,8 @@ public final class Animator {
     private static final int[] NO_CARRY_D = {Choreo.LM_FREE, Choreo.AR_HIDDEN};
     // temporários (sem alocação por quadro)
     private final Matrix4f mA = new Matrix4f(), mB = new Matrix4f(), mC = new Matrix4f(), mT = new Matrix4f();
-    private final Matrix4f mUp = new Matrix4f(), mFore = new Matrix4f(), mItemR = new Matrix4f(), mItemL = new Matrix4f();
-    private final Matrix3f r3a = new Matrix3f(), r3b = new Matrix3f();
-    private final Vector3f va = new Vector3f(), vb = new Vector3f(), vc = new Vector3f(), vd = new Vector3f(),
-            ve = new Vector3f(), vf = new Vector3f(), vg = new Vector3f(), handR = new Vector3f(), handL = new Vector3f(),
-            elbowR = new Vector3f(), elbowL = new Vector3f();
+    private final Matrix4f mItemR = new Matrix4f(), mItemL = new Matrix4f();
+    private final Vector3f vd = new Vector3f(), vf = new Vector3f(), vg = new Vector3f(), handR = new Vector3f(), handL = new Vector3f();
     private final int[] chainIdx = new int[16];
 
     /** Pontos de controle do último evaluate, no espaço da RAIZ (unidades de mundo), para depuração e QA. */
@@ -1459,7 +1458,6 @@ public final class Animator {
         boolean released = mv != null && !Float.isNaN(mv.release) && motion.moveT >= mv.release && motion.weight > 0.5f;
         if (has("arrow")) {
             int ai = m.index.get("arrow");
-            CharacterModel.Part ap = part("arrow");
             if (arrowState == Choreo.AR_HIDDEN || released) {
                 scale("arrow", 0, 0, 0);
             } else {

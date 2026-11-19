@@ -193,6 +193,8 @@ public final class Appearance {
 
     /** Aparência inválida ou incompatível (o viewer mostra a mensagem; nada é ignorado em silêncio). */
     public static final class InvalidAppearance extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
         public InvalidAppearance(String msg) { super(msg); }
     }
 }

@@ -112,8 +112,10 @@ public final class Choreo {
     // ------------------------------------------------------------------ carga
 
     private static final Map<String, Choreo> CACHE = new HashMap<>();
-    /** Pasta dos perfis; testes e ferramentas podem apontar para outra raiz. */
-    /** Pasta dos perfis; {@code -Dvx.anim=...} aponta para outra versão (comparação antes/depois, rodada 05.1). */
+    /**
+     * Pasta dos perfis; testes e ferramentas podem apontar para outra raiz, e {@code -Dvx.anim=...} aponta para outra
+     * versão (comparação antes/depois, rodada 05.1).
+     */
     public static Path root = Path.of(System.getProperty("vx.anim", "assets/anim"));
 
     public static synchronized Choreo get(String name) {

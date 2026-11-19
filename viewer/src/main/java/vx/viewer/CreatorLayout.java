@@ -85,7 +85,7 @@ public final class CreatorLayout {
         };
     }
 
-    /**
+    /*
      * Fonte de pixel tem escala inteira: escolhe, por controle, o maior passo que cabe; a fileira inteira (mesmo
      * tipo, mesma linha) usa o menor deles, para não misturar tamanhos lado a lado. Só então corta com "…".
      */
