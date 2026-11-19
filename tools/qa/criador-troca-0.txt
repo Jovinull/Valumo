@@ -1,0 +1,13 @@
+# QA de engenharia (sessão longa): o criador aberto pelo jogo troca penteado, cor e cobertura e volta para a vila.
+wait 0.4
+click cat:CABELO
+click hair:cabelo.crespo
+wait 0.3
+click hairColor:castanho
+wait 0.3
+click cat:CHAPEU
+click cover:chapeu.maga
+wait 0.3
+click done
+wait 0.4
+click finish
