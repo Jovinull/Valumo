@@ -61,11 +61,20 @@ public final class UiBatch implements AutoCloseable {
             else flush();
         }
         float r = ((rgba >>> 24) & 255) / 255f, g = ((rgba >>> 16) & 255) / 255f, b = ((rgba >>> 8) & 255) / 255f, a = (rgba & 255) / 255f;
-        float[][] v = {{x, y, u0, v0}, {x + w, y, u1, v0}, {x + w, y + h, u1, v1}, {x, y, u0, v0}, {x + w, y + h, u1, v1}, {x, y + h, u0, v1}};
-        for (float[] p : v) {
-            data[n++] = p[0]; data[n++] = p[1]; data[n++] = p[2]; data[n++] = p[3];
-            data[n++] = r; data[n++] = g; data[n++] = b; data[n++] = a;
-        }
+        // os seis vértices direto no buffer (antes: um float[6][4] por retângulo — a maior alocação por quadro do jogo,
+        // medida por JFR no fechamento do QA); mesma ordem e mesmos valores
+        float x1 = x + w, y1 = y + h;
+        vertex(x, y, u0, v0, r, g, b, a);
+        vertex(x1, y, u1, v0, r, g, b, a);
+        vertex(x1, y1, u1, v1, r, g, b, a);
+        vertex(x, y, u0, v0, r, g, b, a);
+        vertex(x1, y1, u1, v1, r, g, b, a);
+        vertex(x, y1, u0, v1, r, g, b, a);
+    }
+
+    private void vertex(float x, float y, float u, float v, float r, float g, float b, float a) {
+        data[n++] = x; data[n++] = y; data[n++] = u; data[n++] = v;
+        data[n++] = r; data[n++] = g; data[n++] = b; data[n++] = a;
     }
 
     public void flush() {

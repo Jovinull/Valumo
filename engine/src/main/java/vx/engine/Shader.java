@@ -55,7 +55,14 @@ public final class Shader implements AutoCloseable {
     }
 
     private int loc(String n) {
-        return locations.computeIfAbsent(n, k -> glGetUniformLocation(id, k));
+        // get antes de computeIfAbsent: a lambda captura o programa e era alocada a cada uniforme de cada desenho (JFR,
+        // fechamento do QA); a posição continua guardada por nome
+        Integer l = locations.get(n);
+        if (l == null) {
+            l = glGetUniformLocation(id, n);
+            locations.put(n, l);
+        }
+        return l;
     }
 
     public Shader set(String n, int v) { glUniform1i(loc(n), v); return this; }
