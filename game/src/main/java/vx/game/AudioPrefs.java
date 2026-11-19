@@ -36,6 +36,8 @@ public final class AudioPrefs {
     }
     public static final float STEP = 0.1f;
     public float music = 1f, effects = 1f;
+    /** Rodada 11.1 — volume geral (barramento "geral"; o mudo põe 0 e volta a este). Ausente no arquivo = 100%. */
+    public float master = 1f;
 
     public static AudioPrefs load(Path f) {
         AudioPrefs p = new AudioPrefs();
@@ -49,6 +51,11 @@ public final class AudioPrefs {
                     if (!Float.isFinite(m) || !Float.isFinite(e)) throw new IllegalArgumentException("volume não finito");
                     p.music = clamp(m);
                     p.effects = clamp(e);
+                    if (o.has("geral")) {
+                        float g = o.get("geral").getAsFloat();
+                        if (!Float.isFinite(g)) throw new IllegalArgumentException("volume não finito");
+                        p.master = clamp(g);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -64,17 +71,17 @@ public final class AudioPrefs {
         try {
             if (f.getParent() != null) Files.createDirectories(f.getParent());
             Files.writeString(f, String.format(Locale.ROOT,
-                    "{\"contrato\": \"valumo.preferencias\", \"versao\": 1, \"musica\": %.2f, \"efeitos\": %.2f}%n", music, effects));
+                    "{\"contrato\": \"valumo.preferencias\", \"versao\": 1, \"geral\": %.2f, \"musica\": %.2f, \"efeitos\": %.2f}%n", master, music, effects));
         } catch (Exception e) {
             System.err.println("não consegui gravar as preferências de áudio: " + e.getMessage());
         }
     }
 
-    /** Ajusta um controle ("musica"/"efeitos") em ±1 passo; devolve se mudou. */
+    /** Ajusta um controle ("geral"/"musica"/"efeitos") em ±1 passo; devolve se mudou. */
     public boolean nudge(String which, int dir) {
-        float before = which.equals("musica") ? music : effects;
+        float before = which.equals("musica") ? music : which.equals("geral") ? master : effects;
         float v = clamp(Math.round((before + dir * STEP) * 10) / 10f);
-        if (which.equals("musica")) music = v; else effects = v;
+        if (which.equals("musica")) music = v; else if (which.equals("geral")) master = v; else effects = v;
         return v != before;
     }
 
@@ -85,6 +92,7 @@ public final class AudioPrefs {
         s.userVolume("efeitos", effects);
         s.userVolume("interface", effects);
         s.userVolume("ambiente", effects);
+        s.volume("geral", master);
     }
 
     public static String percent(float v) { return Math.round(v * 100) + "%"; }

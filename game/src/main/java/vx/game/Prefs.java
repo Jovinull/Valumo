@@ -19,6 +19,9 @@ public final class Prefs {
     public String feel, encounter;
     /** Rodada 10 — rastreador da missão visível (T no diário). */
     public boolean tracker = true;
+    /** Rodada 11.1 — câmera: sensibilidade do mouse (rad/px) e inverter vertical; antes valiam só na sessão. */
+    public float sensitivity = 0.0032f;
+    public boolean invertY;
     public final Path file;
     public boolean persist = true;
     /**
@@ -52,13 +55,24 @@ public final class Prefs {
     public Prefs load() {
         if (file == null || !Files.isRegularFile(file)) return this;
         String b = bars, f = feel, e = encounter;
-        boolean t = tracker;
+        boolean t = tracker, inv = invertY;
+        float sens = sensitivity;
         try {
             if (Files.size(file) > MAX_BYTES) throw new IOException("grande demais");
             JsonObject o = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
             if (o.has("barrasInimigos")) b = valid(text(o, "barrasInimigos"), b);
             if (o.has("sensacao")) f = text(o, "sensacao");
             if (o.has("encontro")) e = text(o, "encontro");
+            if (o.has("sensibilidade")) {
+                var v = o.get("sensibilidade");
+                if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isNumber() || !Float.isFinite(v.getAsFloat())) throw new IllegalArgumentException("\"sensibilidade\" não é número");
+                sens = Math.clamp(v.getAsFloat(), 0.0008f, 0.012f);
+            }
+            if (o.has("inverterVertical")) {
+                var v = o.get("inverterVertical");
+                if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isBoolean()) throw new IllegalArgumentException("\"inverterVertical\" não é verdadeiro/falso");
+                inv = v.getAsBoolean();
+            }
             if (o.has("rastreador")) {
                 var v = o.get("rastreador");
                 if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isBoolean()) throw new IllegalArgumentException("\"rastreador\" não é verdadeiro/falso");
@@ -72,6 +86,8 @@ public final class Prefs {
         feel = storedFeel = f;
         encounter = storedEncounter = e;
         tracker = t;
+        sensitivity = sens;
+        invertY = inv;
         return this;
     }
 
@@ -105,6 +121,8 @@ public final class Prefs {
         o.addProperty("sensacao", storedFeel);
         o.addProperty("encontro", storedEncounter);
         o.addProperty("rastreador", tracker);
+        o.addProperty("sensibilidade", sensitivity);
+        o.addProperty("inverterVertical", invertY);
         try {
             if (file.getParent() != null) Files.createDirectories(file.getParent());
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(o) + "\n");
