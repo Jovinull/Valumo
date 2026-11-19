@@ -20,6 +20,9 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            "chars_d", "creatures_d", "env_d",
            # rodada 02: direção consolidada E e o experimento das três variantes do aventureiro
            "chars_e", "creatures_e", "env_e", "chars_variants",
+           # laboratório de conteúdo do mundo: construções, vegetação, POIs e props NOVOS (candidatos) + catálogo
+           # valumo.conteudo/1; acrescenta ao props.json da E, por isso roda depois de env_e
+           "conteudo_e",
            # rodada 03: estudos controlados dos protagonistas
            "chars_e_study",
            # rodada 06: primeira expansão controlada (NPC, criatura, árvore, estrutura)
