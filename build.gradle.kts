@@ -37,6 +37,7 @@ subprojects {
         useJUnitPlatform()
         workingDir = rootDir   // os testes de assets leem assets/ a partir da raiz
         systemProperty("vx.prefs", "-")   // rodada 09.2: testes nunca leem nem gravam as preferências do jogador
+        systemProperty("vx.savegame", "-")   // rodada 10: nem o jogo salvo (teste de save usa pasta temporária)
         jvmArgs("--enable-native-access=ALL-UNNAMED")
     }
 }
