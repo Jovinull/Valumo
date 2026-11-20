@@ -495,9 +495,11 @@ public final class App implements AutoCloseable {
 
     private List<String> lineup(State st) {
         List<String> out = new ArrayList<>();
-        lineupCap = 2.6f;
-        lineupGap = 0.38f;
-        List<String> dirs = LINEUPS.containsKey(st.lineup) ? LINEUPS.get(st.lineup) : fileLineup(st.lineup);
+        FileLineup fl = LINEUPS.containsKey(st.lineup) ? null
+                : fileLineups.computeIfAbsent(st.lineup == null ? "" : st.lineup, this::fileLineup);
+        lineupCap = fl == null ? 2.6f : fl.cap();
+        lineupGap = fl == null ? 0.38f : fl.gap();
+        List<String> dirs = fl == null ? LINEUPS.getOrDefault(st.lineup, List.of()) : fl.dirs();
         for (String d : dirs) if (assets.exists(d + "/rig.json")) out.add(d);
         return out;
     }
@@ -505,25 +507,29 @@ public final class App implements AutoCloseable {
     /** Largura máxima (u) e vão entre modelos do conjunto de LINHA corrente (os fixos acima usam 2,6 e 0,38). */
     private float lineupCap = 2.6f, lineupGap = 0.38f;
 
+    /** Conjunto de LINHA lido de arquivo: lido UMA vez por nome (o modo LINHA pede o conjunto duas vezes por quadro). */
+    private record FileLineup(List<String> dirs, float cap, float gap) { }
+    private final Map<String, FileLineup> fileLineups = new HashMap<>();
+
     /**
      * Laboratório de conteúdo: conjunto de LINHA gerado em {@code assets/studies/lineups/<nome>.json}
      * ({@code {"dirs": [...], "larguraMax": u, "vao": u}}), para comparar construções e árvores largas lado a lado sem
-     * editar a lista fixa. Ausente ou ilegível = conjunto vazio (nada é desenhado).
+     * editar a lista fixa. Ausente ou ilegível = conjunto vazio (nada é desenhado; o motivo sai uma vez).
      */
-    private List<String> fileLineup(String name) {
-        if (name == null || !name.matches("[a-z0-9_-]+")) return List.of();
+    private FileLineup fileLineup(String name) {
+        FileLineup empty = new FileLineup(List.of(), 2.6f, 0.38f);
+        if (!name.matches("[a-z0-9_-]+")) return empty;
         Path p = assets.root().resolve("studies/lineups/" + name + ".json");
-        if (!Files.exists(p)) return List.of();
+        if (!Files.exists(p)) return empty;
         try {
             com.google.gson.JsonObject o = com.google.gson.JsonParser.parseString(Files.readString(p)).getAsJsonObject();
             List<String> dirs = new ArrayList<>();
             for (com.google.gson.JsonElement e : o.getAsJsonArray("dirs")) dirs.add(e.getAsString());
-            if (o.has("larguraMax")) lineupCap = o.get("larguraMax").getAsFloat();
-            if (o.has("vao")) lineupGap = o.get("vao").getAsFloat();
-            return dirs;
+            return new FileLineup(List.copyOf(dirs), o.has("larguraMax") ? o.get("larguraMax").getAsFloat() : 2.6f,
+                    o.has("vao") ? o.get("vao").getAsFloat() : 0.38f);
         } catch (IOException | RuntimeException e) {
             System.err.println("lineup " + name + ": ilegível (" + e.getMessage() + ")");
-            return List.of();
+            return empty;
         }
     }
 
