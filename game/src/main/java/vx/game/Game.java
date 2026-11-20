@@ -66,7 +66,7 @@ public final class Game implements AutoCloseable {
     private final Window window;
     private final Path assetsPath;
     private final Assets assets;
-    private final StyleProfile style;
+    private StyleProfile style;                                         // rodada 12: a luz muda por roteiro (luz dia|tarde)
     /** Rodada 11.1 — a SESSÃO (mundo, relevo, lógica) troca em tempo de execução: menu ⇄ aventura, mundo A ⇄ mundo B. */
     private World world;
     public Terrain terrain;
@@ -2363,7 +2363,16 @@ public final class Game implements AutoCloseable {
                             float len = (float) Math.hypot(dx, dz);
                             yield new float[]{cx, cz, (float) Math.toDegrees(Math.atan2(-dz, dx)), 50f, 0.95f * len + 13f};
                         }
-                        case "assentamento" -> new float[]{L.sx, L.sz, (float) Math.toDegrees(Math.atan2(L.fx, L.fz)) + 25f, 32f, 13f};
+                        case "assentamento" -> new float[]{L.sx, L.sz, (float) Math.toDegrees(Math.atan2(L.fx, L.fz)) + 25f, 32f, L.version >= 2 ? 19f : 13f};
+                        case "ruina" -> {                                    // rodada 12 (v2): a ruína, de três quartos pela frente
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            yield new float[]{b.x(), b.z(), b.rotDeg() + 35f, 30f, 10.5f};
+                        }
+                        case "construcao" -> {                               // rodada 12 (v2): a N-ésima construção (0 = a estalagem)
+                            var bs = L.buildings.stream().filter(x -> !x.role().equals("ruina") && !x.role().equals("praca")).toList();
+                            var b = bs.get(Math.min(Integer.parseInt(t[2]), bs.size() - 1));
+                            yield new float[]{b.x(), b.z(), b.rotDeg() + 28f, 26f, 11f};
+                        }
                         case "posto" -> new float[]{L.px + L.gx, L.pz + L.gz, (float) Math.toDegrees(Math.atan2(-L.gx, -L.gz)) + 20f, 26f, 8.5f};
                         case "trilha" -> {
                             float[] m = L.path.get(L.path.size() / 2), m2 = L.path.get(L.path.size() / 2 + 2);
@@ -2409,6 +2418,20 @@ public final class Game implements AutoCloseable {
                             float[] m = L.path.get(L.path.size() / 2), m2 = L.path.get(L.path.size() / 2 + 2);
                             yield new float[]{m[0], m[1], (float) Math.toDegrees(Math.atan2(m2[0] - m[0], m2[1] - m[1]))};
                         }
+                        case "ruina", "ruina-dentro" -> {                       // rodada 12 (v2): diante do arco, ou já lá dentro
+                            var cp = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:poi." + L.regionId + ".ruina.0:")).findFirst().orElseThrow();
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            float vx = cp.x() - b.x(), vz = cp.z() - b.z(), vl = (float) Math.hypot(vx, vz);
+                            float k = t[1].equals("ruina") ? 1.2f : -1.6f;           // fora do arco, ou 1,6 u para dentro dele
+                            float x = cp.x() + vx / vl * k, z = cp.z() + vz / vl * k;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(b.x() - x, b.z() - z))};
+                        }
+                        case "construcao" -> {                                  // rodada 12 (v2): diante da porta da N-ésima construção
+                            var cps = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:b")).toList();
+                            var cp = cps.get(Math.min(Integer.parseInt(t[2]), cps.size() - 1));
+                            float x = cp.x() + (L.sx - cp.x()) * 0.25f, z = cp.z() + (L.sz - cp.z()) * 0.25f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(cp.x() - x, cp.z() - z))};
+                        }
                         case "casa" -> {                                        // diante da estalagem, de frente para a parede
                             var house = L.props.stream().filter(p -> p.name().equals("house")).findFirst().orElseThrow();
                             float a = (float) Math.toRadians(house.rotDeg());
@@ -2447,14 +2470,21 @@ public final class Game implements AutoCloseable {
                     logic.cam.reset();
                     logic.cam.snapshot();
                 }
-                case "seguir-trilha" -> {                                  // rodada 11: entrada real — W + mouse pelo eixo da trilha
-                    var L = procedural.layout;
+                case "luz" -> {                                            // rodada 12: dia | tarde (as capturas da revisão)
+                    style = StyleProfile.of(4, t[1].equals("tarde") ? 1 : 0);
+                    System.out.println("luz: " + t[1]);
+                }
+                case "seguir-trilha", "seguir-ramo" -> {                   // rodada 11: entrada real — W + mouse pelo eixo da trilha
+                    var L = procedural.layout;                             // rodada 12: "seguir-ramo" = a trilha da ruína (v2)
                     boolean back = t[1].equals("volta"), run = t.length > 2 && t[2].equals("correndo");
+                    List<float[]> src = t[0].equals("seguir-ramo")
+                            ? L.branches.stream().filter(vx.game.world.RegionLayout.Branch::carve).findFirst().orElseThrow().points() : L.path;
                     List<float[]> pts = new ArrayList<>();
-                    for (int i = 0; i < L.path.size(); i += 3) pts.add(L.path.get(i));
-                    pts.add(L.path.getLast());
-                    if (back) { java.util.Collections.reverse(pts); pts.add(new float[]{L.startX, L.startZ}); }
-                    else pts.add(new float[]{L.px - L.gx * 1.2f, L.pz - L.gz * 1.2f});
+                    for (int i = 0; i < src.size(); i += 3) pts.add(src.get(i));
+                    pts.add(src.getLast());
+                    boolean branch = t[0].equals("seguir-ramo");
+                    if (back) { java.util.Collections.reverse(pts); if (!branch) pts.add(new float[]{L.startX, L.startZ}); }
+                    else if (!branch) pts.add(new float[]{L.px - L.gx * 1.2f, L.pz - L.gz * 1.2f});
                     int wp = 0;                                               // começa do ponto mais perto (na direção pedida)
                     float best = Float.MAX_VALUE;
                     for (int i = 0; i < pts.size(); i++) {
