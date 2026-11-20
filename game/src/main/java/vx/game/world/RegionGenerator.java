@@ -26,6 +26,14 @@ public final class RegionGenerator {
 
     /** Esta versão do jogo sabe gerar a versão {@code v}? (Desconhecida = mundo de um jogo mais novo: não abre.) */
     public static boolean supports(int v) { return v == V1 || v == V2; }
+
+    /**
+     * Rodada 12.2 — a versão está PUBLICADA (congelada: o resultado de uma semente nunca mais muda)? Uma versão ainda em
+     * testes pode mudar a região de uma semente antes da publicação; um save de um mundo dela que não bate mais com a região
+     * de agora é "de uma versão de testes" ({@link vx.game.SaveGame.Incompatible}), não arquivo corrompido. Ao publicar a
+     * v2: ela entra aqui (e a partir daí qualquer mudança de resultado é uma versão nova, ADR 0029).
+     */
+    public static boolean published(int v) { return v == V1; }
     /** Metade do lado da região jogável (u): tudo cabe em ±17, a floresta fecha até a borda do mundo (±24). */
     static final float HALF = 16.5f;
 
