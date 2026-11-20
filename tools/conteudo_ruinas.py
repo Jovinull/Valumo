@@ -102,7 +102,7 @@ SPRING = 10                   # nascença do arco (1,25 u): a cabeça do herói 
                    "mata; a boca para uma clareira ou trilha", "nunca com a boca para a água"],
        relacoes=[("perto_de", "tag:trilha", [3.0, 12.0])],
        variacoes={"semente": [1, 2, 3], "raizes": [True, False]},
-       aprovacao="aprovado", integracao="depende_colisao_composta",
+       aprovacao="aprovado", integracao="liberado",   # rodada 12.2: formas compostas medidas + CompositeCollisionTest
        decisao="proprietário, fechamento do estudo de NPCs de ofício e ruínas (2026-11-20): aprovada sem redesenho",
        dependencias=["formas compostas no Collision (interior caminhável)",
                      "formas só de câmera para o teto e o morro sobre medidas.cobertura_u (o interior é coberto)",
@@ -275,7 +275,7 @@ CORRAL = (30, -2)             # centro do curral (voxels)
                    "um marco e precisa de céu atrás", "nunca dentro da mata fechada"],
        relacoes=[("perto_de", "tag:trilha", [2.0, 10.0])],
        variacoes={"semente": [1, 2, 3], "porteira_caida": [True, False]},
-       aprovacao="aprovado", integracao="depende_colisao_composta",
+       aprovacao="aprovado", integracao="liberado",   # rodada 12.2: formas compostas medidas + CompositeCollisionTest
        decisao="proprietário, fechamento do estudo de NPCs de ofício e ruínas (2026-11-20): aprovada sem redesenho",
        dependencias=["formas compostas no Collision (curral com porteira; empena com o portão vazado)",
                      "integração ao gerador v2 pelo Claude principal, depois da validação da rodada 12.1"],
