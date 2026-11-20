@@ -31,7 +31,7 @@ public final class Assets implements AutoCloseable {
 
     private final Path root;
     private final Map<String, CharacterModel> rigs = new HashMap<>();
-    private final Map<String, Map<String, Prop>> props = new HashMap<>();
+    private final Map<String, PropSet> props = new HashMap<>();
 
     public Assets(Path root) { this.root = root; }
 
@@ -44,8 +44,8 @@ public final class Assets implements AutoCloseable {
             if (m.atlas != null) textures.add(m.atlas);
         }
         rigs.clear();
-        for (Map<String, Prop> set : props.values())
-            for (Prop p : set.values()) {
+        for (PropSet set : props.values())
+            for (Prop p : set.loaded()) {                              // só o que foi carregado (o resto nunca existiu)
                 p.mesh().close();
                 if (p.texture() != null) textures.add(p.texture());   // o atlas é compartilhado pelos props do estilo
             }
@@ -81,38 +81,96 @@ public final class Assets implements AutoCloseable {
         }
     }
 
-    /** Props do diretório {@code environment/<estilo>} (lidos de props.json). */
+    /**
+     * Props do diretório {@code environment/<estilo>}: o CATÁLOGO inteiro do {@code props.json}, carregado sob demanda.
+     * Integração dos lotes de conteúdo: o catálogo ficou grande (a biblioteca do laboratório soma dezenas de modelos que
+     * nenhuma cena jogável usa ainda) e antes TODO prop era lido, malhado e enviado à GPU na primeira chamada. Agora cada
+     * prop vira malha só quando uma cena o pede ({@link PropSet#get}); {@code containsKey}/{@code keySet} não carregam
+     * nada. Thread do GL (a malha sobe para a GPU no {@code get}).
+     */
     public Map<String, Prop> props(String styleKey) {
-        return props.computeIfAbsent(styleKey, k -> {
-            Map<String, Prop> out = new HashMap<>();
-            Path dir = root.resolve("environment/" + k);
+        return props.computeIfAbsent(styleKey, k -> new PropSet(root.resolve("environment/" + k)));
+    }
+
+    /** Props vivos (malha na GPU) de um estilo — QA: a biblioteca registrada não pode virar memória gasta. */
+    public int loadedProps(String styleKey) {
+        PropSet set = props.get(styleKey);
+        return set == null ? 0 : set.loaded().size();
+    }
+
+    /**
+     * O catálogo de um estilo: as entradas do {@code props.json} (registradas) e as malhas já pedidas (carregadas). Um
+     * {@code Map} comum para quem lê por nome; iterar {@code entrySet}/{@code values} carregaria tudo, e ninguém faz isso
+     * (o {@code close} usa {@link #loaded()}).
+     */
+    static final class PropSet extends java.util.AbstractMap<String, Prop> {
+        private final Path dir;
+        private final Map<String, JsonObject> entries = new java.util.LinkedHashMap<>();
+        private final Map<String, Prop> loaded = new HashMap<>();
+        private vx.engine.Texture atlas;
+        private boolean atlasTried;
+
+        PropSet(Path dir) {
+            this.dir = dir;
             Path manifest = dir.resolve("props.json");
-            if (!Files.exists(manifest)) return out;
+            if (!Files.exists(manifest)) return;
             try {
                 JsonObject doc = JsonParser.parseString(Files.readString(manifest)).getAsJsonObject();
-                // Props de cuboides texturizados (direção C) compartilham environment/<estilo>/atlas.png.
-                vx.engine.Texture atlas = Files.exists(dir.resolve("atlas.png"))
-                        ? vx.engine.Texture.load(dir.resolve("atlas.png"), true) : null;
-                for (String name : doc.keySet()) {
-                    JsonObject e = doc.getAsJsonObject(name);
-                    float vs = e.get("voxelSize").getAsFloat();
-                    JsonArray sz = e.getAsJsonArray("sizeVoxels");
-                    float h = sz.get(1).getAsFloat() * vs, w = sz.get(0).getAsFloat() * vs;
-                    if (e.has("cuboids")) {
-                        if (atlas == null) throw new IOException("atlas.png ausente em " + dir);
-                        out.put(name, new Prop(CuboidMesh.build(e.getAsJsonArray("cuboids"), vs, atlas.width, atlas.height), vs, h, w, atlas));
-                    } else {
-                        JsonArray o = e.getAsJsonArray("origin");
-                        boolean affine = e.has("affineWind") && e.get("affineWind").getAsBoolean();
-                        Mesh mesh = VoxelMesher.build(VoxModel.load(dir.resolve(e.get("file").getAsString())), vs,
-                                o.get(0).getAsFloat(), o.get(1).getAsFloat(), o.get(2).getAsFloat(), affine);
-                        out.put(name, new Prop(mesh, vs, h, w, null));
-                    }
-                }
+                for (String name : doc.keySet()) entries.put(name, doc.getAsJsonObject(name));
             } catch (IOException ex) {
                 throw new IllegalStateException("falha ao ler " + manifest, ex);
             }
+        }
+
+        @Override
+        public Prop get(Object key) {
+            if (!(key instanceof String name)) return null;
+            Prop p = loaded.get(name);
+            if (p != null) return p;
+            JsonObject e = entries.get(name);
+            if (e == null) return null;
+            p = build(e);
+            loaded.put(name, p);
+            return p;
+        }
+
+        @Override public boolean containsKey(Object key) { return entries.containsKey(key); }
+
+        @Override public int size() { return entries.size(); }
+
+        @Override public java.util.Set<String> keySet() { return java.util.Collections.unmodifiableSet(entries.keySet()); }
+
+        @Override
+        public java.util.Set<Entry<String, Prop>> entrySet() {
+            java.util.Set<Entry<String, Prop>> out = new java.util.LinkedHashSet<>();
+            for (String name : entries.keySet()) out.add(new java.util.AbstractMap.SimpleImmutableEntry<>(name, get(name)));
             return out;
-        });
+        }
+
+        java.util.Collection<Prop> loaded() { return loaded.values(); }
+
+        private Prop build(JsonObject e) {
+            try {
+                float vs = e.get("voxelSize").getAsFloat();
+                JsonArray sz = e.getAsJsonArray("sizeVoxels");
+                float h = sz.get(1).getAsFloat() * vs, w = sz.get(0).getAsFloat() * vs;
+                if (e.has("cuboids")) {
+                    // Props de cuboides texturizados (direção C) compartilham environment/<estilo>/atlas.png.
+                    if (!atlasTried) {
+                        atlasTried = true;
+                        if (Files.exists(dir.resolve("atlas.png"))) atlas = vx.engine.Texture.load(dir.resolve("atlas.png"), true);
+                    }
+                    if (atlas == null) throw new IOException("atlas.png ausente em " + dir);
+                    return new Prop(CuboidMesh.build(e.getAsJsonArray("cuboids"), vs, atlas.width, atlas.height), vs, h, w, atlas);
+                }
+                JsonArray o = e.getAsJsonArray("origin");
+                boolean affine = e.has("affineWind") && e.get("affineWind").getAsBoolean();
+                Mesh mesh = VoxelMesher.build(VoxModel.load(dir.resolve(e.get("file").getAsString())), vs,
+                        o.get(0).getAsFloat(), o.get(1).getAsFloat(), o.get(2).getAsFloat(), affine);
+                return new Prop(mesh, vs, h, w, null);
+            } catch (IOException ex) {
+                throw new IllegalStateException("falha ao ler o prop em " + dir, ex);
+            }
+        }
     }
 }
