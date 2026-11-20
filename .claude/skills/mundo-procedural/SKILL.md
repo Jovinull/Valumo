@@ -15,13 +15,16 @@ instâncias de missão, persistência). Decisões: ADRs 0025 e 0026. Guias: `doc
    - Toda decisão usa `Rng.of(semente, regiao, categoria, …)`: nunca `java.util.Random`, relógio, ordem de
      `HashMap`/`HashSet` nem ordem de carga.
    - Uma categoria nova tem rótulo próprio, para não mover o resto.
-   - Mudou o resultado de alguma semente → é uma versão nova do gerador.
-     - A v1 está fixada em 8 sementes (`RegionGoldenTest` × `game/src/test/resources/regioes-v1.txt`): a referência
-       **nunca** é atualizada para passar.
-     - Subir `VERSION` hoje recusa todos os mundos v1. Antes da primeira versão nova, implemente o despacho por versão
-       da ADR 0029 (a v1 continua para os mundos v1).
-   - A biblioteca de conteúdo (`props.json` com os lotes 1 e 2) **não** é lida pelo gerador. Liberar um asset para o
-     gerador é trabalho de versão nova (guia `docs/processo/como-integrar-conteudo-ao-mundo.md` §8).
+   - Mudou o resultado de alguma semente → é uma versão NOVA do gerador (rodada 12, ADR 0029 implementada):
+     - **Uma classe por versão:** como `RegionV2`, com rótulos próprios (`Rng.of(semente, "v2", …)`); o caminho de uma
+       versão publicada nunca muda (a v1 é o código da rodada 11, intocado).
+     - **Referência por versão:** `RegionGoldenTest` × `regioes-v1.txt` e `regioes-v2.txt`; **nunca** atualize para
+       passar.
+     - **A versão é do mundo** (`mundo.json`, save v2): `ProceduralScene.create(assets, semente, versão)`.
+       - Mundos novos nascem na `RegionGenerator.LATEST`.
+       - Versão desconhecida não abre e não toca no arquivo (sem `.invalido`).
+   - A v2 lê o perfil CONGELADO `assets/scenes/regiao_v2_e.json` (`RegionProfile`), nunca o catálogo gerado. Guia
+     completo: `docs/processo/como-evoluir-o-gerador.md`.
 2. **O mundo fixo não muda.**
    - `World.LEGACY` são as funções de antes; refatorar o relevo exige as referências 22/22 com desvio 0 e o gate 51/0.
 3. **A autoria está nos componentes.** Só props e NPCs aprovados da E. Asset novo só com aprovação e pelo pipeline
@@ -73,3 +76,20 @@ Se ficou abaixo da vila aprovada, diga e registre o que precisa melhorar.
 | Vista geral virou close | a câmera de enquadramento encurta por obstáculo | `FollowCamera.technicalView` (só nos roteiros) |
 | Todo salvamento automático recusado | vínculo com coordenada `float` ≠ a mesma relida como `double` | `double` arredondado no JSON |
 | Teste do muro "não bloqueou" | o muro caiu dentro do círculo do assentamento (o herói dá a volta de verdade) | ponha o obstáculo fora das áreas abertas; a validação estava certa |
+
+## Rodada 12 — a v2 e a descoberta (`mundo-procedural.md` §9)
+
+- **Composição:** estilo (caminho/rural) → patamar → estalagem ao fundo → chafariz ou poço (ocupam lugar) → 3–4
+  construções ou conjuntos por peso, encaixados PEÇA A PEÇA → saída da trilha → caminhos às portas → moradores →
+  ruína com patamar e trilha secundária → posto (`composePost`) → mata.
+- **Conjuntos:** sempre inteiros (âncora + itens no referencial dela); restritos só dentro deles.
+- **Checkpoints:** cada entrada, interior e descoberta vira um `checkpoint` da `Reachability`. A v1 não tem nenhum.
+- **Dados de distribuição:** só as variáveis `RegionV2.POOL_*` e o perfil congelado.
+- **Medir:** `tools/review12.sh vistas comparacoes` (capturas) e `GeneratorV2Test` (determinismo, restrições,
+  densidade).
+- **Defeitos já vistos (não repita):**
+  - conferir o encaixe pela caixa INTEIRA de um conjunto (assimétrica) → nada cabia;
+  - conferir as peças do mesmo conjunto entre si → a placa junto da porta reprovava tudo;
+  - a área livre da frente do catálogo inteira numa vila compacta → nada cabia;
+  - o chafariz e o poço fora do `taken` → conjunto encostado neles;
+  - a Kelyra virada para o chafariz → a fala caía dentro dele.

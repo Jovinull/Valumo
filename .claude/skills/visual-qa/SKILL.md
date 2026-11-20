@@ -235,3 +235,22 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
 - **Vitrine dos personagens:** o herói precisa ler sozinho. Morador colado ou atrás confunde a silhueta (escondidos só no
   desenho); relevo na frente da câmera vira um bloco enorme (aconteceu no ponto de início da vila: a vitrine tem ponto
   próprio, testado).
+
+## Rodada 12 — mundos v2 (`tools/review12.sh`)
+
+- **Vistas:** `vistas` roda `tools/mundo/04-vistas-v2.txt` nas 8 sementes, com 15 tomadas cada:
+  - geral, assentamento e três construções;
+  - trilha, ruína e posto;
+  - câmera do jogador, entrada, morador, entrada e interior da ruína;
+  - tarde.
+  Cada semente sai numa prancha. As tomadas são calculadas da região, nunca coordenada à mão.
+- **Comparações:** `comparacoes` monta v1 × v2 lado a lado, pelo MESMO binário (`-Dvx.gerador=1|2`).
+- **O que olhar:**
+  - conjunto encostado em outro ou no chafariz;
+  - morador sem espaço ou de frente para uma parede;
+  - porta bloqueada;
+  - herói afundado em piso elevado;
+  - árvore sobre a trilha;
+  - prop em desnível.
+- **Vídeos:** `demo` (mundo v2 do menu à descoberta, salvar e continuar) e `demo-v1` (mundo v1 antigo no executável
+  novo). Quadros em `output/tmp`, nunca no `/tmp` (tmpfs: o vídeo de 1080p estoura a cota).

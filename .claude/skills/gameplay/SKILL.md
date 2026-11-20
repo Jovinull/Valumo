@@ -205,3 +205,21 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   - `requestQuit()` abre a mesma confirmação de qualquer estado e lembra o estado anterior para o Cancelar.
 - **Menu principal:** volta à tela inicial (`enterMenu(MAIN)`); as escolhas ficam no `MenuFlow`.
 - **Testes:** `MenuAdventureTest` (X em diálogo, salvamento automático intocado, falha de gravação não sai).
+
+## Rodada 12 — colisão composta, piso elevado e descoberta
+
+- **Colisão composta:** perfil `composta` em `colisao_e.json`, com formas do espaço do modelo transformadas pela matriz
+  do prop (`Collision.addComposite`).
+  - O mesmo contrato serve ao movimento, à câmera e ao alcance.
+  - Contrato: `docs/architecture/colisao-composta.md`. Teste: `CompositeCollisionTest`, em 5 rumos.
+- **Piso elevado** (laje de 0,375 u): forma pisável com o topo no degrau (0,30 u). Sem ela o herói anda afundado na
+  laje (o defeito que a captura mostrou).
+- **Descoberta:** `SceneDef.Discovery` → `GameLogic.findDiscovery`/`useDiscovery`, o mais perto entre morador, objeto e
+  descoberta.
+  - Placa com o verbo, sem texto de tecla.
+  - `QuestSystem.discover` paga uma vez; o diário lista; som `missao.objetivo`.
+- **Roteiros:**
+  - `luz dia|tarde`;
+  - `vista-lugar ruina|construcao N`;
+  - `ir-lugar ruina|ruina-dentro|descoberta|construcao N [andando]`;
+  - `seguir-ramo ida|volta [correndo]`: a trilha principal até a bifurcação e depois a da ruína.

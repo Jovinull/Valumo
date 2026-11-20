@@ -108,3 +108,15 @@ Captura no mundo (`mode=scene,style=e`), close, luz neutra e panorama; checklist
   peças de 1 voxel em pedaços diagonais → `connect_path`/2 de largura; audite com `tools/asset_audit.py`.
 - Compare silhuetas de props na mesma escala: `.venv/bin/python tools/prop_silhouette.py saida.png a b c`.
 - Avalie no mundo pela vitrine (`layout=vitrine_e`), nunca mexendo na clareira canônica.
+
+## Rodada 12 — construção com interior (colisão composta)
+
+O jogo mede a colisão dos voxels (`tools/conteudo/formas_compostas.py`), então o modelo precisa permitir o que promete:
+
+- **Porta:** vão livre ≥ **0,6 u** de largura abaixo de **1,2 u** (o herói tem 0,52 u de corpo e 1,2 u de altura). A
+  torre arruinada não passou: sob o arco sobram 0,5 u (P74).
+- **Piso:** laje até 0,30 u se o herói deve pisar nela sem degrau; acima disso o chão pisável fica no degrau e o pé
+  afunda até 0,075 u (P75).
+- **Pontos:** marcam o OBJETO (forja, lareira, escombros); quem usa fica de pé a até 1 u. Ponto dentro de uma peça
+  sólida grande fica sem lugar de pé (foi o caso dos escombros da ruína).
+- **Spawn de morador:** ≥ 0,56 u de todo ponto de interação (corpo 0,3 + herói 0,26) (P73).

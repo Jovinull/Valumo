@@ -190,3 +190,15 @@ foi reproduzido fica como "não confirmado", com a condição que faltou. Atuali
   em silêncio até o teste de save v2.
 - **Worktree:** um worktree novo não tem `.venv`. Os scripts `tools/*.sh` usam `.venv/bin/python` relativo; crie o link
   (ignorado pelo git) ou rode com `-Pvx.python=`.
+
+## Rodada 12 — versões do gerador e saves antigos
+
+- **Saves antigos:** `tools/qa/saves_antigos.sh RAIZ_DO_BINARIO_PUBLICADO . output/tmp/X`. O binário antigo cria saves
+  v1 (vila, região, menu); os dois abrem; linhas iguais e zero `.invalido`. O executável novo abre o mundo v1 pela
+  versão gravada.
+- **Referência de uma versão nova:** `VX_REFERENCIA_ESCREVER=N ./gradlew --no-daemon :game:test --tests
+  vx.game.RegionGoldenTest`, só na aprovação.
+  - O `-D` não chega ao processo de teste; a variável de ambiente chega, com `--no-daemon`.
+  - O escritor recusa a v1 e recusa sobrescrever.
+- **Custo da v2:** formas de colisão e tempo da conferência de alcance por semente (classe de medida no relatório da
+  rodada 12).
