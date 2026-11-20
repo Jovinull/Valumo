@@ -77,7 +77,7 @@ def overlap(p, q):
 
 def check_clearance(name, placements, cat):
     """Nenhuma pegada entra na ÁREA LIVRE de outra construção/POI (frente, lados, fundos do catálogo)."""
-    big = [(n, x, z, r) for (n, x, z, r) in placements if n in cat and cat[n]["categoria"] in ("construcao", "poi")]
+    big = [(n, x, z, r) for (n, x, z, r) in placements if n in cat and cat[n]["categoria"] in ("construcao", "poi", "estrutura")]
     for i, a in enumerate(big):
         for b in big:
             if a is b:
@@ -110,7 +110,8 @@ def find_spot(n, want, r, placed, cat, g, step=0.5, radius=9.0):
     for (x, z) in cands:
         if math.hypot(x - POND[0], z - POND[1]) < 4.8 + half or path_distance(x, z) < half * 0.9 or abs(x) > 20 or abs(z) > 20:
             continue
-        if seat(g, rec, x, z, r)[1] > (rec.get("inclinacao_max_u") or 0.5) * 0.85:
+        anchor = cat.get(SETS[n]["ancora"]) if n in SETS else rec
+        if seat(g, anchor, x, z, r)[1] > (rec.get("inclinacao_max_u") or 0.5) * 0.85:
             continue
         mine, mine_free = footprint_world(rec, x, z, r), footprint_world(rec, x, z, r, grow=True)
         if any(overlap(mine_free, footprint_world(cat[o[0]], *o[1:])) or overlap(footprint_world(cat[o[0]], *o[1:], grow=True), mine)
@@ -120,19 +121,24 @@ def find_spot(n, want, r, placed, cat, g, step=0.5, radius=9.0):
     sys.exit(f"sem lugar válido para {n} perto de {want}")
 
 
-def build_scene(name, doc, placements, npcs, cat, g, report):
+def build_scene(name, doc, placements, npcs, cat, g, report, walk=None):
     check_clearance(name, placements, cat)
+    placements = expand(placements)
+    if walk:
+        walkability(name, placements, doc["hero"], cat, walk[0], walk[1], g, report)
     props = []
     blocks = [footprint_world(cat[n], x, z, r) for (n, x, z, r) in placements
-              if n in cat and cat[n]["categoria"] in ("construcao", "poi")]
+              if n in cat and cat[n]["categoria"] in ("construcao", "poi", "estrutura")]
     for (n, x, z, r) in placements:
         rec = cat.get(n)
-        if (rec is None or rec["categoria"] not in ("construcao", "poi")) and any(
+        if g.at(x, z) <= -0.42:                                  # nada posicionado dentro d'água (World.WATER_LEVEL)
+            sys.exit(f"vitrine {name}: {n} em ({x}, {z}) cai dentro do lago")
+        if (rec is None or rec["categoria"] not in ("construcao", "poi", "estrutura")) and any(
                 overlap(b, [(x - 0.3, z - 0.3), (x + 0.3, z - 0.3), (x + 0.3, z + 0.3), (x - 0.3, z + 0.3)]) for b in blocks):
             report.append(f"{name}: {n} em ({x}, {z}) cairia dentro de uma pegada — removido")
             continue
         e = {"n": n, "x": x, "z": z, "r": r}
-        if rec and rec["categoria"] in ("construcao", "poi") and n != "house":
+        if rec and rec["categoria"] in ("construcao", "poi", "estrutura") and n != "house":
             dy, slope = seat(g, rec, x, z, r)
             lim = rec.get("inclinacao_max_u") or 0.5
             ok = slope <= lim
@@ -159,16 +165,180 @@ def build_scene(name, doc, placements, npcs, cat, g, report):
         f.write("\n")
 
 
-def village(cat, g, wishes):
-    """Assenta as construções na ordem, cada uma no lugar válido mais perto do desejado (find_spot); a casa aprovada
-    fica onde está (patamar canônico)."""
+def village(cat, g, wishes, radius=9.0):
+    """Assenta as construções (ou CONJUNTOS de ofício) na ordem, cada um no lugar válido mais perto do desejado
+    (find_spot, com a caixa do conjunto como pegada); a casa aprovada fica onde está (patamar canônico)."""
     placed = []
     for (n, want, r) in wishes:
+        if n in SETS and n not in cat:
+            cat[n] = set_record(cat, n)
         if n not in cat:
             placed.append((n, want[0], want[1], r))
             continue
-        placed.append(find_spot(n, want, r, placed, cat, g))
+        placed.append(find_spot(n, want, r, placed, cat, g, radius=radius))
     return placed
+
+
+# ----------------------------------------------------------------------------- lote 2: conjuntos e vilas
+
+SETS = {}
+
+
+def load_sets():
+    c = json.load(open(CAT))
+    for s in c.get("conjuntos", []):
+        SETS[s["id"]] = s
+
+
+def set_record(cat, sid):
+    """Registro sintético de um conjunto para a busca de lugar: pegada = caixa do conjunto, área livre = a da âncora."""
+    s = SETS[sid]
+    anc = cat[s["ancora"]]
+    return {"id": sid, "categoria": "construcao", "inclinacao_max_u": anc["inclinacao_max_u"], "area_livre": anc["area_livre"],
+            "medidas": {"pegada_u": s["caixa_u"], "dimensoes_u": [s["caixa_u"]["max"][0] - s["caixa_u"]["min"][0], 1,
+                                                                   s["caixa_u"]["max"][1] - s["caixa_u"]["min"][1]]}}
+
+
+def expand(placed):
+    """Troca cada conjunto posicionado pela âncora + itens (girados e transladados como a âncora)."""
+    out = []
+    for (n, x, z, r) in placed:
+        if n in SETS:
+            s = SETS[n]
+            out.append((s["ancora"], x, z, r))
+            for it in s["itens"]:
+                px, pz = rot(it["pos_u"][0], it["pos_u"][1], r)
+                out.append((it["id"], round(x + px, 3), round(z + pz, 3), (r + it["rumo"]) % 360))
+        else:
+            out.append((n, x, z, r))
+    return out
+
+
+def obstacles(placements, cat, man, prof):
+    """Formas de colisão no mundo (para a caminhabilidade): formas compostas quando o catálogo as declara, senão o perfil
+    simples (o do catálogo, ou o de colisao_e.json para os aprovados) — a mesma conta de Collision.addProp."""
+    out = []
+    for (n, x, z, r) in placements:
+        rec = cat.get(n) or cat.get(n.split("__")[0])
+        if rec is not None and "medidas" in rec and "caixa_u" in rec["medidas"]:
+            col = rec["colisao"]
+            lo, hi = rec["medidas"]["caixa_u"]["min"], rec["medidas"]["caixa_u"]["max"]
+            if col.get("formas"):
+                for b in rec["medidas"].get("formas_medidas_u", []):
+                    out.append(("poly", rect_box(b, x, z, r)))
+                for f in rec["pontos"].get("formas_u", []):
+                    cx, cz = rot(f["centro"][0], f["centro"][1], r)
+                    out.append(("circ", (x + cx, z + cz, f["raio"])))
+                continue
+            kind, k = col["tipo"], col
+        else:
+            e = man.get(n)
+            if e is None:
+                continue
+            vs, o, sz = e["voxelSize"], e["origin"], e["sizeVoxels"]
+            lo = [o[0] * vs, o[1] * vs, o[2] * vs]
+            hi = [(o[0] + sz[0]) * vs, (o[1] + sz[1]) * vs, (o[2] + sz[2]) * vs]
+            k = profile_for(prof, n)
+            kind = k["tipo"]
+        cx, cz = (lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2
+        wx, wz = rot(cx, cz, r)
+        w, d = hi[0] - lo[0], hi[2] - lo[2]
+        if kind == "caixa":
+            sc = k.get("escala", 1.0)
+            out.append(("poly", rect_box([cx - w / 2 * sc, cz - d / 2 * sc, cx + w / 2 * sc, cz + d / 2 * sc], x, z, r)))
+        elif kind == "circulo":
+            out.append(("circ", (x + wx, z + wz, k.get("raio", min(w, d) / 2))))
+        elif kind == "tronco":
+            out.append(("circ", (x + wx, z + wz, k.get("raio", 0.3))))
+    return out
+
+
+def rect_box(b, x, z, r):
+    return [tuple(a + c for a, c in zip(rot(px, pz, r), (x, z))) for (px, pz) in ((b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3]))]
+
+
+def profile_for(prof, name):
+    props = prof["props"]
+    if name in props:
+        return props[name]
+    for k in props:
+        if k.endswith("*") and name.startswith(k[:-1]):
+            return props[k]
+    return prof["padrao"]
+
+
+def inside(obs, x, z, pad):
+    for kind, g in obs:
+        if kind == "circ":
+            if math.hypot(x - g[0], z - g[1]) < g[2] + pad:
+                return True
+        else:
+            # ponto dentro do polígono convexo crescido por pad (distância às arestas)
+            inn = True
+            for i in range(4):
+                (ax, az), (bx, bz) = g[i], g[(i + 1) % 4]
+                ex, ez = bx - ax, bz - az
+                ln = math.hypot(ex, ez) or 1
+                cross = (ex * (z - az) - ez * (x - ax)) / ln
+                if cross < -pad:                                  # orientação dos cantos: sentido anti-horário
+                    inn = False
+                    break
+            if inn:
+                return True
+    return False
+
+
+def walkability(name, placements, hero, cat, man, prof, g, report):
+    """Busca em grade de 0,25 u (a resolução da conferência de alcance da rodada 11): célula livre se fora de toda forma
+    de colisão crescida pelo raio do herói (0,3 u), fora d'água; vizinhas ligadas se o degrau do relevo ≤ 0,30 u.
+    Alvos: cada ENTRADA de construção/estrutura e cada PONTO DE INTERAÇÃO dos assets do laboratório."""
+    obs = obstacles(placements, cat, man, prof)
+    step, half = 0.25, 20.0
+    n = int(2 * half / step)
+    def cell(x, z):
+        return int((x + half) / step), int((z + half) / step)
+    def center(i, j):
+        return -half + (i + 0.5) * step, -half + (j + 0.5) * step
+    free = {}
+    def ok(i, j):
+        if (i, j) not in free:
+            x, z = center(i, j)
+            free[(i, j)] = g.at(x, z) > -0.42 and not inside(obs, x, z, 0.3)      # World.WATER_LEVEL = −0,42
+        return free[(i, j)]
+    start = cell(hero[0], hero[1])
+    seen = {start} if ok(*start) else set()
+    stack = list(seen)
+    while stack:
+        i, j = stack.pop()
+        hx, hz = center(i, j)
+        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            k = (i + di, j + dj)
+            if k in seen or not (0 <= k[0] < n and 0 <= k[1] < n) or not ok(*k):
+                continue
+            kx, kz = center(*k)
+            if abs(g.at(kx, kz) - g.at(hx, hz)) > 0.30:
+                continue
+            seen.add(k)
+            stack.append(k)
+    targets, bad = 0, []
+    for (pn, x, z, r) in placements:
+        rec = cat.get(pn) or cat.get(pn.split("__")[0])
+        if rec is None or "pontos" not in rec:
+            continue
+        for kind in ("entradas", "interacao"):
+            for pt in rec["pontos"][kind]:
+                px, pz = rot(pt["pos_u"][0], pt["pos_u"][2], r)
+                tx, tz = x + px, z + pz
+                ti, tj = cell(tx, tz)
+                hit = any((ti + a, tj + b) in seen for a in (-1, 0, 1) for b in (-1, 0, 1))
+                targets += 1
+                if not hit:
+                    bad.append(f"{pn}/{kind}/{pt['id']} em ({tx:.2f}, {tz:.2f})")
+    report.append(f"{name}: caminhabilidade {targets - len(bad)}/{targets} alvos alcançáveis a partir do herói; "
+                  f"{len(seen)} células livres ligadas")
+    for b_ in bad:
+        report.append(f"{name}:   INALCANÇÁVEL {b_}")
+    return targets, bad
 
 
 BACK_TREES = ["tree_oak", "tree_oak3", "tree_oak", "tree_oak2", "tree_pine", "tree_pine", "tree_birch", "tree_oak4"]
@@ -177,6 +347,13 @@ CLOUDS = [[-18, 13, -20], [6, 15, -26], [22, 12, -18]]
 
 def main():
     cat = {a["id"]: a for a in json.load(open(CAT))["assets"]}
+    load_sets()
+    man = json.load(open(os.path.join(ROOT, "assets", "environment", "e", "props.json")))
+    prof = json.load(open(os.path.join(ROOT, "assets", "scenes", "colisao_e.json")))
+    for c in list(cat.values()):                     # variantes publicadas usam o registro do asset-base
+        for v in c["variacoes"]["extremos"]:
+            if v.get("prop"):
+                cat[v["prop"]] = {**c, "id": v["prop"], "medidas": {**c["medidas"], "pegada_u": v["pegada_u"]}}
     # a casa aprovada entra na conferência de área livre com a pegada do props.json (não é do catálogo do laboratório)
     hp = json.load(open(os.path.join(ROOT, "assets", "environment", "e", "props.json")))["house"]
     vs, o, sz = hp["voxelSize"], hp["origin"], hp["sizeVoxels"]
@@ -231,6 +408,51 @@ def main():
     ], [
         ("characters/npc/teodor", "ruin_house", "escombros", "idle"),
     ], cat, g, report)
+    # ---------------------------------------------------------------- lote 2: duas vilas (mesma luz, relevo e tomadas)
+    walk = (man, prof)
+    vila_a = village(cat, g, [("house", (-6.5, -8.0), 0), ("fountain_square", (1.6, -0.6), 0),
+                              ("conjunto.comerciante", (6.8, -4.6), 305), ("conjunto.ferreiro", (-4.6, 4.2), 125),
+                              ("conjunto.guardiao", (4.4, 10.6), 260), ("shed_storage", (-10.5, -2.5), 90)], radius=6.0)
+    build_scene("vitrine_conteudo_vila_a", {
+        "_doc": "Laboratório de conteúdo, lote 2 — VILA A, assentamento de caminho (compacto): construções coladas no "
+                "caminho e viradas para ele, praça com chafariz, mesa e bancos, conjuntos de ofício (comerciante, "
+                "ferreiro, guardião de trilhas) como dados do catálogo, a estalagem aprovada no patamar. Vitrine artística: "
+                "NÃO substitui a vila do jogo. Gerada por tools/conteudo/vitrines.py.",
+        "hero": [0.4, 2.6, 200],
+        "scatter": [{"props": BACK_TREES, "count": 55, "ring": [18.5, 24], "seed": 51, "minDist": 2.8}],
+        "creatures": [], "clouds": CLOUDS,
+    }, vila_a + [
+        ("table_bench", -0.9, -3.0, 20), ("bench_wood", 4.6, 1.6, 270), ("bench_wood", -1.8, 1.4, 120),
+        ("lantern_post", -3.6, -1.6, 0), ("lantern_post", 2.8, 5.0, 0), ("barrel", -5.2, -4.4, 0),
+        ("cart_hay", 2.4, 13.6, 160), ("fence_picket", -8.8, -3.4, 0),
+    ], [
+        ("characters/npc/kelyra", "house_tall", "comerciante", "idle"),
+        ("characters/npc/bramor", "tower_watch", "vigia", "idle"),
+    ], cat, g, report, walk=walk)
+    vila_b = village(cat, g, [("conjunto.cacador", (-13.0, -1.5), 80), ("conjunto.herbalista", (-6.0, 10.5), 100),
+                              ("granary_raised", (9.5, -9.5), 330), ("crop_field", (12.6, -3.6), 0),
+                              ("crop_field", (5.0, -12.0), 90), ("well_windlass", (2.6, -3.4), 20)], radius=6.0)
+    build_scene("vitrine_conteudo_vila_b", {
+        "_doc": "Laboratório de conteúdo, lote 2 — VILA B, comunidade rural (dispersa): sítios afastados (caçador na "
+                "borda da mata, herbalista junto ao caminho), paiol e hortas como área de trabalho, poço de sarilho como "
+                "ponto de encontro, mureta de pedra, carroça, árvores entre as casas e muito espaço aberto. Vitrine "
+                "artística: NÃO substitui a vila do jogo. Gerada por tools/conteudo/vitrines.py.",
+        "hero": [0.4, 2.6, 200],
+        "scatter": [{"props": BACK_TREES + ["tree_forked", "tree_poplar"], "count": 60, "ring": [18.5, 24], "seed": 52,
+                     "minDist": 2.6}],
+        "creatures": [], "clouds": CLOUDS,
+    }, vila_b + [
+        ("scarecrow", 13.2, -3.4, 200), ("cart_hay", 6.2, -6.6, 120), ("woodpile_axe", 8.0, -12.4, 0),
+        ("fence_stone", 15.4, -7.0, 90), ("fence_stone", 15.4, -5.0, 90), ("fence_stone", 15.4, -3.0, 90),   # divisa
+        ("fence_stone", 14.4, -1.9, 0), ("fence_stone", 12.4, -1.9, 0),                                      # contínua
+        ("basket_group", 10.4, -0.4, 0), ("bench_wood", 4.4, -1.4, 290),
+        ("tree_oak", -3.0, -6.0, 0), ("tree_forked", 4.4, 10.2, 0), ("tree_poplar", 0.2, -9.6, 0),
+        ("tree_poplar", -1.6, -10.4, 0), ("tree_gnarled", -14.0, 8.0, 0), ("bush", -8.6, 2.0, 0),
+        ("bush_berry", 6.8, -15.0, 0), ("flower_yellow", 3.6, 2.8, 0), ("grass_tall", -2.6, 4.0, 0),
+    ], [
+        ("characters/npc/indira", "hut_herbalist", "herbalista", "idle"),
+    ], cat, g, report, walk=walk)
+
     # ---------------------------------------------------------------- desempenho (três densidades; só para o --bench)
     lab_trees = ["tree_forked", "tree_poplar", "tree_gnarled", "tree_dead", "tree_forked", "tree_poplar"]
     buildings = ["house_tall", "workshop_forge", "hut_herbalist", "cabin_hunter", "tower_watch", "ruin_tower", "ruin_house"]
