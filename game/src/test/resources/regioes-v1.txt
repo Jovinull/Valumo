@@ -1,0 +1,9 @@
+# Gerador v1 (valumo.regiao) — referência fixada na main 9c2c5ac (worlds-and-menus-v0.5). Não edite à mão.
+1024 c1d4cbfc9f163c5147232a540cada80fcbaafea31e1d0be0c23bc1c923d35878 tentativa=0 arranjo=2 props=143 pois=2
+2048 d57bde1f6e7ff822c73b0f6041e8bf9d208955cfc113c4f1b952871f31e61c70 tentativa=0 arranjo=2 props=148 pois=2
+4096 5765c312278f45ec58ac03a36b77056e1455bb5e4042e6487ec6ad421a2fceab tentativa=0 arranjo=0 props=148 pois=2
+77 218ca1754ae134f079b1b44ecb4defc8e9a5b858a266f9f1602139e3140d681c tentativa=0 arranjo=2 props=150 pois=2
+1 f89722da5cc80bcbd398d6f802dc575b81ed5708916e3374f2f9e643f6f42136 tentativa=0 arranjo=1 props=139 pois=2
+555 1396fe74b89dbe0390db7b225b187287a24179c554badc53fec101479e376371 tentativa=1 arranjo=0 props=148 pois=2
+9001 ec4d93444b40ff8b7fb929dfe54a2ec17f908866e7993752bc9f857c7c9f1e68 tentativa=0 arranjo=2 props=154 pois=2
+31337 3d59c72fc02f44c413e4c03c3b6b802fc545bbfc63d4118cf430fbdc3f38d10a tentativa=0 arranjo=1 props=142 pois=2
