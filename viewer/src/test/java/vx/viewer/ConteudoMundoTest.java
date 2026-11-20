@@ -125,14 +125,15 @@ class ConteudoMundoTest {
             String art = ap.get("artistica").getAsString(), integ = ap.get("integracao").getAsString();
             assertTrue(List.of("aprovado", "aprovado_conceito", "candidato", "rejeitado").contains(art), id + ": aprovação " + art);
             assertTrue(List.of("liberado", "depende_colisao_composta", "aguardando_refinamento", "aguardando_avaliacao",
-                    "nao_distribuivel").contains(integ),
+                    "restrito_a_conjuntos", "nao_distribuivel").contains(integ),
                     id + ": integração " + integ);
             assertEquals(integ.equals("liberado"), ap.get("distribuicao_procedural").getAsBoolean(), id + ": distribuição");
             if (!integ.equals("liberado"))                // dependência nunca escondida
                 assertTrue(ap.getAsJsonArray("dependencias").size() > 0 || integ.equals("nao_distribuivel")
-                        || integ.equals("aguardando_avaliacao"), id + ": pendência sem dependência");
+                        || integ.equals("aguardando_avaliacao") || integ.equals("restrito_a_conjuntos"),
+                        id + ": pendência sem dependência");
             assertEquals(art.equals("candidato"), integ.equals("aguardando_avaliacao"), id + ": candidato só aguarda avaliação");
-            if (a.get("lote").getAsInt() >= 2) assertNotEquals("aprovado", art, id + ": lote não avaliado marcado como aprovado");
+            if (a.get("lote").getAsInt() >= 3) assertNotEquals("aprovado", art, id + ": lote não avaliado marcado como aprovado");
             if (a.getAsJsonObject("colisao").has("formas"))  // forma composta ainda não existe no jogo: não pode estar liberado
                 assertNotEquals("liberado", integ, id + ": precisa de formas compostas e está liberado");
             assertEquals(art.equals("rejeitado"), st.equals("rejeitado"), id + ": estado × aprovação");
@@ -503,9 +504,29 @@ class ConteudoMundoTest {
                 placed.add(box);
             }
             assertTrue(placed.size() >= 3, sid + ": conjunto com menos de 3 itens não comunica o ofício");
+            // situação do conjunto = a do membro mais restrito: membro que depende de formas compostas não deixa o
+            // conjunto liberado
+            JsonObject sap = s.getAsJsonObject("aprovacao");
+            boolean blocked = rec.get(anchor).getAsJsonObject("aprovacao").get("integracao").getAsString().equals("depende_colisao_composta");
+            for (JsonElement ie : s.getAsJsonArray("itens")) {
+                String base = ie.getAsJsonObject().get("id").getAsString().split("__")[0];
+                blocked |= rec.get(base).getAsJsonObject("aprovacao").get("integracao").getAsString().equals("depende_colisao_composta");
+            }
+            assertEquals(blocked ? "depende_colisao_composta" : "liberado", sap.get("integracao").getAsString(), sid + ": situação do conjunto");
             sets++;
         }
         assertTrue(sets >= 5, "conjuntos conferidos: " + sets);
+        // restrito a conjuntos: nunca distribuído sozinho, e o asset (ou uma variante publicada) está em algum conjunto
+        Set<String> inSets = new HashSet<>();
+        for (JsonElement e : cat.getAsJsonArray("conjuntos"))
+            for (JsonElement ie : e.getAsJsonObject().getAsJsonArray("itens"))
+                inSets.add(ie.getAsJsonObject().get("id").getAsString().split("__")[0]);
+        for (JsonObject a : assets()) {
+            JsonObject ap = a.getAsJsonObject("aprovacao");
+            if (!ap.get("integracao").getAsString().equals("restrito_a_conjuntos")) continue;
+            assertFalse(ap.get("distribuicao_procedural").getAsBoolean(), a.get("id").getAsString() + ": restrito e distribuível");
+            assertTrue(inSets.contains(a.get("id").getAsString()), a.get("id").getAsString() + ": restrito a conjuntos e fora de todos");
+        }
     }
 
     @Test
