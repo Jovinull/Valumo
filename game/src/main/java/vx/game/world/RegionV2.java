@@ -346,39 +346,18 @@ final class RegionV2 {
         }
         // ---- construções e conjuntos em volta da praça, virados para ela: posição sorteada (ângulo a partir da saída, folga
         // entre a praça e a fachada), conferida PEÇA A PEÇA (a pegada da âncora e a de cada item, giradas juntas)
-        List<Candidate> pool = new ArrayList<>(caminho ? POOL_CAMINHO : POOL_RURAL);
+        List<Candidate> pool = new ArrayList<>(caminho ? POOL_CAMINHO : POOL_RURAL), missed = new ArrayList<>();
         int want = 3 + sr.below(2);                                        // 3 ou 4 além da estalagem
         int built = 0;
         while (built < want && !pool.isEmpty()) {
             Candidate c = pick(pool, sr, true);
             pool.remove(c);
-            for (int tries = 0; tries < 24; tries++) {
-                float rel = c.edgeOnly() ? sr.range(30f, 115f) : sr.range(34f, 165f);   // a torre: de olho na saída da trilha
-                float ang = exit + rel * (sr.chance(0.5f) ? 1 : -1);
-                float gap = (caminho ? sr.range(0.9f, 1.9f) : sr.range(1.4f, 2.8f)) + (c.outer() ? 0.8f : 0f);
-                List<float[]> pieces = pieces(P, c.id());                    // {x0, z0, x1, z1, lx, lz, yaw} no referencial da vaga
-                float d = plaza + gap + frontOf(P, c.id());                  // a FACHADA a {@code gap} da borda da praça
-                float px = L.sx + (float) Math.sin(Math.toRadians(ang)) * d, pz = L.sz + (float) Math.cos(Math.toRadians(ang)) * d;
-                float rot = deg(L.sx - px, L.sz - pz) + (caminho ? sr.range(-5f, 5f) : sr.range(-14f, 14f));
-                List<Box> boxes = new ArrayList<>();
-                boolean fits = true;
-                for (int k = 0; k < pieces.size() && fits; k++) {
-                    float[] q = pieces.get(k);
-                    float[] o = world(px, pz, rot, q[4], q[5]);
-                    Box b = box(o[0], o[1], rot + q[6], q[0], q[1], q[2], q[3]);
-                    fits = within(b, L.sx, L.sz, L.plateauR + 0.6f) && dist(b, L.sx, L.sz) >= (k == 0 ? plaza - 0.6f : plaza - 0.3f)
-                            && taken.stream().noneMatch(t -> overlap(t, b)) && reserved.stream().noneMatch(t -> overlap(t, b));
-                    // entre as peças do MESMO conjunto não se confere: a placa e a barraca ficam junto da porta de propósito, e a
-                    // composição interna já é conferida no catálogo (ConteudoMundoTest.craftSetsKeepAnchorEntrancesFreeAndDoNotOverlap)
-                    boxes.add(b);
-                }
-                if (!fits) continue;
-                taken.addAll(boxes);
-                build(L, P, c.id(), px, pz, rot);
-                built++;
-                break;
-            }
+            if (fit(L, P, sr, c, caminho, plaza, taken, reserved, 40, 0f)) built++;
+            else missed.add(c);
         }
+        // vila rala demais (menos de duas além da estalagem): uma segunda passada nos que não couberam, com mais folga
+        for (int k = 0; k < missed.size() && built < 2; k++)
+            if (fit(L, P, sr, missed.get(k), caminho, plaza, taken, reserved, 60, 0.8f)) built++;
         // ---- a saída da trilha: placa e duas lanternas (a "porta" do assentamento, como na v1)
         for (Object[] it : new Object[][]{{"signpost", 1.5f, R - 0.9f, -20f}, {"lantern_post", -1.7f, R - 2.0f, 0f}, {"lantern_post", 1.7f, R - 2.4f, 0f}}) {
             float[] w = world(L.sx, L.sz, exit, (float) it[1] * side, (float) it[2]);
@@ -454,6 +433,41 @@ final class RegionV2 {
                 out.add(new float[]{I.x0() - 0.15f, I.z0() - 0.15f, I.x1() + 0.15f, I.z1() + 0.15f, it.x(), it.z(), it.yawDeg()});
             }
         return out;
+    }
+
+    /**
+     * Tenta encaixar o candidato em até {@code tries} posições sorteadas (ângulo a partir da saída, folga entre a praça e a
+     * fachada; {@code extra} alarga a folga), conferindo PEÇA A PEÇA. Encaixou = posto e as caixas entram no ocupado.
+     */
+    static boolean fit(RegionLayout L, RegionProfile P, Rng sr, Candidate c, boolean caminho, float plaza, List<Box> taken,
+                       List<Box> reserved, int tries, float extra) {
+        float exit = deg(L.fx, L.fz);
+        for (int t = 0; t < tries; t++) {
+            float rel = c.edgeOnly() ? sr.range(30f, 115f) : sr.range(34f, 168f);   // a torre: de olho na saída da trilha
+            float ang = exit + rel * (sr.chance(0.5f) ? 1 : -1);
+            float gap = (caminho ? sr.range(0.9f, 2.4f) : sr.range(1.4f, 2.8f)) + (c.outer() ? 0.8f : 0f) + extra;
+            List<float[]> pieces = pieces(P, c.id());                        // {x0, z0, x1, z1, lx, lz, yaw} no referencial da vaga
+            float d = plaza + gap + frontOf(P, c.id());                      // a FACHADA a {@code gap} da borda da praça
+            float px = L.sx + (float) Math.sin(Math.toRadians(ang)) * d, pz = L.sz + (float) Math.cos(Math.toRadians(ang)) * d;
+            float rot = deg(L.sx - px, L.sz - pz) + (caminho ? sr.range(-5f, 5f) : sr.range(-14f, 14f));
+            List<Box> boxes = new ArrayList<>();
+            boolean fits = true;
+            for (int k = 0; k < pieces.size() && fits; k++) {
+                float[] q = pieces.get(k);
+                float[] o = world(px, pz, rot, q[4], q[5]);
+                Box b = box(o[0], o[1], rot + q[6], q[0], q[1], q[2], q[3]);
+                // entre as peças do MESMO conjunto não se confere: a placa e a barraca ficam junto da porta de propósito, e a
+                // composição interna já é conferida no catálogo (ConteudoMundoTest.craftSetsKeepAnchorEntrancesFreeAndDoNotOverlap)
+                fits = within(b, L.sx, L.sz, L.plateauR + 0.6f) && dist(b, L.sx, L.sz) >= (k == 0 ? plaza - 0.6f : plaza - 0.3f)
+                        && taken.stream().noneMatch(x -> overlap(x, b)) && reserved.stream().noneMatch(x -> overlap(x, b));
+                boxes.add(b);
+            }
+            if (!fits) continue;
+            taken.addAll(boxes);
+            build(L, P, c.id(), px, pz, rot);
+            return true;
+        }
+        return false;
     }
 
     /** Profundidade da frente (u) da âncora de uma vaga: a fachada fica a esta distância do centro dela. */
