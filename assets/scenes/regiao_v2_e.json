@@ -1615,11 +1615,11 @@
     3.462
    ],
    "trabalhador": [
-    0.688,
-    2.562,
+    2.312,
+    1.562,
     0.062,
-    0,
-    "vaga:hut_herbalist#herbalista_lado"
+    20,
+    "vaga:hut_herbalist#herbalista_varal"
    ]
   },
   "conjunto.comerciante": {
