@@ -328,8 +328,22 @@ A correção (mãos-francesas acima da cabeça, tina do lado de fora, bigorna ju
 ## 12. Estudo pós-rodada 12 — NPCs de ofício e ruínas novas (candidatos)
 
 Pedido do proprietário depois da rodada 12: moradores para os ofícios vazios (P76) e ruínas novas para a `ruin_house`
-não se repetir em toda região v2. Tudo nasce **candidato** (`lote: 3` = não avaliado). Pacote de evidências:
-`output/visual-review/world-content-lab/estudo-npcs-e-ruinas/` (`tools/conteudo/pacote_estudo.sh`).
+não se repetir em toda região v2. Pacote de evidências: `output/visual-review/world-content-lab/estudo-npcs-e-ruinas/`
+(`tools/conteudo/pacote_estudo.sh`; fechamento em `fechamento/`).
+
+**Fechamento (proprietário, 2026-11-20):**
+- **Aprovação:** os cinco estão APROVADOS artisticamente (Brásia, Quelmo, Arvel, `ruin_vault`, `ruin_farmstead`). A
+  integração ao gerador v2 é do Claude principal, depois da validação da rodada 12.1.
+- **Quelmo:** a barraca aprovada não muda. Atrás do balcão as mercadorias o escondiam, e ele passa à vaga
+  `feirante_lateral` (`pontos.vagas` da `market_stall`): ao lado da ponta direita do balcão, fora da aba do toldo,
+  virado 35° para o balcão e o freguês.
+  - **Medida** (`tools/conteudo/vaga_feirante.py`, barraca a 0°, 90°, 180°, 270° e 37°): visível na câmera de jogo em
+    3 338–4 179 pixels, contra 187–251 da vaga antiga.
+  - **Conversa e circulação:** conversa livre e alcançável; balcão e compra alcançáveis com o NPC no lugar.
+- **Abóbada:** `colisao.camera: teto_coberto`. O interior coberto pede formas só de câmera sobre `medidas.cobertura_u`.
+- **Variações:** pontos invariantes; pegada e colisão reais por variação; o gerador reserva a união
+  (`pegada_reservada_u`). O sítio sem a porteira caída tem 0,5 u a menos de fundo, e a semente da abóbada muda o morro
+  e a colisão.
 
 ### NPCs (tools/npcs_mundo_e.py)
 

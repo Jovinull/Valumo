@@ -42,14 +42,18 @@ conferência de alcance), que ainda não estão na `main`. O agente principal ad
 | `medidas.pegada_u` | colunas com voxel em y 0..3 (o que toca o chão): retângulo e área real |
 | `medidas.tronco_u` | árvores: centro e raio do tronco medidos na faixa `faixa_y_u` (casca, sem folhagem) |
 | `medidas.formas_medidas_u` | retângulos `[x0, z0, x1, z1]` (u, modelo) das colunas sólidas acima do que se sobe a pé (y ≥ 0,375 u), numa grade de 0,25 u (a da conferência de alcance), fundidos de forma gulosa |
+| `medidas.cobertura_u` | **teto sobre chão caminhável** (fechamento do estudo, 2026-11-20): retângulos das colunas sem nada sólido entre o piso pisável (0,375 u) e a cabeça do herói num piso de 0,25 u (1,43 u), com sólido acima. Uma célula de 0,25 u só entra se TODAS as colunas dela forem cobertas. É onde a câmera de terceira pessoa entraria num teto: o integrador põe ali formas **só de câmera** (abóbada, galpão, toldo). Teste `coverIsRealRoofOverWalkableGround` |
+| `medidas.pegada_reservada_u`, `dimensoes_reservadas_u` | a **união exata** das pegadas e o máximo das dimensões da base e de todas as variações: é o que o gerador reserva. Sem tolerância (teste `reservedFootprintIsTheExactUnionOfTheVariants`) |
+| `colisao.camera` | opcional. `"teto_coberto"` = o interior é coberto e precisa das formas só de câmera sobre `cobertura_u` (a `ruin_vault`; o rasgo de luz fica sem teto) |
 | `pontos.entradas[]` | `pos_u` (onde o herói fica, fora da parede) e `rumo` (graus; 0 = olha para +z) |
 | `pontos.interacao[]`, `spawns[]` | `pos_u` + `tipo` (`usar`, `examinar`, `comerciar`, `tocar`, `npc`, `criatura`…) |
 | `pontos.observacao[]` | mirante: `pos_u` + `rumo` da vista |
 | `pontos.area_segura_u[]` | retângulos `[x0, z0, x1, z1]` caminháveis (interior de ruína, pátio): espaço de luta ou de exploração |
 | `pontos.formas_u[]` | formas autoradas (círculos das pedras do círculo), quando as medidas não descrevem bem |
+| `pontos.vagas[]` | opcional, **vaga de NPC morador**: `pos_u`, `rumo` (para onde o NPC olha, no espaço local), `papel` e notas (`npc`, `substitui`, `recomendada`, `efetivacao`). A `market_stall` tem `feirante_lateral`, ao lado da ponta direita do balcão (o spawn antigo `feirante` fica, por compatibilidade, mas as mercadorias escondem o NPC ali). Teste `npcSpotsHaveRoomForTheBodyAndOpenSky`: nada do asset no corpo do NPC (raio 0,3 u) nem sobre a cabeça |
 | `relacoes[]` | lote 2: `{tipo, alvo, distancia_u}`. `tipo`: `acompanha` (pertence a uma construção), `perto_de`, `dentro_de`, `centro_de`. `alvo`: id de asset (inclusive aprovado) ou `tag:<nome>` (ex.: `tag:praca`). Dados para o gerador; não são impostos aqui |
 | `variacoes.parametros` | parâmetros **seguros** e os valores possíveis (o primeiro é o padrão) |
-| `variacoes.extremos[]` | cada extremo gerado, com a pegada, as dimensões, as faces e `pontos_iguais` (o teste exige `true`). Com `prop` preenchido, a variante é **publicada** como prop próprio no `props.json` (`<id>__<param>-<valor>`, `variante_de`): a placa de ofício por ofício, os cestos por conteúdo |
+| `variacoes.extremos[]` | cada extremo gerado, com a pegada, as dimensões, as faces e `pontos_iguais` (o teste exige `true`: entradas, interações, spawns, vagas e área segura são **invariantes**). A pegada e as dimensões são as **reais** da variação e podem diferir da base (o sítio sem a porteira caída tem 0,5 u a menos de fundo); por isso o gerador reserva `pegada_reservada_u`. Com formas medidas, cada extremo traz a **própria colisão** (`formas_medidas_u`) e `formas_iguais` (a semente da abóbada muda o morro e a colisão; teste `eachVariantCollisionCoversItsOwnVoxels`). Com `prop` preenchido, a variante é **publicada** como prop próprio no `props.json` (`<id>__<param>-<valor>`, `variante_de`): a placa de ofício por ofício, os cestos por conteúdo |
 
 ### Conjuntos de ofício (`conjuntos[]`, lote 2)
 
@@ -62,10 +66,14 @@ teste `craftSetsKeepAnchorEntrancesFreeAndDoNotOverlap` conferem:
 
 `caixa_u` é a área do conjunto inteiro: é a pegada que o gerador reserva.
 
-### Estados (lotes 1 e 2 avaliados)
+### Estados (lotes 1 e 2 e o estudo de NPCs e ruínas avaliados)
 
-Os lotes 1 e 2 foram avaliados pelo proprietário. Um lote ainda não avaliado (3 em diante) nasce `estado: candidato`,
-com `aprovacao.artistica: candidato` e `integracao: aguardando_avaliacao` (teste: nunca nasce aprovado).
+Os lotes 1 e 2 foram avaliados pelo proprietário em 2026-11-19. As ruínas do estudo (`ruin_vault`, `ruin_farmstead`,
+lote 3) foram aprovadas sem redesenho no fechamento de 2026-11-20. Um asset ainda não avaliado nasce `estado:
+candidato`, com `aprovacao.artistica: candidato` e `integracao: aguardando_avaliacao`. **`aprovacao.decisao`** registra
+quem decidiu: aprovado, conceito ou rejeitado só com a decisão do proprietário escrita (`"proprietário, …"`); candidato
+diz `"aguardando avaliação do proprietário"` (teste). As duas ruínas ficam `depende_colisao_composta`, com a integração
+ao gerador v2 pelo Claude principal (depois da validação da rodada 12.1) declarada em `dependencias`.
 
 - **`restrito_a_conjuntos`** (lote 2, `basket_group`): aprovado, mas `distribuicao_procedural: false`. Só entra como
   item de um conjunto ou junto de uma construção. As variantes publicadas (`variante_de`) herdam a restrição. O teste
