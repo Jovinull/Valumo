@@ -2485,6 +2485,18 @@ public final class Game implements AutoCloseable {
                             float vx = cp.x() - b.x(), vz = cp.z() - b.z(), vl = (float) Math.hypot(vx, vz);
                             yield new float[]{cp.x() - vx / vl * 0.8f, cp.z() - vz / vl * 0.8f, (float) Math.toDegrees(Math.atan2(vx, vz))};
                         }
+                        case "ruina-lado" -> {                                  // rodada 12.1: a lateral do patamar da ruína (passagem para os fundos)
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            float[] pad = L.pads.getFirst();
+                            var tr = logic.scene.discoveries.stream().filter(d -> d.type().equals("arvore")).findFirst().orElse(null);
+                            double a = Math.toRadians(b.rotDeg() + 90f);
+                            if (tr != null) {                               // o lado da árvore (o caminho mais curto até ela)
+                                double side = Math.sin(a) * (tr.x() - b.x()) + Math.cos(a) * (tr.z() - b.z());
+                                if (side < 0) a += Math.PI;
+                            }
+                            float x = b.x() + (float) Math.sin(a) * (pad[2] - 0.4f), z = b.z() + (float) Math.cos(a) * (pad[2] - 0.4f);
+                            yield new float[]{x, z, (float) Math.toDegrees(a)};
+                        }
                         case "arvore" -> {                                      // rodada 12.1: diante da árvore retorcida (sem ela: atrás da ruína)
                             var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
                             var tr = logic.scene.discoveries.stream().filter(d -> d.type().equals("arvore")).findFirst().orElse(null);
