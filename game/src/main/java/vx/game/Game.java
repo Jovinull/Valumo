@@ -2469,13 +2469,21 @@ public final class Game implements AutoCloseable {
                             yield new float[]{m[0], m[1], (float) Math.toDegrees(Math.atan2(m2[0] - m[0], m2[1] - m[1]))};
                         }
                         case "ruina", "ruina-dentro" -> {                       // rodada 12 (v2): diante da entrada, ou já lá dentro
-                            String rp = L.pois.stream().filter(p -> p.type().equals("ruin") || p.type().equals("ruin_tower")).findFirst().orElseThrow().id();
+                            String rp = L.pois.stream().filter(p -> p.type().startsWith("ruin")).findFirst().orElseThrow().id();   // as quatro ruínas (12.2)
                             var cp = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:" + rp + ":")).findFirst().orElseThrow();
                             var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
                             float vx = cp.x() - b.x(), vz = cp.z() - b.z(), vl = (float) Math.hypot(vx, vz);
                             float k = t[1].equals("ruina") ? 1.2f : -1.0f;           // fora da entrada, ou 1,0 u para dentro (longe do tronco)
                             float x = cp.x() + vx / vl * k, z = cp.z() + vz / vl * k;
                             yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(b.x() - x, b.z() - z))};
+                        }
+                        case "ponto" -> {                                       // rodada 12.2: diante de um ponto de interação da ruína (o cocho)
+                            var cp = L.checkpoints.stream().filter(k -> k.name().startsWith("interacao:") && k.name().endsWith(":" + t[2])).findFirst()
+                                    .orElseThrow(() -> new IllegalArgumentException("ir-lugar ponto: " + t[2] + " não existe nesta região"));
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            float vx = b.x() - cp.x(), vz = b.z() - cp.z(), vl = Math.max(1e-3f, (float) Math.hypot(vx, vz));
+                            float x = cp.x() + vx / vl * 0.8f, z = cp.z() + vz / vl * 0.8f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(cp.x() - x, cp.z() - z))};
                         }
                         case "descoberta" -> {                                  // rodada 12 (v2): de frente para a lareira da ruína
                             var dc = logic.scene.discoveries.getFirst();
@@ -2489,7 +2497,7 @@ public final class Game implements AutoCloseable {
                             var dc = logic.scene.discoveries.stream().filter(SceneDef.Discovery::arrive).findFirst().orElse(null);
                             if (dc != null) yield new float[]{dc.x(), dc.z(), (float) Math.toDegrees(Math.atan2(dc.x() - b.x(), dc.z() - b.z()))};
                             // casa (sem mirante): de dentro, perto da entrada, olhando para fora (outra tomada, nunca a do achado)
-                            String rp = L.pois.stream().filter(p -> p.type().equals("ruin") || p.type().equals("ruin_tower")).findFirst().orElseThrow().id();
+                            String rp = L.pois.stream().filter(p -> p.type().startsWith("ruin")).findFirst().orElseThrow().id();   // as quatro ruínas (12.2)
                             var cp = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:" + rp + ":")).findFirst().orElseThrow();
                             float vx = cp.x() - b.x(), vz = cp.z() - b.z(), vl = (float) Math.hypot(vx, vz);
                             yield new float[]{cp.x() - vx / vl * 0.8f, cp.z() - vz / vl * 0.8f, (float) Math.toDegrees(Math.atan2(vx, vz))};
@@ -2532,7 +2540,10 @@ public final class Game implements AutoCloseable {
                                 var inn = L.buildings.stream().filter(x -> x.role().equals("estalagem")).findFirst().orElseThrow();
                                 yield new float[]{L.sx, L.sz, (float) Math.toDegrees(Math.atan2(inn.x() - L.sx, inn.z() - L.sz)) + 60f};
                             }
-                            var wk = L.workers.getFirst();
+                            // rodada 12.2: "ir-lugar oficio <morador>" vai até aquele morador (sem: o primeiro)
+                            String who = t.length > 2 && !t[2].equals("andando") ? t[2] : L.workers.getFirst().npc();
+                            var wk = L.workers.stream().filter(wr -> wr.npc().equals(who)).findFirst().orElse(null);
+                            if (wk == null) throw new IllegalArgumentException("ir-lugar oficio: " + who + " não trabalha nesta região");
                             SceneDef.Interactive n = logic.scene.interactives.stream().filter(i -> i.id().equals(wk.npc())).findFirst().orElseThrow();
                             float a = (float) Math.toRadians(n.yawDeg());
                             float x = n.x() + (float) Math.sin(a) * 1.1f, z = n.z() + (float) Math.cos(a) * 1.1f;
