@@ -601,7 +601,10 @@ def market_stall(toldo="coral", produtos="feira"):
     return v, {"entradas": [("balcao", (0, 0, Z1 + 16), 0)],
                "interacao": [("comprar", (0, 0, Z1 + 13), "comerciar")],
                "spawns": [("feirante", (0, 0, -4), "npc")],
-               "vagas": [("feirante_lateral", (25, 0, 4), -35, "feirante",
+               # rodada 12.2 (integração): 1 voxel mais para fora (25 → 26): o centro dele a 0,58 u do poste da frente (a
+               # conferência de alcance do jogo pede 0,55 u livres em volta de cada morador; em 25 eram 0,518). Mesmo lado, mesmo
+               # rumo, ainda fora da aba do toldo; a barraca aprovada não muda
+               "vagas": [("feirante_lateral", (26, 0, 4), -35, "feirante",
                           {"npc": "characters/npc/quelmo", "substitui": "feirante", "recomendada": True,
                            "efetivacao": "Claude principal, ao integrar o conjunto do comerciante no gerador v2"})]}
 
