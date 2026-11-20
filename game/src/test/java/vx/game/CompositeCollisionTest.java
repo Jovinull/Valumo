@@ -26,7 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
  *   <li>as colunas sólidas medidas do modelo (catálogo) ficam dentro de formas de CORPO (parede não se atravessa);</li>
  *   <li>cada entrada é alcançável de fora, e cada ponto de interação no chão é alcançável lá dentro — com os NPCs nos
  *       spawns (corpo 0,3 u) — e dá para falar com cada NPC de frente;</li>
- *   <li>a câmera não atravessa as paredes, e o telhado (forma só de câmera) segura a câmera de quem está dentro;</li>
+ *   <li>a câmera não atravessa as paredes, e o telhado (forma só de câmera) e a copa acima da cabeça seguram a câmera de quem
+ *   está dentro;</li>
  *   <li>escala e translação acompanham o prop.</li>
  * </ol>
  * A busca é a mesma da {@link Reachability} (célula livre = o herói cabe sem encostar em sólido acima de um degrau; passo
@@ -242,6 +243,12 @@ class CompositeCollisionTest {
                     Vector3f up = new Vector3f(p[0], 6f, p[2]);
                     assertTrue(c.rayClear(eye, up, 0f) < 0.999f, at + ": o telhado não segura a câmera de quem está dentro");
                     assertTrue(c.shapes.stream().anyMatch(s -> !s.body && s.camera), at + ": sem forma só de câmera (telhado)");
+                }
+                // a copa da árvore que cresce dentro da ruína segura a câmera, como a copa das árvores soltas (perfil "tronco"):
+                // sem ela, quem examina a lareira some atrás das folhas (visto na captura da rodada 12)
+                if (name.equals("ruin_house")) {
+                    Vector3f under = m.transformPosition(new Vector3f(0.35f, 1.3f, 0f)), over = m.transformPosition(new Vector3f(0.35f, 6f, 0f));
+                    assertTrue(c.rayClear(under, over, 0f) < 0.999f, at + ": a copa da árvore de dentro não segura a câmera");
                 }
                 assertNotNull(m);
             }
