@@ -41,14 +41,15 @@ def r4(v):
     return round(v * 16) / 16                                    # 1/16 u: o que o voxel mais fino resolve
 
 
-def columns(name, man):
-    """{(cx, cz) em u do centro da coluna: [(y0, y1) em u, ordenados]} dos voxels não-folhagem do modelo."""
+def columns(name, man, foliage=False):
+    """{(cx, cz) em u do centro da coluna: [(y0, y1) em u, ordenados]} dos voxels não-folhagem do modelo (ou só da
+    folhagem, com `foliage`)."""
     e = man[name]
     vs, o = e["voxelSize"], e["origin"]
     v = voxlib.load_vox(os.path.join(ENV, e["file"]))
     cols = {}
     for (x, y, z), c in v.v.items():
-        if c[3] == "foliage":
+        if (c[3] == "foliage") != foliage:
             continue
         cx, cz = (x + o[0]) * vs + vs / 2, (z + o[2]) * vs + vs / 2
         y0 = (y + o[1]) * vs
@@ -100,7 +101,8 @@ def merge(cells, grid):
 def composite(name, rec, man):
     """Formas medidas coluna a coluna (o voxel do modelo): o que bloqueia o CORPO é a coluna com voxel na faixa
     [0,375; 1,2) u — acima do degrau, abaixo da cabeça do herói —, da base desse voxel ao topo da parede contínua; o que
-    fica acima (arco, lintel, telhado, toldo) e o que só existe acima da cabeça seguram só a câmera."""
+    fica acima (arco, lintel, telhado, toldo), o que só existe acima da cabeça e a copa de folhagem acima da cabeça seguram
+    só a câmera."""
     cols, vs = columns(name, man)
     body, upper, floor = {}, {}, {}
     for (px, pz), spans in cols.items():
@@ -120,6 +122,15 @@ def composite(name, rec, man):
         rest = [sp for sp in rest if sp[0] >= BODY_LO - 1e-6]
         if rest:
             upper[(i, j)] = (rest[0][0], rest[-1][1])
+    # folhagem não empurra o corpo (o herói passa entre os arbustos), mas a COPA acima da cabeça segura a câmera, como a
+    # copa das árvores soltas (perfil "tronco": copa só para a câmera). Arbusto baixo (abaixo da cabeça) não segura nada
+    leaves, _ = columns(name, man, foliage=True)
+    for (px, pz), spans in leaves.items():
+        i, j = round((px - vs / 2) / vs), round((pz - vs / 2) / vs)
+        high = [sp for sp in spans if sp[0] >= HEAD - 1e-6]
+        if high:
+            a, b = upper.get((i, j), (1e9, -1e9))
+            upper[(i, j)] = (min(a, high[0][0]), max(b, high[-1][1]))
     shapes = []
     # piso elevado onde não há corpo: pisável, com o topo no degrau que se sobe a pé (o herói entra sem pular; o pé fica
     # no máximo 0,075 u abaixo da laje de 0,375). Não bloqueia corpo nem câmera
