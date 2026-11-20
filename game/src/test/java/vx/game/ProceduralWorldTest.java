@@ -35,7 +35,8 @@ class ProceduralWorldTest {
     /** Sementes de validação (a 77 é a de teste com lago). */
     static final long[] SEEDS = {1024, 2048, 4096, 77};
 
-    static ProceduralScene scene(long seed) { return ProceduralScene.create(A, seed); }
+    /** A região da semente no gerador v1 (rodada 11): os testes daqui são da v1, congelada. */
+    static ProceduralScene scene(long seed) { return ProceduralScene.create(A, seed, RegionGenerator.V1); }
 
     /** Tudo que a semente decide, como texto (ordem fixa): para comparar duas gerações. */
     static String fingerprint(ProceduralScene ps) {
@@ -129,7 +130,7 @@ class ProceduralWorldTest {
     @Test
     void obstaculoNoCaminhoEMarcoTapadoSaoRecusados() {
         ProceduralScene ps = scene(1024);
-        RegionLayout L = RegionGenerator.compose(1024, ps.layout.attempt);
+        RegionLayout L = RegionGenerator.compose(1024, ps.layout.attempt, RegionGenerator.V1);
         // um muro de pedras atravessando a trilha a 3/4 do caminho (fora do círculo do assentamento: lá dentro o herói dá
         // a volta, e a validação acerta ao aprovar)
         int i = L.path.size() * 3 / 4;
@@ -153,7 +154,7 @@ class ProceduralWorldTest {
     @Test
     void vegetacaoNaoMoveLugaresEncontroNemMarco() {
         for (long s : SEEDS) {
-            RegionLayout full = RegionGenerator.compose(s, 0), bare = RegionGenerator.compose(s, 0, false);
+            RegionLayout full = RegionGenerator.compose(s, 0, RegionGenerator.V1), bare = RegionGenerator.compose(s, 0, RegionGenerator.V1, false);
             assertEquals(bare.spawns, full.spawns, "encontro");
             assertEquals(bare.features, full.features, "marco");
             assertEquals(bare.npcs, full.npcs, "moradores");
@@ -202,7 +203,7 @@ class ProceduralWorldTest {
 
     @Test
     void semOsFatosNaoHaMissao() {
-        RegionLayout L = RegionGenerator.compose(1024, 0);
+        RegionLayout L = RegionGenerator.compose(1024, 0, RegionGenerator.V1);
         JsonObject tpl = ProceduralScene.read(A, "modelos_missao_e.json").getAsJsonArray("modelos").get(0).getAsJsonObject();
         JsonObject res = ProceduralScene.read(A, "habitantes_e.json").getAsJsonObject("habitantes");
         // posto já aceso (estado diferente do exigido)
@@ -210,11 +211,11 @@ class ProceduralWorldTest {
         L.pois.set(L.pois.indexOf(p), new RegionLayout.PointOfInterest(p.id(), p.type(), p.region(), p.x(), p.z(), p.radius(), "sinal_aceso", p.features(), p.spawns()));
         assertNull(ProceduralScene.instantiate(A, L, tpl, res, "sul").quest());
         // nenhum morador com papel de caminhos ou trilhas
-        RegionLayout M = RegionGenerator.compose(1024, 0);
+        RegionLayout M = RegionGenerator.compose(1024, 0, RegionGenerator.V1);
         M.npcs.removeIf(n -> n.id().equals("kelyra") || n.id().equals("bramor"));
         assertNull(ProceduralScene.instantiate(A, M, tpl, res, "sul").quest());
         // inimigo de outra variante
-        RegionLayout N = RegionGenerator.compose(1024, 0);
+        RegionLayout N = RegionGenerator.compose(1024, 0, RegionGenerator.V1);
         RegionLayout.Spawn sp = N.spawns.getFirst();
         N.spawns.set(0, new RegionLayout.Spawn(sp.key(), "fungo_anciao", sp.x(), sp.z(), sp.yawDeg()));
         assertNull(ProceduralScene.instantiate(A, N, tpl, res, "sul").quest());
@@ -311,7 +312,7 @@ class ProceduralWorldTest {
         JsonObject o = JsonParser.parseString(Files.readString(f)).getAsJsonObject();
         assertEquals(2, o.get("versao").getAsInt());
         assertEquals("4096", o.getAsJsonObject("mundo").get("semente").getAsString());
-        assertEquals(RegionGenerator.VERSION, o.getAsJsonObject("mundo").get("versaoGerador").getAsInt());
+        assertEquals(RegionGenerator.V1, o.getAsJsonObject("mundo").get("versaoGerador").getAsInt());
         assertEquals(g.scene.procedural.binding.toJson(), o.getAsJsonArray("vinculos").get(0));
         assertTrue(f.toString().contains("s4096"), "pasta própria do mundo: " + f);
         // reabrir: a mesma região, o mesmo progresso, os mesmos vínculos
@@ -331,7 +332,7 @@ class ProceduralWorldTest {
         assertTrue(Files.exists(f.resolveSibling(SaveGame.FILE + ".invalido")));
         // versão do gerador diferente: recusado (nada de reposicionar uma missão aceita em silêncio)
         JsonObject v = JsonParser.parseString(txt).getAsJsonObject();
-        v.getAsJsonObject("mundo").addProperty("versaoGerador", RegionGenerator.VERSION + 1);
+        v.getAsJsonObject("mundo").addProperty("versaoGerador", RegionGenerator.V1 + 1);   // o save diz outra versão que a do mundo
         Files.writeString(f, SaveGame.text(v));
         assertTrue(proc(4096, saves).continueBlocker().contains("versaoGerador"), "motivo cita o gerador");
     }

@@ -30,7 +30,8 @@ class RegionGoldenTest {
         Map<Long, String> out = new LinkedHashMap<>();
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         for (long s : SEEDS) {
-            ProceduralScene ps = ProceduralWorldTest.scene(s);
+            ProceduralScene ps = ProceduralWorldTest.scene(s);                // gerador v1
+            if (ps.version() != RegionGenerator.V1) throw new AssertionError("a referência é da v1");
             String fp = ProceduralWorldTest.fingerprint(ps) + "|quest=" + (ps.quest == null ? "-" : ps.quest.id());
             out.put(s, HexFormat.of().formatHex(md.digest(fp.getBytes(StandardCharsets.UTF_8))) + " tentativa=" + ps.layout.attempt
                     + " arranjo=" + ps.layout.arrangement + " props=" + ps.layout.props.size() + " pois=" + ps.layout.pois.size());
@@ -40,7 +41,7 @@ class RegionGoldenTest {
 
     @Test
     void asRegioesDoGeradorV1NaoMudam() throws Exception {
-        assertEquals(1, RegionGenerator.VERSION, "o gerador v1 continua sendo o único; uma versão nova vem com a referência dela");
+        assertTrue(RegionGenerator.supports(RegionGenerator.V1), "a v1 continua suportada: os mundos v1 abrem para sempre (ADR 0029)");
         Map<Long, String> now = current();
         List<String> lines = Files.readAllLines(GOLDEN);
         List<String> diff = new ArrayList<>();
