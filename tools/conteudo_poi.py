@@ -39,22 +39,23 @@ def _rubble(v, spots, seed=0):
 
 # ============================================================================= torre arruinada
 
-# rodada 12: com a colisão composta medida voxel a voxel, a porta em arco deixa só ~0,5 u livres abaixo da cabeça do herói
-# (as pedras do arco descem a 1,0–1,1 u nos lados); o corpo dele tem 0,52 u: o interior é inalcançável em qualquer rumo
-# (CompositeCollisionTest). Fica fora da distribuição até a porta ser alargada (decisão de arte, P74).
-@asset("ruin_tower", integracao="aguardando_refinamento",
-       dependencias=["porta em arco estreita: ~0,5 u livres sob o arco, o herói (0,52 u) não entra (P74, decisão de arte)"], nome="Torre arruinada", categoria="poi", sub="ruina", lote=1,
+# rodada 12: a passagem da porta tinha ~0,5 u livres abaixo da cabeça do herói (0,52 u) e a torre ficou fora (P74). Rodada
+# 12.1: a causa eram os degraus 3 e 4 da escada interna, logo atrás da boca da porta (não o arco); a escada "recuada" e o
+# arco de 8 voxels (1,0 u, o da ruína de casa, nascendo acima da cabeça) dão 0,24 u de folga de cada lado, conferidos em 5
+# rumos com um corpo 0,12 u mais largo (CompositeCollisionTest). A muralha baixa da direita (1,0 u) é o mirante: sobe-se
+# com um salto. Liberada.
+@asset("ruin_tower", integracao="liberado", nome="Torre arruinada", categoria="poi", sub="ruina", lote=1,
        voxel=BIG, frequencia="rara", wind=True,
        tags=["ruina", "exploracao", "abrigo", "orientacao", "encontro", "colina", "isolada"],
        funcao="exploração e orientação: visível de longe; interior caminhável serve de abrigo, covil de inimigos "
-              "(encontro) ou lugar de missão (objeto no centro); a escada quebrada leva a um ponto de vista",
+              "(encontro) ou lugar de missão (objeto no centro); a muralha baixa (1 u, sobe-se com um salto) é um mirante",
        terreno=["grama", "colina", "rocha"], apoio={"tipo": "patamar", "margem_u": 0.8}, inclinacao_max_u=0.6,
        area_livre={"frente_u": 2.5, "raio_u": 3.0},
        colisao={"tipo": "nenhum", "formas": "anel", "_nota": "anel de paredes com porta: precisa de formas compostas "
                 "(ver 'formas_u'); com uma forma só o interior ficaria bloqueado"},
        restricoes=["porta virada para a trilha ou para a clareira", "≥ 6 u de outras construções"],
        variacoes={"semente": [1, 2, 3], "hera": [True, False]})
-def ruin_tower(semente=1, hera=True):
+def ruin_tower(semente=1, hera=True, escada="recuada", porta=8):
     """Anel de muralha de pedra (Ø 3,5 u, parede de 3,5 voxels) quebrado em DEGRAUS largos: alto atrás à esquerda
     (≈ 4 u), baixo na frente à direita (≈ 1,3 u). Porta em arco intacta na frente, seteira no lado alto, piso de lajes,
     escada de pedra quebrada subindo pela parede de dentro, blocos caídos dentro e fora, hera no lado alto, musgo nos
@@ -104,18 +105,24 @@ def ruin_tower(semente=1, hera=True):
         for z in range(-11, 11):
             if math.hypot(x + 0.5, z + 0.5) < Ri:
                 v.set(x, 0, z, STONE_L if (x // 3 + z // 3) % 2 else STONE)
-    # porta em arco na frente (+z): abre a muralha e põe a moldura de pedra clara
-    for x in range(-4, 4):
-        for y in range(1, 13):
+    # porta em arco na frente (+z): abre a muralha e põe a moldura de pedra clara. Rodada 12.1 (P74): `porta` = vão em
+    # voxels. O de 6 (0,75 u) deixava 0,115 u de folga de cada lado do herói (0,52 u); o de 8 (1,0 u, o do arco da ruína
+    # de casa) dá folga de verdade, com o arco ainda redondo e a mesma moldura de um voxel
+    hw = porta / 2.0 - 0.5 if porta > 6 else 3.0                    # meia-largura do vão (|x + 0,5| ≤ hw)
+    ar, fr = (3.4, 4.4) if porta <= 6 else (hw + 0.6, hw + 1.6)     # raios verticais do arco e da moldura
+    # o arco nasce em y = sp: no de 8 os batentes retos sobem até 1,25 u (acima da cabeça do herói, 1,2 u) e só então curvam
+    sp = 8 if porta <= 6 else 10
+    for x in range(-6, 6):
+        for y in range(1, 17):
             u = x + 0.5
-            if abs(u) <= 3.0 and (y < 8 or (u / 3.0) ** 2 + ((y - 8) / 3.4) ** 2 <= 1.0):
+            if abs(u) <= hw and (y < sp or (u / hw) ** 2 + ((y - sp) / ar) ** 2 <= 1.0):
                 for z in range(9, 15):
                     v.v.pop((x, y, z), None)
-    for x in range(-5, 5):
-        for y in range(1, 14):
+    for x in range(-7, 7):
+        for y in range(1, 18):
             u = x + 0.5
-            ring = abs(u) <= 4.0 and (y < 8 or (u / 4.0) ** 2 + ((y - 8) / 4.4) ** 2 <= 1.0)
-            inner = abs(u) <= 3.0 and (y < 8 or (u / 3.0) ** 2 + ((y - 8) / 3.4) ** 2 <= 1.0)
+            ring = abs(u) <= hw + 1 and (y < sp or (u / (hw + 1)) ** 2 + ((y - sp) / fr) ** 2 <= 1.0)
+            inner = abs(u) <= hw and (y < sp or (u / hw) ** 2 + ((y - sp) / ar) ** 2 <= 1.0)
             if ring and not inner:
                 for z in range(10, 15):
                     if math.hypot(x + 0.5, z + 0.5) <= Ro:
@@ -125,15 +132,24 @@ def ruin_tower(semente=1, hera=True):
     for y in range(18, 24):
         for k in range(8, 15):
             v.v.pop((int(math.floor(math.cos(a) * k)), y, int(math.floor(math.sin(a) * k))), None)
-    # escada quebrada por dentro (sobe da esquerda da porta, contornando a parede, e acaba no vazio)
+    # escada quebrada por dentro (sobe da esquerda da porta, contornando a parede, e acaba no vazio).
+    # Rodada 12.1 (P74): os degraus 3 e 4 da escada "original" (160°, de 14° em 14°) ficavam a 0,875–1,125 u logo atrás da
+    # boca da porta, do lado esquerdo, e estreitavam a passagem para 0,5 u (o herói tem 0,52 u). O arco nunca foi o
+    # problema: o vão tem 0,75 u até acima da cabeça. "recuada" começa mais atrás (178°, de 12° em 12°): os degraus que
+    # ficam na altura do corpo encostam na parede da esquerda, longe da porta, e os que passam pela porta já estão acima da
+    # cabeça; a escada continua subindo pela parede e acabando no vazio, agora sobre a porta. "caida" mantém a original e
+    # derruba os dois degraus do vão (viram entulho no chão, fora do corredor)
+    stair_start, stair_step = (178, 12) if escada == "recuada" else (160, 14)
     for i in range(9):
-        a = math.radians(160 - i * 14)
+        a = math.radians(stair_start - i * stair_step)
         y = 1 + i * 2
+        if escada == "caida" and i in (3, 4):
+            continue
         for r in (8.4, 9.4, 10.2):
             for dy in range(0, 2):
                 v.set(int(math.floor(math.cos(a) * r)), y + dy - 1, int(math.floor(math.sin(a) * r)), STONE_L if dy else STONE)
             v.set(int(math.floor(math.cos(a - 0.08) * r)), y, int(math.floor(math.sin(a - 0.08) * r)), STONE_L)
-    _rubble(v, [(-4, -3, 3), (14, 9, 4), (17, 2, 3), (-16, 6, 2)], seed=s)
+    _rubble(v, [(-4, -3, 3), (14, 9, 4), (17, 2, 3), (-16, 6, 2)] + ([(-7, 2, 2)] if escada == "caida" else []), seed=s)
     _weather(v, 0.5, seed=101 + s, min_y=3)
     if hera:                                                        # três ramos de hera de 2 de largura, com vãos
         for (off, top) in ((-0.42, 22), (0.0, 27), (0.38, 17)):
@@ -150,9 +166,9 @@ def ruin_tower(semente=1, hera=True):
     charlib_e.prune_specks(v, label="ruin_tower")
     pts = {
         "entradas": [("porta", (0, 0, 17), 0)],
-        "interacao": [("centro", (0, 1, 0), "examinar"), ("topo_da_escada", (-7, 17, -3), "olhar")],
+        "interacao": [("centro", (0, 1, 0), "examinar"), ("mirante", (10, 8, 6), "olhar")],
         "spawns": [("covil_1", (-3, 1, -4), "criatura"), ("covil_2", (4, 1, -3), "criatura")],
-        "observacao": [("escada", (-7, 17, -3), 30)],
+        "observacao": [("mirante", (10, 8, 6), 30)],
         "area_segura": [(-7, -7, 7, 7)],
     }
     return v, pts
