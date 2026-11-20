@@ -405,7 +405,6 @@ public final class ProceduralScene {
         return names[i];
     }
 
-    /** Troca {chave} pelos valores; chave desconhecida = erro (texto com lacuna nunca chega à tela). */
     /**
      * Rodada 12.1 — a descoberta como dado da cena: o tipo de lugar ({@code descobertas_e.json → tipos}), o modo (usar com E
      * ou chegar ao ponto), o achado e o objeto que o mostra (cheio/vazio), as moedas e os textos com os FATOS desta região
@@ -440,6 +439,7 @@ public final class ProceduralScene {
         return o;
     }
 
+    /** Troca {chave} pelos valores; chave desconhecida = erro (texto com lacuna nunca chega à tela). */
     static String fill(String t, Map<String, String> params) {
         StringBuilder out = new StringBuilder();
         int i = 0;
