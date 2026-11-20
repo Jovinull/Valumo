@@ -2718,6 +2718,7 @@ public final class Game implements AutoCloseable {
                         Actor.animNanos = 0; Actor.animCount = 0;
                         sfx.cueNanos = sfx.cueCount = sfx.cueMax = 0;
                         gc0 = gcStats();
+                        java.util.Arrays.fill(renderer.gpuNanos, 0L); renderer.gpuFrames = 0;
                     }
                     else { report(out.resolve(t.length > 2 ? t[2] : "desempenho.txt")); perf = null; }
                 }
@@ -2863,6 +2864,7 @@ public final class Game implements AutoCloseable {
             perfLogic.add((t1 - t0) / 1e6);
             perfRender.add((t2 - t1) / 1e6);
             sampleFrames.add((t2 - t0) / 1e6);
+            if (Renderer.GPU_TIMERS) renderer.gpuCollect();             // rodada 12: tempo de GPU por passo (-Dvx.gpu=true)
             return;
         }
         if (record) {
@@ -2927,6 +2929,17 @@ public final class Game implements AutoCloseable {
         sb.append(String.format("draws %d, triângulos %d; formas de colisão %d; cena montada em %.0f ms (malha %s); malhas vivas %d (%.1f MB)%n",
                 renderer.lastDrawCount, renderer.lastTriangles, logic.collision.shapes.size(), worldBuildMs,
                 vx.engine.VoxelMesher.conforming ? "conforme" : "legado", vx.engine.Mesh.liveMeshes, vx.engine.Mesh.liveBytes / 1048576.0));
+        sb.append(String.format("rodada 12: triângulos de sombra %d%n", renderer.lastShadowTriangles));
+        if (Renderer.GPU_TIMERS && renderer.gpuFrames > 0) {               // -Dvx.gpu=true: consultas GL_TIME_ELAPSED por passo
+            StringBuilder g = new StringBuilder("GPU por passo (ms/quadro, " + renderer.gpuFrames + " quadros)");
+            double sum = 0;
+            for (int p = 0; p < Renderer.GPU_PASSES.length; p++) {
+                double v = renderer.gpuNanos[p] / 1e6 / renderer.gpuFrames;
+                sum += v;
+                g.append(String.format(java.util.Locale.ROOT, "  %s %.2f", Renderer.GPU_PASSES[p], v));
+            }
+            sb.append(g).append(String.format(java.util.Locale.ROOT, "  | soma %.2f%n", sum));
+        }
         sb.append(String.format("som (rodada 09.1): %s; %d pedidos na medição, %.1f µs em média e %.1f µs no máximo cada, %.3f ms no total (thread do jogo; a mixagem é na thread do OpenAL)%n",
                 sfx.backend.describe(), sfx.cueCount, sfx.cueCount == 0 ? 0 : sfx.cueNanos / 1e3 / sfx.cueCount, sfx.cueMax / 1e3, sfx.cueNanos / 1e6));
         StringBuilder slow = new StringBuilder();
