@@ -537,6 +537,65 @@ class CompositeCollisionTest {
     }
 
     /**
+     * Rodada 12.2 — o Quelmo na vaga lateral da barraca ("feirante_lateral", do PR #8; 1 voxel mais para fora na integração),
+     * com a barraca em 0°, 90°, 180°, 270° e 37°: o corpo dele (0,3 u) não encosta na barraca; o herói chega à frente dele
+     * (1,2 u no rumo dele, onde a conversa começa); e a câmera de jogo (a FollowCamera real) o vê: chegando pela rua, o corpo
+     * inteiro; na conversa, mais que no spawn antigo, atrás das mercadorias.
+     */
+    @Test
+    void oFeiranteNaVagaLateralFicaVisivelEAlcancavel() throws Exception {
+        JsonObject rec = catalog().getAsJsonObject("market_stall");
+        JsonObject vg = rec.getAsJsonObject("pontos").getAsJsonArray("vagas").get(0).getAsJsonObject();
+        assertEquals("feirante_lateral", vg.get("id").getAsString());
+        JsonObject old = rec.getAsJsonObject("pontos").getAsJsonArray("spawns").get(0).getAsJsonObject();
+        for (float yaw : YAWS) {
+            Collision c = build("market_stall", yaw, 1f, false, rec);
+            Matrix4f m = new Matrix4f().translate(OX, 0, OZ).rotateY((float) Math.toRadians(yaw));
+            JsonArray p = vg.getAsJsonArray("pos_u");
+            Vector3f q = m.transformPosition(new Vector3f(p.get(0).getAsFloat(), 0, p.get(2).getAsFloat()));
+            String at = "barraca a " + yaw + "°";
+            for (Collision.Shape s : c.shapes)
+                if (s.body) assertNull(s.push(q.x, q.z, 0.3f), at + ": o Quelmo encosta em " + s.name);
+            // a frente dele (o rumo da barraca + o da vaga): o herói chega lá
+            double a = Math.toRadians(yaw + vg.get("rumo").getAsFloat());
+            float tx = q.x + (float) Math.sin(a) * 1.2f, tz = q.z + (float) Math.cos(a) * 1.2f;
+            assertTrue(flood(c, outside(rec, yaw)[0], outside(rec, yaw)[1]).near(tx, tz, 0.45f), at + ": chega-se à frente dele para falar");
+            // a câmera de JOGO: de quem chega pela rua (de frente para a barraca) vê o corpo dele inteiro; parado no ponto exato
+            // da conversa (à frente dele, rente ao balcão), o balcão cobre o peito. Medido (5 rumos iguais): pela rua 5 de 5, na
+            // conversa 3 de 5; o spawn antigo, atrás das mercadorias, 2 de 5
+            int street = seenByPlayer(c, q.x, q.z, Math.toRadians(yaw), yaw), talk = seenByPlayer(c, q.x, q.z, a, yaw);
+            JsonArray op = old.getAsJsonArray("pos_u");
+            Vector3f o = m.transformPosition(new Vector3f(op.get(0).getAsFloat(), 0, op.get(2).getAsFloat()));
+            int oldSeen = seenByPlayer(c, o.x, o.z, Math.toRadians(yaw), yaw);
+            assertTrue(street >= 4, at + ": chegando pela rua, a barraca esconde o Quelmo (" + street + " de 5 pontos à vista)");
+            assertTrue(talk >= 3 && talk > oldSeen, at + ": na conversa, " + talk + " de 5 à vista (o spawn antigo: " + oldSeen + ")");
+        }
+    }
+
+    /**
+     * Quantos dos 5 pontos do corpo de um NPC em (x, z) a câmera de JOGO vê quando o herói está 1,2 u à frente dele (no rumo
+     * {@code facing}), olhando para ele: a {@link FollowCamera} real, atrás do herói, resolvida contra a colisão.
+     */
+    static int seenByPlayer(Collision c, float x, float z, double facing, float yaw) {
+        float hx = x + (float) Math.sin(facing) * 1.2f, hz = z + (float) Math.cos(facing) * 1.2f;
+        float hy = c.standAt(hx, hz, 1.3f, Player.RADIUS, Player.HEIGHT);
+        FollowCamera cam = new FollowCamera();
+        cam.yaw = (float) Math.atan2(x - hx, z - hz) + (float) Math.PI;     // atrás do herói, que olha para o NPC
+        for (int i = 0; i < 90; i++) cam.update(1f / 60f, hx, hy, hz, c);
+        return visible(c, cam.position(new Vector3f()), x, z, yaw);
+    }
+
+    /** Quantos de 5 pontos do corpo de um NPC em (x, z) (cabeça no meio e dos lados, peito no meio e dos lados) se veem de {@code eye}. */
+    static int visible(Collision c, Vector3f eye, float x, float z, float yaw) {
+        double a = Math.toRadians(yaw);
+        float sx = (float) Math.cos(a) * 0.15f, sz = (float) -Math.sin(a) * 0.15f;     // o lado, no referencial da barraca
+        float[][] pts = {{0, 1.1f, 0}, {sx, 1.1f, sz}, {-sx, 1.1f, -sz}, {sx, 0.75f, sz}, {-sx, 0.75f, -sz}};
+        int n = 0;
+        for (float[] p : pts) if (c.rayClear(eye, new Vector3f(x + p[0], p[1], z + p[2]), 0f) > 0.99f) n++;
+        return n;
+    }
+
+    /**
      * P73 (rodada 12) — na oficina, com a ferreira no lugar, o herói: entra pelo galpão, chega à forja, à bigorna e à
      * bancada, consegue falar com a ferreira e sai — em todos os rumos testados.
      */

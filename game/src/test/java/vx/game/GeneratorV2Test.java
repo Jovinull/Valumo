@@ -239,7 +239,7 @@ class GeneratorV2Test {
                 assertTrue(spawns.add(w.set() + "#" + w.spawn()), "um morador por spawn");
                 RegionLayout.Npc n = L.npcs.stream().filter(x -> x.id().equals(w.npc())).findFirst().orElseThrow();
                 assertEquals(1, L.npcs.stream().filter(x -> x.id().equals(w.npc())).count(), "um conjunto por morador");
-                float y = c.ground.height(n.x(), n.z());
+                float y = c.ground.height(n.x(), n.z()) + w.y();                   // rodada 12.2: os pés no ponto (a laje da oficina)
                 for (Collision.Shape sh : c.shapes)
                     if (sh.body && !sh.person && sh.y1 > y + Player.STEP && sh.y0 < y + 1.3f)
                         assertNull(sh.push(n.x(), n.z(), 0.3f), "s" + s + ": " + w.npc() + " encosta em " + sh.name);
@@ -251,9 +251,14 @@ class GeneratorV2Test {
                         assertTrue(Math.hypot(cp.x() - n.x(), cp.z() - n.z()) >= 0.56f, "s" + s + ": " + w.npc() + " em cima de " + cp.name());
                 }
             }
-            // o guardião de trilhas só existe como morador de ofício no conjunto dele
-            boolean guard = L.buildings.stream().anyMatch(b -> "conjunto.guardiao".equals(b.set()));
-            assertEquals(guard, L.workers.stream().anyMatch(w -> w.trade().equals("guardiao_de_trilhas")), "s" + s);
+            // rodada 12.2: todo conjunto posto tem o seu morador (os cinco ofícios têm personagem), cada um no ponto do perfil
+            for (RegionLayout.Building b : L.buildings) {
+                if (b.set() == null) continue;
+                String trade = P.set(b.set()).trade();
+                assertEquals(1, L.workers.stream().filter(w -> w.set().equals(b.set())).count(), "s" + s + ": o morador de " + b.set());
+                RegionLayout.Worker w = L.workers.stream().filter(x -> x.set().equals(b.set())).findFirst().orElseThrow();
+                assertEquals(P.set(b.set()).worker().origin(), w.spawn(), "s" + s + ": o ponto do perfil (" + trade + ")");
+            }
         }
         assertTrue(workers >= 8, "moradores de ofício postos nas sementes 1–40: " + workers);
         // sem moradores de ofício no perfil: construções, POIs e inimigos iguais (o RNG dos ofícios é próprio)
