@@ -64,7 +64,7 @@ class GeneratorV2Test {
         JsonObject cat = new JsonObject();
         for (var e : JsonParser.parseString(Files.readString(A.resolve("environment/e/conteudo_catalogo.json"))).getAsJsonObject().getAsJsonArray("assets"))
             cat.add(e.getAsJsonObject().get("id").getAsString(), e);
-        Set<String> forbidden = Set.of("tree_tiered", "stone_circle", "ruin_tower");
+        Set<String> forbidden = Set.of("tree_tiered", "stone_circle");                   // a torre foi liberada na rodada 12.1 (P74)
         int sheds = 0, regions = 0;
         for (long s = 1; s <= 30; s++) {
             RegionLayout L = v2(s).layout;
@@ -117,16 +117,28 @@ class GeneratorV2Test {
                 "os cinco conjuntos aparecem");
     }
 
+    /**
+     * Rodada 12.1 — a ruína é casa OU torre (sorteio da semente; a casa a mais comum), sempre uma, com id derivado do rótulo
+     * do tipo; e nas sementes 1–30 aparecem as duas.
+     */
     @Test
     void aRuinaEOLugarAExplorarComIdEstavel() {
+        int houses = 0, towers = 0;
+        for (long s = 1; s <= 30; s++) {
+            RegionLayout L = v2(s).layout;
+            RegionLayout.Building b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+            if (b.asset().equals("ruin_house")) houses++; else towers++;
+        }
+        assertTrue(houses > towers && towers >= 5, "casa a mais comum, torre presente: " + houses + " casas, " + towers + " torres");
         for (long s : SEEDS) {
             RegionLayout L = v2(s).layout;
-            RegionLayout.PointOfInterest r = L.poi("ruin");
-            assertNotNull(r, "s" + s + ": a v2 sempre tem a ruína");
-            assertEquals("poi.r0.ruina.0", r.id(), "id derivado de rótulo, nunca de coordenada");
-            assertEquals(1, L.buildings.stream().filter(b -> b.role().equals("ruina")).count());
+            assertEquals(1, L.buildings.stream().filter(b -> b.role().equals("ruina")).count(), "s" + s + ": a v2 sempre tem uma ruína");
+            boolean tower = L.buildings.stream().anyMatch(b -> b.role().equals("ruina") && b.asset().equals("ruin_tower"));
+            RegionLayout.PointOfInterest r = L.poi(tower ? "ruin_tower" : "ruin");
+            assertNotNull(r, "s" + s);
+            assertEquals(tower ? "poi.r0.torre.0" : "poi.r0.ruina.0", r.id(), "id derivado de rótulo, nunca de coordenada");
             assertTrue(L.branches.stream().anyMatch(RegionLayout.Branch::carve), "s" + s + ": a trilha até a ruína");
-            assertTrue(v2(s).reach.targets().keySet().stream().anyMatch(k -> k.startsWith("entrada:poi.r0.ruina.0")), "a entrada é conferida");
+            assertTrue(v2(s).reach.targets().keySet().stream().anyMatch(k -> k.startsWith("entrada:" + r.id())), "a entrada é conferida");
             assertTrue(v2(s).reach.targets().values().stream().allMatch(Boolean::booleanValue), "s" + s + ": tudo alcançável");
             float d = (float) Math.hypot(r.x() - L.sx, r.z() - L.sz);
             assertTrue(d > L.plateauR, "a ruína fica fora do assentamento");
@@ -147,7 +159,10 @@ class GeneratorV2Test {
             assertTrue(L.props.size() <= 190, "s" + s + ": props " + L.props.size());
             SceneDef sc = ps.scene();
             Collision c = Collision.build(vx.viewer.Terrain.of(ps.field), Collision.profiles(A), sc.handPlaced, sc.bodies, sc);
-            assertTrue(c.shapes.size() <= 520, "s" + s + ": formas de colisão " + c.shapes.size());
+            // rodada 12.1: as formas compostas passaram a ter o topo EXATO (a parede em degraus, a laje, os degraus) e a medida
+            // subiu (340–718 nas sementes 1–30); com o índice espacial da colisão a conferência de alcance mediana CAIU de 17
+            // para 1 ms. O limite antigo (520) existia porque cada consulta percorria a lista inteira
+            assertTrue(c.shapes.size() <= 900, "s" + s + ": formas de colisão " + c.shapes.size());
         }
     }
 
@@ -160,7 +175,9 @@ class GeneratorV2Test {
         int gnarled = 0, dead = 0;
         for (long s = 1; s <= 30; s++) {
             RegionLayout L = v2(s).layout;
-            RegionLayout.PointOfInterest r = L.poi("ruin");
+            RegionLayout.Building r = L.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElseThrow();
+            boolean tree = L.props.stream().anyMatch(p -> p.name().equals("tree_gnarled"));
+            assertEquals(tree, L.features.stream().anyMatch(f -> f.id().equals("desc.r0.arvore.0")), "s" + s + ": a descoberta da árvore ⇔ a árvore existe");
             for (RegionLayout.Prop p : L.props) {
                 if (p.name().equals("tree_gnarled")) {
                     gnarled++;
@@ -192,9 +209,10 @@ class GeneratorV2Test {
             RegionLayout full = RegionGenerator.compose(s, 0, RegionGenerator.V2, P, true), bare = RegionGenerator.compose(s, 0, RegionGenerator.V2, P, false);
             assertEquals(full.buildings, bare.buildings);
             assertEquals(full.spawns, bare.spawns);
-            assertEquals(full.features, bare.features);
+            // a descoberta da árvore retorcida é da mata (rodada 12.1): o resto das features e dos POIs não muda
+            assertEquals(full.features.stream().filter(f -> !f.id().contains(".arvore.")).toList(), bare.features);
             assertEquals(full.npcs, bare.npcs);
-            assertEquals(full.pois, bare.pois);
+            assertEquals(full.pois.stream().filter(p -> !p.id().contains(".arvore.")).toList(), bare.pois);
         }
     }
 
