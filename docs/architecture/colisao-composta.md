@@ -1,122 +1,141 @@
 # Colisão composta: construções com interior
 
-**Status:** implementada na rodada 12. A proposta da integração dos lotes 1 e 2 virou o contrato abaixo, com dois
-ajustes medidos: a altura de cada forma sai dos voxels, e o piso elevado é chão pisável.
+**Status:** implementada na rodada 12 e refeita na 12.1. O teste físico do proprietário achou dois defeitos:
+
+- **Afundar na laje:** ao chegar andando, o herói afundava na laje da ruína e depois subia.
+- **A parede quebrada:** quem pulava sobre ela afundava.
+
+Os dois vinham de a colisão não ter os topos da geometria.
 
 ## 1. O contrato
 
 Um prop com perfil `"tipo": "composta"` em `assets/scenes/colisao_e.json` tem várias formas simples. Exemplo real
-(trecho da oficina):
+(trecho):
 
 ```json
-"workshop_forge": {"tipo": "composta", "_fonte": "medido dos voxels por tools/conteudo/formas_compostas.py (revisado)", "formas": [
- {"tipo": "caixa", "min": [0.0, 0.0], "max": [0.25, 0.375], "altura": [0.375, 2.625]},
- {"tipo": "caixa", "min": [0.5, -0.25], "max": [1.0, 0.0], "altura": [0.5, 1.0], "camera": false},
- {"tipo": "caixa", "min": [-0.25, -1.25], "max": [2.75, 1.0], "altura": [1.5, 5.875], "corpo": false},
- {"tipo": "caixa", "min": [1.0, 0.0], "max": [2.25, 1.0], "altura": [0.0, 0.3], "corpo": false, "camera": false, "pisavel": true}
+"ruin_house": {"tipo": "composta", "_fonte": "medido dos voxels por tools/conteudo/formas_compostas.py (revisado)", "formas": [
+ {"tipo": "caixa", "min": [-2.375, -1.875], "max": [2.375, 1.75], "altura": [0.0, 0.375], "pisavel": true, "camera": false},
+ {"tipo": "caixa", "min": [-1.5, 2.25], "max": [-0.25, 2.375], "altura": [0.0, 0.125], "pisavel": true, "camera": false},
+ {"tipo": "caixa", "min": [-0.5, -0.5], "max": [0.5, 0.5], "altura": [2.125, 3.125], "corpo": false}
 ]}
 ```
 
-- **Espaço:** u, no espaço do MODELO (relativo à origem do modelo, não ao centro da caixa).
-  - **caixa:** `min`/`max` (x, z);
-  - **círculo:** `centro`, `raio`.
-- **Transformação:** cada forma passa pela matriz do posicionamento (`Collision.addComposite`).
-  - O centro vai por `transformPosition`, o rumo é o do prop e o raio e as meias-extensões multiplicam pela escala.
-  - O resultado é a mesma `Collision.Shape` de sempre, com nome `<prop>#<i>`.
-- **Altura:** `altura [a, b]` é a faixa vertical acima da origem do modelo.
-- **Bandeiras:**
-  - **`corpo`** (padrão sim): empurra o herói (`Collision.resolve`). A forma é ignorada quando o topo fica a até um
-    degrau dos pés.
-  - **`camera`** (padrão = a do perfil): encurta o braço da câmera (`rayClear`).
-  - **`pisavel`** (padrão não): o topo vira chão (`Collision.floor`) se estiver a até um degrau
-    (`Player.STEP` = 0,30 u).
-- **Um contrato só:** o mesmo serve ao movimento (`Player`), à câmera (`FollowCamera`), à conferência de alcance
-  (`Reachability`, que decide se uma região gerada é aceita), aos pontos de interação e aos testes. Não existe uma
-  colisão "de vitrine" à parte.
+- **Espaço e transformação:**
+  - **Espaço:** u, no espaço do MODELO; caixa (`min`/`max` em x, z) ou círculo (`centro`, `raio`).
+  - **Transformação:** cada forma passa pela matriz do posicionamento (`Collision.addComposite`). O resultado é a
+    `Collision.Shape` de sempre, com nome `<prop>#<i>`.
+- **Altura:** `altura [a, b]` é a faixa vertical acima da origem do modelo. Na 12.1 ela é **exata**: o topo de uma
+  forma é o topo dos voxels que ela cobre.
+- **Bandeiras:** `corpo` (padrão sim), `camera` (padrão = a do perfil), `pisavel` (padrão não).
+- **Um contrato só:** o mesmo serve ao movimento, à câmera, à conferência de alcance, aos pontos de interação, à
+  colocação do herói e aos testes.
 
-## 2. De onde vêm as formas
+**A regra de suporte** (12.1, `Collision.supports`, vale para TODA forma, simples ou composta):
 
-`python3 tools/conteudo/formas_compostas.py` mede cada asset do catálogo com `colisao.formas` direto dos voxels do
-`.vox` gerado.
+> todo sólido (corpo) sustenta quem está acima dele, menos pessoa e objeto de missão (NPC parado, o marco); e o que o
+> perfil marca `pisavel`.
 
-| Forma | Regra |
-|---|---|
-| **corpo** | toda coluna de voxels com algo na faixa **[0,375; 1,2) u** (acima do degrau que se sobe a pé, abaixo da cabeça do herói), da base desse voxel ao topo da parede contínua (vão de até 2 voxels conta como parede: janela, frincha), fundidas em retângulos gulosos na resolução do voxel |
-| **peça baixa** | topo < 1,2 u (bigorna, tina, balcão): corpo sem câmera; topo ≤ 0,8 u: pisável também (como o caixote) |
-| **só câmera** | o que fica acima da parede contínua ou só existe acima da cabeça (arco, lintel, telhado, toldo), numa grade de 0,25 u, da base ao topo do que está lá |
-| **copa** | folhagem não empurra o corpo; a que fica ACIMA da cabeça (≥ 1,2 u) vira forma só de câmera, como a copa das árvores soltas (perfil `tronco`). A árvore jovem de dentro da ruína: sem isso, quem examinava a lareira sumia atrás das folhas |
-| **piso elevado** | coluna só com a laje de piso (abaixo da faixa do corpo, topo ≥ 0,25 u): pisável, sem corpo nem câmera, com o topo em **0,30 u** (o degrau). O herói entra sem pular; o pé fica no máximo 0,075 u abaixo da laje de 0,375 u |
+**Por quê:**
 
-- **O que é gravado:** o script reescreve só os perfis da biblioteca em `colisao_e.json`. O resto sai byte a byte igual,
-  e os perfis dos props que o gerador v1 planta nunca são tocados.
-- **Revisão:** o diff é revisado antes do commit.
-- **Os outros assets da biblioteca** recebem o perfil simples que o catálogo entrega. As variantes publicadas usam o do
-  original por prefixo (`"sign_trade*"`).
+- **O defeito:** um corpo deixa de empurrar quando o topo dele está a até um degrau (0,30 u) dos pés. Assim se sobe
+  degrau e se passa por peça baixa. Antes só o `pisavel` virava chão.
+- **O efeito:** quem pulava sobre uma cerca ou um muro baixo ficava acima de algo que já não empurrava e ainda não
+  sustentava, e caía DENTRO dele.
+- **Com o salto da 12.1:** o salto alcança topos até 1,30 u (`MobilityTest`), então o caso deixou de ser raro.
 
-## 3. Quem tem e o que foi liberado
+**A colocação** (`Collision.standAt`) põe o herói (início, continuar o jogo, recomeço) na superfície **livre mais baixa**
+entre o relevo e os topos ao alcance do salto, mais um degrau:
 
-| Asset | Formas | Estado (rodada 12) | Por quê |
-|---|---|---|---|
-| `workshop_forge` | 71 (32 de corpo, 10 de câmera, 29 de piso) | **liberado** | percorrido em 5 rumos; P73 resolvido |
-| `ruin_house` | 78 (3 da copa) | **liberado** | entra pelo arco e pela brecha; chega à lareira e à frente dos escombros; a copa segura a câmera |
-| `market_stall` | 12 | **liberado** | o feirante fica atrás do balcão, sob o toldo |
-| `ruin_tower` | 59 | **aguardando_refinamento** | sob o arco da porta sobram **~0,5 u** abaixo da cabeça; o herói tem 0,52 u. O interior é inalcançável em qualquer rumo (P74, decisão de arte: alargar o arco) |
-| `stone_circle` | 58 | aguardando_refinamento | refino artístico pendente (antes desta rodada) |
+- **Pode:** o piso da oficina, o topo de uma pedra média.
+- **Não pode:** o telhado da casa, que fica fora do alcance. Um ponto dentro da casa continua inválido.
 
-- **Conjuntos:** `ferreiro` (âncora oficina) e `comerciante` (item barraca) passaram a liberados. O catálogo os deriva
-  dos membros.
+**O índice espacial** (`Collision.index`, células de 1 u) faz `floor`, `resolve` e `bodyAt` olharem só as formas de
+perto, na mesma ordem da lista:
 
-**Dois pontos corrigidos nos dados, sem mexer em modelo:**
-
-- **Oficina, P73:** o spawn da ferreira passou para o lado direito do galpão, a (1,94; 0,44). Antes ficava a 0,125 u
-  da bigorna e a 0,28 u da bancada. Folgas agora:
-  - 0,32 u da peça mais perto;
-  - 0,67 u do ponto da forja;
-  - 1,0 u da bigorna;
-  - 1,27 u da bancada.
-- **Ruína de casa:** o ponto "escombros" marca a FRENTE do monte. O pedaço de telhado caído é sólido do chão até
-  1,1 u; antes o ponto ficava 1,3 u para dentro dele.
-
-## 4. Os testes (`CompositeCollisionTest`)
-
-Cada asset composto, sozinho num chão plano, deslocado da origem e girado 0°, 90°, 180°, 270° e 37°:
-
-1. **Contra os voxels de verdade** (`VoxModel`, não o script): todo voxel sólido com a base na faixa do corpo fica
-   dentro de uma forma de corpo.
-2. **Entradas e interior:**
-   - toda entrada é alcançável de fora;
-   - todo ponto de interação de chão tem lugar de pé a até 1 u (o contrato do catálogo);
-   - a área segura declarada é caminhável;
-   - dá para falar com o NPC do spawn, com os NPCs no lugar (corpo 0,3 u);
-   - a busca confere o degrau entre células, como a `Reachability`.
-3. **Câmera:** nenhuma parede alta é atravessada; peça baixa não segura a câmera; o telhado da oficina, o toldo da
-   barraca e a copa da árvore de dentro da ruína seguram a câmera de quem está dentro.
-4. **Piso elevado:** dentro da oficina e da ruína, o chão é a laje.
-5. **Escala e translação:** acompanham o prop (`rotateY` de 90°: z local vira +x).
-6. **Torre:** a porta é estreita demais, e ela não é liberada. Se um dia passar, o teste avisa para reavaliar.
-7. **P73**, passo a passo, em todos os rumos: entrar, forja, bigorna, bancada, falar com a ferreira, sair.
-8. **Liberação:** todo composto liberado passou por aqui (`ENTERABLE`).
-
-No catálogo, `ConteudoMundoTest` exige o perfil `composta` em `colisao_e.json` para liberar asset com `colisao.formas`.
-
-## 5. Custo (medido na rodada 12, sementes 1–30, sem GPU)
-
-| | v1 | v2 |
-|---|---|---|
-| formas de colisão por região | 200–211 (mediana 207) | 272–365 (mediana 287) |
-| conferência de alcance | mediana 4 ms (máx. 22) | mediana 18 ms (máx. 25) |
-| gerar + conferir a região inteira | mediana 55 ms (máx. 191) | mediana 110 ms (máx. 246) |
-
-- **Busca por forma:** as consultas percorrem a lista com o filtro do raio envolvente. Uma oficina sozinha soma 71
+- **Mesmo resultado:** sai bit a bit igual ao de percorrer tudo (`CollisionIndexTest`, mais de 4000 consultas).
+- **Saída de emergência:** se os empurrões tirarem o corpo da vizinhança consultada, a conta é refeita com todas as
   formas.
-- **Grade espacial:** com menos de 400 formas, não foi preciso. Fica para quando uma região passar de ~500
-  (`GeneratorV2Test` limita a 520).
+
+## 2. De onde vêm as formas (medição, `tools/conteudo/formas_compostas.py`)
+
+Coluna a coluna de voxels (sem folhagem), as corridas contínuas (vão de até 2 voxels = a mesma peça), subindo do chão:
+
+| Peça | Regra |
+|---|---|
+| **sólida** | começa abaixo da cabeça de quem está no topo sólido de baixo (topo + 1,2 u), OU o herói alcança o topo dela (a busca abaixo). Corpo **e** pisável, com a base e o topo **exatos** (laje, degrau, parede, bigorna, muro quebrado). Câmera só se o topo passa de 1,2 u |
+| **topo inalcançável** | parede com topo acima de 2,0 u (laje + salto + degrau): o topo sobe para a grade de 0,25 u (o corpo é o mesmo; menos formas) |
+| **só câmera** | o que começa a uma altura de herói acima do topo sólido E ninguém alcança (arco, lintel, telhado, toldo), numa grade de 0,25 u |
+| **copa** | folhagem não empurra o corpo; a que fica acima da cabeça (≥ 1,2 u) é só de câmera |
+
+- **Fusão:** os retângulos gulosos só juntam colunas de **mesma base e mesmo topo**. Na rodada 12 a parede em degraus
+  virava um bloco com o topo do degrau mais alto, e os degraus visíveis não existiam na colisão.
+- **Busca de alcance** (`reachable_tops`): sobre lugares de pé onde o corpo cabe (nenhuma coluna a até 0,26 u com sólido
+  entre um degrau acima dos pés e a cabeça), a partir do chão em volta, subindo até o salto + degrau (lido de
+  `combate_e.json`). Sem a exigência do corpo, a busca subia por saliências de 1 voxel até o telhado.
+- **O piso elevado** é só uma peça sólida: a laje de 0,375 u é corpo + pisável com o topo em 0,375. Sobe-se por
+  **degraus reais** de 0,125 u nas entradas (`conteudo_lib.stone_steps`, quebrados nas ruínas); sem degrau, a borda da
+  laje é um rodapé que se sobe com um salto.
+- **Gravação:** o script reescreve só os perfis da biblioteca; os da v1 saem byte a byte iguais. Revise o diff.
+
+## 3. Quem tem e o que está liberado (rodada 12.1)
+
+| Asset | Formas | Estado | Prova |
+|---|---|---|---|
+| `workshop_forge` | 293 | **liberado** | 5 rumos: entradas (a porta com degraus, o galpão com os degraus novos), interior na laje, câmera, P73 em 7 passos |
+| `ruin_house` | ~160 | **liberado** | entra pelo arco e pela brecha (degraus quebrados), lareira e escombros; a copa (fosca, subida a ~2,2 u) segura a câmera sem colar nela (P82) |
+| `ruin_tower` | ~143 | **liberado (12.1)** | P74: escada interna recuada e arco de 8 voxels (1,0 u, nascendo acima da cabeça): passa com um corpo 0,12 u mais largo de cada lado; sobe-se na muralha baixa com um salto (o mirante) |
+| `market_stall` | 60 | **liberado** | o feirante atrás do balcão; o toldo segura a câmera |
+| `stone_circle` | 190 | aguardando refinamento | refino artístico pendente |
+
+**P74, o diagnóstico corrigido:**
+
+- **O erro da rodada 12:** ela atribuiu o vão de ~0,5 u "às pedras do arco".
+- **A causa real:** a medida voxel a voxel mostrou o arco com 0,75 u livres até acima da cabeça; o que estreitava eram
+  os degraus 3 e 4 da escada interna, logo atrás da boca da porta.
+- **A correção:** escada recuada mais arco alargado, com o arco ainda velho e quebrado (comparação no pacote 12.1).
+
+## 4. Os testes (`CompositeCollisionTest`, 9)
+
+Cada composto, sozinho num chão plano, deslocado e girado 0°, 90°, 180°, 270° e 37°:
+
+1. **Corpo:** todo voxel sólido na faixa do corpo fica dentro de forma de corpo (contra o `.vox` de verdade).
+2. **Entradas e interior:** entradas alcançáveis, interação a até 1 u, área segura, conversa com o NPC do spawn.
+3. **Câmera:** paredes cortam o raio; peça baixa não; telhado, toldo e a copa da ruína seguram quem está dentro.
+4. **Piso exato (P75):** por dentro o chão é o topo da laje (0,375); por CADA entrada, a pé e sem pular, com a física real
+   do herói, sobe-se pelos degraus e fica-se de pé na laje.
+5. **Escala e translação.**
+6. **P74:** a torre, com folga (corpo +0,12 u) e o salto para a muralha do mirante.
+7. **P73:** os 7 passos na oficina.
+8. **P82:** a câmera do jogador dentro da ruína em 3 posições × 8 rumos. Rodada 12: colada em 9 de 24 (todos ao lado da
+   árvore); 12.1: 0 de 24.
+9. **Liberação:** composto liberado ⇔ percorrido aqui (`ENTERABLE`).
+
+**Testes que dependem disto:**
+
+- `MobilityTest` (todo sólido segura o salto; pessoa nunca é plataforma; a casa fora do alcance);
+- `CollisionIndexTest` (o índice);
+- `ConteudoMundoTest` (perfil `composta` para liberar; folhagem presa acima de 1,7 u é fosca).
+
+## 5. Custo (rodada 12.1, sementes 1–30, sem GPU, o mesmo binário × o da rodada 12)
+
+| | rodada 12 | 12.1 |
+|---|---|---|
+| formas por região v2 | 272–365 | 340–718 (mediana 369) |
+| conferência de alcance (mediana) | 17 ms | **1 ms** (índice espacial) |
+| criar a região inteira (mediana) | 112 ms | 96 ms |
+| v1: formas / conferência | 207 / 4 ms | 207 / 1 ms (regiões idênticas) |
+
+O orçamento do `GeneratorV2Test` passou de 520 para 900 formas, pela medida acima. O limite antigo existia porque cada
+consulta percorria a lista inteira.
 
 ## 6. Como acrescentar um asset composto
 
-1. No `@asset`, declare `colisao={"tipo": ..., "formas": "medidas"}`. Ele nasce `depende_colisao_composta`.
-2. `python3 tools/build_assets.py conteudo_e`, depois `python3 tools/conteudo/formas_compostas.py`, e revise o diff de
-   `colisao_e.json`.
-3. Ponha o id em `CompositeCollisionTest.ENTERABLE` e rode o teste. Se não entrar, o defeito é do asset (porta, piso,
-   ponto) ou do ponto do catálogo, nunca da conferência. Não afrouxe nada.
-4. Só então mude o estado para liberado no `@asset`, com o comentário do porquê.
+1. **Declarar:** no `@asset`, `colisao={"tipo": ..., "formas": "medidas"}`; ele nasce `depende_colisao_composta`.
+2. **Entradas:** toda entrada precisa subir de 0 até o piso em degraus ≤ 0,30 u (de preferência 0,125, com
+   `conteudo_lib.stone_steps`). Vão livre ≥ 0,6 u + folga até 1,2 u acima do piso, com o arco nascendo acima da cabeça.
+   A folhagem presa ao modelo acima de 1,7 u é fosca (`LEAF_FIX`, `MOSS_FIX`).
+3. **Gerar:** `python3 tools/build_assets.py conteudo_e`, depois `python3 tools/conteudo/formas_compostas.py`, e revise
+   o diff.
+4. **Conferir:** ponha o id em `CompositeCollisionTest.ENTERABLE` e rode o teste. Se não entrar, o defeito é do asset
+   (porta, piso, ponto), nunca da conferência.
+5. **Liberar:** só então, com o comentário do porquê. Gere `tools/conteudo/planta_colisao.py` para a revisão.
