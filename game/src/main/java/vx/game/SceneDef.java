@@ -26,8 +26,14 @@ public final class SceneDef {
     public record Line(String text, String expression) { }
 
     /** {@code height}: altura do personagem no mundo (u), lida do rig.json — a câmera de conversa enquadra por ela. */
+    /**
+     * NPC com quem se fala. Rodada 12.2 (moradores de ofício, opcionais no JSON): {@code y} = altura do ponto acima do chão
+     * (a laje da oficina: ele fica de pé no chão de colisão, não afundado nela); {@code gesture} = de tempos em tempos toca
+     * o gesto de ofício do perfil de animação dele (só desenho); {@code trade} = o ofício do conjunto em que ele trabalha
+     * (null = morador comum): o ponto dele é AUTORADO no catálogo (spawn ou vaga), conferido à parte.
+     */
     public record Interactive(String rig, String name, String title, float x, float z, float yawDeg, float range, List<Line> lines,
-                              float height) {
+                              float height, float y, boolean gesture, String trade) {
         /** Rodada 10 — id do NPC (falas por contexto, missões): o nome da pasta do rig ({@code kelyra}). */
         public String id() { return rig.substring(rig.lastIndexOf('/') + 1); }
     }
@@ -139,7 +145,8 @@ public final class SceneDef {
             d.interactives.add(new Interactive(o.get("rig").getAsString(), o.get("nome").getAsString(),
                     o.has("titulo") ? o.get("titulo").getAsString() : null, o.get("x").getAsFloat(), o.get("z").getAsFloat(),
                     o.get("r").getAsFloat(), o.has("alcance") ? o.get("alcance").getAsFloat() : 1.7f, List.copyOf(lines),
-                    rigHeight(assets, o.get("rig").getAsString())));
+                    rigHeight(assets, o.get("rig").getAsString()), o.has("y") ? o.get("y").getAsFloat() : 0f,
+                    o.has("gesto") && o.get("gesto").getAsString().equals("oficio"), o.has("oficio") ? o.get("oficio").getAsString() : null));
         }
         if (game.has("missoes")) d.questsFile = "scenes/" + game.get("missoes").getAsString() + ".json";
         if (game.has("dialogos")) d.dialoguesFile = "scenes/" + game.get("dialogos").getAsString() + ".json";

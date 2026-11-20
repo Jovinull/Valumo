@@ -219,6 +219,13 @@ public final class ProceduralScene {
             o.addProperty("z", r3(n.z()));
             o.addProperty("r", r3(n.yawDeg()));
             o.addProperty("alcance", 1.8f);
+            // rodada 12.2: só o morador de ofício (só a v2 tem) ganha a altura do ponto e o gesto — a cena da v1 não muda
+            RegionLayout.Worker wk = L.workers.stream().filter(w -> w.npc().equals(n.id())).findFirst().orElse(null);
+            if (wk != null) {
+                o.addProperty("oficio", wk.trade());
+                if (wk.y() > 0.1f) o.addProperty("y", r3(wk.y()));
+                if (r.has("gesto")) o.addProperty("gesto", r.get("gesto").getAsString());
+            }
             JsonArray lines = (L.pond == null && r.has("falasSemLago") ? r.getAsJsonArray("falasSemLago") : r.getAsJsonArray("falas")).deepCopy();
             for (JsonElement l : lines) {
                 JsonObject lo = l.getAsJsonObject();

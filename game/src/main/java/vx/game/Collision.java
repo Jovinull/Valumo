@@ -46,6 +46,14 @@ public final class Collision {
             this.bound = circle ? r : (float) Math.hypot(hx, hz);
         }
 
+        /** Rodada 12.2 — a mesma forma com o topo {@code dy} mais alto (o corpo de um morador de pé num ponto elevado). */
+        Shape raised(float dy) {
+            Shape s = new Shape(name, circle, cx, cz, r, hx, hz, cos, sin, y0, y1 + dy, body, camera);
+            s.stand = stand;
+            s.person = person;
+            return s;
+        }
+
         static Shape circle(String n, float x, float z, float r, float y0, float y1, boolean body, boolean cam) {
             return new Shape(n, true, x, z, r, 0, 0, 1, 0, y0, y1, body, cam);
         }
@@ -212,7 +220,11 @@ public final class Collision {
         Collision c = new Collision(ground);
         for (World.Placement p : props) c.addProp(prof, p);
         for (World.Body b : bodies) c.addBody(prof, b.name(), b.x(), b.z());
-        for (SceneDef.Interactive i : scene.interactives) c.addBody(prof, i.rig(), i.x(), i.z());
+        for (SceneDef.Interactive i : scene.interactives) {
+            c.addBody(prof, i.rig(), i.x(), i.z());
+            if (i.y() > 0.05f && c.shapes.getLast().name.equals(i.rig()))   // rodada 12.2: de pé num ponto elevado (a laje): o
+                c.shapes.set(c.shapes.size() - 1, c.shapes.getLast().raised(i.y()));   // corpo vai do chão à cabeça dele lá em cima
+        }
         for (SceneDef.WorldObject o : scene.objects) {                    // rodada 10: objeto com estado (marco): corpo sólido
             float y = c.ground.height(o.x(), o.z());
             Shape s = Shape.circle(o.id(), o.x(), o.z(), o.radius(), y, y + 1.5f, true, false);

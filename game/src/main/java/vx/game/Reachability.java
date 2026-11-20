@@ -79,9 +79,20 @@ public final class Reachability {
             boolean ok = reachedNear(seen, nx, nz, x0, z0, tx, tz, 0.45f);
             targets.put("falar:" + n.id(), ok);
             if (!ok) problems.add("ninguém chega para falar com " + n.name());
+            // rodada 12.2: o morador posto pelo gerador em chão aberto quer 0,55 u livres em volta. O morador de OFÍCIO fica num
+            // ponto AUTORADO do catálogo (a ferreira no galpão, ao lado da tina), conferido à parte com o herói entrando, usando
+            // a forja, a bigorna e a bancada, falando com ela e saindo (CompositeCollisionTest.p73): para ele vale o corpo dele
+            // (o círculo dele na colisão, 0,3 u) não encostar em nada acima dos pés. A v1 não tem morador de ofício: igual
+            float clear = 0.55f;
+            if (n.trade() != null)
+                for (Collision.Shape s : c.shapes) if (s.person && s.circle && s.name.equals(n.rig())) clear = s.r;
+            // rodada 12.2: de pé num ponto elevado (a Brásia na laje da oficina), o que fica abaixo dos pés dele não encosta. Só
+            // para quem está num ponto elevado: no chão (todos os da v1) a conta é exatamente a de antes
+            boolean raised = n.y() > 0.05f;
+            float feet = raised ? c.ground.height(n.x(), n.z()) + n.y() : 0f;
             for (Collision.Shape s : c.shapes) {
-                if (!s.body || s.name.equals(n.rig())) continue;
-                if (s.push(n.x(), n.z(), 0.55f) != null) { problems.add(n.name() + " colado em " + s.name); break; }
+                if (!s.body || s.name.equals(n.rig()) || (raised && s.y1 <= feet + 0.01f)) continue;
+                if (s.push(n.x(), n.z(), clear) != null) { problems.add(n.name() + " colado em " + s.name); break; }
             }
         }
         for (SceneDef.WorldObject o : scene.objects) {
