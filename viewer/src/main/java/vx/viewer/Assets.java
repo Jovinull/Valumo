@@ -84,7 +84,7 @@ public final class Assets implements AutoCloseable {
     /**
      * Props do diretório {@code environment/<estilo>}: o CATÁLOGO inteiro do {@code props.json}, carregado sob demanda.
      * Integração dos lotes de conteúdo: o catálogo ficou grande (a biblioteca do laboratório soma dezenas de modelos que
-     * nenhuma cena jogável usa ainda) e antes TODO prop era lido, malhado e enviado à GPU na primeira chamada. Agora cada
+     * nenhuma cena jogável usa ainda) e antes cada prop do catálogo era lido, malhado e enviado à GPU na primeira chamada. Agora cada
      * prop vira malha só quando uma cena o pede ({@link PropSet#get}); {@code containsKey}/{@code keySet} não carregam
      * nada. Thread do GL (a malha sobe para a GPU no {@code get}).
      */
