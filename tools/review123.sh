@@ -4,7 +4,7 @@
 # temporários (cópias, conferidas por hash antes e depois). Som só por loopback ou mudo. "Antes" = o binário da rodada 12.2
 # num clone compilado (BASE=...).
 #
-# Uso: tools/review123.sh [videos|comparacoes|desempenho|testes|validadores|zip|tudo]
+# Uso: tools/review123.sh [videos|menu|comparacoes|desempenho|testes|validadores|zip|tudo]
 #   BASE = clone compilado da rodada 12.2 (padrão output/tmp/base-r122), para os vídeos antes × depois e o desempenho
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -78,12 +78,17 @@ case "$what" in videos|tudo)
     cp "$T/09a/$f.png" "$R/capturas/indira/antes-$f.png"; cp "$T/09b/$f.png" "$R/capturas/indira/depois-$f.png"
   done
   mkdir -p "$R/capturas/pote"; cp "$T/10-pote-cheio-vazio"/0*.png "$R/capturas/pote/"
-  # 12 voltar ao menu e continuar (dados temporários: cópias)
-  iso=$(isolado)
-  (JAVA_OPTS="-Dvx.som=loopback $(opts "$iso")" $G --roteiro tools/menu/04-aventura.txt "$iso/d" 30) > "$R/registros/12-menu.log" 2>&1 || echo "FALHOU menu"
-  video "$iso/d/quadros" "$iso/d/audio.wav" "$V/12-menu-e-continuar.mp4"
-  rm -rf "$iso"
   ls -la "$V"
+esac
+
+case "$what" in videos|menu|tudo)
+  # 12 voltar ao menu e continuar (dados temporários: cópias; o jogo salvo de antes vira o "Aventureiro")
+  V="$R/videos"; mkdir -p "$V"
+  iso=$(isolado)
+  (JAVA_OPTS="-Dvx.som=loopback $(opts "$iso")" $G --roteiro tools/menu/15-voltar-e-continuar.txt "$iso/d" 30) > "$R/registros/12-menu.log" 2>&1 || echo "FALHOU menu"
+  video "$iso/d/quadros" "$iso/d/audio.wav" "$V/12-menu-e-continuar.mp4"
+  prancha "$V/12-prancha.png" 8 240 $(ls "$iso/d/quadros"/q_*.png | awk 'NR%40==1')
+  rm -rf "$iso"
 esac
 
 case "$what" in comparacoes|tudo)
