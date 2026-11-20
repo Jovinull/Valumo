@@ -1,10 +1,10 @@
 {
  "name": "npc_ferreira",
- "description": "NPC ferreira (Brásia, laboratório de conteúdo): o perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': bate o punho na palma duas vezes à frente do peito e põe as mãos na cintura, peito aberto (enxugar a testa foi descartado: a testa fica fora do alcance do braço de NPC, ~11,5 voxels). Posições em voxels do esqueleto NPC (ombro ±5,8 / 26,5).",
+ "description": "NPC ferreira (Brásia, laboratório de conteúdo): o perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': bate o punho na palma duas vezes à frente do peito e põe as mãos na cintura, peito aberto (enxugar a testa foi descartado: a testa fica fora do alcance do braço de NPC, ~11,5 voxels). Posições em voxels do esqueleto NPC (ombro ±5,8 / 26,5). O clipe ATTACK toca o gesto de ofício (\"attack\": \"oficio\"), como o \"attack\" de cada perfil; o jogo não usa ATTACK em NPC.",
  "rightItem": null,
  "leftItem": null,
  "tipLength": 0,
- "attack": "emote",
+ "attack": "oficio",
  "defaults": {
   "rElbow": [
    -1,

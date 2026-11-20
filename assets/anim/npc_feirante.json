@@ -1,10 +1,10 @@
 {
  "name": "npc_feirante",
- "description": "NPC feirante (Quelmo, laboratório de conteúdo): perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': ajeita a mercadoria à frente da cintura (à esquerda, à direita) e oferece com a mão direita aberta, voltado ao freguês. Posições em voxels do esqueleto NPC.",
+ "description": "NPC feirante (Quelmo, laboratório de conteúdo): perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': ajeita a mercadoria à frente da cintura (à esquerda, à direita) e oferece com a mão direita aberta, voltado ao freguês. Posições em voxels do esqueleto NPC. O clipe ATTACK toca o gesto de ofício (\"attack\": \"oficio\"), como o \"attack\" de cada perfil; o jogo não usa ATTACK em NPC.",
  "rightItem": null,
  "leftItem": null,
  "tipLength": 0,
- "attack": "emote",
+ "attack": "oficio",
  "defaults": {
   "rElbow": [
    -1,

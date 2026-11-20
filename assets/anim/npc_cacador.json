@@ -1,10 +1,10 @@
 {
  "name": "npc_cacador",
- "description": "NPC caçador (Arvel, laboratório de conteúdo): perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': puxa a corda a tiracolo no peito, confere a bolsa nas costas olhando por cima do ombro e, meio agachado, aponta o horizonte (proteger os olhos foi descartado: a testa fica fora do alcance do braço de NPC, ~11,5 voxels). Posições em voxels do esqueleto NPC.",
+ "description": "NPC caçador (Arvel, laboratório de conteúdo): perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': puxa a corda a tiracolo no peito, confere a bolsa nas costas olhando por cima do ombro e, meio agachado, aponta o horizonte (proteger os olhos foi descartado: a testa fica fora do alcance do braço de NPC, ~11,5 voxels). Posições em voxels do esqueleto NPC. O clipe ATTACK toca o gesto de ofício (\"attack\": \"oficio\"), como o \"attack\" de cada perfil; o jogo não usa ATTACK em NPC.",
  "rightItem": null,
  "leftItem": null,
  "tipLength": 0,
- "attack": "emote",
+ "attack": "oficio",
  "defaults": {
   "rElbow": [
    -1,
