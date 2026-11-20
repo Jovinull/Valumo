@@ -250,3 +250,68 @@ o motivo no commit. Publicada, qualquer mudança assim vira versão nova (ADR 00
 - `DiscoveryTest`: os três tipos, o pote cheio/vazio, o mirante, o diário e o save.
 - `CompositeCollisionTest`: a torre, o piso exato, a câmera ao lado da árvore.
 - `CollisionIndexTest`, `MobilityTest` e `RegionGoldenTest`: a v1 com o combate congelado; a v2 refeita.
+
+## 11. Rodada 12.2 — moradores de ofício, quatro ruínas e saves de versão de testes (a v2 ainda não publicada)
+
+**A v1 não mudou:** 300 sementes iguais às da rodada 12 (conferidas com o binário final) e `regioes-v1.txt` intocado.
+`RegionGenerator.RESIDENTS`, que a v1 usa, não mudou.
+
+| Peça | 12.1 | 12.2 | Por quê |
+|---|---|---|---|
+| moradores de ofício | só o Bramor (guardião) | os cinco ofícios com personagem: Brásia, Quelmo, Arvel (PR #8), Índira, Bramor; todo conjunto posto tem o seu (190 de 200 regiões com pelo menos um) | P76 ([moradores](moradores-dos-oficios.md)) |
+| ponto do trabalhador | spawn `npc` da âncora | o do perfil (`conjuntos.*.trabalhador`): vaga recomendada da âncora ou de um item (o feirante ao lado da barraca), ou o spawn | o feirante atrás das mercadorias ficava escondido; a herbalista bloqueava a porta |
+| ruína | casa (60%) ou torre (40%) | **quatro**: casa, torre, abóbada soterrada e sítio abandonado (PR #8), com ordem sorteada com peso (rótulo `"ruina-tipos"`) e encaixe pelo terreno | variedade com propósito |
+| descobertas | casa, torre, árvore | + abóbada (o pote entre os barris, 5 moedas) e sítio (a pedra do marco, 0) | um lugar próprio por ruína |
+
+**Como o gerador escolhe a ruína** (`RegionV2.ruin`):
+
+1. **Ordem:** sorteada com peso, a mesma em todas as tentativas. Casa 4 (a base, sempre tem vez), torre 3, abóbada 3 com
+   morro na região e 1 sem, sítio 3 na região rural (aberta) e 1 na de caminho.
+2. **Encaixe:** cada tipo procura lugar perto da trilha, como antes (patamar próprio, trilha secundária, fora da arena dos
+   fungos).
+   - **Abóbada:** só onde o terreno natural sobe ≥ 0,3 u da frente aos fundos (o morro dela encosta num declive).
+   - **Sítio:** só onde o terreno natural varia ≤ 0,6 u na pegada inteira (chão aberto).
+3. **Sem lugar:** o tipo que não couber cede a vez ao seguinte; sem nenhum, a tentativa é recusada.
+
+**Sementes 1–200 (binário final):**
+
+| Ruína | Sementes |
+|---|---|
+| casa | 94 |
+| torre | 71 |
+| sítio | 21 |
+| abóbada | 14 |
+| árvore retorcida (junto da ruína) | 75 |
+
+- **Tentativas:** 0 sementes recusadas. 172 na 1ª tentativa, 23 na 2ª, 4 na 3ª, 1 na 4ª.
+- **Moradores:**
+
+  | Ofício | Morador | Regiões |
+  |---|---|---|
+  | herbalista | Índira | 88 |
+  | guardião de trilhas | Bramor | 73 |
+  | caçador | Arvel | 69 |
+  | ferreiro | Brásia | 60 |
+  | comerciante | Quelmo | 49 |
+
+**Determinismo:**
+
+- 200 sementes iguais em dois processos.
+- A ordem dos assets não importa: o perfil é congelado e lido inteiro.
+- O sorteio da ruína e o dos moradores têm rótulos próprios: não movem a missão, o marco nem os inimigos.
+- `regioes-v2.txt` foi refeito com o motivo no commit.
+
+**Saves de versão de testes:** um save íntegro de um mundo cuja região mudou antes da publicação é recusado sem `.invalido`
+e sem tocar no arquivo ([save](save.md) §Rodada 12.2).
+
+**O que fica congelado quando a v2 for publicada:**
+
+- o código de `RegionV2` (e das peças que ela chama);
+- o perfil `regiao_v2_e.json` (assets, pegadas, pontos, conjuntos, pontos dos trabalhadores, `oficios`);
+- os textos e moedas de `descobertas_e.json` (entram na cena, e a referência os inclui);
+- as falas e papéis de `habitantes_e.json`;
+- os perfis de colisão dos assets que ela planta (`colisao_e.json`);
+- `regioes-v2.txt`.
+
+A partir daí, mudar qualquer um deles muda regiões, e isso é uma versão nova (ADR 0029). `RegionGenerator.published`
+passa a incluir a v2.

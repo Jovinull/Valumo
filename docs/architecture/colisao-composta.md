@@ -90,6 +90,8 @@ Coluna a coluna de voxels (sem folhagem), as corridas contínuas (vão de até 2
 | `ruin_house` | ~160 | **liberado** | entra pelo arco e pela brecha (degraus quebrados), lareira e escombros; a copa (fosca, subida a ~2,2 u) segura a câmera sem colar nela (P82) |
 | `ruin_tower` | ~143 | **liberado (12.1)** | P74: escada interna recuada e arco de 8 voxels (1,0 u, nascendo acima da cabeça): passa com um corpo 0,12 u mais largo de cada lado; sobe-se na muralha baixa com um salto (o mirante) |
 | `market_stall` | 60 | **liberado** | o feirante atrás do balcão; o toldo segura a câmera |
+| `ruin_vault` (12.2, PR #8) | 356 (6 só de câmera) | **liberado (12.2)** | entra pela boca; interior coberto: as formas só de câmera ficam sobre a cobertura medida pelo PR (`medidas.cobertura_u`) e seguram a câmera, e o teto não é corpo (dá para entrar e andar); o rasgo de luz fica aberto; o morro é pisável |
+| `ruin_farmstead` (12.2, PR #8) | 88 (2 só de câmera) | **liberado (12.2)** | portão em arco na empena, porteira do curral, cocho e pedra do marco alcançáveis em 5 rumos |
 | `stone_circle` | 190 | aguardando refinamento | refino artístico pendente |
 
 **P74, o diagnóstico corrigido:**
@@ -99,7 +101,15 @@ Coluna a coluna de voxels (sem folhagem), as corridas contínuas (vão de até 2
   os degraus 3 e 4 da escada interna, logo atrás da boca da porta.
 - **A correção:** escada recuada mais arco alargado, com o arco ainda velho e quebrado (comparação no pacote 12.1).
 
-## 4. Os testes (`CompositeCollisionTest`, 10)
+**Variações das ruínas novas:** o PR mede cada variação (`formas_medidas_u`, `formas_iguais`, `pegada_reservada_u`). Nenhuma
+variação é publicada como prop (`"prop": null`), então só a base vai ao jogo, com a colisão medida da base. A abóbada tem
+`formas_iguais: false`: uma variação publicada no futuro vai precisar do perfil próprio, nunca o da base.
+
+**Morador de ofício e colisão** (12.2): o corpo do morador num ponto elevado vai do chão à cabeça lá em cima
+(`Collision.build`). A conferência de alcance ignora o que fica abaixo dos pés dele e, para o ponto autorado, usa o raio do
+corpo ([moradores](moradores-dos-oficios.md) §1).
+
+## 4. Os testes (`CompositeCollisionTest`, 11)
 
 Cada composto, sozinho num chão plano, deslocado e girado 0°, 90°, 180°, 270° e 37°:
 
@@ -114,8 +124,10 @@ Cada composto, sozinho num chão plano, deslocado e girado 0°, 90°, 180°, 270
 8. **P82:** a câmera do jogador dentro da ruína em 3 posições × 8 rumos. Rodada 12: colada em 9 de 24 (todos ao lado da
    árvore); 12.1: 0 de 24.
 9. **Liberação:** composto liberado ⇔ percorrido aqui (`ENTERABLE`).
-10. **Nunca dentro:** para cada sólido com o topo ao alcance do salto (377 nos compostos liberados, em 2 rumos), quem pula
+10. **Nunca dentro:** para cada sólido com o topo ao alcance do salto (nos seis compostos liberados, em 2 rumos), quem pula
     para cima dele nunca fica mais de 2 mm dentro de um corpo, e termina de pé num apoio de verdade.
+11. **O feirante na barraca (12.2):** o Quelmo na vaga lateral, em 5 rumos, não encosta e se alcança; a câmera de jogo
+    o vê (pela rua 5 de 5 pontos do corpo; na conversa 3 de 5; o spawn antigo, 2 de 5).
 
 **Testes que dependem disto:**
 

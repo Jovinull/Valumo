@@ -164,3 +164,18 @@ O guia completo, inclusive o contrato para quem desenha o personagem, está em
 - **Suporte:** todo sólido segura quem está em cima (`Collision.supports`); só pessoa e objeto de missão não.
 - **Colocação:** o herói nasce na superfície livre mais baixa ao alcance do salto (`Collision.standAt`). Ponto de partida
   num telhado é defeito do gerador.
+
+## 15. Ruínas compatíveis, moradores e o que congela (rodada 12.2)
+
+- **Ruína nova:**
+  - um `RuinKind` em `RegionV2` (asset, tipo do POI, rótulo do id, ponto da descoberta, tipo da descoberta);
+  - um peso na ordem;
+  - se fizer sentido, uma condição de terreno no encaixe (como a abóbada no declive e o sítio no chão aberto);
+  - o tipo de descoberta em `descobertas_e.json`.
+
+  Uma região tem UMA ruína.
+- **Morador num conjunto:** uma vaga recomendada (`pontos.vagas`) na âncora ou num item, quando o spawn não serve (porta
+  bloqueada, NPC escondido atrás das mercadorias). O perfil converte a vaga para o referencial da âncora.
+- **Save de versão de testes:** enquanto a versão não está publicada (`RegionGenerator.published`), mudar uma região deixa
+  os saves de mundos antigos recusados como "versão de testes", sem `.invalido`. Ao publicar, a versão entra em
+  `published` e congela (lista em [mundo procedural](../architecture/mundo-procedural.md) §11).
