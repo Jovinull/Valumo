@@ -327,17 +327,23 @@ class ProceduralWorldTest {
         // outro mundo não enxerga este save
         GameLogic other = proc(2048, saves);
         assertEquals("Nenhum jogo salvo ainda", other.continueBlocker());
-        // vínculos adulterados (como se o gerador tivesse mudado o lugar): recusado com motivo, original guardado
+        // vínculos que não batem (como se o gerador tivesse mudado o lugar): recusado — nada de reposicionar uma missão
+        // aceita em silêncio. Rodada 12.2: o arquivo é ÍNTEGRO, então não é "inválido" nem vai para .invalido; a v1
+        // procedural é publicada, então a frase é "não corresponde a este mundo" (SaveCompatTest cobre a versão de testes)
         String txt = Files.readString(f);
         Files.writeString(f, txt.replace(q.objectives().get(1).object(), "obj.r0.posto_0.outro"));
+        byte[] before = Files.readAllBytes(f);
         GameLogic bad = proc(4096, saves);
-        assertTrue(bad.continueBlocker().startsWith("Jogo salvo inválido"), bad.continueBlocker());
-        assertTrue(Files.exists(f.resolveSibling(SaveGame.FILE + ".invalido")));
-        // versão do gerador diferente: recusado (nada de reposicionar uma missão aceita em silêncio)
+        assertTrue(bad.saved.incompatible(), bad.continueBlocker());
+        assertTrue(bad.continueBlocker().startsWith("Esta aventura não corresponde a este mundo"), bad.continueBlocker());
+        assertFalse(Files.exists(f.resolveSibling(SaveGame.FILE + ".invalido")));
+        assertArrayEquals(before, Files.readAllBytes(f), "o arquivo ficou como estava");
+        // versão do gerador diferente: recusado do mesmo jeito (o motivo técnico vai para o log, não para a tela)
         JsonObject v = JsonParser.parseString(txt).getAsJsonObject();
         v.getAsJsonObject("mundo").addProperty("versaoGerador", RegionGenerator.V1 + 1);   // o save diz outra versão que a do mundo
         Files.writeString(f, SaveGame.text(v));
-        assertTrue(proc(4096, saves).continueBlocker().contains("versaoGerador"), "motivo cita o gerador");
+        GameLogic other2 = proc(4096, saves);
+        assertTrue(other2.saved.incompatible() && other2.saved.data() == null, other2.continueBlocker());
     }
 
     @Test
