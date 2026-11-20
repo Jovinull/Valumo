@@ -209,8 +209,24 @@ public final class Player {
             } else jumpQueued -= h;
         }
         if (grounded) {
+            float before = y;
             if (g >= y - SNAP_DOWN) y = g;
             else { grounded = false; vy = 0; airT = 0f; }
+            // rodada 12.2 — desceu de nível andando (um degrau do morro da abóbada): o que era degrau na altura de antes pode
+            // ser parede na de agora; o empurrão é refeito na altura nova, no mesmo passo (senão o corpo ficava um passo
+            // dentro dela — CompositeCollisionTest.quemPulaEmCimaDeUmSolidoBaixoNuncaFicaDentroDele)
+            if (grounded && y < before - 1e-4f) {
+                float[] q = {x, z};
+                float[] side = c.resolve(q, RADIUS, y, HEIGHT, STEP);
+                if (side[0] != 0 || side[1] != 0) {
+                    float pl = (float) Math.hypot(side[0], side[1]);
+                    float nx = side[0] / pl, nz = side[1] / pl, vn = vx * nx + vz * nz;
+                    if (vn < 0) { vx -= nx * vn; vz -= nz * vn; }
+                    x = q[0];
+                    z = q[1];
+                    blocked = true;
+                }
+            }
         }
         if (!grounded) {
             airT += h;
