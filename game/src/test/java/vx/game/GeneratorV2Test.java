@@ -151,6 +151,40 @@ class GeneratorV2Test {
         }
     }
 
+    /**
+     * As raras da mata saem de verdade (a árvore retorcida chegou a não sair em nenhuma de 60 sementes: o anel em volta do
+     * patamar já estava tomado pela mata) e a retorcida fica junto da ruína, fora da trilha.
+     */
+    @Test
+    void asArvoresRarasSaemEARetorcidaFicaJuntoDaRuina() throws Exception {
+        int gnarled = 0, dead = 0;
+        for (long s = 1; s <= 30; s++) {
+            RegionLayout L = v2(s).layout;
+            RegionLayout.PointOfInterest r = L.poi("ruin");
+            for (RegionLayout.Prop p : L.props) {
+                if (p.name().equals("tree_gnarled")) {
+                    gnarled++;
+                    float[] pad = L.pads.getFirst();
+                    double d = Math.hypot(p.x() - pad[0], p.z() - pad[1]);
+                    assertTrue(d <= pad[2] - 0.69f, "s" + s + ": a retorcida fora do plano do patamar da ruína (" + d + ")");
+                    assertTrue(Math.hypot(p.x() - r.x(), p.z() - r.z()) > 1.5f, "s" + s + ": a retorcida em cima da ruína");
+                }
+                if (p.name().equals("tree_dead")) dead++;
+            }
+        }
+        assertTrue(gnarled >= 5 && gnarled <= 20, "árvore retorcida em " + gnarled + " de 30 regiões (rara, mas presente)");
+        // a caixa usada na conferência de desnível é a do modelo de verdade
+        JsonObject e = JsonParser.parseString(Files.readString(A.resolve("environment/e/props.json"))).getAsJsonObject().getAsJsonObject("tree_gnarled");
+        float vs = e.get("voxelSize").getAsFloat();
+        var o = e.getAsJsonArray("origin");
+        var sz = e.getAsJsonArray("sizeVoxels");
+        assertEquals((o.get(0).getAsFloat() + sz.get(0).getAsFloat() / 2) * vs, vx.game.world.RegionV2Access.gnarledCenter()[0], 1e-4f);
+        assertEquals((o.get(2).getAsFloat() + sz.get(2).getAsFloat() / 2) * vs, vx.game.world.RegionV2Access.gnarledCenter()[1], 1e-4f);
+        assertEquals(sz.get(0).getAsFloat() * vs / 2, vx.game.world.RegionV2Access.gnarledHalf()[0], 1e-4f);
+        assertEquals(sz.get(2).getAsFloat() * vs / 2, vx.game.world.RegionV2Access.gnarledHalf()[1], 1e-4f);
+        assertTrue(dead >= 3 && dead <= 20, "árvore seca em " + dead + " de 30 regiões");
+    }
+
     @Test
     void aVegetacaoNaoMoveAMissaoNemAsConstrucoes() throws Exception {
         RegionProfile P = profile();
