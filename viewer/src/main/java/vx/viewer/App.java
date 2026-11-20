@@ -495,8 +495,36 @@ public final class App implements AutoCloseable {
 
     private List<String> lineup(State st) {
         List<String> out = new ArrayList<>();
-        for (String d : LINEUPS.getOrDefault(st.lineup, List.of())) if (assets.exists(d + "/rig.json")) out.add(d);
+        lineupCap = 2.6f;
+        lineupGap = 0.38f;
+        List<String> dirs = LINEUPS.containsKey(st.lineup) ? LINEUPS.get(st.lineup) : fileLineup(st.lineup);
+        for (String d : dirs) if (assets.exists(d + "/rig.json")) out.add(d);
         return out;
+    }
+
+    /** Largura máxima (u) e vão entre modelos do conjunto de LINHA corrente (os fixos acima usam 2,6 e 0,38). */
+    private float lineupCap = 2.6f, lineupGap = 0.38f;
+
+    /**
+     * Laboratório de conteúdo: conjunto de LINHA gerado em {@code assets/studies/lineups/<nome>.json}
+     * ({@code {"dirs": [...], "larguraMax": u, "vao": u}}), para comparar construções e árvores largas lado a lado sem
+     * editar a lista fixa. Ausente ou ilegível = conjunto vazio (nada é desenhado).
+     */
+    private List<String> fileLineup(String name) {
+        if (name == null || !name.matches("[a-z0-9_-]+")) return List.of();
+        Path p = assets.root().resolve("studies/lineups/" + name + ".json");
+        if (!Files.exists(p)) return List.of();
+        try {
+            com.google.gson.JsonObject o = com.google.gson.JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+            List<String> dirs = new ArrayList<>();
+            for (com.google.gson.JsonElement e : o.getAsJsonArray("dirs")) dirs.add(e.getAsString());
+            if (o.has("larguraMax")) lineupCap = o.get("larguraMax").getAsFloat();
+            if (o.has("vao")) lineupGap = o.get("vao").getAsFloat();
+            return dirs;
+        } catch (IOException | RuntimeException e) {
+            System.err.println("lineup " + name + ": ilegível (" + e.getMessage() + ")");
+            return List.of();
+        }
     }
 
     StyleProfile profile(State st, int styleIdx) {
@@ -651,12 +679,12 @@ public final class App implements AutoCloseable {
 
     /** Posições X dos modelos do modo LINHA (centradas em 0) e largura total. */
     private float[] lineupLayout(List<String> dirs) {
-        float gap = 0.38f;
+        float gap = lineupGap;
         float[] xs = new float[dirs.size() + 1];
         float acc = 0;
         for (int i = 0; i < dirs.size(); i++) {
             CharacterModel m = rig(dirs.get(i));
-            float w = Math.max(0.62f, Math.min(m.width, 2.6f));
+            float w = Math.max(0.62f, Math.min(m.width, lineupCap));
             xs[i] = acc + w / 2;
             acc += w + gap;
         }
