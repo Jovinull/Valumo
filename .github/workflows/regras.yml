@@ -1,0 +1,45 @@
+# Regras do repositório que não dependem do build (rápido): autoria dos commits e texto do PR.
+# O proprietário exige commits com o e-mail noreply (nunca o pessoal), só o título, sem trailers, e nenhuma linha de
+# atribuição de ferramenta ("Generated with …", "Co-Authored-By") em commits nem no corpo dos PRs. Agentes já erraram
+# isso em clones sem a configuração local: esta verificação não depende de ninguém lembrar.
+name: regras
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  autoria-e-texto:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Autoria dos commits (noreply) e mensagens só com título
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          NOREPLY: 79649732+Jovinull@users.noreply.github.com
+        run: |
+          ruins=$(git log --format='%h %ae %ce %s' "$BASE..$HEAD" | awk -v ok="$NOREPLY" '$2 != ok || ($3 != ok && $3 != "noreply@github.com")')
+          if [ -n "$ruins" ]; then
+            echo "Commits sem o e-mail noreply (autor ou committer):"; echo "$ruins"
+            echo "Corrija com: git config user.email $NOREPLY  (e refaça os commits)"; exit 1
+          fi
+          corpo=$(git log --format='%h%n%b' "$BASE..$HEAD" | grep -iE 'co-authored-by|signed-off-by|generated with|claude' || true)
+          if [ -n "$corpo" ]; then echo "Mensagens com corpo de atribuição:"; echo "$corpo"; exit 1; fi
+          echo "ok: $(git rev-list --count "$BASE..$HEAD") commits"
+
+      - name: Corpo do PR sem atribuição de ferramenta
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if printf '%s' "$BODY" | grep -qiE 'generated with|co-authored-by|claude code'; then
+            echo "O corpo do PR tem linha de atribuição de ferramenta; remova-a (regra do proprietário)."; exit 1
+          fi
+          echo ok
