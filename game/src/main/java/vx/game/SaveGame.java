@@ -73,8 +73,14 @@ public final class SaveGame {
     public record Data(String id, String scene, Appearance appearance, String appearanceProblem, float x, float z, float yawDeg,
                        float playTime, QuestSystem quests) { }
 
-    /** Resultado da leitura: {@code data} ou {@code problem} (motivo para o jogador); ambos null = não há save. */
-    public record Loaded(Data data, String problem, Path preserved) {
+    /**
+     * Resultado da leitura: {@code data} ou {@code problem} (motivo para o jogador); ambos null = não há save. Rodada 12.2:
+     * {@code incompatible} = o arquivo está íntegro mas é de OUTRA região ou de um jogo mais novo ({@link Incompatible}):
+     * nada é copiado para {@code .invalido} e nada é gravado ({@code preserved} null).
+     */
+    public record Loaded(Data data, String problem, Path preserved, boolean incompatible) {
+        public Loaded(Data data, String problem, Path preserved) { this(data, problem, preserved, false); }
+
         public boolean exists() { return data != null || problem != null; }
     }
 
@@ -224,6 +230,9 @@ public final class SaveGame {
         try {
             if (Files.size(file) > MAX_BYTES) throw new Invalid("arquivo grande demais (" + Files.size(file) + " bytes)");
             return new Loaded(parse(Files.readString(file, StandardCharsets.UTF_8), cat, scene, quests, objects, ps), null, null);
+        } catch (Incompatible e) {                                         // rodada 12.2: íntegro, de outra região: nada é tocado
+            System.out.println("save: " + dir + " — " + e.getMessage() + " (" + e.detail + "); o arquivo ficou como estava, sem .invalido");
+            return new Loaded(null, e.getMessage(), null, true);
         } catch (IOException | RuntimeException e) {
             String why = e instanceof Invalid || e instanceof QuestSystem.InvalidState ? e.getMessage() : brief(e);
             return new Loaded(null, why, Prefs.preserveInvalid(file));
@@ -245,6 +254,30 @@ public final class SaveGame {
         private static final long serialVersionUID = 1L;
 
         public Invalid(String msg) { super(msg); }
+    }
+
+    /**
+     * Rodada 12.2 — save ÍNTEGRO que não serve para esta leitura: de um jogo mais novo (versão do formato maior que a
+     * conhecida) ou de um mundo gerado cuja região de agora é outra (mundo salvo, vínculos da missão, missão, objeto,
+     * descoberta ou inimigo que a região de agora não tem). Não é arquivo corrompido: não vai para {@code .invalido} e nada é
+     * gravado. Numa versão do gerador ainda em testes ({@link vx.game.world.RegionGenerator#published}) é "de uma versão de
+     * testes": a região daquela semente mudou antes da publicação. A mensagem é para o jogador; {@code detail}, para o log.
+     */
+    public static final class Incompatible extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public final String detail;
+
+        public Incompatible(String msg, String detail) {
+            super(msg);
+            this.detail = detail;
+        }
+    }
+
+    /** A recusa de um save íntegro de outra região: "de uma versão de testes" quando a versão do mundo ainda não foi publicada. */
+    static Incompatible otherRegion(ProceduralScene ps, String detail) {
+        return vx.game.world.RegionGenerator.published(ps.version())
+                ? new Incompatible("Esta aventura não corresponde a este mundo. Ela continua guardada como estava", detail)
+                : new Incompatible("Esta aventura é de uma versão de testes deste mundo, que mudou antes do lançamento. Ela continua guardada como estava; crie outro mundo para jogar", detail);
     }
 
     public static Data parse(String json, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects) {
@@ -270,6 +303,8 @@ public final class SaveGame {
         JsonElement v = o.get("versao");
         if (v == null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isNumber()) throw new Invalid("versão ausente");
         int want = ps == null ? VERSION : VERSION_PROCEDURAL;
+        if (v.getAsDouble() == Math.rint(v.getAsDouble()) && v.getAsDouble() > VERSION_PROCEDURAL && v.getAsDouble() < 1e6)
+            throw new Incompatible("Esta aventura foi salva por uma versão mais nova do jogo. Ela continua guardada como estava", "versão " + v.getAsString() + " do save");
         if (v.getAsDouble() != want) {
             if (v.getAsDouble() == VERSION_PROCEDURAL && ps == null) throw new Invalid("é um save de mundo procedural (v2): abra com -Dvx.mundo=procedural");
             if (v.getAsDouble() == VERSION && ps != null) throw new Invalid("é um save do mundo fixo (v1): abra sem -Dvx.mundo");
@@ -278,12 +313,13 @@ public final class SaveGame {
         if (ps != null) {
             JsonObject m = obj(o, "mundo");
             JsonObject now = worldJson(ps);
-            for (String k : now.keySet())
-                if (!now.get(k).equals(m.get(k))) throw new Invalid("mundo salvo diferente deste (" + k + ": " + m.get(k) + " × " + now.get(k) + ")");
+            for (String k : now.keySet())                                  // rodada 12.2: íntegro, de outra região (não corrompido)
+                if (!now.get(k).equals(m.get(k))) throw otherRegion(ps, "mundo salvo diferente deste (" + k + ": " + m.get(k) + " × " + now.get(k) + ")");
             JsonElement b = o.get("vinculos");
             JsonArray expect = new JsonArray();
             if (ps.binding != null) expect.add(ps.binding.toJson());
-            if (b == null || !b.equals(expect)) throw new Invalid("os vínculos da missão salvos não batem com a região gerada agora");
+            if (b == null || !b.isJsonArray()) throw new Invalid("\"vinculos\" ausente ou não é lista");
+            if (!b.equals(expect)) throw otherRegion(ps, "os vínculos da missão salvos não batem com a região gerada agora");
         }
         String id = str(o, "id");
         if (id == null || !id.matches("[0-9a-f]{16}")) throw new Invalid("id do save inválido");
@@ -294,7 +330,12 @@ public final class SaveGame {
         float x = num(p, "x", -MAX_COORD, MAX_COORD), z = num(p, "z", -MAX_COORD, MAX_COORD), yaw = num(p, "direcao", -3600f, 3600f);
         float play = num(o, "tempoDeJogo", 0f, 1e8f);
         QuestSystem q = new QuestSystem(quests);
-        q.fromJson(obj(o, "progresso"), objects);
+        try {
+            q.fromJson(obj(o, "progresso"), objects);
+        } catch (QuestSystem.UnknownReference e) {                         // rodada 12.2: na região gerada, é outra região
+            if (ps != null) throw otherRegion(ps, e.getMessage());
+            throw e;
+        }
         q.clock = play;
         Appearance a;
         String problem = null;

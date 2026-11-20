@@ -1805,7 +1805,8 @@ public final class Game implements AutoCloseable {
             openSession(built[0], scene, ps[0], dir);
             String why = logic.beginAdventure(prof.appearance(), prof.name(), resume);
             if (why != null) {
-                recoverToMenu("Não consegui continuar a aventura: " + why + ". O arquivo ficou como estava.");
+                recoverToMenu(logic.saved.incompatible() ? why + "."              // rodada 12.2: a frase já diz que ficou guardada
+                        : "Não consegui continuar a aventura: " + why + ". O arquivo ficou como estava.");
                 return;
             }
             long now = vx.game.menu.CharacterStore.now();

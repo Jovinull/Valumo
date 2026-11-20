@@ -900,6 +900,7 @@ public final class GameLogic {
         if (quests == null) return "Esta cena não tem jogo salvo";
         if (saveDir == null) return "Salvar está desligado nesta sessão";
         if (saved.data() != null) return null;
+        if (saved.problem() != null && saved.incompatible()) return saved.problem();   // rodada 12.2: íntegro, de outra região
         if (saved.problem() != null) return "Jogo salvo inválido: " + saved.problem();
         return "Nenhum jogo salvo ainda";
     }
