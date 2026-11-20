@@ -320,17 +320,24 @@ final class RegionV2 {
         float[] kel = world(ip[0], ip[1], innRot, 1.4f * side, inn.z1() + 1.0f);
         L.npcs.add(new RegionLayout.Npc("kelyra", kel[0], kel[1], innRot + 75f * side));   // de lado: a fala fica ao longo da fachada
         // ---- o centro da praça: chafariz (caminho) ou poço de manivela (rural)
+        // (o que fica na praça ocupa lugar, com folga: um conjunto não se encosta no chafariz nem no poço)
         if (caminho && sr.chance(0.75f)) {
             place(L, "fountain_square", L.sx, L.sz, exit + 45f);
             L.buildings.add(new RegionLayout.Building("fountain_square", null, L.sx, L.sz, exit + 45f, "praca"));
+            RegionProfile.Asset F = P.asset("fountain_square");
+            taken.add(box(L.sx, L.sz, exit + 45f, F.x0() - 0.6f, F.z0() - 0.6f, F.x1() + 0.6f, F.z1() + 0.6f));
             for (float s : new float[]{1, -1}) {
                 float[] b = world(L.sx, L.sz, exit, s * 2.85f, -0.6f);
                 place(L, "bench_wood", b[0], b[1], exit + s * 90f);
+                RegionProfile.Asset B = P.asset("bench_wood");
+                taken.add(box(b[0], b[1], exit + s * 90f, B.x0() - 0.3f, B.z0() - 0.5f, B.x1() + 0.3f, B.z1() + 0.8f));
             }
         } else {
             float[] w = world(L.sx, L.sz, exit, -2.2f * side, 0.6f);
             place(L, "well_windlass", w[0], w[1], exit + 90f * side);
             L.buildings.add(new RegionLayout.Building("well_windlass", null, w[0], w[1], exit + 90f * side, "praca"));
+            RegionProfile.Asset W = P.asset("well_windlass");
+            taken.add(box(w[0], w[1], exit + 90f * side, W.x0() - 0.9f, W.z0() - 0.9f, W.x1() + 0.9f, W.z1() + 1.3f));
         }
         // ---- construções e conjuntos em volta da praça, virados para ela: posição sorteada (ângulo a partir da saída, folga
         // entre a praça e a fachada), conferida PEÇA A PEÇA (a pegada da âncora e a de cada item, giradas juntas)
