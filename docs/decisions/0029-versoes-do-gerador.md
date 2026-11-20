@@ -1,7 +1,7 @@
-# 0029 — Versões do gerador: a v1 congelada para os mundos v1, a v2 só para mundos novos (proposta)
+# 0029 — Versões do gerador: a v1 congelada para os mundos v1, a v2 só para mundos novos
 
-**Status:** proposta (integração dos lotes 1 e 2 de conteúdo). **Nada disto está implementado.** O gerador continua
-sendo um só (`RegionGenerator.VERSION = 1`) e os lotes entram só como biblioteca (ADR 0030).
+**Status:** aceita e **implementada na rodada 12**. A seção "Implementação (rodada 12)", no fim, diz o que foi feito e onde
+difere da proposta. A proposta original (integração dos lotes 1 e 2) fica abaixo como registro.
 
 ## Contexto
 
@@ -121,3 +121,60 @@ mudou; o teste falha. **Nunca se atualiza a referência para passar.**
   desde que a versão antiga continue existindo.
 - **Copiar o gerador inteiro por versão:** duplicação que apodrece. O perfil + as peças compartilhadas + a referência
   por versão dão a mesma garantia com muito menos código.
+
+## Implementação (rodada 12)
+
+**O que existe:**
+
+- **Versões:** `RegionGenerator.V1 = 1`, `V2 = 2`, `LATEST = V2` (os mundos novos nascem na v2) e `supports(v)` (1 e 2).
+- **Despacho:** `RegionGenerator.compose(semente, tentativa, versão, perfil, vegetação)` escolhe o caminho.
+  - **v1:** é `composeV1`, o código da rodada 11 **literalmente igual**, sem extrair constantes para um objeto de perfil.
+    Não refatorar foi a forma mais segura de não mover nenhum sorteio.
+  - **v2:** é a classe `RegionV2`. Reaproveita as peças sem estado da v1 (`sampleCurve`, `deg`, `minPathDist`,
+    `playableEdge`, `crowded`, `nearPlaces`, `composePost`, `RESIDENTS`); todo sorteio novo leva o prefixo `"v2"` no
+    rótulo do `Rng`.
+- **Perfil da v2:** é o arquivo **congelado** `assets/scenes/regiao_v2_e.json` (`RegionProfile`).
+  - Guarda pegada, altura, área livre, entradas, interação, spawns e os conjuntos.
+  - Foi escrito uma vez por `tools/conteudo/perfil_regiao_v2.py` a partir do catálogo e revisado.
+  - O gerador não lê o catálogo gerado. `GeneratorV2Test.oPerfilCongeladoAindaBateComOCatalogo` confere que os dois
+    ainda batem.
+- **A versão é do mundo, não do jogo:**
+  - `RegionLayout.version` e `RegionLayout.key()` (`s1024.g2.r0`);
+  - o id do relevo (`proc.<semente>.v<versão>.<tentativa>`, chave do cache de `Terrain`);
+  - o `_doc` da cena (a v1 continua escrevendo `v1`, e por isso a impressão digital dela não mudou);
+  - o save v2 (`mundo.versaoGerador` = a versão da região).
+- **Criar e abrir:**
+  - o menu cria na `LATEST`;
+  - `Game.enterAdventure`, as prévias e o resumo geram na versão do `mundo.json`;
+  - a adoção de saves antigos lê a versão gravada no save (`SaveGame.peekGenerator`) e cria o mundo nela;
+  - o modo técnico usa `-Dvx.gerador=N`, ou a versão do save que já existe na pasta da semente, ou a `LATEST`.
+- **Versão desconhecida** (mundo de um jogo mais novo):
+  - `WorldStore.World.supported()` = falso: o mundo continua na lista, sem prévia;
+  - entrar mostra "Este mundo foi criado por uma versão mais nova do Valumo e não pode ser aberto aqui. Nada foi
+    alterado.";
+  - **nenhum arquivo é tocado** e não há `.invalido`;
+  - `ProceduralScene.create` recusa a versão com `Rejected`.
+- **`.invalido` só para o que é defeito de verdade:**
+  - o save diz uma versão e o mundo diz outra;
+  - vínculos diferentes da região gerada;
+  - descoberta desconhecida;
+  - JSON ilegível.
+- **Referências:**
+  - `game/src/test/resources/regioes-v1.txt` (inalterada, 8/8);
+  - `regioes-v2.txt` (fixada na aprovação da composição desta rodada);
+  - `RegionGoldenTest` confere as duas;
+  - o escritor (`VX_REFERENCIA_ESCREVER=N ./gradlew --no-daemon :game:test --tests vx.game.RegionGoldenTest`) recusa a
+    v1 e recusa sobrescrever.
+- **Testes:**
+  - `GeneratorVersionTest`: v1 continua v1, mundo novo na mais nova, versão desconhecida intacta, save v1 válido nunca
+    `.invalido`, adoção na versão do save;
+  - `GeneratorV2Test`;
+  - `RegionGoldenTest`;
+  - a matriz `tools/qa/saves_antigos.sh` (saves feitos pelo binário publicado anterior, abertos pelo novo).
+
+**Diferenças em relação à proposta:**
+
+- não há `PerfilV1` (a v1 é o código congelado);
+- o formulário de mundo não oferece "estilo antigo" (não foi pedido);
+- a v2 tem a mesma região controlada da v1 (±16,5 u), sem aumentar o mapa.
+
