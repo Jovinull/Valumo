@@ -99,10 +99,12 @@ class CompositeCollisionTest {
         float x0 = OX - 8f, z0 = OZ - 8f;
         int n = (int) (16f / CELL);
         boolean[] free = new boolean[n * n], seen = new boolean[n * n];
+        float[] h = new float[n * n];
         for (int iz = 0; iz < n; iz++)
             for (int ix = 0; ix < n; ix++) {
                 float x = x0 + (ix + 0.5f) * CELL, z = z0 + (iz + 0.5f) * CELL;
-                free[ix + iz * n] = Reachability.free(c, x, z, c.floor(x, z, 99f, Player.RADIUS));
+                h[ix + iz * n] = c.floor(x, z, 99f, Player.RADIUS);
+                free[ix + iz * n] = Reachability.free(c, x, z, h[ix + iz * n]);
             }
         int s = (int) ((sx - x0) / CELL) + (int) ((sz - z0) / CELL) * n;
         assertTrue(free[s], "o ponto de partida (fora do prop) é livre");
@@ -113,7 +115,7 @@ class CompositeCollisionTest {
             int k = q.poll(), ix = k % n, iz = k / n;
             for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
                 int jx = ix + d[0], jz = iz + d[1], j = jx + jz * n;
-                if (jx < 0 || jz < 0 || jx >= n || jz >= n || seen[j] || !free[j]) continue;
+                if (jx < 0 || jz < 0 || jx >= n || jz >= n || seen[j] || !free[j] || Math.abs(h[j] - h[k]) > Player.STEP) continue;
                 seen[j] = true;
                 q.add(j);
             }
@@ -242,6 +244,31 @@ class CompositeCollisionTest {
                     assertTrue(c.shapes.stream().anyMatch(s -> !s.body && s.camera), at + ": sem forma só de câmera (telhado)");
                 }
                 assertNotNull(m);
+            }
+    }
+
+    /**
+     * Piso elevado (a laje de pedra da oficina e da ruína tem o topo a 0,375 u): por dentro o chão é a forma pisável no
+     * degrau que se sobe a pé (0,30 u) — o herói não anda afundado na laje e entra sem pular.
+     */
+    @Test
+    void oPisoElevadoDosInterioresEChao() throws Exception {
+        JsonObject cat = catalog();
+        for (String name : new String[]{"workshop_forge", "ruin_house"})
+            for (float yaw : YAWS) {
+                JsonObject rec = cat.getAsJsonObject(name);
+                Collision c = build(name, yaw, 1f, false, rec);
+                Matrix4f m = new Matrix4f().translate(OX, 0, OZ).rotateY((float) Math.toRadians(yaw));
+                JsonArray r = rec.getAsJsonObject("pontos").getAsJsonArray("area_segura_u").get(0).getAsJsonArray();
+                int raised = 0, n = 0;
+                for (float lx = r.get(0).getAsFloat(); lx < r.get(2).getAsFloat(); lx += 0.25f)
+                    for (float lz = r.get(1).getAsFloat(); lz < r.get(3).getAsFloat(); lz += 0.25f) {
+                        Vector3f w = m.transformPosition(new Vector3f(lx + 0.125f, 0, lz + 0.125f));
+                        if (!Reachability.free(c, w.x, w.z, c.floor(w.x, w.z, 99f, Player.RADIUS))) continue;
+                        n++;
+                        if (c.floor(w.x, w.z, 99f, Player.RADIUS) >= Player.STEP - 1e-3f) raised++;
+                    }
+                assertTrue(n > 0 && raised >= n * 3 / 4, name + " a " + yaw + "°: o chão de dentro é a laje (" + raised + " de " + n + ")");
             }
     }
 
