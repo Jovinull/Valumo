@@ -1,5 +1,5 @@
 {
-  "_doc": "Rodada 11 — moradores que o mundo procedural pode pôr num assentamento (escrito à mão). id = pasta do rig. papeis: o que o NPC pode pedir ou comentar (modelos de missão escolhem o doador por papel). artigo: 'a'/'o' para a gramática das falas ('à Kelyra', 'ao Bramor'). requer: fatos do mundo sem os quais o NPC não mora ali ('lago'). falas: as de sempre, sem fatos fixos; {rumo_posto} = rumo do posto visto do assentamento ('sul', 'nordeste'…). falasSemLago: variante para regiões sem lago. oficio (rodada 12.1, opcional): o ofício de um CONJUNTO que o morador exerce (o mesmo nome técnico do catálogo de conteúdo: ferreiro, herbalista, comerciante, cacador, guardiao_de_trilhas); o gerador v2 o põe no spawn do conjunto daquele ofício (pelo perfil congelado, nunca pelo nome). Contrato: docs/architecture/contrato-instancias-de-missao.md e docs/architecture/moradores-dos-oficios.md.",
+  "_doc": "Rodada 11 — moradores que o mundo procedural pode pôr num assentamento (escrito à mão). id = pasta do rig. papeis: o que o NPC pode pedir ou comentar (modelos de missão escolhem o doador por papel). artigo: 'a'/'o' para a gramática das falas ('à Kelyra', 'ao Bramor'). requer: fatos do mundo sem os quais o NPC não mora ali ('lago'). falas: as de sempre, sem fatos fixos; {rumo_posto} = rumo do posto visto do assentamento ('sul', 'nordeste'…). falasSemLago: variante para regiões sem lago. oficio (rodada 12.1, opcional): o ofício de um CONJUNTO que o morador exerce (o mesmo nome técnico do catálogo de conteúdo: ferreiro, herbalista, comerciante, cacador, guardiao_de_trilhas); o gerador v2 o põe no spawn do conjunto daquele ofício (pelo perfil congelado, nunca pelo nome). gesto (rodada 12.2, opcional): \"oficio\" = de tempos em tempos o morador toca o gesto de ofício do perfil de animação dele (clipe ATTACK de npc_ferreira/npc_feirante/npc_cacador), só desenho. Os moradores de ofício da 12.2 (Brásia, Quelmo, Arvel, do PR #8, e a Índira como herbalista) não têm os papéis caminhos/trilhas: não mudam quem dá a missão. Contrato: docs/architecture/contrato-instancias-de-missao.md e docs/architecture/moradores-dos-oficios.md.",
   "formato": "valumo.habitantes",
   "versao": 1,
   "habitantes": {
@@ -60,6 +60,42 @@
         {"texto": "Psiu... ainda é cedo para cantar. Sou Lunara; minha voz é das noites daqui."},
         {"texto": "Quando a lua sobe, a praça inteira para para ouvir. Até os fungos ficam quietos, juram os mais velhos."},
         {"texto": "Volte depois do pôr do sol. Guardo uma canção nova para quem chega de longe."}
+      ]
+    },
+    "brasia": {
+      "rig": "characters/npc/brasia", "nome": "Brásia", "titulo": "Ferreira", "artigo": "a",
+      "papeis": ["ferreira", "oficina"], "oficio": "ferreiro", "gesto": "oficio",
+      "falas": [
+        {"texto": "Cuidado com a bigorna, que ela não perdoa joelho. Sou Brásia; tudo o que range nesta vila passa pela minha forja.", "expressao": "joy"},
+        {"texto": "Ferradura, dobradiça, prego de telhado... ferro bom é o que ninguém repara, porque nunca quebra."},
+        {"texto": "Se o fole parar à tarde, não estranhe: é a hora em que a brasa descansa. E eu também.", "expressao": "determined"}
+      ]
+    },
+    "quelmo": {
+      "rig": "characters/npc/quelmo", "nome": "Quelmo", "titulo": "Feirante", "artigo": "o",
+      "papeis": ["feirante", "comercio"], "oficio": "comerciante", "gesto": "oficio",
+      "falas": [
+        {"texto": "Chegue, chegue! Sou Quelmo. A banca ainda está se arrumando, mas a conversa já está aberta.", "expressao": "joy"},
+        {"texto": "Arrumo tudo do mesmo jeito toda manhã: o que é bonito na frente, o que é útil perto da mão."},
+        {"texto": "Quem volta do {rumo_posto} sempre passa por aqui primeiro. Notícia da trilha, a banca escuta antes de todo mundo.", "expressao": "determined"}
+      ]
+    },
+    "arvel": {
+      "rig": "characters/npc/arvel", "nome": "Arvel", "titulo": "Caçador", "artigo": "o",
+      "papeis": ["cacador", "mata"], "oficio": "cacador", "gesto": "oficio",
+      "falas": [
+        {"texto": "Fale baixo perto da mata. Sou Arvel; tiro dela o que a vila precisa e deixo o resto em paz.", "expressao": "determined"},
+        {"texto": "Rastro de fungo é fácil de ler: terra revirada e cheiro de chuva velha."},
+        {"texto": "A corda no ombro não é enfeite. Já puxou mais de um curioso de dentro de barranco.", "expressao": "joy"}
+      ]
+    },
+    "indira": {
+      "rig": "characters/npc/indira", "nome": "Índira", "titulo": "Herbalista", "artigo": "a",
+      "papeis": ["herbalista", "ervas"], "oficio": "herbalista",
+      "falas": [
+        {"texto": "Oi! Sou Índira. Se o cheiro de hortelã chegou antes de mim, foi de propósito.", "expressao": "joy"},
+        {"texto": "Cada erva tem a sua hora de colher. A maioria prefere o orvalho; as teimosas, o sol do meio-dia."},
+        {"texto": "Arranhão de espinho se trata com água limpa, folha certa e paciência. A paciência é a parte difícil.", "expressao": "determined"}
       ]
     }
   }
