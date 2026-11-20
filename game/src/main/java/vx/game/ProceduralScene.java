@@ -415,7 +415,7 @@ public final class ProceduralScene {
         Map<String, String> facts = new java.util.HashMap<>();
         facts.put("rumo_vila", rumo(L.sx - f.x(), L.sz - f.z()));
         facts.put("rumo_posto", rumo(L.px - f.x(), L.pz - f.z()));
-        facts.put("lago", L.pond == null ? "" : " e o brilho do lago a " + rumo(L.pond[0] - f.x(), L.pond[1] - f.z()));
+        facts.put("lago", L.pond == null ? "" : " Mais longe, brilha o lago a " + rumo(L.pond[0] - f.x(), L.pond[1] - f.z()) + ".");
         String ruinAsset = L.buildings.stream().filter(b -> b.role().equals("ruina")).map(RegionLayout.Building::asset).findFirst().orElse("");
         facts.put("ruina", ruinAsset.equals("ruin_tower") ? "da torre caída" : "da casa em ruína");
         JsonObject o = new JsonObject();
