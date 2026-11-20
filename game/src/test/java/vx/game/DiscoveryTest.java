@@ -118,6 +118,7 @@ class DiscoveryTest {
         for (int i = 0; i < 120; i++) { AdventureTest.press(g, GLFW_KEY_E); AdventureTest.frames(g, 1); }   // apertar e apertar
         assertEquals(before + 5, g.quests.coins(), "a recompensa não repete");
         assertFalse(g.useDiscovery(of(g, HOUSE)), "de novo: nada pago");
+        assertEquals("Olhar o pote vazio", of(g, HOUSE).verbSeen(), "a placa depois do achado não manda pegar o pote vazio");
         // o pote fica no chão de verdade (a laje), não no meio voxel do catálogo
         SceneDef.Discovery h = of(g, HOUSE);
         assertEquals(g.collision.ground.height(h.x(), h.z()) + 0.375f, g.discoveryFloor(h), 0.13f, "o pote na laje da casa");
@@ -167,6 +168,7 @@ class DiscoveryTest {
         SceneDef.Discovery t = approach(g, TREE);
         assertNotNull(g.discoveryCandidate);
         assertEquals("Examinar a árvore", g.discoveryCandidate.verb());
+        assertEquals(g.discoveryCandidate.verb(), g.discoveryCandidate.verbSeen(), "sem verbo próprio: o mesmo depois do achado");
         int before = g.quests.coins();
         AdventureTest.press(g, GLFW_KEY_E);
         assertTrue(g.quests.discovered(TREE));
