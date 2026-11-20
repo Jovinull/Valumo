@@ -1,5 +1,8 @@
 # Catálogo de conteúdo do mundo — `valumo.conteudo` v1 (provisório, isolado)
 
+**Base:** `main` @ `8fd6756` (rodada 10). O mundo procedural (rodada 11/11.1) não estava publicado quando o formato foi
+feito; os contratos dele foram lidos, não usados.
+
 O laboratório de conteúdo ([../art/conteudo-mundo.md](../art/conteudo-mundo.md)) entrega assets **com contexto**: cada
 um vem com os metadados que um gerador procedural precisa para pô-lo no mundo sem chutar. O formato é **provisório** e
 fica fora do módulo `game`. Ele foi desenhado para caber nos contratos da rodada 11 (região, POI, colisão por perfil,
@@ -7,7 +10,7 @@ conferência de alcance), que ainda não estão na `main`. O agente principal ad
 
 - **Arquivo:** `assets/environment/e/conteudo_catalogo.json`, gerado por `tools/conteudo_e.py` (fora do git, como todo
   asset gerado).
-- **Testes:** `viewer/src/test/java/vx/viewer/ConteudoMundoTest.java` (9 testes, leitor e mesher reais).
+- **Testes:** `viewer/src/test/java/vx/viewer/ConteudoMundoTest.java` (10 testes, leitor e mesher reais).
 
 ## 1. Como os números nascem (nada é número solto)
 
@@ -24,14 +27,17 @@ conferência de alcance), que ainda não estão na `main`. O agente principal ad
 |---|---|
 | `id` | id estável, igual ao nome do prop no `props.json` (minúsculas e `_`, em inglês, como os aprovados). Nunca colide com um aprovado (o build recusa) |
 | `nome`, `categoria`, `subcategoria`, `lote`, `versao`, `fonte` | identificação. `fonte` = `arquivo.py:função` |
-| `estado` | `candidato` (no `props.json`, aguardando o proprietário), `recomendado` (o laboratório recomenda integrar) ou `rejeitado` (só em `assets/studies/conteudo/`, com `motivo_rejeicao`) |
+| `estado` | `aprovado` (no `props.json`) ou `rejeitado` (só em `assets/studies/conteudo/`, com `motivo_rejeicao`; nunca distribuível) |
+| `aprovacao.artistica` | decisão do proprietário: `aprovado`, `aprovado_conceito` (aceito, com refinamento pendente) ou `rejeitado` |
+| `aprovacao.integracao` | o que o gerador pode usar: `liberado`, `depende_colisao_composta`, `aguardando_refinamento` ou `nao_distribuivel` |
+| `aprovacao.distribuicao_procedural` | `true` só quando `liberado`; `aprovacao.dependencias` explica o resto (teste: nunca vazio) |
 | `origem`, `orientacao` | x = z = 0 no centro da pegada; y = 0 é o chão (soleira); +z é a frente (entrada principal) |
 | `funcao`, `tags`, `frequencia`, `terreno`, `restricoes` | para as regras de composição: onde o asset cabe, quantos, com o quê |
 | `apoio` | `patamar` (o relevo precisa ser aplainado sob a pegada + `margem_u`), `ponto` (árvore: só o tronco toca o chão) ou `terreno` (as peças se enterram e aceitam desnível) |
 | `inclinacao_max_u` | maior desnível sob a pegada que a fundação de pedra cobre sem mostrar vão |
 | `area_livre` | `frente_u`, `lados_u`, `fundos_u` ou `raio_u`: o que nenhum outro sólido pode ocupar em volta (entrada, circulação, câmera) |
 | `colisao` | perfil compatível com `assets/scenes/colisao_e.json` (`caixa`/`escala`, `circulo`/`raio`, `tronco`/`raio`/`copa`/`copaDe`, `nenhum`). Com `"formas": ...`, o asset **precisa** de formas compostas (§4) |
-| `affineWind` | o mesmo do `props.json` |
+| `affineWind` | **medido**: `true` só se o modelo ainda tem material folhagem. A flag do prop NÃO liga vento: o vento afim é do estilo E e desloca só a folhagem; a flag autoriza o mesher a fundir essas faces. Estruturas rígidas sem folhagem declaram `false` |
 | `medidas.caixa_u`, `dimensoes_u` | caixa dos voxels, em u, no espaço do modelo |
 | `medidas.pegada_u` | colunas com voxel em y 0..3 (o que toca o chão): retângulo e área real |
 | `medidas.tronco_u` | árvores: centro e raio do tronco medidos na faixa `faixa_y_u` (casca, sem folhagem) |
@@ -98,10 +104,14 @@ conferência de alcance com as formas compostas.
 ## 6. Carga e memória (decisão de integração)
 
 O `Assets.props` lê e malha **todo** o `props.json` na primeira carga, mesmo os props que a cena não usa. Os 12
-candidatos do lote 1 somariam:
+assets do lote 1 somam (duas medidas da MESMA malha, com definições diferentes):
 
-- **+16,6 MB** de vértices (+87% sobre os 19,1 MB dos 41 props aprovados);
-- **~125 ms** de leitura e malha de CPU (os aprovados: ~148 ms);
+- **+16,55 MB de dados de malha de cena** (`MeshCost`: 13 floats por vértice; +86% sobre os 19,14 MB dos 41 props
+  aprovados);
+- **+20,37 MB na GPU** (`Mesh.liveBytes`, o "MB vertices" do `--bench`): os mesmos dados mais a cópia só de posições
+  para sombra e profundidade (3 floats por vértice), ou seja, 16,55 × 16/13. Medido no bench antes × depois: 82,8 →
+  103,2 MB;
+- **~120 ms** de leitura e malha de CPU (os aprovados: ~150 ms);
 - números de `tools/conteudo/MeshCost.java`, no relatório técnico do pacote de revisão
   (`output/visual-review/world-content-lab/`, fora do git).
 

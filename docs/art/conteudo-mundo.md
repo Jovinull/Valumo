@@ -1,8 +1,9 @@
 # Conteúdo do mundo — construções, vegetação e pontos de interesse novos (laboratório)
 
-**Estado:** frente paralela de produção artística, em ramo próprio (`feature/world-content-library`), base `8fd6756`.
-Tudo aqui é **candidato**: nada substitui um asset aprovado, nenhuma cena do jogo muda, e a entrada no jogo depende da
-aprovação do proprietário. Catálogo e contrato técnico: [../architecture/catalogo-de-conteudo.md](../architecture/catalogo-de-conteudo.md).
+**Estado:** frente paralela de produção artística, em ramo próprio (`feature/world-content-library`), base `8fd6756`
+(rodada 10, anterior ao mundo procedural da rodada 11, ainda não publicado). O **lote 1 foi aprovado artisticamente pelo
+proprietário** (2026-11-19): 12 assets aceitos, 1 rejeitado. Aprovação artística **não** é liberação para o gerador: o
+catálogo separa as duas (§9). Nada substitui um asset aprovado, e nenhuma cena do jogo muda. Catálogo e contrato técnico: [../architecture/catalogo-de-conteudo.md](../architecture/catalogo-de-conteudo.md).
 Skill: `conteudo-mundo`.
 
 Este guia complementa (não repete) [visual-identity.md](visual-identity.md), [estilo-arquitetonico.md](estilo-arquitetonico.md),
@@ -59,9 +60,10 @@ A gramática é a da casa. O que muda é o **papel no assentamento**, e ele muda
 | `cabin_hunter` caçador | retangular pequena | TRONCOS empilhados, cantos cruzados | SALTBOX (água de trás longa sobre a lenha), teal | porta de tábuas + alpendre | isolada na mata |
 | `tower_watch` torre | quadrada estreita | fuste de pedra com talude + piso de vigia em balanço | quatro águas com cata-vento | porta em arco; corda do sino no chão | orientação, guarda |
 
-**Desvio deliberado (decisão do proprietário):** a cabana do caçador tem paredes de troncos, e a gramática [O] diz
-"estuque + enxaimel". Os oitões ficam em estuque e enxaimel para manter a família. Se a resposta for não, a cabana vira
-estuque sobre base alta de pedra, e a silhueta (saltbox) continua a mesma.
+**Arquitetura rústica isolada (decisão do proprietário, lote 1):** a cabana do caçador foi **aprovada com paredes de
+troncos**. É o exemplo aprovado de variação cultural e funcional para florestas, trilhas, regiões afastadas, abrigos de
+caçador e pequenos acampamentos. Ela preserva o telhado assimétrico e os oitões de estuque com enxaimel. Isso **não**
+autoriza casas da vila a abandonar pedra, estuque e enxaimel: no assentamento, a gramática continua a da casa.
 
 Lições que valem para qualquer construção nova:
 - **Diagonal de enxaimel é traço 6-conexo** (`conteudo_lib.face_line`), nunca linha rasterizada: rasterizada vira pontilhado
@@ -83,7 +85,7 @@ Lições que valem para qualquer construção nova:
 | `tree_poplar` álamo | fuso alto e estreito (1,4 × 6 u), afunilado embaixo, sulcos verticais rasos em feixes | o pinheiro é cone em saias horizontais; o oak3 é oval em dois andares redondos |
 | `tree_gnarled` antiga | tronco torcido e inclinado; **pratos** achatados nas pontas de galhos longos, em alturas diferentes | é mais larga que alta, com vazios entre massas; nenhuma tem copa em nuvens soltas |
 | `tree_dead` seca | só galhos, forquilhas e gravetos; oco e orelhas-de-pau | a única sem folhagem (custo baixo, sem vento) |
-| `tree_tiered` em andares | **REJEITADA**: pratos simétricos num tronco reto | lê como topiaria (motivo completo no catálogo) |
+| `tree_tiered` em andares | **REJEITADA para florestas naturais**: pratos simétricos num tronco reto | lê como topiaria; pode voltar um dia como estudo ornamental de jardim, se houver motivo artístico |
 
 Regras que os novos confirmaram:
 - Copa com vão (bifurcada, antiga) dá variedade de silhueta sem custo e sem cor nova.
@@ -119,6 +121,18 @@ A semente de luz P1 aparece **uma vez**, no altar, onde significa o que a assina
 | `stone_circle` | descoberta e mistério, missão de ativar/proteger, encontro ao entardecer | 7 pedras ovais desiguais, uma caída, laje com a semente de luz |
 | `ruin_house` | narrativa ambiental, recompensa (lareira, escombros), encontro pequeno | dois cantos de parede com estuque descascado, arco de pé, chaminé, placa do telhado caída, árvore jovem dentro |
 
+**Círculo de pedras (decisão do proprietário):** conceito aprovado, refinamento pendente. As pedras agradam, mas o
+conjunto ainda lembra monólitos genéricos, e a semente P1 quase some na câmera de jogo. No lote 4 vem um estudo
+controlado, sem refazer do zero:
+- pedras com proporção própria e composição assimétrica;
+- centro reconhecível;
+- P1 discreta, mas legível;
+- marcas de uma cultura do Valumo;
+- leitura a distância.
+
+Nada de portal mágico genérico, excesso de partículas ou espirais P2. Até lá, o círculo fica no catálogo sem liberação
+para distribuição procedural.
+
 Lições: o topo quebrado se faz em degraus largos (blocos de arco de ~6 voxels, altura em múltiplos de 4); jitter por bloco
 pequeno vira "tubos de órgão" (torre v1). Pedra redonda grande pede bloco de pintura maior (4, 3, 4) e musgo só no capuz
 (círculo v1). Placa de telhado caída quase deitada (1 para baixo a cada 4); a 45° vira escada com tapete (ruína v1).
@@ -134,9 +148,12 @@ Orçamento relativo aos aprovados, conferido por `ConteudoMundoTest.meshCostStay
 | árvore comum | ≤ 8 400 | 1,2 × carvalho O3 (6 946) |
 | árvore incomum/rara | ≤ 11 900 | salgueiro |
 
-Frequência sugerida: **comum** (pode repetir muito: bifurcada, álamo), **incomum** (1–2 por região: sobrado, cabana
-redonda, oficina, caçador, ruína de casa), **rara** (≤ 1 por região: torre de vigia, torre arruinada, círculo, antiga,
-seca). A frequência e o custo andam juntos: o que é caro aparece pouco.
+Frequência sugerida:
+- **comum** (pode repetir muito): bifurcada, álamo;
+- **incomum** (1–2 por região): sobrado, cabana redonda, oficina, caçador, ruína de casa;
+- **rara** (≤ 1 por região): torre de vigia, torre arruinada, círculo, antiga, seca.
+
+A frequência e o custo andam juntos: o que é caro aparece pouco.
 
 ## 7. Variações controladas
 
@@ -157,7 +174,36 @@ Cada asset declara no catálogo os parâmetros **seguros** (`variacoes.parametro
 **Não** são seguros: proporção, planta, posição de porta e escala. Se uma seed deixa a leitura quebrada, o parâmetro sai da
 lista.
 
-## 8. Como revisar (resumo; procedimento na skill)
+## 8. Vento: o que balança e o que não
+
+O vento afim da E (`scene.vert`) desloca **só o material folhagem**, proporcional à altura acima da base do prop
+(0,022 × vento 0,8 × altura). Paredes, telhados e pedras nunca se movem. A flag `affineWind` do prop **não** liga vento:
+ela só autoriza o mesher a fundir faces de folhagem.
+
+Por isso, folhagem **encostada em sólido** desliza sobre ele e abre fresta onde o mesher descartou a face do vizinho. A
+4 u de altura, o deslocamento chega a ~0,07 u (meio voxel). Reproduzido no laboratório com vento 0 × 1: o musgo do
+telhado da **casa aprovada** abre frestas (defeito anterior a esta frente, registrado para o agente principal).
+
+Regra dos assets do laboratório:
+- vegetação **presa** (musgo em telhado, pedra ou galho; hera de parede; folhas de floreira) é **fosca**: `MOSS_FIX`,
+  `IVY`;
+- folhagem é só o que balança **solto**: copas, arbustos, ervas penduradas;
+- o catálogo mede `affineWind` (só quem ainda tem folhagem declara);
+- `ConteudoMundoTest.attachedFoliageDoesNotSlideOnRigidStructures` exige 0 contato folhagem × sólido acima de 1,7 u
+  (≥ 1/4 de voxel) em construções e POIs.
+
+## 9. Estados no catálogo
+
+| Campo | Valores | Lote 1 |
+|---|---|---|
+| `aprovacao.artistica` | `aprovado`, `aprovado_conceito`, `rejeitado` | 11 aprovados, 1 conceito (círculo), 1 rejeitado (em andares) |
+| `aprovacao.integracao` | `liberado`, `depende_colisao_composta`, `aguardando_refinamento`, `nao_distribuivel` | liberados: sobrado, cabana redonda, caçador, torre de vigia, bifurcada, álamo, antiga, seca. Dependem de formas compostas: oficina, torre arruinada, ruína de casa. Aguardando: círculo (que também depende das formas) |
+| `aprovacao.distribuicao_procedural` | `true` só para `liberado` | 8 |
+| `aprovacao.dependencias` | texto, nunca vazio quando não liberado | |
+
+O teste exige coerência: quem declara `colisao.formas` não pode estar `liberado`, e quem não está liberado diz por quê.
+
+## 10. Como revisar (resumo; procedimento na skill)
 
 1. `python3 tools/build_assets.py conteudo_e`.
 2. `tools/conteudo/vistas.sh <id>`: 8 vistas no modo LINHA com o herói (3/4, frente, os dois lados, fundos, 3/4 dos
