@@ -2426,6 +2426,13 @@ public final class Game implements AutoCloseable {
                             float x = cp.x() + vx / vl * k, z = cp.z() + vz / vl * k;
                             yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(b.x() - x, b.z() - z))};
                         }
+                        case "descoberta" -> {                                  // rodada 12 (v2): de frente para a lareira da ruína
+                            var dc = logic.scene.discoveries.getFirst();
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            float vx = b.x() - dc.x(), vz = b.z() - dc.z(), vl = (float) Math.hypot(vx, vz);
+                            float x = dc.x() + vx / vl * 0.9f, z = dc.z() + vz / vl * 0.9f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(dc.x() - x, dc.z() - z))};
+                        }
                         case "construcao" -> {                                  // rodada 12 (v2): diante da porta da N-ésima construção
                             var cps = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:b")).toList();
                             var cp = cps.get(Math.min(Integer.parseInt(t[2]), cps.size() - 1));
@@ -2440,7 +2447,7 @@ public final class Game implements AutoCloseable {
                         }
                         default -> throw new IllegalArgumentException("lugar desconhecido: " + t[1]);
                     };
-                    if (t.length > 2 && t[2].equals("andando")) {             // entrada real: W + mouse até o ponto
+                    if (t[t.length - 1].equals("andando")) {                  // entrada real: W + mouse até o ponto (o último termo)
                         List<InputEvent> downs = new ArrayList<>(List.of(new InputEvent(InputEvent.Kind.KEY, mx, my, 0, 0, GLFW_KEY_W)));
                         tickFrame(downs, dt, w, h, record, out);
                         for (int i = 0; i < Math.round(25f * fps); i++) {
@@ -2480,9 +2487,19 @@ public final class Game implements AutoCloseable {
                     List<float[]> src = t[0].equals("seguir-ramo")
                             ? L.branches.stream().filter(vx.game.world.RegionLayout.Branch::carve).findFirst().orElseThrow().points() : L.path;
                     List<float[]> pts = new ArrayList<>();
+                    boolean branch = t[0].equals("seguir-ramo");
+                    if (branch && !t[1].equals("volta")) {                  // da trilha principal até a bifurcação, depois a da ruína
+                        float[] j0 = src.getFirst();
+                        int near = 0, fork = 0;
+                        for (int i = 0; i < L.path.size(); i++) {
+                            float[] q = L.path.get(i);
+                            if (Math.hypot(q[0] - logic.player.x, q[1] - logic.player.z) < Math.hypot(L.path.get(near)[0] - logic.player.x, L.path.get(near)[1] - logic.player.z)) near = i;
+                            if (Math.hypot(q[0] - j0[0], q[1] - j0[1]) < Math.hypot(L.path.get(fork)[0] - j0[0], L.path.get(fork)[1] - j0[1])) fork = i;
+                        }
+                        for (int i = near; i != fork; i += Integer.signum(fork - near) * Math.min(3, Math.abs(fork - i))) pts.add(L.path.get(i));
+                    }
                     for (int i = 0; i < src.size(); i += 3) pts.add(src.get(i));
                     pts.add(src.getLast());
-                    boolean branch = t[0].equals("seguir-ramo");
                     if (back) { java.util.Collections.reverse(pts); if (!branch) pts.add(new float[]{L.startX, L.startZ}); }
                     else if (!branch) pts.add(new float[]{L.px - L.gx * 1.2f, L.pz - L.gz * 1.2f});
                     int wp = 0;                                               // começa do ponto mais perto (na direção pedida)
