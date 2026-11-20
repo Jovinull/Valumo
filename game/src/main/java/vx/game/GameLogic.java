@@ -115,6 +115,8 @@ public final class GameLogic {
     public String dialogContext;
     /** Objeto do mundo ao alcance do E (quando nenhum NPC está mais perto). */
     public SceneDef.WorldObject objectCandidate;
+    /** Rodada 12 — a descoberta ao alcance do E (o mais perto entre morador, objeto e descoberta). */
+    public SceneDef.Discovery discoveryCandidate;
     /** Instante (tempo de quadro) em que cada objeto acendeu nesta sessão: o efeito discreto do desenho. */
     public final Map<String, Float> litAt = new HashMap<>();
     /** Tempo de jogo (s): soma dos passos fixos da exploração (vai no save e carimba o diário). */
@@ -201,6 +203,7 @@ public final class GameLogic {
     public Set<String> objectIds() {
         Set<String> s = new HashSet<>();
         for (SceneDef.WorldObject o : scene.objects) s.add(o.id());
+        for (SceneDef.Discovery o : scene.discoveries) s.add(o.id());      // rodada 12: o save só aceita descoberta desta região
         return s;
     }
 
@@ -388,13 +391,21 @@ public final class GameLogic {
         alpha = (float) Math.clamp(acc / TICK_D, 0.0, 1.0);
         candidate = combat != null && combat.engaged() ? null : findCandidate();   // sem conversa no meio da luta
         objectCandidate = combat != null && combat.engaged() ? null : findObject();
+        discoveryCandidate = combat != null && combat.engaged() ? null : findDiscovery();
         if (candidate != null && objectCandidate != null) {                // rodada 10: o mais perto dos dois
             if (Math.hypot(objectCandidate.x() - player.x, objectCandidate.z() - player.z)
                     < Math.hypot(candidate.def.x() - player.x, candidate.def.z() - player.z)) candidate = null;
             else objectCandidate = null;
         }
+        if (discoveryCandidate != null) {                                  // rodada 12: o mais perto dos três
+            float dd = (float) Math.hypot(discoveryCandidate.x() - player.x, discoveryCandidate.z() - player.z);
+            float other = candidate != null ? (float) Math.hypot(candidate.def.x() - player.x, candidate.def.z() - player.z)
+                    : objectCandidate != null ? (float) Math.hypot(objectCandidate.x() - player.x, objectCandidate.z() - player.z) : Float.MAX_VALUE;
+            if (dd < other) { candidate = null; objectCandidate = null; } else discoveryCandidate = null;
+        }
         if (candidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) startDialog(candidate);
         else if (objectCandidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) useObject(objectCandidate);
+        else if (discoveryCandidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) useDiscovery(discoveryCandidate);
         if (combat != null) {
             if (combat.outcome == Combat.Outcome.VICTORY && !victoryShown) {
                 victoryShown = true;
@@ -433,6 +444,37 @@ public final class GameLogic {
             if (d < bestD) { bestD = d; best = o; }
         }
         return best;
+    }
+
+    /** Rodada 12 — descoberta mais perto, dentro do alcance e mais ou menos à frente (a mesma regra dos objetos). */
+    public SceneDef.Discovery findDiscovery() {
+        if (quests == null) return null;
+        SceneDef.Discovery best = null;
+        float bestD = Float.MAX_VALUE;
+        float fx = (float) Math.sin(player.yaw), fz = (float) Math.cos(player.yaw);
+        for (SceneDef.Discovery o : scene.discoveries) {
+            float dx = o.x() - player.x, dz = o.z() - player.z, d = (float) Math.hypot(dx, dz);
+            if (d > o.range() || d < 1e-4f) continue;
+            if ((dx * fx + dz * fz) / d < Math.cos(INTERACT_ANGLE)) continue;
+            if (d < bestD) { bestD = d; best = o; }
+        }
+        return best;
+    }
+
+    /**
+     * Rodada 12 — usar (E) uma descoberta: na primeira vez, o aviso com o nome do lugar e as moedas, a frase do lugar e o
+     * salvamento no primeiro passo seguro (como os marcos da missão); nas seguintes, só a frase de "já visto" (nada pago).
+     * Devolve se foi descoberta agora.
+     */
+    public boolean useDiscovery(SceneDef.Discovery d) {
+        boolean first = quests.discover(d.id(), d.coins());
+        if (first) {
+            toast("Descoberta: " + d.name() + " · +" + d.coins() + " moedas", 6f);
+            message(d.text(), 6f);
+            autosavePending = true;
+        } else message(d.seen(), 4f);
+        onAction.accept(first ? "descoberta" : "objeto-usar");
+        return first;
     }
 
     /** Rodada 10 — usar (E) um objeto: a missão decide; a frase vem do arquivo de falas. */

@@ -75,6 +75,7 @@ final class GameAudio {
             case "continuar", "fala-fim", "sair", "indisponivel", "fechar-diario", "fala-recusar", "objeto-usar" -> "ui.cancelar";
             case "escolha", "continuar-fala", "rastreador" -> "ui.selecionar";
             case "salvo" -> "ui.salvar";                                // o automático é mudo: sai junto com o som da missão
+            case "descoberta" -> "missao.objetivo";                     // rodada 12: um lugar descoberto (o som aprovado de objetivo)
             default -> null;
         };
     }

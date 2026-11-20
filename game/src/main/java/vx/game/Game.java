@@ -732,6 +732,11 @@ public final class Game implements AutoCloseable {
             float[] sc = project(n.def.x(), gy + Math.max(1.55f, n.def.height() + 0.30f), n.def.z(), w, h);
             if (sc != null) interactPlate(sc, "Conversar com " + n.def.name());
         }
+        SceneDef.Discovery dc = logic.cam.technicalView ? null : logic.discoveryCandidate;   // rodada 12: a descoberta
+        if (dc != null) {
+            float[] sc = project(dc.x(), terrain.groundAt(dc.x(), dc.z()) + dc.plateY(), dc.z(), w, h);
+            if (sc != null) interactPlate(sc, dc.verb());
+        }
         SceneDef.WorldObject o = logic.objectCandidate;                   // rodada 10: o marco
         if (o != null && logic.dialogues != null && logic.dialogues.object(o.id()) != null) {
             DialogueBook.ObjectText t = logic.dialogues.object(o.id());
@@ -844,6 +849,17 @@ public final class Game implements AutoCloseable {
             String rec = "Aceita aos " + clock(q.acceptedAt()) + (q.completed() ? " · concluída aos " + clock(q.completedAt()) : "");
             kit.text(cx, cy, rec, px(18), false, UiKit.INK_SOFT);
             cy += 60 * s;
+        }
+        if (!logic.quests.discoveries().isEmpty() && cy < bottom) {         // rodada 12: os lugares descobertos nesta aventura
+            kit.text(cx, cy, "Descobertas", ph2, true, UiKit.INK);
+            cy += 44 * s;
+            for (SceneDef.Discovery d : logic.scene.discoveries) {
+                if (!logic.quests.discovered(d.id()) || cy > bottom) continue;
+                kit.check(cx, cy + 2 * s, s);
+                kit.text(cx + 32 * s, cy, fit(d.name() + " · +" + d.coins() + " moedas", pt, cw - 32 * s), pt, true, UiKit.INK);
+                cy += pt * 1.6f;
+            }
+            any = true;
         }
         if (!any) {
             for (String l : wrap("Nenhuma missão ainda. Converse com os moradores da vila.", pt, cw)) { kit.text(cx, cy, l, pt, false, UiKit.INK_SOFT); cy += pt * 1.4f; }
@@ -1800,6 +1816,7 @@ public final class Game implements AutoCloseable {
                 : vx.game.quest.QuestDefinition.load(sc.assets.resolve(sc.questsFile)).values();
         java.util.Set<String> objs = new java.util.HashSet<>();
         for (SceneDef.WorldObject o : sc.objects) objs.add(o.id());
+        for (SceneDef.Discovery o : sc.discoveries) objs.add(o.id());       // rodada 12
         return SaveGame.parse(Files.readString(file), catalog, sc.layout, quests, objs, ps);
     }
 

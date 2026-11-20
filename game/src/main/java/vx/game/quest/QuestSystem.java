@@ -50,6 +50,8 @@ public final class QuestSystem {
 
     private final Map<String, QuestProgress> quests = new LinkedHashMap<>();
     private final TreeSet<String> objectsOn = new TreeSet<>();
+    /** Rodada 12 — descobertas de exploração feitas nesta aventura (ids estáveis derivados do POI). Contam uma vez. */
+    private final TreeSet<String> discovered = new TreeSet<>();
     private final List<Notice> notices = new ArrayList<>();
     private int coins;
     /** Tempo de jogo (s), escrito pelo jogo a cada passo: carimba aceitar e concluir no diário. */
@@ -68,6 +70,20 @@ public final class QuestSystem {
     public boolean objectOn(String object) { return objectsOn.contains(object); }
 
     public Set<String> objectsOn() { return Collections.unmodifiableSet(objectsOn); }
+
+    public boolean discovered(String id) { return discovered.contains(id); }
+
+    public Set<String> discoveries() { return Collections.unmodifiableSet(discovered); }
+
+    /**
+     * Rodada 12 — registra a descoberta {@code id} e paga {@code reward} moedas, UMA vez: devolve false (e não paga) se já
+     * estava descoberta. Apertar E de novo, em qualquer taxa de quadros, não paga de novo.
+     */
+    public boolean discover(String id, int reward) {
+        if (!discovered.add(id)) return false;
+        coins = (int) Math.min(MAX_COINS, (long) coins + Math.max(0, reward));
+        return true;
+    }
 
     /** Missão acompanhada: a primeira aceita e não concluída (ou null). */
     public QuestProgress tracked() {
@@ -228,6 +244,7 @@ public final class QuestSystem {
             }
         }
         for (String o : objectsOn) if (!knownObjects.contains(o)) return "objeto desconhecido: " + o;
+        for (String o : discovered) if (!knownObjects.contains(o)) return "descoberta desconhecida: " + o;
         if (coins < 0 || coins > MAX_COINS) return "moedas fora de 0.." + MAX_COINS;
         return null;
     }
@@ -239,6 +256,11 @@ public final class QuestSystem {
         JsonArray on = new JsonArray();
         objectsOn.forEach(on::add);
         o.add("objetosAtivos", on);
+        if (!discovered.isEmpty()) {                                        // rodada 12: campo OPCIONAL (ausente = nenhuma)
+            JsonArray d = new JsonArray();
+            discovered.forEach(d::add);
+            o.add("descobertas", d);
+        }
         JsonObject qs = new JsonObject();
         for (QuestProgress p : quests.values()) {
             JsonObject q = new JsonObject();
@@ -275,10 +297,16 @@ public final class QuestSystem {
      * {@link InvalidState}. Missão do jogo ausente no save = ainda disponível (save antigo de antes dela existir).
      */
     public void fromJson(JsonObject o, Set<String> knownObjects) {
-        if (!quests.values().stream().allMatch(p -> !p.accepted && !p.declined && p.facts.isEmpty()) || coins != 0 || !objectsOn.isEmpty())
+        if (!quests.values().stream().allMatch(p -> !p.accepted && !p.declined && p.facts.isEmpty()) || coins != 0 || !objectsOn.isEmpty()
+                || !discovered.isEmpty())
             throw new IllegalStateException("fromJson só num sistema novo");
         coins = integer(o, "moedas", 0, MAX_COINS);
         for (JsonElement e : array(o, "objetosAtivos")) objectsOn.add(text(e, "objetosAtivos"));
+        if (o.has("descobertas")) {                                         // rodada 12: opcional (save de antes não tem)
+            JsonArray d = array(o, "descobertas");
+            if (d.size() > 1000) throw new InvalidState("descobertas demais");
+            for (JsonElement e : d) if (!discovered.add(text(e, "descobertas"))) throw new InvalidState("descoberta repetida");
+        }
         JsonObject qs = obj(o, "missoes");
         for (String id : qs.keySet()) {
             QuestProgress p = quests.get(id);

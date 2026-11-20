@@ -286,7 +286,9 @@ public final class WorldStore {
             String quest = done > 0 ? (done == 1 ? "missão concluída" : done + " missões concluídas")
                     : open > 0 ? "missão em andamento" : "nenhuma missão aceita";
             String time = t < 60 ? "menos de 1 min" : (int) (t / 60) + " min";
-            return time + " de jogo · " + quest + " · " + pr.get("moedas").getAsInt() + " moedas";
+            int found = pr.has("descobertas") && pr.get("descobertas").isJsonArray() ? pr.getAsJsonArray("descobertas").size() : 0;
+            String places = found == 0 ? "" : found == 1 ? " · 1 lugar descoberto" : " · " + found + " lugares descobertos";   // rodada 12
+            return time + " de jogo · " + quest + " · " + pr.get("moedas").getAsInt() + " moedas" + places;
         } catch (IOException | RuntimeException e) {
             return "jogo salvo ilegível";
         }

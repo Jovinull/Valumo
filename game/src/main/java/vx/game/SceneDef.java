@@ -39,6 +39,15 @@ public final class SceneDef {
     public record WorldObject(String id, float x, float z, float yawDeg, float range, String modelOff, String modelOn, float radius,
                               float plateY) { }
 
+    /**
+     * Rodada 12 — descoberta de exploração (o ponto da ruína): id estável (derivado do POI), nome do lugar, posição, alcance
+     * do E, altura da placa, moedas (uma vez), o verbo da placa e as frases (a primeira vez e as seguintes).
+     */
+    public record Discovery(String id, String name, float x, float z, float range, float plateY, int coins, String verb, String text,
+                            String seen) { }
+
+    public final List<Discovery> discoveries = new ArrayList<>();
+
     /** Altura do rig (u): {@code meta.worldUnits} (NPC com altura narrativa) ou corpo × voxel; 1,25 se não houver. */
     static float rigHeight(Path assets, String rig) {
         try {
@@ -130,6 +139,12 @@ public final class SceneDef {
         }
         if (game.has("missoes")) d.questsFile = "scenes/" + game.get("missoes").getAsString() + ".json";
         if (game.has("dialogos")) d.dialoguesFile = "scenes/" + game.get("dialogos").getAsString() + ".json";
+        if (game.has("descobertas")) for (JsonElement el : game.getAsJsonArray("descobertas")) {
+            JsonObject o = el.getAsJsonObject();
+            d.discoveries.add(new Discovery(o.get("id").getAsString(), o.get("nome").getAsString(), o.get("x").getAsFloat(), o.get("z").getAsFloat(),
+                    o.get("alcance").getAsFloat(), o.get("placa").getAsFloat(), o.get("moedas").getAsInt(), o.get("verbo").getAsString(),
+                    o.get("texto").getAsString(), o.get("jaVisto").getAsString()));
+        }
         if (game.has("objetos")) for (JsonElement el : game.getAsJsonArray("objetos")) {
             JsonObject o = el.getAsJsonObject();
             JsonObject m = o.getAsJsonObject("modelos");
