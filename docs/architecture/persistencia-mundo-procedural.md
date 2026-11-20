@@ -43,9 +43,11 @@ missão em silêncio: o save é recusado com o motivo, e o original fica em `.in
 | v1 aberto no procedural | recusado: "é um save do mundo fixo (v1): abra sem -Dvx.mundo" |
 | v2 aberto no mundo fixo | recusado: "é um save de mundo procedural (v2): abra com -Dvx.mundo=procedural" |
 | v2 de outra semente | não acontece (pastas separadas); se copiado, "mundo salvo diferente deste (semente…)" |
-| v2 de outra versão do gerador ou outra tentativa | recusado, com o campo citado (rodada 12: só acontece se o save e o `mundo.json` discordarem, porque a região é sempre gerada pela versão do mundo) |
+| v2 de outra versão do gerador ou outra tentativa | recusado (rodada 12: só acontece se o save e o `mundo.json` discordarem, porque a região é sempre gerada pela versão do mundo; rodada 12.2: como região diferente, sem `.invalido`, com o campo citado no log) |
 | rodada 12: mundo v1 aberto por um jogo que já cria v2 | abre **igual**: a região é gerada pela v1 (a versão do `mundo.json`), e o save confere |
 | rodada 12: mundo de uma versão que este jogo não conhece | não abre, com "Este mundo foi criado por uma versão mais nova do Valumo…"; **nenhum arquivo é tocado**, sem `.invalido` |
+| rodada 12.2: save ÍNTEGRO cuja região mudou (versão de testes; ou mundo, vínculos, missão, objeto, descoberta, inimigo que a região de agora não tem) | recusado **sem** `.invalido`, nada tocado: "Esta aventura é de uma versão de testes deste mundo…" (versão não publicada) ou "não corresponde a este mundo" (publicada). Detalhes: [save](save.md) §Rodada 12.2 |
+| rodada 12.2: save de formato futuro (`versao` maior que a conhecida) | recusado **sem** `.invalido`: "salva por uma versão mais nova do jogo" |
 | rodada 12: save sem `progresso.descobertas` | abre igual (ausente = nenhuma descoberta) |
 | rodada 12: descoberta que a região não tem | recusado ("descoberta desconhecida"), original guardado em `.invalido` (é corrupção de verdade) |
 | vínculos diferentes dos gerados agora | recusado: "os vínculos da missão salvos não batem com a região gerada agora" |

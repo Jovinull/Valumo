@@ -139,3 +139,32 @@ num mundo v2).
     como todo save recusado. Não há migração que invente a descoberta.
 
 Por isso a v2 só se publica **depois** de aprovada. Depois disso, mudar o resultado é versão nova (ADR 0029).
+
+## Rodada 12.2 — save íntegro de outra região NÃO é corrompido
+
+Antes, todo motivo de recusa virava "Jogo salvo inválido" e o arquivo era copiado para `.invalido`. O mundo "RUINAS"
+(semente 31337, feito com a v2 da rodada 12) era um save íntegro, recusado só porque a região daquela semente mudou antes
+da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
+
+| Caso | Exemplo | O que acontece | `.invalido` | Mensagem |
+|---|---|---|---|---|
+| 1. JSON corrompido | arquivo cortado no meio | recusado | sim (cópia; o original fica) | "Jogo salvo inválido: JSON ilegível (…)" |
+| 2. formato inválido | `formato` de outro programa, campo fora de faixa | recusado | sim | "Jogo salvo inválido: …" |
+| 3. versão futura | `versao` 3 ou mais (inteira) | recusado, nada tocado | **não** | "Esta aventura foi salva por uma versão mais nova do jogo. Ela continua guardada como estava" |
+| 4. versão antiga válida | v1 da vila, v2 de região | abre | — | — |
+| 5. mundo de versão de testes que mudou | v2 não publicada; mundo, vínculos, missão, objeto, descoberta ou inimigo que a região de agora não tem | recusado, nada tocado | **não** | "Esta aventura é de uma versão de testes deste mundo, que mudou antes do lançamento. Ela continua guardada como estava; crie outro mundo para jogar" |
+
+- **Onde:**
+  - `SaveGame.Incompatible` (casos 3 e 5; o detalhe técnico vai para o log, nunca para a tela);
+  - `QuestSystem.UnknownReference` (referência que a cena não tem);
+  - `RegionGenerator.published(versão)`: hoje só a v1. Ao publicar a v2, ela entra ali.
+- **Versão publicada que não bate** (a v1 procedural): a mesma recusa sem `.invalido`, com "não corresponde a este
+  mundo". Na **vila fixa**, referência desconhecida continua dado inválido, porque não há geração que possa ter mudado.
+- **Nada é sobrescrito:** com o save existente, "Entrar" sempre tenta CONTINUAR. A aventura recusada não começa de novo
+  por cima. Outro mundo pode ser criado na tela de mundos.
+- **Sem migração:** a lareira não tem equivalente na torre, e a região mudou inteira. Migrar seria inventar progresso
+  (decisão: estratégia C, incompatibilidade não destrutiva).
+- **Testes:** `SaveCompatTest` (os cinco casos; o mesmo personagem em outro mundo não é afetado; o arquivo byte a byte igual
+  em todas as recusas; "Entrar" de novo não grava nada); `ProceduralWorldTest` (vínculos diferentes); `DiscoveryTest`.
+- **O que já existe nos dados do proprietário:** o `aventura.json.invalido` que o binário da 12.1 criou ao lado da aventura
+  do mundo "RUINAS" continua lá. É uma cópia; o original nunca mudou. Removê-lo é decisão do proprietário.
