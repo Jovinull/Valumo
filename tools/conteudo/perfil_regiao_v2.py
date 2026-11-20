@@ -26,6 +26,17 @@ def r3(v):
     return round(v, 3)
 
 
+def workers():
+    """Rodada 12.1 (P76): quem exerce cada ofício de conjunto ({ofício: [moradores, em ordem]}), de habitantes_e.json →
+    oficio. Congelado com o resto: um morador novo entra no perfil ANTES de a v2 ser publicada (depois, é versão nova)."""
+    hab = json.load(open(os.path.join(ROOT, "assets", "scenes", "habitantes_e.json"), encoding="utf-8"))["habitantes"]
+    out = {}
+    for npc in sorted(hab):
+        if hab[npc].get("oficio"):
+            out.setdefault(hab[npc]["oficio"], []).append(npc)
+    return out
+
+
 def main():
     cat = json.load(open(os.path.join(ENV, "conteudo_catalogo.json")))
     man = json.load(open(os.path.join(ENV, "props.json")))
@@ -73,7 +84,7 @@ def main():
                    "livre, entradas [id, x, z, rumo], interação [id, x, z] e spawns [id, x, z, tipo] de cada asset que a v2 usa, e os "
                    "conjuntos de ofício (itens [prop, x, z, rumo] no referencial da âncora). Escrito por tools/conteudo/perfil_regiao_v2.py "
                    "a partir do catálogo e revisado; o gerador lê ESTE arquivo, nunca o catálogo gerado. RegionProfileTest confere.",
-           "formato": "valumo.regiao.perfil", "versao": 2, "assets": assets, "conjuntos": sets}
+           "formato": "valumo.regiao.perfil", "versao": 2, "assets": assets, "conjuntos": sets, "oficios": workers()}
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
     print(f"{len(assets)} assets e {len(sets)} conjuntos em {os.path.relpath(OUT, ROOT)}")
