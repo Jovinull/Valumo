@@ -29,7 +29,8 @@ import java.util.Set;
  *       ombro sempre encosta no tronco, em qualquer NPC;</li>
  *   <li><b>braço × cabeça</b>: braço e antebraço contra a cabeça e o chapéu/coque (o aceno passa perto);</li>
  *   <li><b>perna × tronco</b>: coxa e canela contra a barra do casaco e o que pende do quadril;</li>
- *   <li><b>pé × chão</b>: o quanto o voxel mais baixo das canelas afunda abaixo de y = 0 (chão plano).</li>
+ *   <li><b>pé × chão</b>: o quanto o voxel mais baixo das canelas afunda abaixo de y = 0 (chão plano);</li>
+ *   <li><b>membro × rabo</b> e <b>rabo × chão</b>: só em quem tem a parte "tail" (o Acapela).</li>
  * </ul>
  * Medida: PROFUNDIDADE em u (distância do centro do voxel invasor à borda do alvo, campo de 6 vizinhos), que não
  * depende da escala do rig, e o número de voxels invasores no pior instante. Um NPC novo passa se nenhum grupo
@@ -47,6 +48,8 @@ final class NpcClipProbe {
         GROUPS.put("braço × tronco", new String[][]{arms, {"torso"}});
         GROUPS.put("braço × cabeça", new String[][]{arms, {"head", "hat", "lock", "ear_l", "ear_r"}});
         GROUPS.put("perna × tronco", new String[][]{{"leg_l", "shin_l", "leg_r", "shin_r"}, {"torso", "skirt_l", "skirt_r"}});
+        // rabo (parte "tail", filha do tronco, balançada pelo Animator): pernas e braços não podem atravessá-lo
+        GROUPS.put("membro × rabo", new String[][]{{"leg_l", "shin_l", "leg_r", "shin_r", "arm_l", "farm_l", "arm_r", "farm_r"}, {"tail"}});
     }
 
     record Cells(int part, Set<Long> set, List<int[]> list, Map<Long, Integer> depth) { }
@@ -121,6 +124,7 @@ final class NpcClipProbe {
         Map<String, Worst> out = new LinkedHashMap<>();
         for (String g : GROUPS.keySet()) out.put(g, new Worst(0, 0, "—"));
         out.put("pé × chão", new Worst(0, 0, "—"));
+        if (parts.containsKey("tail")) out.put("rabo × chão", new Worst(0, 0, "—"));
         Vector3f p = new Vector3f();
         int samples = 0;
         for (String w : what) {
@@ -193,6 +197,18 @@ final class NpcClipProbe {
                 }
                 Worst cur = out.get("pé × chão");
                 if (-low > cur.depthU) out.put("pé × chão", new Worst(-low, sunk, at));
+                Cells tl = parts.get("tail");
+                if (tl != null) {                                       // rabo abaixo do chão plano (y = 0)
+                    float tlow = 0;
+                    int tsunk = 0;
+                    for (int[] c : tl.list) {
+                        p.set((c[0] + 0.5f) * vs, c[1] * vs, (c[2] + 0.5f) * vs);
+                        mats[tl.part].transformPosition(p);
+                        if (p.y < -1e-4f) { tsunk++; tlow = Math.min(tlow, p.y); }
+                    }
+                    Worst tc = out.get("rabo × chão");
+                    if (-tlow > tc.depthU) out.put("rabo × chão", new Worst(-tlow, tsunk, at));
+                }
             }
         }
         if (samples == 0) throw new IllegalStateException(dir + ": nenhuma amostra");

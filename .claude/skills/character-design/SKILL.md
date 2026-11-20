@@ -193,6 +193,24 @@ guarda só o modelo.
 5. Pele avermelhada: a sombra pintada do queixo emenda na costeleta e lê como barba. Sombra mais leve
    (`P(cor, ks=0.6)`) e costeleta curta; nunca pintura à mão.
 
+## NPC criatura com rabo e cabeça própria (provado com o Acapela, `tools/npc_acapela_e.py`)
+
+1. **Esqueleto:** o da vila (`npcs_vila_e.torso/arms/legs`, quadril 14, pescoço 29), com cabeça e rabo PRÓPRIOS. A
+   locomoção e o validador valem sem mudança.
+2. **Rabo:** parte `tail`, filha do tronco. O `Animator` já a balança (parado, andar, corrida, golpe, salto).
+   - Nasce DENTRO da base das costas, acima do topo das coxas (`AcapelaTest.tailIsAttachedToTheBody`).
+   - A sonda mede `membro × rabo` (≤ 1 voxel) e `rabo × chão` (zero).
+3. **Contorno de cabeça franjada:** triângulos de lado reto (`tri`), não cadeia de círculos, que serrilha. Ficam
+   atrás da placa do rosto (z ≤ 4), para não cobrir os olhos.
+4. **Aceno:** cabeça larga e franjada não aceita o aceno compartilhado (a mão atravessa a bochecha). Use um perfil
+   próprio, igual ao `npc_vila` em repouso e balanço:
+   - cotovelo para a frente;
+   - mão à frente das franjas;
+   - pose de passagem (`wave_out`) na subida.
+5. **Reamostragem abaixo de 0,9:** use `scale_keep`. Traço do rosto (pupila, brilho, boca, presa) vence o voto. Com
+   "o último vence", a linha da boca e as presas sumiam.
+6. **Proporção:** chibi entre 2,0 e 2,35 cabeças (abaixo da faixa congelada dos heróis).
+
 ## Rodada 06.1 — refinar NPCs sem virar recoloração
 
 1. Pergunta de aceite: **pintadas de preto, ainda se reconhecem?** Capture `set=trio`/`set=elenco` com
