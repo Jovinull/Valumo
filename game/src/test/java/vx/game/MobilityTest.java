@@ -391,21 +391,32 @@ class MobilityTest {
         assertEquals(2, p.jumps, "o aperto logo antes do pouso vale");
     }
 
+    /**
+     * Rodada 12.1 — todo sólido sustenta quem está acima dele (antes só o perfil "pisavel": quem pulava sobre uma cerca
+     * caía dentro dela); pessoa nunca vira plataforma; e o que é alto demais (a casa) fica fora do alcance do salto.
+     */
     @Test
-    void standableCratesCatchAJumpAndOtherPropsDoNot() {
+    void everySolidCatchesAJumpButPeopleNeverDoAndHousesAreOutOfReach() {
         GameLogic g = quiet("C", -1.0f, 8.0f);
-        Collision.Shape crate = null, wellOrHouse = null;
+        Collision.Shape crate = null, house = null, low = null, person = null;
         for (Collision.Shape s : g.collision.shapes) {
             if (s.stand && s.body && crate == null && s.y1 - s.y0 < 0.65f) crate = s;
-            if (!s.stand && s.body && s.name.startsWith("house")) wellOrHouse = s;
+            if (!s.stand && s.body && !s.person && house == null && s.name.startsWith("house")) house = s;
+            // o sólido NÃO marcado pisável mais baixo (o que o salto alcança e antes engolia quem pousava nele)
+            if (!s.stand && s.body && !s.person && (low == null || s.y1 - s.y0 < low.y1 - low.y0)) low = s;
+            if (s.person && person == null) person = s;
         }
         assertNotNull(crate, "há prop pisável na vila");
         float top = g.collision.floor(crate.cx, crate.cz, crate.y1 + 0.05f, Player.RADIUS);
         assertEquals(crate.y1, top, 1e-4f, "o topo do caixote é chão para quem está acima dele");
         assertTrue(g.collision.floor(crate.cx, crate.cz, crate.y0, Player.RADIUS) < crate.y1, "de baixo, não");
-        if (wellOrHouse != null) {
-            float y = wellOrHouse.y1 + 0.05f;
-            assertTrue(g.collision.floor(wellOrHouse.cx, wellOrHouse.cz, y, Player.RADIUS) < wellOrHouse.y1, "casa não vira plataforma");
-        }
+        assertNotNull(low, "há sólido não marcado pisável na vila");
+        CombatDef jd = g.combat.def;
+        assertTrue(low.y1 - low.y0 <= jd.jumpHeight + Player.STEP, low.name + " fora do alcance do salto: o caso não seria exercitado");
+        assertEquals(low.y1, g.collision.floor(low.cx, low.cz, low.y1 + 0.05f, Player.RADIUS), 1e-4f, low.name + " segura quem está em cima");
+        assertNotNull(person, "há NPC na vila");
+        assertTrue(g.collision.floor(person.cx, person.cz, person.y1 + 0.05f, Player.RADIUS) < person.y1, "pessoa não vira plataforma");
+        assertNotNull(house);
+        assertTrue(house.y1 - house.y0 > jd.jumpHeight + Player.STEP + 0.2f, "a casa é alta demais para o salto (não vira atalho para o telhado)");
     }
 }
