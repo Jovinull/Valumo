@@ -1,0 +1,16 @@
+# Rodada 12.3 — em cima da muralha da torre caída (o mirante, semente 2): uma volta inteira da câmera devagar, subindo e
+# descendo a inclinação. Começa direto na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=2).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar mirante
+wait 1.5
+record on
+wait 1.5
+look 1960 0 7.0
+wait 0.4
+look 0 250 1.2
+wait 0.4
+look -980 -250 3.0
+wait 1.0
+record off

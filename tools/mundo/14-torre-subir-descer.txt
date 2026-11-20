@@ -1,0 +1,27 @@
+# Rodada 12.3 — a torre caída por dentro (semente 2): do centro à escada, o salto para a muralha baixa (o mirante, "Lugar
+# novo"), a descida andando de volta ao centro e a saída. A câmera fica com o braço inteiro; a torre se recorta só entre a
+# câmera e o herói (P85). Começa direto na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=2).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar ruina-dentro
+wait 1.2
+record on
+wait 0.6
+ir-lugar descoberta andando
+wait 0.6
+segurar W
+wait 0.1
+pular
+wait 0.8
+soltar W
+wait 2.0
+look 0 120 0.6
+wait 0.4
+ir-lugar ruina-dentro andando
+wait 0.8
+look -900 -120 1.5
+wait 0.6
+ir-lugar ruina andando
+wait 1.0
+record off

@@ -1,0 +1,20 @@
+# Rodada 12.3 — a abóbada soterrada por dentro (semente 44): entrar, ver o pote, abrir (E), girar a câmera lá dentro, ler o
+# herói, sair. Começa direto na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=44).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar ruina
+wait 0.5
+record on
+wait 0.8
+ir-lugar ruina-dentro andando
+wait 0.6
+ir-lugar descoberta andando
+wait 1.0
+key E
+wait 3.0
+look 1960 0 5.0
+wait 0.6
+ir-lugar ruina andando
+wait 1.5
+record off

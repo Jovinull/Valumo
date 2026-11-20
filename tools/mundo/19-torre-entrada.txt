@@ -1,0 +1,29 @@
+# Rodada 12.3 — a porta da torre caída (semente 2): chegar andando, entrar, parar no vão (a histerese: nada pisca), girar a
+# câmera de dentro para fora e de volta, sair andando e entrar de novo de costas para a parede. O recorte entra e sai suave
+# (P85). Começa direto na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=2).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar ruina
+wait 0.4
+segurar S
+wait 1.0
+soltar S
+wait 0.4
+look 980 0 0.01
+wait 0.6
+record on
+wait 0.6
+ir-lugar ruina-dentro andando
+wait 1.0
+ir-lugar ruina andando
+wait 1.5
+ir-lugar ruina-dentro andando
+wait 0.6
+look 980 0 2.0
+wait 0.8
+look -1960 0 3.0
+wait 0.8
+ir-lugar ruina andando
+wait 2.0
+record off

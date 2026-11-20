@@ -1,0 +1,15 @@
+# Rodada 12.3 — medição DENTRO da torre caída (semente 2), onde o recorte contextual (P85) fica ligado: duas voltas da câmera
+# no centro, a ida até a escada e a volta, a 60 quadros/s de simulação, cada quadro medido com glFinish. Comparar o binário
+# da 12.2 (sem recorte: a câmera colada) com o da 12.3 no MESMO roteiro (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=2).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar ruina-dentro
+aquecer 5
+perf on
+look 1960 0 5.0
+ir-lugar descoberta andando
+look -1960 0 5.0
+ir-lugar ruina-dentro andando
+look 980 0 2.0
+perf off desempenho.txt

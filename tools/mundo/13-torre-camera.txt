@@ -1,0 +1,30 @@
+# Rodada 12.3 — a câmera dentro da torre caída (P85). O MESMO roteiro no binário da 12.2 e no da 12.3 (antes × depois) e
+# em duas torres: semente 2 (163°) e semente 83 (41°, a "torre a 37°"). Entrada andando, uma volta lenta da câmera no centro,
+# um giro rápido, a escada, o salto para o mirante, a descida e a saída pela porta. Começa direto na região
+# (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=2|83).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar ruina
+wait 0.5
+record on
+wait 0.8
+ir-lugar ruina-dentro andando
+wait 0.8
+look 1960 0 5.0
+wait 0.6
+look 1960 0 0.8
+wait 0.8
+ir-lugar descoberta andando
+wait 0.6
+segurar W
+wait 0.1
+pular
+wait 0.8
+soltar W
+wait 1.5
+ir-lugar ruina-dentro andando
+wait 0.6
+ir-lugar ruina andando
+wait 1.5
+record off

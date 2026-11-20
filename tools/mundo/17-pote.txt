@@ -1,0 +1,23 @@
+# Rodada 12.3 — o pote da descoberta, cheio e depois vazio, na ruína de casa (semente 3): de frente, de perfil (câmera de
+# lado), abrir (E) e o mesmo enquadramento vazio. Começa direto na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=3).
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar descoberta
+wait 1.2
+record on
+wait 1.2
+shot-agora 01-cheio-frente
+look 500 0 1.2
+wait 0.6
+shot-agora 02-cheio-perfil
+look -500 0 1.2
+wait 0.4
+key E
+wait 3.0
+shot-agora 03-vazio-frente
+look 500 0 1.2
+wait 0.6
+shot-agora 04-vazio-perfil
+wait 0.6
+record off
