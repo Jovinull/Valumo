@@ -753,7 +753,7 @@ public final class Game implements AutoCloseable {
         if (dc == null && !logic.cam.technicalView) dc = logic.arriveHint;     // rodada 12.1: o mirante (placa, sem E)
         if (dc != null) {
             float[] sc = project(dc.x(), logic.discoveryFloor(dc) + 1.1f, dc.z(), w, h);
-            if (sc != null) interactPlate(sc, dc.verb());
+            if (sc != null) interactPlate(sc, logic.quests.discovered(dc.id()) ? dc.verbSeen() : dc.verb());   // o pote vazio: "Olhar"
         }
         SceneDef.WorldObject o = logic.objectCandidate;                   // rodada 10: o marco
         if (o != null && logic.dialogues != null && logic.dialogues.object(o.id()) != null) {

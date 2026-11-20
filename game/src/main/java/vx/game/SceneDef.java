@@ -45,7 +45,7 @@ public final class SceneDef {
      */
     public record Discovery(String id, String name, float x, float z, float range, float plateY, int coins, String verb, String text,
                             String seen, String type, String category, String mode, float y, float yawDeg, String find, String modelFull,
-                            String modelEmpty, String journal) {
+                            String modelEmpty, String journal, String verbSeen) {
         /** Rodada 12.1: chegar ao ponto (o mirante) em vez de usar com E. */
         public boolean arrive() { return "chegar".equals(mode); }
     }
@@ -151,7 +151,7 @@ public final class SceneDef {
                     o.get("texto").getAsString(), o.get("jaVisto").getAsString(), o.get("tipo").getAsString(), o.get("categoria").getAsString(),
                     o.get("modo").getAsString(), o.get("y").getAsFloat(), o.get("r").getAsFloat(), o.has("achado") ? o.get("achado").getAsString() : null,
                     obj != null ? obj.get("cheio").getAsString() : null, obj != null ? obj.get("vazio").getAsString() : null,
-                    o.get("diario").getAsString()));
+                    o.get("diario").getAsString(), o.has("verboVisto") ? o.get("verboVisto").getAsString() : o.get("verbo").getAsString()));
         }
         if (game.has("objetos")) for (JsonElement el : game.getAsJsonArray("objetos")) {
             JsonObject o = el.getAsJsonObject();

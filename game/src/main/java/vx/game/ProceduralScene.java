@@ -431,6 +431,7 @@ public final class ProceduralScene {
         o.addProperty("placa", r3(spot.y() + 1.1f));
         o.addProperty("moedas", k.get("moedas").getAsInt());
         o.addProperty("verbo", k.get("verbo").getAsString());
+        if (k.has("verboVisto")) o.addProperty("verboVisto", k.get("verboVisto").getAsString());   // a placa depois do achado
         if (k.has("achado")) o.addProperty("achado", k.get("achado").getAsString());
         if (k.has("objeto")) o.add("objeto", k.getAsJsonObject("objeto").deepCopy());
         o.addProperty("texto", fill(k.get("texto").getAsString(), facts));
