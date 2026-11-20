@@ -133,7 +133,11 @@ class ConteudoMundoTest {
                         || integ.equals("aguardando_avaliacao") || integ.equals("restrito_a_conjuntos"),
                         id + ": pendência sem dependência");
             assertEquals(art.equals("candidato"), integ.equals("aguardando_avaliacao"), id + ": candidato só aguarda avaliação");
-            if (a.get("lote").getAsInt() >= 3) assertNotEquals("aprovado", art, id + ": lote não avaliado marcado como aprovado");
+            // aprovado, conceito ou rejeitado só com a DECISÃO do proprietário registrada (lotes 1 e 2: avaliação de
+            // 2026-11-19; NPCs e ruínas do estudo: fechamento de 2026-11-20); candidato ainda aguarda
+            String dec = ap.get("decisao").getAsString();
+            if (art.equals("candidato")) assertTrue(dec.startsWith("aguardando"), id + ": candidato com decisão registrada");
+            else assertTrue(dec.startsWith("proprietário"), id + ": " + art + " sem decisão registrada do proprietário: " + dec);
             if (a.getAsJsonObject("colisao").has("formas"))  // forma composta ainda não existe no jogo: não pode estar liberado
                 assertNotEquals("liberado", integ, id + ": precisa de formas compostas e está liberado");
             assertEquals(art.equals("rejeitado"), st.equals("rejeitado"), id + ": estado × aprovação");
@@ -367,7 +371,8 @@ class ConteudoMundoTest {
             Model m = load(a);
             JsonObject pts = a.getAsJsonObject("pontos");
             boolean composite = a.getAsJsonObject("colisao").has("formas");
-            for (String kind : List.of("interacao", "spawns")) {
+            for (String kind : List.of("interacao", "spawns", "vagas")) {
+                if (!pts.has(kind)) continue;                       // vagas de NPC: só quem tem morador
                 for (JsonElement e : pts.getAsJsonArray(kind)) {
                     JsonObject p = e.getAsJsonObject();
                     float[] pos = arr(p, "pos_u");
@@ -390,6 +395,155 @@ class ConteudoMundoTest {
             }
         }
         assertTrue(checked >= 15, "conferiu poucos pontos: " + checked);
+    }
+
+    @Test
+    void npcSpotsHaveRoomForTheBodyAndOpenSky() throws IOException {
+        // vaga de NPC morador (ex.: feirante ao lado do balcão): nenhum sólido do asset no corpo do NPC (raio 0,3 u, o
+        // de colisao_e.json, da altura do piso pisável à cabeça) e nada por cima da cabeça (a câmera de conversa não
+        // entra em toldo nem telhado)
+        int checked = 0;
+        for (JsonObject a : assets()) {
+            JsonObject pts = a.getAsJsonObject("pontos");
+            if (!pts.has("vagas")) continue;
+            Model m = load(a);
+            int lo = (int) Math.ceil(0.375 / m.vs - 1e-9), head = (int) Math.ceil(1.3 / m.vs - 1e-9), r = (int) Math.ceil(0.3 / m.vs);
+            for (JsonElement e : pts.getAsJsonArray("vagas")) {
+                JsonObject v = e.getAsJsonObject();
+                String who = a.get("id").getAsString() + "/vagas/" + v.get("id").getAsString();
+                assertFalse(v.get("papel").getAsString().isBlank(), who + ": sem papel");
+                assertTrue(Math.abs(v.get("rumo").getAsDouble()) <= 360, who + ": rumo");
+                float[] pos = arr(v, "pos_u");
+                int cx = m.vx(pos[0]), cz = m.vx(pos[2]), body = 0, roof = 0;
+                for (int dx = -r; dx <= r; dx++)
+                    for (int dz = -r; dz <= r; dz++) {
+                        if (Math.hypot(dx, dz) > r) continue;
+                        if (m.solidIn(cx + dx, cz + dz, lo, head)) body++;
+                        if (m.solidIn(cx + dx, cz + dz, head + 1, m.oy + m.vox.sy)) roof++;
+                    }
+                assertEquals(0, body, who + ": sólido do asset dentro do corpo do NPC");
+                assertEquals(0, roof, who + ": teto do asset sobre a cabeça do NPC");
+                checked++;
+            }
+        }
+        assertTrue(checked >= 1, "nenhuma vaga de NPC conferida");
+    }
+
+    @Test
+    void reservedFootprintIsTheExactUnionOfTheVariants() throws IOException {
+        // o gerador reserva a união EXATA das pegadas válidas (base e todas as variações) e o máximo das dimensões;
+        // nenhuma tolerância: a variação que muda a pegada aparece na reserva
+        int n = 0;
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            JsonObject med = a.getAsJsonObject("medidas");
+            List<JsonObject> all = new ArrayList<>(List.of(med.getAsJsonObject("pegada_u")));
+            List<float[]> dims = new ArrayList<>(List.<float[]>of(arr(med, "dimensoes_u")));
+            for (JsonElement e : a.getAsJsonObject("variacoes").getAsJsonArray("extremos")) {
+                all.add(e.getAsJsonObject().getAsJsonObject("pegada_u"));
+                dims.add(arr(e.getAsJsonObject(), "dimensoes_u"));
+            }
+            JsonObject res = med.getAsJsonObject("pegada_reservada_u");
+            for (int i = 0; i < 2; i++) {
+                float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
+                for (JsonObject p : all) { lo = Math.min(lo, arr(p, "min")[i]); hi = Math.max(hi, arr(p, "max")[i]); }
+                assertEquals(lo, arr(res, "min")[i], 1e-6f, id + ": reserva (min) não é a união das pegadas");
+                assertEquals(hi, arr(res, "max")[i], 1e-6f, id + ": reserva (max) não é a união das pegadas");
+            }
+            for (int i = 0; i < 3; i++) {
+                float mx = 0;
+                for (float[] d : dims) mx = Math.max(mx, d[i]);
+                assertEquals(mx, arr(med, "dimensoes_reservadas_u")[i], 1e-6f, id + ": dimensões reservadas");
+            }
+            n++;
+        }
+        assertTrue(n >= 20, "reservas conferidas: " + n);
+    }
+
+    @Test
+    void eachVariantCollisionCoversItsOwnVoxels() throws IOException {
+        // colisão medida da BASE e de CADA variação: todo voxel sólido na faixa do corpo (y 3..12, a de collision_boxes)
+        // está dentro de uma forma daquela variação; formas_iguais diz a verdade
+        int checked = 0;
+        for (JsonObject a : assets()) {
+            JsonObject med = a.getAsJsonObject("medidas");
+            if (!med.has("formas_medidas_u")) continue;
+            String id = a.get("id").getAsString();
+            checked += coverage(id, load(a), med.getAsJsonArray("formas_medidas_u"));
+            for (JsonElement e : a.getAsJsonObject("variacoes").getAsJsonArray("extremos")) {
+                JsonObject v = e.getAsJsonObject();
+                String vid = v.get("id").getAsString();
+                assertTrue(v.has("formas_medidas_u"), vid + ": variação sem a colisão dela");
+                assertEquals(v.get("formas_iguais").getAsBoolean(), v.get("formas_medidas_u").equals(med.get("formas_medidas_u")),
+                        vid + ": formas_iguais não confere");
+                Path dir = A.resolve("studies/conteudo/" + vid);
+                JsonObject part = json(dir.resolve("rig.json")).getAsJsonArray("parts").get(0).getAsJsonObject();
+                JsonArray o = part.getAsJsonArray("origin");
+                Model vm = new Model(VoxModel.load(dir.resolve(part.get("file").getAsString())), o.get(0).getAsInt(),
+                        o.get(1).getAsInt(), o.get(2).getAsInt(), med.get("voxel").getAsFloat());
+                checked += coverage(vid, vm, v.getAsJsonArray("formas_medidas_u"));
+            }
+        }
+        assertTrue(checked > 1000, "voxels de corpo conferidos: " + checked);
+    }
+
+    static int coverage(String who, Model m, JsonArray boxes) {
+        int n = 0;
+        for (int x = 0; x < m.vox.sx; x++)
+            for (int y = 0; y < m.vox.sy; y++)
+                for (int z = 0; z < m.vox.sz; z++) {
+                    int c = m.vox.get(x, y, z), wy = y + m.oy;
+                    if (c == 0 || (c >>> 24) - 1 == VoxModel.MAT_FOLIAGE || wy < 3 || wy > 12) continue;
+                    float ux = (x + m.ox + 0.5f) * m.vs, uz = (z + m.oz + 0.5f) * m.vs;
+                    boolean in = false;
+                    for (JsonElement b : boxes) {
+                        JsonArray q = b.getAsJsonArray();
+                        if (ux >= q.get(0).getAsFloat() && ux <= q.get(2).getAsFloat() && uz >= q.get(1).getAsFloat()
+                                && uz <= q.get(3).getAsFloat()) { in = true; break; }
+                    }
+                    assertTrue(in, who + ": voxel de corpo fora da colisão em (" + ux + ", " + uz + ")");
+                    n++;
+                }
+        return n;
+    }
+
+    @Test
+    void coverIsRealRoofOverWalkableGround() throws IOException {
+        // cobertura_u = onde a câmera precisa de forma só de câmera: em cada coluna da cobertura, nada sólido entre o
+        // piso pisável (0,375 u) e a cabeça do herói (1,43 u) e algo sólido acima; quem declara camera "teto_coberto"
+        // tem cobertura sobre a área segura do interior
+        int cols = 0, declared = 0;
+        for (JsonObject a : assets()) {
+            JsonObject med = a.getAsJsonObject("medidas");
+            String id = a.get("id").getAsString();
+            JsonObject col = a.getAsJsonObject("colisao");
+            boolean roof = col.has("camera") && col.get("camera").getAsString().equals("teto_coberto");
+            if (roof) {
+                declared++;
+                assertTrue(med.has("cobertura_u") && med.getAsJsonArray("cobertura_u").size() > 0, id + ": teto sem cobertura medida");
+                boolean over = false;
+                for (JsonElement s : a.getAsJsonObject("pontos").getAsJsonArray("area_segura_u"))
+                    for (JsonElement b : med.getAsJsonArray("cobertura_u")) {
+                        JsonArray r = s.getAsJsonArray(), q = b.getAsJsonArray();
+                        over |= q.get(0).getAsFloat() < r.get(2).getAsFloat() && r.get(0).getAsFloat() < q.get(2).getAsFloat()
+                                && q.get(1).getAsFloat() < r.get(3).getAsFloat() && r.get(1).getAsFloat() < q.get(3).getAsFloat();
+                    }
+                assertTrue(over, id + ": a cobertura não fica sobre o interior (área segura)");
+            }
+            if (!med.has("cobertura_u")) continue;
+            Model m = load(a);
+            int lo = (int) Math.ceil(0.375 / m.vs - 1e-9), hi = (int) Math.ceil(1.43 / m.vs - 1e-9);
+            for (JsonElement b : med.getAsJsonArray("cobertura_u")) {
+                JsonArray q = b.getAsJsonArray();
+                for (int x = m.vx(q.get(0).getAsFloat() + 1e-4f); x < m.vx(q.get(2).getAsFloat() - 1e-4f) + 1; x++)
+                    for (int z = m.vx(q.get(1).getAsFloat() + 1e-4f); z < m.vx(q.get(3).getAsFloat() - 1e-4f) + 1; z++) {
+                        assertFalse(m.solidIn(x, z, lo, hi - 1), id + ": cobertura com sólido na altura do corpo em " + x + "," + z);
+                        assertTrue(m.solidIn(x, z, hi, m.oy + m.vox.sy), id + ": cobertura sem teto em " + x + "," + z);
+                        cols++;
+                    }
+            }
+        }
+        assertTrue(declared >= 1 && cols > 100, "coberturas conferidas: " + cols + " colunas, " + declared + " tetos declarados");
     }
 
     @Test
