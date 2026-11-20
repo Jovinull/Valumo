@@ -192,11 +192,22 @@ final class MenuView implements AutoCloseable {
         }
         if (flow.message != null && flow.time < flow.messageUntil) {
             int p = g.px(21);
-            String msg = g.fit(flow.message, p, w - 120 * s);
-            float bw = kit().width(msg, p, true) + 60 * s, y0 = 40 * s;      // no topo: embaixo ficam a plaqueta e os botões
-            kit().chamfer((w - bw) / 2, y0, bw, 52 * s, 6 * s, UiKit.WOOD_D);
-            kit().chamfer((w - bw) / 2 + 3 * s, y0 + 3 * s, bw - 6 * s, 46 * s, 5 * s, UiKit.PARCH_L);
-            kit().text((w - bw) / 2 + 30 * s, y0 + 26 * s - p * 0.66f, msg, p, true, UiKit.INK);
+            // rodada 12.2: aviso longo quebra em até 3 linhas (a recusa de uma aventura explica o que fazer: não pode sair
+            // cortada); a 3ª, se ainda sobrar texto, termina em reticências
+            float room = Math.min(w - 120 * s, 1500 * s);
+            java.util.List<String> lines = new java.util.ArrayList<>(g.wrap(flow.message, p, room, true));
+            if (lines.size() > 3) {
+                String rest = String.join(" ", lines.subList(2, lines.size()));
+                lines = new java.util.ArrayList<>(lines.subList(0, 2));
+                lines.add(g.fit(rest, p, room));
+            }
+            float tw = 0;
+            for (String l : lines) tw = Math.max(tw, kit().width(l, p, true));
+            float lh = p * 1.35f, bw = tw + 60 * s, y0 = 40 * s, bh = 52 * s + (lines.size() - 1) * lh;   // no topo: embaixo ficam a plaqueta e os botões
+            kit().chamfer((w - bw) / 2, y0, bw, bh, 6 * s, UiKit.WOOD_D);
+            kit().chamfer((w - bw) / 2 + 3 * s, y0 + 3 * s, bw - 6 * s, bh - 6 * s, 5 * s, UiKit.PARCH_L);
+            for (int i = 0; i < lines.size(); i++)
+                kit().text((w - bw) / 2 + 30 * s, y0 + 26 * s - p * 0.66f + i * lh, lines.get(i), p, true, UiKit.INK);
         }
         float k = 1f - (flow.time - changedAt) / SCREEN_FADE;
         if (k > 0f) kit().rect(0, 0, w, h, 0x0e0a0800 | Math.round(110 * k * k));

@@ -723,12 +723,15 @@ public final class Game implements AutoCloseable {
     }
 
     /** Quebra o texto em linhas que cabem em {@code room} (px), por palavra; palavra maior que a linha fica sozinha. */
-    List<String> wrap(String t, int p, float room) {
+    List<String> wrap(String t, int p, float room) { return wrap(t, p, room, false); }
+
+    /** Idem, medindo como o texto será desenhado (negrito é mais largo). */
+    List<String> wrap(String t, int p, float room, boolean bold) {
         List<String> out = new ArrayList<>();
         StringBuilder line = new StringBuilder();
         for (String word : t.split(" ")) {
             String next = line.isEmpty() ? word : line + " " + word;
-            if (!line.isEmpty() && kit.width(next, p, false) > room) {
+            if (!line.isEmpty() && kit.width(next, p, bold) > room) {
                 out.add(line.toString());
                 line = new StringBuilder(word);
             } else line = new StringBuilder(next);
