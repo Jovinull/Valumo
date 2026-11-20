@@ -661,10 +661,29 @@ public final class World implements AutoCloseable {
         placed.add(new Placed(name, p.mesh(), new Matrix4f().translate(x, y, z).rotateY((float) Math.toRadians(rotDeg)), p.texture(), ow));
     }
 
+    /**
+     * Rodada 12.3 (P85) — recorte desta quadro: o prop {@code name} cuja posição fica a até {@code r} de (x, z) (a construção
+     * em cuja zona o herói está) é desenhado com peso {@code w} de recorte ({@link Renderer.Draw#cut}). w = 0 desliga.
+     */
+    public void cutaway(String name, float x, float z, float r, float w) {
+        cutName = name;
+        cutX = x;
+        cutZ = z;
+        cutR = r;
+        cutW = w;
+    }
+
+    private String cutName;
+    private float cutX, cutZ, cutR, cutW;
+
     public void submit(Renderer.Frame f, float time) {
         f.draws.add(new Renderer.Draw(terrain, new Matrix4f(), terrainTexture, false, true).outline(f.style.outlineTerrain).terrain());
         if (chamfer != null) f.draws.add(new Renderer.Draw(chamfer, new Matrix4f(), null, false, true).outline(f.style.outlineTerrain).terrain());
-        for (Placed p : placed) f.draws.add(new Renderer.Draw(p.mesh, p.model, p.texture, false, true).outline(p.outline));
+        for (Placed p : placed) {
+            Renderer.Draw d = new Renderer.Draw(p.mesh, p.model, p.texture, false, true).outline(p.outline);
+            if (cutW > 0f && p.name.equals(cutName) && Math.hypot(p.model.m30() - cutX, p.model.m32() - cutZ) <= cutR) d.cut = cutW;
+            f.draws.add(d);
+        }
         for (Creature c : creatures) {
             Matrix4f m = new Matrix4f().translate(c.x, groundAt(c.x, c.z) + c.lift, c.z).rotateY(c.yaw);
             c.actor.submit(f, m, c.clip, time + c.phase * 5f, 1f);

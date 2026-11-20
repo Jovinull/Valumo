@@ -41,6 +41,12 @@ public final class Renderer implements AutoCloseable {
         public float flash;
         /** Rodada 09.3: pontilhado do desenho (0 = opaco; ex.: herói com a câmera colada nele). */
         public float fade;
+        /**
+         * Rodada 12.3 (P85): peso do RECORTE deste desenho (0 = nada; até 1): o que dele fica entre a câmera e o alvo
+         * ({@link Frame#cutTarget}), num cone com vértice na câmera e raio {@link Frame#cutRadius} na altura do alvo, é descartado
+         * (borda pontilhada). Só o passo de cor: a sombra continua a da construção inteira.
+         */
+        public float cut;
 
         public Draw overlay() {
             overlay = true;
@@ -85,6 +91,9 @@ public final class Renderer implements AutoCloseable {
         public float time;
         public final Vector3f shadowFocus = new Vector3f();
         public float shadowRadius = 12f;
+        /** Rodada 12.3: alvo do recorte (o peito do herói) e o raio do cone na altura do alvo (u; vértice na câmera). */
+        public final Vector3f cutTarget = new Vector3f();
+        public float cutRadius = 1.4f;
 
         public void add(Mesh mesh, Matrix4f model) { draws.add(new Draw(mesh, model, null, false, true)); }
         public void add(Mesh mesh, Matrix4f model, Texture tex) { draws.add(new Draw(mesh, model, tex, false, true)); }
@@ -277,7 +286,7 @@ public final class Renderer implements AutoCloseable {
             prepass.use().set("uView", f.camera.view()).set("uViewProj", f.camera.viewProj()).set("uLightVP", lightVP)
                     .set("uTime", f.time).set("uWind", s.wind * WIND_SCALE).set("uAffineWind", s.affineWind);
             for (Draw d : f.draws) {
-                if (d.transparent || d.overlay || (d.texture != null && tg.textures) || !visible(d)) continue;
+                if (d.transparent || d.overlay || (d.texture != null && tg.textures) || d.cut > 0f || !visible(d)) continue;
                 prepass.set("uModel", d.model);
                 d.mesh.draw();
             }
@@ -301,7 +310,8 @@ public final class Renderer implements AutoCloseable {
                 .set("uRim", s.rim).set("uSpec", s.spec).set("uEmissive", s.emissive).set("uBacklight", s.backlight)
                 .set("uFogDensity", tg.fog && !tg.studio ? s.fogDensity : 0f).set("uFogHeight", s.fogHeight)
                 .set("uShadows", tg.shadows)
-                .set("uShadowMap", 0).set("uAtlas", 1).set("uAlpha", 1f);
+                .set("uShadowMap", 0).set("uAtlas", 1).set("uAlpha", 1f)
+                .set("uCutTarget", f.cutTarget).set("uCutRadius", f.cutRadius);
         Texture.bind(0, shadowMap.depth);
         frustum.set(f.camera.viewProj());
         for (int pass = 0; pass < 3; pass++) {
@@ -324,7 +334,8 @@ public final class Renderer implements AutoCloseable {
                 lastTriangles += d.mesh.vertexCount / 3;
                 boolean tex = d.texture != null && tg.textures;
                 if (tex) d.texture.bind(1);
-                scene.set("uUseTex", tex).set("uModel", d.model).set("uOutlineWeight", d.outline).set("uFlash", d.flash).set("uFade", d.fade);
+                scene.set("uUseTex", tex).set("uModel", d.model).set("uOutlineWeight", d.outline).set("uFlash", d.flash).set("uFade", d.fade)
+                        .set("uCut", d.cut);
                 boolean far = d.terrain && f.style.terrainFarEnd > 0 && f.toggles.terrainFar;
                 scene.set("uTerrainFarStart", f.style.terrainFarStart).set("uTerrainFarEnd", far ? f.style.terrainFarEnd : 0f);
                 d.mesh.draw();
