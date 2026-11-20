@@ -273,7 +273,7 @@
    {"tipo": "caixa", "min": [0.5, -0.25], "max": [0.75, 0.25], "altura": [2.5, 2.75], "corpo": false},
    {"tipo": "caixa", "min": [-1.25, 1.5], "max": [-0.5, 1.75], "altura": [1.875, 2.125], "corpo": false}
   ]},
-  "ruin_tower": {"tipo": "composta", "_fonte": "medido dos voxels por tools/conteudo/formas_compostas.py (revisado)", "formas": [
+  "ruin_tower": {"tipo": "composta", "_fonte": "medido dos voxels por tools/conteudo/formas_compostas.py (revisado)", "recorte": {"centro_u": [0.062, 0.062], "raio_u": 2.0}, "formas": [
    {"tipo": "caixa", "min": [-0.5, -1.25], "max": [0.5, -0.625], "altura": [0.0, 0.125], "pisavel": true, "camera": false},
    {"tipo": "caixa", "min": [-0.75, -1.125], "max": [-0.5, -0.625], "altura": [0.0, 0.125], "pisavel": true, "camera": false},
    {"tipo": "caixa", "min": [0.5, -1.125], "max": [0.75, 1.125], "altura": [0.0, 0.125], "pisavel": true, "camera": false},
