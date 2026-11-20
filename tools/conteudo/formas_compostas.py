@@ -33,6 +33,8 @@ GAP = 2                  # vão (em voxels) que ainda conta como a mesma parede
 CAMERA_MIN = 1.2         # topo abaixo disso: peça baixa, a câmera passa por cima
 STAND_MAX = 0.8          # topo até isso: pisável (o salto sobe; caixote 0,5, barril 0,75)
 GRID = 0.25              # grade das formas de câmera (a da conferência de alcance)
+STEP = 0.30              # o degrau que se sobe a pé (Player.STEP): o topo do piso elevado pisável
+FLOOR_MIN = 0.25         # laje abaixo da faixa do corpo com topo a partir disto = piso elevado
 
 
 def r4(v):
@@ -100,9 +102,12 @@ def composite(name, rec, man):
     [0,375; 1,2) u — acima do degrau, abaixo da cabeça do herói —, da base desse voxel ao topo da parede contínua; o que
     fica acima (arco, lintel, telhado, toldo) e o que só existe acima da cabeça seguram só a câmera."""
     cols, vs = columns(name, man)
-    body, upper = {}, {}
+    body, upper, floor = {}, {}, {}
     for (px, pz), spans in cols.items():
         i, j = round((px - vs / 2) / vs), round((pz - vs / 2) / vs)
+        low = [b for a, b in spans if a < BODY_LO - 1e-6]
+        if low and max(low) >= FLOOR_MIN - 1e-6:                          # laje de piso elevada (oficina, ruína: 0,375 u)
+            floor[(i, j)] = (0.0, max(low))
         first = next((k for k, (a, b) in enumerate(spans) if a >= BODY_LO - 1e-6 and a < HEAD), None)
         rest = spans
         if first is not None:
@@ -116,6 +121,14 @@ def composite(name, rec, man):
         if rest:
             upper[(i, j)] = (rest[0][0], rest[-1][1])
     shapes = []
+    # piso elevado onde não há corpo: pisável, com o topo no degrau que se sobe a pé (o herói entra sem pular; o pé fica
+    # no máximo 0,075 u abaixo da laje de 0,375). Não bloqueia corpo nem câmera
+    for k in list(floor):
+        if k in body:
+            del floor[k]
+    for (x0, z0, x1, z1, lo, hi) in merge(floor, vs):
+        shapes.append({"tipo": "caixa", "min": [r4(x0), r4(z0)], "max": [r4(x1), r4(z1)], "altura": [0.0, min(r4(hi), STEP)],
+                       "corpo": False, "camera": False, "pisavel": True})
     for (x0, z0, x1, z1, lo, hi) in merge(body, vs):
         s = {"tipo": "caixa", "min": [r4(x0), r4(z0)], "max": [r4(x1), r4(z1)], "altura": [r4(lo), r4(hi)]}
         if hi < CAMERA_MIN:
