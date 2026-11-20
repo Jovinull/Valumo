@@ -212,8 +212,8 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   do prop (`Collision.addComposite`).
   - O mesmo contrato serve ao movimento, à câmera e ao alcance.
   - Contrato: `docs/architecture/colisao-composta.md`. Teste: `CompositeCollisionTest`, em 5 rumos.
-- **Piso elevado** (laje de 0,375 u): forma pisável com o topo no degrau (0,30 u). Sem ela o herói anda afundado na
-  laje (o defeito que a captura mostrou).
+- **Piso elevado:** na 12.1 a forma tem o topo EXATO da laje (0,375 u) e as entradas têm degraus reais. O piso de 0,30 u
+  da rodada 12 fazia o herói afundar e subir (teste físico).
 - **Descoberta:** `SceneDef.Discovery` → `GameLogic.findDiscovery`/`useDiscovery`, o mais perto entre morador, objeto e
   descoberta.
   - Placa com o verbo, sem texto de tecla.
@@ -223,3 +223,25 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   - `vista-lugar ruina|construcao N`;
   - `ir-lugar ruina|ruina-dentro|descoberta|construcao N [andando]`;
   - `seguir-ramo ida|volta [correndo]`: a trilha principal até a bifurcação e depois a da ruína.
+
+## Rodada 12.1 — salto que sobe nas coisas, suporte e colocação (ADR 0019, adendo)
+
+- **Salto:** os números estão só em `combate_e.json`. Altura 1,0 u (alcança topos até 1,30 u com o degrau), gravidade
+  18/26, coyote 0,11 s, buffer 0,15 s, `sensacao.*.ar` 0,85. Teste que copia a janela do salto em vez de lê-la do JSON é
+  falso verde (`DodgeJumpPolishTest` lê).
+- **Suporte** (`Collision.supports`): todo sólido segura quem está em cima, menos pessoa e objeto de missão
+  (`Shape.person`). O defeito antigo: um corpo para de empurrar a um degrau dos pés, então quem pousava numa cerca
+  afundava nela.
+- **Colocação** (`Collision.standAt`, `Player.place`): o herói vai para a superfície livre mais baixa ao alcance do
+  salto. Começo, continuar e recomeço nunca põem o herói num telhado (o `place(99)` antigo punha).
+- **Índice espacial:** `floor`/`resolve`/`bodyAt` olham só as formas da vizinhança, com o mesmo resultado
+  (`CollisionIndexTest`).
+- **Descoberta "chegar"** (o mirante): registra no passo em que o herói está de pé no ponto, pelo chão de colisão
+  (`GameLogic.discoveryFloor`), nunca pelo meio voxel do catálogo. A placa "Subir na muralha" aparece embaixo.
+- **Roteiros:**
+  - `pular`, `segurar W` / `soltar W` (o salto andando);
+  - `ir-lugar mirante|arvore|oficio|ruina-lado [andando]`;
+  - `vista-lugar arvore|ruina-alto`;
+  - `vista-fim` antes de um `ir-lugar` que deve mostrar a câmera do jogador.
+- **O andador** (`… andando`) vai em linha reta, com tempo de 25 s. Ponto atrás de tronco ou parede = herói empurrando
+  até o tempo esgotar: escolha o ponto livre mais perto de quem chega.

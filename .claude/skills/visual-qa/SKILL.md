@@ -254,3 +254,21 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
   - prop em desnível.
 - **Vídeos:** `demo` (mundo v2 do menu à descoberta, salvar e continuar) e `demo-v1` (mundo v1 antigo no executável
   novo). Quadros em `output/tmp`, nunca no `/tmp` (tmpfs: o vídeo de 1080p estoura a cota).
+
+## Rodada 12.1 — acabamento da v2 (`tools/review121.sh`)
+
+- **Antes × depois de verdade:** `antes` roda o binário E os assets da rodada 12 num clone compilado (`BASE=…`) nas
+  mesmas sementes. As comparações nunca usam capturas antigas de outra sessão.
+- **Vistas:** 20 tomadas por semente (mais o achado, o mirante, a árvore, o morador do ofício e a ruína de cima), em 12
+  sementes (as 6 de sempre e 6 raras).
+- **Laje:** `laje` registra a entrada andando pelo arco da ruína nos dois binários (quadros do passo pela soleira).
+- **Vídeos:** `demo` (torre, mirante com salto, árvore, diário, salvar e continuar; e a casa com o pote) e `demo-v1`.
+- **O que olhar:**
+  - herói empurrando parede por segundos (andador de roteiro com ponto atrás de obstáculo);
+  - câmera colada dentro da torre (limitação conhecida, P85);
+  - aviso com frase truncada ou "e … e …";
+  - pote cheio depois de pego;
+  - morador do ofício de costas para a praça;
+  - tomada repetida.
+- **Dados do proprietário:** o script confere o sha256 de `output/aparencias` e `output/saves` antes e depois. Os mundos
+  e personagens dele nunca são abertos: para testá-los, copie para uma pasta temporária.

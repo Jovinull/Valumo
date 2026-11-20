@@ -93,3 +93,22 @@ Se ficou abaixo da vila aprovada, diga e registre o que precisa melhorar.
   - a área livre da frente do catálogo inteira numa vila compacta → nada cabia;
   - o chafariz e o poço fora do `taken` → conjunto encostado neles;
   - a Kelyra virada para o chafariz → a fala caía dentro dele.
+
+## Rodada 12.1 — acabamento da v2 (`mundo-procedural.md` §10)
+
+- **A v2 só muda enquanto não for publicada.** Mudou o resultado: refaça `regioes-v2.txt` uma vez, no fim, com o motivo
+  no commit. A v1: 300 sementes iguais ao binário anterior e `regioes-v1.txt` intocado.
+- **A impressão digital inclui os textos** da cena (as descobertas com os fatos). Mudar um texto de
+  `descobertas_e.json` muda a referência da v2.
+- **Variedade sem trocar tudo:** POIs compatíveis sorteados com rótulo próprio (`"ruina-tipo"`: casa ou torre). Porte da
+  vila de caminho com `"porte"`; moradores com `"oficios"`.
+- **Relevo plano por projeto:** patamar, patamares das ruínas e clareira do posto (`ProceduralField.flat`). Sem isso, a
+  primeira fiada de pedra fica no plano da grama e pisca.
+- **Morador de ofício:** pelo dado (`habitantes_e.json → oficio` → perfil `oficios`), num spawn `npc` da âncora; corpo
+  livre, sem bloquear porta nem ponto, `falar:<id>` na conferência.
+- **Saves:** um save v2 de uma versão em desenvolvimento cuja região mudou pode ser recusado (id que não existe mais).
+  Teste com o binário anterior (`tools/review121.sh` e o roteiro de compatibilidade no relatório), nunca com os saves
+  do proprietário.
+- **Defeitos já vistos (não repita):**
+  - medir a média de construções com o computador gravando vídeo (os tempos saem ~20% maiores; as contagens não mudam);
+  - perfil de região escrito à mão em vez de pelo script (`perfil_regiao_v2.py`).
