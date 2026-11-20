@@ -38,6 +38,10 @@
 | [processo/como-adicionar-uma-tomada.md](processo/como-adicionar-uma-tomada.md) | guia: tomada nova no fundo do menu (e a vitrine dos personagens), com o teste na colisão real |
 | [validation/relatorio-fechamento-rodadas-11.md](validation/relatorio-fechamento-rodadas-11.md) | fechamento das rodadas 11 e 11.1: X da janela, menu principal de verdade, tipografia, carregamento, câmera da prévia, commits e procedimento de publicação |
 | [processo/handoff-laboratorio-de-assets.md](processo/handoff-laboratorio-de-assets.md) | handoff: como os assets do laboratório entram no catálogo e no gerador (colisão, alcance, sementes, ids, desempenho, revisão de PR) |
+| [art/conteudo-mundo.md](art/conteudo-mundo.md), [architecture/catalogo-de-conteudo.md](architecture/catalogo-de-conteudo.md) | **biblioteca de conteúdo (lotes 1 e 2):** guia de arte do laboratório e o catálogo `valumo.conteudo/1` (medidas, pontos, colisão, estados, variantes, conjuntos); evidências em [art/conteudo/](art/conteudo/lote-1/README.md) |
+| [processo/como-integrar-conteudo-ao-mundo.md](processo/como-integrar-conteudo-ao-mundo.md) | guia: criar e registrar asset, variante, restrições, conjunto, vitrine, validação, colisão depois, liberar para o gerador sem quebrar save |
+| [architecture/colisao-composta.md](architecture/colisao-composta.md) | colisão composta (proposta): quem precisa, contrato `formas` em espaço do modelo, corpo × câmera, pisável, testes, implementação |
+| [validation/relatorio-integracao-conteudo.md](validation/relatorio-integracao-conteudo.md) | relatório da integração dos lotes 1 e 2: auditoria dos PRs #3 e #5, autoria, sementes, carga sob demanda, desempenho, saves |
 | [validation/relatorio-rodada-11-1.md](validation/relatorio-rodada-11-1.md) | relatório da rodada 11.1 (menu principal, personagens, mundos, aventuras) |
 | [validation/relatorio-rodada-11.md](validation/relatorio-rodada-11.md) | relatório da rodada 11 (fundação procedural) |
 | [architecture/missoes.md](architecture/missoes.md) | missões (rodada 10): definição, estados derivados, objetivos, identidade estável de inimigo, objetos com estado, falas por contexto, recompensa, avisos, salvamento automático, testes |
@@ -69,7 +73,7 @@
 
 Procedimentos para agentes: `.claude/skills/` (character-design, character-customization, voxel-art, visual-qa,
 rendering, weapon-animation, game-ui, gameplay, combat, audio, git-commits, music-composition, sound-design, audio-qa,
-engineering-qa, quest-design, mundo-procedural; menus na skill game-ui). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
+engineering-qa, quest-design, mundo-procedural, conteudo-mundo; menus na skill game-ui). Ponto de entrada curto: [../CLAUDE.md](../CLAUDE.md).
 
 ## Histórico (rastreabilidade — não é especificação atual)
 
