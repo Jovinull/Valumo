@@ -99,6 +99,12 @@ public final class Reachability {
         boolean rs = reachedNear(seen, nx, nz, x0, z0, L.restartX, L.restartZ, 0.5f);
         targets.put("recomeco", rs);
         if (!rs) problems.add("o ponto de recomeço não é alcançável");
+        // rodada 12 (v2): entradas das construções, pontos de interação dos interiores, a descoberta (a v1 não tem nenhum)
+        for (RegionLayout.Checkpoint cp : L.checkpoints) {
+            boolean ok = reachedNear(seen, nx, nz, x0, z0, cp.x(), cp.z(), cp.within());
+            targets.put(cp.name(), ok);
+            if (!ok) problems.add(cp.name() + " fora do alcance em (" + r1(cp.x()) + ", " + r1(cp.z()) + ")");
+        }
         // arena: espaço livre para lutar
         int in = 0, ok = 0;
         for (int iz = 0; iz < nz; iz++)

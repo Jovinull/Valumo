@@ -97,6 +97,9 @@ public final class ProceduralScene {
         this.reach = reach;
     }
 
+    /** Rodada 12: o perfil congelado da v2 (lido a cada geração: é pequeno, e o arquivo é a fonte da verdade). */
+    static vx.game.world.RegionProfile profile(Path assets) { return vx.game.world.RegionProfile.parse(read(assets, "regiao_v2_e.json")); }
+
     /** Id do mundo para ids de instância e para a pasta do save ("s1024"). */
     public static String worldId(long seed) { return "s" + Long.toUnsignedString(seed); }
 
@@ -113,9 +116,10 @@ public final class ProceduralScene {
         if (!RegionGenerator.supports(version))
             throw new Rejected("versão " + version + " do gerador não suportada por este jogo (semente " + Long.toUnsignedString(seed) + ")");
         List<String> log = new ArrayList<>();
+        vx.game.world.RegionProfile profile = version >= RegionGenerator.V2 ? profile(assets) : null;
         for (int attempt = 0; attempt < RegionGenerator.MAX_ATTEMPTS; attempt++) {
             long t0 = System.nanoTime();
-            RegionLayout L = RegionGenerator.compose(seed, attempt, version);
+            RegionLayout L = RegionGenerator.compose(seed, attempt, version, profile, true);
             ProceduralField field = new ProceduralField(L);
             Docs d = docs(assets, L);
             long t1 = System.nanoTime();
@@ -124,6 +128,9 @@ public final class ProceduralScene {
             Collision col = Collision.build(terrain, Collision.profiles(assets), scene.handPlaced, scene.bodies, scene);
             Reachability.Report rep = Reachability.check(L, scene, col, terrain);
             long t2 = System.nanoTime();
+            if (version >= RegionGenerator.V2 && L.poi("ruin") == null)    // a v2 sempre tem o lugar a explorar
+                rep = new Reachability.Report(List.of("sem lugar para a ruína"), rep.cells(), rep.walkable(), rep.reachable(), rep.arenaFree(),
+                        rep.targets(), rep.nanos());
             if (rep.problems().isEmpty()) {
                 ProceduralScene ps = new ProceduralScene(assets, seed, L, field, d.world, d.scene, d.combat, d.quest, d.binding, d.dialogues,
                         List.copyOf(log), rep);
@@ -220,8 +227,26 @@ public final class ProceduralScene {
             o.add("falas", lines);
             inter.add(o);
         }
-        JsonArray objects = new JsonArray();
+        JsonArray objects = new JsonArray(), discoveries = new JsonArray();
+        JsonObject kinds = L.version >= RegionGenerator.V2 ? read(assets, "descobertas_e.json").getAsJsonObject("tipos") : null;
         for (RegionLayout.Feature f : L.features) {
+            if (f.kind().equals("descoberta")) {                            // rodada 12 (v2): a descoberta do POI
+                RegionLayout.PointOfInterest poi = L.pois.stream().filter(p -> p.features().contains(f.id())).findFirst().orElseThrow();
+                JsonObject k = kinds.getAsJsonObject(poi.type());
+                JsonObject o = new JsonObject();
+                o.addProperty("id", f.id());
+                o.addProperty("nome", k.get("nome").getAsString());
+                o.addProperty("x", r3(f.x()));
+                o.addProperty("z", r3(f.z()));
+                o.addProperty("alcance", 1.6f);
+                o.addProperty("placa", 1.3f);
+                o.addProperty("moedas", k.get("moedas").getAsInt());
+                o.addProperty("verbo", k.get("verbo").getAsString());
+                o.addProperty("texto", k.get("texto").getAsString());
+                o.addProperty("jaVisto", k.get("jaVisto").getAsString());
+                discoveries.add(o);
+                continue;
+            }
             JsonObject o = new JsonObject();
             o.addProperty("id", f.id());
             o.addProperty("x", r3(f.x()));
@@ -249,6 +274,7 @@ public final class ProceduralScene {
         game.add("limitesExtras", extra);
         game.add("interativos", inter);
         game.add("objetos", objects);
+        if (!discoveries.isEmpty()) game.add("descobertas", discoveries);    // rodada 12: só a v2 tem (a v1 sai igual)
         JsonObject scene = new JsonObject();
         scene.add("props", props);
         scene.add("jogo", game);

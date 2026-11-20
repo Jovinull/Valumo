@@ -20,12 +20,12 @@ public final class RegionGenerator {
      * nova nunca muda o caminho de uma antiga.
      */
     public static final int V1 = 1, V2 = 2;
-    /** A versão com que os mundos NOVOS nascem (a mais nova aprovada). */
-    public static final int LATEST = V1;
+    /** A versão com que os mundos NOVOS nascem (a mais nova aprovada). Rodada 12: a v2. */
+    public static final int LATEST = V2;
     public static final int MAX_ATTEMPTS = 4;
 
     /** Esta versão do jogo sabe gerar a versão {@code v}? (Desconhecida = mundo de um jogo mais novo: não abre.) */
-    public static boolean supports(int v) { return v == V1; }
+    public static boolean supports(int v) { return v == V1 || v == V2; }
     /** Metade do lado da região jogável (u): tudo cabe em ±17, a floresta fecha até a borda do mundo (±24). */
     static final float HALF = 16.5f;
 
@@ -34,15 +34,23 @@ public final class RegionGenerator {
 
     private RegionGenerator() { }
 
-    /** Compõe a região da semente na versão pedida (a do MUNDO, nunca "a mais nova"). */
-    public static RegionLayout compose(long seed, int attempt, int version) { return compose(seed, attempt, version, true); }
+    /** Compõe a região da semente na versão pedida (a do MUNDO, nunca "a mais nova"). A v1 não usa perfil. */
+    public static RegionLayout compose(long seed, int attempt, int version) { return compose(seed, attempt, version, null, true); }
 
-    /** {@code vegetation=false}: sem a vegetação (teste de independência: ela não pode mover lugar, encontro nem marco). */
-    public static RegionLayout compose(long seed, int attempt, int version, boolean vegetation) {
+    /**
+     * {@code profile}: os dados congelados da v2 ({@link RegionProfile}; a v1 ignora). {@code vegetation=false}: sem a
+     * vegetação (teste de independência: ela não pode mover lugar, encontro nem marco).
+     */
+    public static RegionLayout compose(long seed, int attempt, int version, RegionProfile profile, boolean vegetation) {
         return switch (version) {
             case V1 -> composeV1(seed, attempt, vegetation);
+            case V2 -> RegionV2.compose(seed, attempt, profile, vegetation);
             default -> throw new IllegalArgumentException("versão do gerador não suportada: " + version);
         };
+    }
+
+    public static RegionLayout compose(long seed, int attempt, int version, boolean vegetation) {
+        return compose(seed, attempt, version, null, vegetation);
     }
 
     /** A v1 (rodada 11), congelada: nenhuma conta, rótulo ou ordem de sorteio daqui muda (referência {@code regioes-v1.txt}). */

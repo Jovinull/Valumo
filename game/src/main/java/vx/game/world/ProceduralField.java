@@ -63,11 +63,46 @@ public final class ProceduralField implements TerrainField {
             float dh = (float) Math.hypot(x - L.hill[0], z - L.hill[1]);
             h += L.hill[3] * smooth(L.hill[2], L.hill[2] * 0.25f, dh);
         }
+        if (L.version >= RegionGenerator.V2) h = v2(h, x, z);           // rodada 12: só a v2 (a v1 não passa aqui)
         if (L.pond != null) {
             float dp = pondDistance(x, z);
             h += (-1.25f - h) * smooth(4.6f, 1.6f, dp);
         }
         return h;
+    }
+
+    /**
+     * Rodada 12 (v2): o patamar plano de cada lugar fora do assentamento (a ruína) e a trilha secundária escavada até ele
+     * (rampa entre a altura da trilha principal e a do patamar, o mesmo perfil da trilha principal).
+     */
+    private float v2(float h, float x, float z) {
+        for (float[] p : L.pads) {
+            float d = (float) Math.hypot(x - p[0], z - p[1]);
+            h += (p[3] - h) * smooth(p[2] + 2.6f, p[2] + 0.4f, d);
+        }
+        for (RegionLayout.Branch b : L.branches) {
+            if (!b.carve()) continue;
+            float[] pr = projectOn(b.points(), x, z);
+            float target = b.h0() + (b.h1() - b.h0()) * smooth(0f, 1f, pr[1]);
+            h += (target - h) * smooth(2.2f, 0.9f, pr[0]);
+        }
+        return h;
+    }
+
+    /** {distância ao eixo, fração do comprimento} numa polilinha (as trilhas secundárias, curtas). */
+    static float[] projectOn(java.util.List<float[]> pts, float x, float z) {
+        float total = 0;
+        for (int i = 1; i < pts.size(); i++) total += (float) Math.hypot(pts.get(i)[0] - pts.get(i - 1)[0], pts.get(i)[1] - pts.get(i - 1)[1]);
+        float best = Float.MAX_VALUE, at = 0, acc = 0;
+        for (int i = 0; i + 1 < pts.size(); i++) {
+            float[] a = pts.get(i), b = pts.get(i + 1);
+            float dx = b[0] - a[0], dz = b[1] - a[1], ll = dx * dx + dz * dz, seg = (float) Math.sqrt(ll);
+            float t = ll < 1e-9f ? 0 : Math.clamp(((x - a[0]) * dx + (z - a[1]) * dz) / ll, 0f, 1f);
+            float qx = a[0] + dx * t - x, qz = a[1] + dz * t - z, d = (float) Math.sqrt(qx * qx + qz * qz);
+            if (d < best) { best = d; at = (acc + seg * t) / Math.max(total, 1e-3f); }
+            acc += seg;
+        }
+        return new float[]{best, at};
     }
 
     /** {distância ao eixo, fração do comprimento (0 no assentamento, 1 na clareira)}. */
@@ -83,7 +118,15 @@ public final class ProceduralField implements TerrainField {
         return new float[]{best, at};
     }
 
-    public float pathDistance(float x, float z) { return L.path.size() < 2 ? 99f : project(x, z)[0]; }
+    public float pathDistance(float x, float z) {
+        float d = L.path.size() < 2 ? 99f : project(x, z)[0];
+        if (L.version >= RegionGenerator.V2)                               // rodada 12: as trilhas secundárias também são caminho
+            for (RegionLayout.Branch b : L.branches) if (b.points().size() >= 2) d = Math.min(d, projectOn(b.points(), x, z)[0]);
+        return d;
+    }
+
+    /** Só a trilha principal (a v2 afasta a vegetação dela e das secundárias separadamente). */
+    public float mainPathDistance(float x, float z) { return L.path.size() < 2 ? 99f : project(x, z)[0]; }
 
     public float pondDistance(float x, float z) {
         if (L.pond == null) return 99f;

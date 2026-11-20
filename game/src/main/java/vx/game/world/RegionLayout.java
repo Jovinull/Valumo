@@ -50,6 +50,32 @@ public final class RegionLayout {
     public record PointOfInterest(String id, String type, String region, float x, float z, float radius, String state,
                                   List<String> features, List<String> spawns) { }
 
+    // ------------------------------------------------------------------ rodada 12: só a v2 preenche (a v1 deixa vazio)
+
+    /** Estilo do assentamento da v2: "caminho" (vila de caminho, compacta, com praça) ou "rural" (sítios espaçados). */
+    public String style;
+
+    /** Patamar plano (x, z, raio, altura) de um lugar fora do assentamento (a ruína). */
+    public final List<float[]> pads = new ArrayList<>();
+
+    /**
+     * Trilha secundária: pontos a cada ~0,5 u, alturas na ponta de partida e na de chegada; {@code carve} = o relevo segue
+     * a trilha (a da ruína); senão só pinta o chão (os caminhos da praça até as portas, no patamar plano).
+     */
+    public record Branch(List<float[]> points, float h0, float h1, boolean carve) { }
+
+    public final List<Branch> branches = new ArrayList<>();
+
+    /** Construção (ou conjunto de ofício) posta pelo gerador: asset, conjunto (ou null), posição, rumo, papel. */
+    public record Building(String asset, String set, float x, float z, float rotDeg, String role) { }
+
+    public final List<Building> buildings = new ArrayList<>();
+
+    /** Lugar que a conferência de alcance exige (entrada, ponto de interação, descoberta): alguém chega a {@code within} u. */
+    public record Checkpoint(String name, float x, float z, float within) { }
+
+    public final List<Checkpoint> checkpoints = new ArrayList<>();
+
     public final List<Prop> props = new ArrayList<>();
     public final List<Npc> npcs = new ArrayList<>();
     public final List<Spawn> spawns = new ArrayList<>();
