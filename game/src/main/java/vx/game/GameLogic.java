@@ -281,9 +281,22 @@ public final class GameLogic {
 
     // ------------------------------------------------------------------ quadro
 
+    /** Rodada 12.3 (P85): o recorte contextual da torre caída ({@link CameraCutaway}); fora de toda zona, nada muda. */
+    public final CameraCutaway cut = new CameraCutaway();
+
     public void update(float dt, Input in) {
         time += dt;
         if (state != State.EXPLORE) { player.snapshot(); cam.snapshot(); alpha = 1f; acc = 0f; }
+        cut.update(dt, collision, player.x, player.z);
+        collision.cameraSkip = cut.skip();
+        try {
+            stateUpdate(dt, in);
+        } finally {
+            collision.cameraSkip = -1;                                    // só as consultas da câmera deste quadro
+        }
+    }
+
+    private void stateUpdate(float dt, Input in) {
         switch (state) {
             case SELECT -> {
                 if (in.hit(GLFW_KEY_DOWN, GLFW_KEY_S)) select(nextValid(selected, 1));

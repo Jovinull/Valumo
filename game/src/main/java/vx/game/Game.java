@@ -395,6 +395,13 @@ public final class Game implements AutoCloseable {
         f.style = style;
         f.time = logic.time;
         f.toggles = toggles;
+        Collision.Cutaway cz = menuOn ? null : logic.cut.zone;              // rodada 12.3 (P85): recorte da torre com o herói dentro
+        if (cz != null && logic.cut.weight > 0f) {
+            world.cutaway(cz.prop(), cz.x(), cz.z(), 0.6f, logic.cut.weight);
+            Player hp = logic.player;
+            f.cutTarget.set(hp.rx(logic.alpha), hp.visualY + 0.75f, hp.rz(logic.alpha));
+            f.cutRadius = CameraCutaway.RADIUS;
+        } else world.cutaway(null, 0f, 0f, 0f, 0f);
         world.submit(f, logic.time);
         float blend = Math.min(1f, dt * 12f), a = logic.alpha;
         Player p = logic.player;
