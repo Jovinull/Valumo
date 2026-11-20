@@ -119,3 +119,23 @@ num mundo v2).
 - **Formato:** a versão do formato não mudou; continuam v1 (vila) e v2 (procedural). Detalhes:
   [persistência do mundo procedural](persistencia-mundo-procedural.md).
 
+
+**Rodada 12.1 — tipos de lugar, o mesmo campo.** A v2 passou a ter três descobertas possíveis por região:
+
+| Tipo | Id | Lugar |
+|---|---|---|
+| casa | `desc.r0.ruina.0` | o pote na lareira |
+| torre | `desc.r0.torre.0` | o mirante |
+| árvore | `desc.r0.arvore.0` | a árvore retorcida |
+
+- **Nada novo no save:** os ids continuam em `progresso.descobertas`. O que o jogador viu (o pote vazio, "Lugares" no
+  diário, "Lugar novo" só na primeira vez de um tipo) é **derivado** desses ids e da cena.
+- **Sem migração:** não há campo novo, versão nova nem migração.
+- **Saves da rodada 12** (v2 ainda não publicada; medido com o binário das duas rodadas):
+  - **Abre:** quando os ids batem. O mundo abre com a região da 12.1, e a posição salva que caiu dentro de algo volta ao
+    início.
+  - **Recusa:** quando a mesma semente agora tem outra ruína e a descoberta salva não existe mais, o save é recusado com
+    o motivo ("descoberta desconhecida: desc.r0.ruina.0"). O arquivo fica como estava, com a cópia `.invalido` ao lado,
+    como todo save recusado. Não há migração que invente a descoberta.
+
+Por isso a v2 só se publica **depois** de aprovada. Depois disso, mudar o resultado é versão nova (ADR 0029).
