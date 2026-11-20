@@ -1,6 +1,8 @@
 # Rodada 11.1 — roteiro D: aventura = personagem × mundo. O "Aventureiro" (o jogo salvo de antes, adotado ao abrir o menu)
 # CONTINUA na Vila do Posto; pausa → Menu principal → confirmação → salvar e voltar. Mundo gerado (semente 1024): iniciar, andar, pausa →
 # Menu principal → voltar sem salvar; de novo, salvar; continuar. O progresso de cada par fica na pasta dele.
+# Fechamento da 11.1: "Menu principal" volta à TELA INICIAL (Jogar → personagem → mundos); com tudo salvo, a
+# confirmação oferece "menu-sem-salvar" (rótulo "Menu principal") e Cancelar.
 size 1920 1080
 esperar-menu 20
 wait 1
@@ -31,6 +33,10 @@ wait 0.3
 shot 34-confirmar-voltar
 click menu-salvar
 esperar-menu 60
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 30
 wait 0.5
 shot 35-de-volta-aos-mundos
 menu-estado
@@ -48,6 +54,10 @@ key ESC
 click menu-principal
 click menu-sem-salvar
 esperar-menu 60
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 30
 menu-estado
 click entrar
 esperar-menu 60
@@ -59,8 +69,12 @@ key ESC
 click salvar
 wait 0.3
 click menu-principal
-click menu-salvar
+click menu-sem-salvar
 esperar-menu 60
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 30
 wait 0.5
 shot 37-mundo-com-aventura
 menu-estado
