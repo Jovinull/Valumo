@@ -1,0 +1,64 @@
+# Integração dos lotes de conteúdo — custo da biblioteca NÃO usada: o mesmo procedimento na main publicada e na
+# integração (sem e com o carregamento sob demanda). Recursos vivos (malhas = memória de vértices na GPU, texturas, FBOs)
+# no menu, na vila e numa região gerada; tempos (menu, criador, gerar, montar, abrir salvo); quadro no menu e na vila.
+# Pede dados temporários com o jogo salvo de antes (vira o "Aventureiro" na vila).
+size 1920 1080
+esperar-menu 20
+menu-recursos 1-menu
+click jogar
+esperar-menu 20
+click criar-personagem
+criador tools/menu/criador-cancelar.txt
+esperar-menu 20
+menu-recursos 2-depois-do-criador
+key ESC
+esperar-menu 20
+aquecer 3
+perf on
+wait 8
+perf off quadro-menu.txt
+click jogar
+esperar-menu 20
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 60
+menu-mundo vila
+click entrar
+esperar-menu 60
+wait 1
+menu-recursos 3-vila
+aquecer 2
+perf on
+wait 8
+perf off quadro-vila.txt
+key ESC
+click menu-principal
+click menu-sem-salvar
+esperar-menu 60
+menu-recursos 4-de-volta-ao-menu
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+click criar-mundo
+click campo:1
+digitar 1024
+click confirmar-mundo
+esperar-menu 60
+click entrar
+esperar-menu 60
+wait 1
+menu-recursos 5-regiao-1024
+hold W 1
+key ESC
+click menu-principal
+click menu-salvar
+esperar-menu 60
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+click entrar
+esperar-menu 60
+wait 1
+menu-recursos 6-regiao-1024-salva
