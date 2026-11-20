@@ -130,7 +130,10 @@ case "$what" in validadores|tudo)
   for c in "--check" "--check interrupcao-fina" "--check golpe-andando" "--check esquiva" "--check-cabelos"; do
     $V $c > "$R/registros/val-$(echo $c | tr -d ' -').txt" 2>&1; echo "$c: $(tail -1 "$R/registros/val-$(echo $c | tr -d ' -').txt")"
   done
+  $V --occlusion > "$R/registros/val-occlusion.txt" 2>&1 || true; echo "--occlusion: $(tail -1 "$R/registros/val-occlusion.txt") (sai com 1 pela exceção conhecida do arco)"
   tools/review7.sh gate > "$R/registros/gate.txt" 2>&1; tail -2 "$R/registros/gate.txt"
+  python3 tools/check_links.py > "$R/registros/links.txt" 2>&1 || true; tail -1 "$R/registros/links.txt"
+  .venv/bin/python tools/audio/audio_qa.py --catalogo assets/audio/sons.json > "$R/registros/audio-qa.txt" 2>&1 || true; grep arquivos "$R/registros/audio-qa.txt" | tail -1
   rm -rf output/tmp/r12-ref; tools/reference.sh output/tmp/r12-ref > /dev/null 2>&1
   .venv/bin/python tools/repro_compare.py imgs docs/art/reference output/tmp/r12-ref > "$R/registros/referencias.txt" 2>&1; tail -1 "$R/registros/referencias.txt"
 esac
