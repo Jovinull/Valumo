@@ -205,7 +205,7 @@ Regra dos assets do laboratório:
 | Campo | Valores | Lote 1 |
 |---|---|---|
 | `aprovacao.artistica` | `aprovado`, `aprovado_conceito`, `rejeitado` | 11 aprovados, 1 conceito (círculo), 1 rejeitado (em andares) |
-| `aprovacao.integracao` | `liberado`, `depende_colisao_composta`, `aguardando_refinamento`, `nao_distribuivel` | liberados: sobrado, cabana redonda, caçador, torre de vigia, bifurcada, álamo, antiga, seca. Dependem de formas compostas: oficina, torre arruinada, ruína de casa. Aguardando: círculo (que também depende das formas) |
+| `aprovacao.integracao` | `liberado`, `depende_colisao_composta`, `aguardando_refinamento`, `aguardando_avaliacao`, `restrito_a_conjuntos`, `nao_distribuivel` | liberados: sobrado, cabana redonda, caçador, torre de vigia, bifurcada, álamo, antiga, seca. Dependem de formas compostas: oficina, torre arruinada, ruína de casa. Aguardando: círculo (que também depende das formas) |
 | `aprovacao.distribuicao_procedural` | `true` só para `liberado` | 8 |
 | `aprovacao.dependencias` | texto, nunca vazio quando não liberado | |
 
@@ -221,9 +221,24 @@ O teste exige coerência: quem declara `colisao.formas` não pode estar `liberad
 5. `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest`.
 6. Crítica escrita **com o problema concreto** (o que se vê, em que vista) e correção no script; nunca afrouxar teste.
 
-## 11. Lote 2 — assentamentos (candidatos, aguardando avaliação)
+## 11. Lote 2 — assentamentos (aprovado pelo proprietário)
 
-Ramo `feature/world-content-settlements`, empilhado sobre o lote 1. O objetivo é o que **liga** as casas: trabalho,
+**Decisão do proprietário (2026-11-19):** os 22 assets foram aprovados como componentes da biblioteca, e os cinco
+conjuntos de ofício foram aprovados como **propostas de composição**. As duas vilas foram aprovadas como **vitrines**, não
+como substitutas da geração procedural. Aprovação artística não é liberação para o gerador (§9):
+
+| Situação | Assets |
+|---|---|
+| liberado | 20 dos 22 |
+| depende de colisão composta | `market_stall` (o feirante fica atrás do balcão) |
+| restrito a conjuntos | `basket_group` e as variantes publicadas dele: só como complemento contextual, nunca decoração isolada |
+| observações | `woodshed_open` é **incomum** (8 mil triângulos; de frente, a silhueta é uma caixa coberta); `fountain_square` aprovado, com refinamento opcional da coluna fina |
+| conjuntos | ferreiro e comerciante dependem de colisão composta (oficina, barraca); herbalista, caçador e guardião estão liberados como proposta |
+
+Nenhum asset novo entra automaticamente no gerador de regiões.
+
+Ramo `feature/world-content-settlements-pr`, empilhado sobre o lote 1 (o ramo de trabalho original,
+`feature/world-content-settlements`, fica preservado). O objetivo é o que **liga** as casas: trabalho,
 caminho, espaço público, objetos do dia a dia, identidade local. Nenhum NPC ou missão nova; os cenários ficam
 preparados.
 

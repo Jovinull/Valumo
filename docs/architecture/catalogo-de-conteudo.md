@@ -62,10 +62,16 @@ teste `craftSetsKeepAnchorEntrancesFreeAndDoNotOverlap` conferem:
 
 `caixa_u` é a área do conjunto inteiro: é a pegada que o gerador reserva.
 
-### Estados do lote 2
+### Estados (lotes 1 e 2 avaliados)
 
-Antes da avaliação do proprietário, todo asset novo é `estado: candidato`, com `aprovacao.artistica: candidato` e
-`integracao: aguardando_avaliacao` (teste: lote ≥ 2 nunca nasce aprovado).
+Os lotes 1 e 2 foram avaliados pelo proprietário. Um lote ainda não avaliado (3 em diante) nasce `estado: candidato`,
+com `aprovacao.artistica: candidato` e `integracao: aguardando_avaliacao` (teste: nunca nasce aprovado).
+
+- **`restrito_a_conjuntos`** (lote 2, `basket_group`): aprovado, mas `distribuicao_procedural: false`. Só entra como
+  item de um conjunto ou junto de uma construção. As variantes publicadas (`variante_de`) herdam a restrição. O teste
+  exige que o asset esteja em pelo menos um conjunto.
+- **Conjuntos:** `aprovacao.artistica: aprovado_como_proposta`. A `integracao` deles é a do membro mais restrito:
+  `depende_colisao_composta` se a âncora ou um item depender de formas compostas (teste).
 
 ## 3. Do modelo para o mundo
 
