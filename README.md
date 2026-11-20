@@ -68,6 +68,18 @@ A **Rodada 12 — "Mundos com Identidade"** (em avaliação, ramo local) pôs es
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12.md) e no [guia](docs/processo/como-evoluir-o-gerador.md).
 
+A **Rodada 12.1** (mesmo ramo, em avaliação; a v2 continua sem publicar) fez o acabamento da v2:
+
+- **Ruínas:** a casa ou a torre caída (agora dá para entrar nela) e, às vezes, a árvore retorcida ao lado.
+- **Salto:** mais alto e com mais controle no ar; dá para subir em pedras, tocos, caixotes e muros baixos.
+- **Piso:** o chão das construções é o que se vê, com degraus de pedra nas entradas; o piso da vila não pisca mais.
+- **Vilas de caminho:** pequenas ou médias.
+- **Moradores:** cada um no conjunto do seu ofício.
+- **Descobertas:** por tipo de lugar. O achado se vê (o pote de moedas nas cinzas fica vazio depois) e o diário guarda
+  os tipos de lugar.
+
+Detalhes no [relatório](docs/validation/relatorio-rodada-12-1.md).
+
 ## Requisitos
 
 - Linux x86-64 com OpenGL ≥ 3.3 (testado em Mesa 26.2 / Intel Iris Xe).

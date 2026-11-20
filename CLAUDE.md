@@ -17,7 +17,11 @@ vitrines ([relatório](docs/validation/relatorio-integracao-conteudo.md)). **Rod
 convivendo ([ADR 0029](docs/decisions/0029-versoes-do-gerador.md), implementada; a v1 congelada, a v2 padrão dos mundos
 novos), [colisão composta](docs/architecture/colisao-composta.md) (oficina, ruína de casa e barraca liberadas), gerador
 v2 com a biblioteca (vilas de caminho e rurais, conjuntos inteiros, ruína a explorar) e a primeira descoberta com
-recompensa ([relatório](docs/validation/relatorio-rodada-12.md)). O checkpoint anterior é
+recompensa ([relatório](docs/validation/relatorio-rodada-12.md)). **Rodada 12.1** (mesmo ramo local, acabamento da v2
+ainda NÃO publicada, à espera do teste físico): torre arruinada liberada, piso exato com degraus, salto que sobe nas coisas
+(todo sólido segura), patamares planos (o piso que piscava), vilas de caminho pequenas e médias, moradores pelo ofício
+([contrato para o artista](docs/architecture/moradores-dos-oficios.md)) e [descobertas por tipo de
+lugar](docs/architecture/descobertas.md) ([relatório](docs/validation/relatorio-rodada-12-1.md)). O checkpoint anterior é
 `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
@@ -46,7 +50,8 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
 tools/review111.sh [capturas|resolucoes|video|desempenho|transicoes|testes|validadores|regressao|zip]  # 11.1: menu (tools/menu/), dados TEMPORÁRIOS
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.gerador=1|2 -Dvx.semente=1024   # rodada 12: região v1 (congelada) ou v2 (padrão dos mundos novos)
 tools/review12.sh [vistas|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # rodada 12: v2, v1 × v2, demo, saves antigos (RAIZ_ANTIGA=...)
-python3 tools/conteudo/formas_compostas.py          # rodada 12: formas de colisão compostas medidas dos voxels → colisao_e.json (revise o diff)
+tools/review121.sh [vistas|antes|comparacoes|laje|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # 12.1: BASE=clone da rodada 12, RAIZ_ANTIGA=main publicada
+python3 tools/conteudo/formas_compostas.py          # formas compostas medidas dos voxels (12.1: topos exatos, alcance do salto) → colisao_e.json (revise o diff)
 ./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024   # rodada 11: região gerada pela semente (save em output/saves-procedural/s1024/)
 tools/review11.sh [vistas|videos|desempenho|testes|validadores|regressao|zip]   # rodada 11: sementes 1024 2048 4096 77 (tools/mundo/)
@@ -119,7 +124,8 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   lógico (invulnerabilidade em passos, nunca quadros); janelas de esquiva MEDIDAS pelo validador
   (`esquiva.janelas`). Rodada 09.3: a esquiva é a R2, escolhida pelo proprietário (salto baixo `dodge_f`; de lado com a
   mira travada, `dodge_l`/`dodge_r` sem virar o corpo); animação nunca muda distância, invulnerabilidade nem recarga; o
-  salto mudou só no desenho (física congelada). Números só em `combate_e.json` (`sensacao`, `esquiva`, `salto`, `mira`, `grupo`, `encontros`).
+  salto mudou só no desenho. Rodada 12.1 (pedido do proprietário, adendo da ADR 0019): a física do salto mudou (1,0 u,
+  85% de controle no ar) e **todo sólido segura quem está em cima**, menos pessoa e objeto de missão (`Collision.supports`). Números só em `combate_e.json` (`sensacao`, `esquiva`, `salto`, `mira`, `grupo`, `encontros`).
 - **Vários inimigos** (ADR 0021): uma classe `Enemy` para todos; a lâmina testa cada um, no máximo uma vez por golpe;
   nada de dano em área. Chefe = variante `chefe: true`; protótipo ampliado sempre marcado `prototipo`.
 - **Morte** (ADR 0022): desagregação nos próprios blocos (`DeathFx`/`VoxelCloud`, uma malha dinâmica); a antiga só em
@@ -160,7 +166,9 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
     `regioes-v2.txt`); **nunca** atualize uma referência para passar. Versão desconhecida = não abre, nada tocado, sem
     `.invalido`. Guia: `docs/processo/como-evoluir-o-gerador.md`.
   - **v2** (`RegionV2`): lê o perfil CONGELADO `assets/scenes/regiao_v2_e.json` (nunca o catálogo gerado); conjuntos
-    postos inteiros; restritos só em conjuntos; a ruína com patamar, trilha e descoberta.
+    postos inteiros; restritos só em conjuntos; a ruína com patamar, trilha e descoberta. Rodada 12.1: ruína de casa OU
+    torre (`RuinKind`), vila de caminho pequena ou média (`"porte"`), morador pelo OFÍCIO do conjunto (`oficios` no
+    perfil; nunca `if nome ==`), patamares planos por projeto (`TerrainField.flat`, só v2).
   - **Save v2:** guarda o mundo e os vínculos, e recusa diferença. O v1 fica intacto.
 - **Biblioteca de conteúdo** (lotes 1 e 2, ADR 0030, skill `conteudo-mundo`,
   [guia](docs/processo/como-integrar-conteudo-ao-mundo.md)):
@@ -169,12 +177,14 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **Três aprovações separadas:** artística, integração e distribuição procedural. Aprovado na arte ≠ pronto para o jogo.
   - **Liberação:** só `liberado` entra em cena de jogo; `restrito_a_conjuntos` nunca sai solto.
   - **Colisão composta** (rodada 12, [contrato](docs/architecture/colisao-composta.md)): perfil `composta` em
-    `colisao_e.json`, formas medidas dos voxels por `tools/conteudo/formas_compostas.py` (corpo, câmera, piso elevado
-    pisável). Composto liberado ⇔ percorrido pelo `CompositeCollisionTest` em 5 rumos. Ponto de interação = o objeto (de
+    `colisao_e.json`, formas medidas dos voxels por `tools/conteudo/formas_compostas.py`. Rodada 12.1: topos EXATOS (o
+    piso é a laje desenhada; as entradas têm degraus de pedra reais), nunca piso de colisão abaixo do desenho; folhagem
+    presa acima de 1,7 u é fosca. Composto liberado ⇔ percorrido pelo `CompositeCollisionTest` em 5 rumos. Ponto de interação = o objeto (de
     pé a até 1 u); inalcançável é defeito do ponto ou do modelo, nunca da conferência.
   - **Gerador:** nada da biblioteca entra no gerador v1; a v2 distribui os liberados.
-  - **Descobertas** (rodada 12): `descobertas_e.json` (dados), `QuestSystem.discover` (uma vez), `progresso.descobertas`
-    opcional no save (sem v3).
+  - **Descobertas** (rodada 12; por TIPO de lugar na 12.1, [contrato](docs/architecture/descobertas.md)):
+    `descobertas_e.json` (dados), `QuestSystem.discover` (uma vez). O achado é um objeto que se vê (pote cheio → vazio),
+    "Lugar novo" só na primeira vez de um tipo, diário "Lugares", tudo derivado de `progresso.descobertas` (sem v3).
 - **Porta de entrada** (rodada 11.1, ADRs 0027–0028, [menus](docs/architecture/menus.md)):
   - **Regras sem GL:** `MenuFlow` (telas, campos, pedidos); `Game` cumpre os pedidos em transições por passos com
     rótulo real (nunca porcentagem); `MenuView` desenha e fecha os próprios recursos.
@@ -236,5 +246,6 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Mundo procedural (11) | `viewer`: `TerrainField`, `World.LEGACY`, `World(assets, style, field, doc)`, `Terrain.of(field)`; `vx.game.world`: `Rng`, `RegionLayout`, `ProceduralField`, `RegionGenerator`; `vx.game`: `ProceduralScene`, `Reachability`, `SceneDef.fromDoc`, `SaveGame` v2; dados `habitantes_e.json`, `modelos_missao_e.json`; `ProceduralWorldTest`; roteiros `tools/mundo/`; `docs/architecture/mundo-procedural.md` + contratos |
 | Biblioteca de conteúdo (lotes 1 e 2) | `tools/conteudo_lib.py`, `conteudo_construcoes.py`, `conteudo_vegetacao.py`, `conteudo_poi.py`, `conteudo_props.py`, `conteudo_assentamento.py`, `conteudo_conjuntos.py`, `conteudo_e.py` → `props.json` + `conteudo_catalogo.json` (gerados); QA `tools/conteudo/`; vitrines `assets/scenes/vitrine_conteudo_*`, `bench_conteudo_*`; `viewer`: `Assets.PropSet` (sob demanda); `ConteudoMundoTest`, `AssetsLazyTest`, `RegionGoldenTest`; `docs/architecture/catalogo-de-conteudo.md`, `colisao-composta.md`, `docs/art/conteudo-mundo.md`; skill `conteudo-mundo` |
 | Gerador v2 e descobertas (12) | `vx.game.world`: `RegionGenerator` (`V1`/`V2`/`LATEST`, `compose(…, versão, perfil, …)`), `RegionV2`, `RegionProfile`, `RegionLayout` (`version`, `key()`, `pads`, `branches`, `buildings`, `checkpoints`), `ProceduralField` (patamares e trilhas da v2); `vx.game`: `Collision.addComposite`, `Reachability` (checkpoints), `ProceduralScene.create(…, versão)`, `SaveGame.peekGenerator`, `WorldStore.World.supported()`, `QuestSystem.discover`, `SceneDef.Discovery`, `GameLogic.useDiscovery`; dados `regiao_v2_e.json`, `descobertas_e.json`, `colisao_e.json` (compostos); `tools/conteudo/formas_compostas.py`, `perfil_regiao_v2.py`; roteiros `tools/mundo/04-vistas-v2.txt`, `05-demo-v2.txt`, `06-demo-v1-antigo.txt`; `GeneratorVersionTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `DiscoveryTest`, `RegionGoldenTest`; `docs/processo/como-evoluir-o-gerador.md` |
+| Acabamento da v2 (12.1) | `vx.game`: `Collision` (`supports`, `standAt`, índice espacial), `GameLogic` (`discoveryFloor`, `knownPlaces`, chegar), `Game` (`drawDiscoveryObjects`, "Lugares"); `vx.game.world`: `RegionV2` (`RuinKind`, porte, moradores), `RegionLayout` (`DiscoverySpot`, `Worker`, `size`), `ProceduralField.flat`; `viewer`: `TerrainField.flat`, `Terrain`; `tools/conteudo_poi.py` (torre, ruína), `conteudo_lib.stone_steps`/`LEAF_FIX`, `conteudo_props.pote_achado`; dados `descobertas_e.json` v2, `habitantes_e.json → oficio`, `regiao_v2_e.json → oficios`; `CollisionIndexTest`, `DiscoveryTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `MobilityTest`; roteiros `tools/mundo/07-demo-v2-torre.txt`, `08-demo-v2-casa.txt`; `tools/review121.sh`; `docs/architecture/descobertas.md`, `moradores-dos-oficios.md` |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |
