@@ -30,6 +30,11 @@ public final class Collision {
         public final boolean circle, body, camera;
         /** Rodada 09.2: o topo é chão (dá para pousar em cima com um salto; perfil "pisavel"). */
         public boolean stand;
+        /**
+         * Rodada 12.1: pessoa ou objeto de missão (NPC parado, o marco): corpo que NUNCA vira plataforma. Todo outro sólido
+         * sustenta quem está acima dele (ver {@link Collision#supports}).
+         */
+        public boolean person;
         public final float cx, cz, r, hx, hz, cos, sin, y0, y1;
         /** Raio do círculo que envolve a forma no plano (filtro rápido do raio da câmera). */
         public final float bound;
@@ -196,7 +201,9 @@ public final class Collision {
         float r = bodies.has(name) ? bodies.get(name).getAsFloat() : bodies.get("padrao").getAsFloat();
         if (r <= 0) return;
         float y = ground.height(x, z);
-        shapes.add(Shape.circle(name, x, z, r, y, y + 1.3f, true, false));
+        Shape s = Shape.circle(name, x, z, r, y, y + 1.3f, true, false);
+        s.person = true;
+        shapes.add(s);
     }
 
     /** Monta a colisão da cena: perfis + props + corpos + limite. */
@@ -208,7 +215,9 @@ public final class Collision {
         for (SceneDef.Interactive i : scene.interactives) c.addBody(prof, i.rig(), i.x(), i.z());
         for (SceneDef.WorldObject o : scene.objects) {                    // rodada 10: objeto com estado (marco): corpo sólido
             float y = c.ground.height(o.x(), o.z());
-            c.shapes.add(Shape.circle(o.id(), o.x(), o.z(), o.radius(), y, y + 1.5f, true, false));
+            Shape s = Shape.circle(o.id(), o.x(), o.z(), o.radius(), y, y + 1.5f, true, false);
+            s.person = true;                                              // o marco não é degrau
+            c.shapes.add(s);
         }
         c.limitX = scene.limitX;
         c.limitZ = scene.limitZ;
@@ -226,11 +235,138 @@ public final class Collision {
      */
     public float floor(float x, float z, float y, float rad) {
         float g = ground.height(x, z);
-        for (Shape s : shapes) {
-            if (!s.stand || s.y1 <= g || s.y1 > y + Player.STEP) continue;
+        int[] near = cell(x, z);
+        if (near == null) return g;
+        for (int i : near) {
+            Shape s = shapes.get(i);
+            if (!supports(s) || s.y1 <= g || s.y1 > y + Player.STEP) continue;
             if (s.contains(x, s.y1, z, 0f)) g = s.y1;
         }
         return g;
+    }
+
+    /**
+     * Rodada 12.1 — o topo desta forma segura quem está acima dela? Todo sólido (corpo) segura, menos pessoa e objeto de
+     * missão; e o que o perfil marca como pisável. Antes só o "pisavel" segurava: com o topo de um corpo a até um degrau dos
+     * pés o corpo deixa de empurrar ({@link #resolve}), e quem pulava em cima de uma cerca ou de um muro baixo caía DENTRO
+     * dele até o corpo voltar a empurrar para o lado (o "afunda" do teste físico da rodada 12).
+     */
+    static boolean supports(Shape s) { return s.stand || (s.body && !s.person); }
+
+    /**
+     * Rodada 12.1 — onde um corpo de raio {@code rad} e altura {@code h} fica de pé em (x, z), chegando por baixo: a superfície
+     * LIVRE mais baixa entre o relevo e os topos que sustentam, até {@code maxRise} acima do relevo (o alcance do salto
+     * mais um degrau: o piso da oficina, o topo de uma pedra média). Sem nenhuma livre, o relevo (o corpo empurra para
+     * fora). Antes era o topo mais alto de qualquer forma pisável — com todo sólido sustentando, um ponto dentro da casa
+     * viraria "em cima do telhado".
+     */
+    public float standAt(float x, float z, float maxRise, float rad, float h) {
+        float g0 = ground.height(x, z);
+        float[] tops = new float[8];
+        int n = 0;
+        int[] near = cell(x, z);
+        if (near != null)
+            for (int i : near) {
+                Shape s = shapes.get(i);
+                if (!supports(s) || s.y1 <= g0 || s.y1 > g0 + maxRise || !s.contains(x, s.y1, z, 0f)) continue;
+                if (n == tops.length) tops = java.util.Arrays.copyOf(tops, n * 2);
+                tops[n++] = s.y1;
+            }
+        java.util.Arrays.sort(tops, 0, n);
+        float[] p = new float[2];
+        for (int k = -1; k < n; k++) {
+            float y = k < 0 ? g0 : tops[k];
+            p[0] = x;
+            p[1] = z;
+            float[] d = resolve(p, rad, y, h, Player.STEP);
+            if (Math.hypot(d[0], d[1]) < 0.02f && floor(x, z, y, rad) <= y + 1e-4f) return y;
+        }
+        return g0;
+    }
+
+    // ------------------------------------------------------------------ índice espacial (rodada 12.1)
+
+    /** Lado da célula do índice (u). */
+    static final float CELL = 1f;
+    private int indexed = -1, gx0, gz0, gw, gh;
+    private int[][] cells;
+    private int[] mark = new int[0], cand = new int[64];
+    private int stamp;
+
+    /**
+     * Índice das formas por célula de {@link #CELL} u (cada forma em todas as células que o círculo envolvente dela toca),
+     * com os índices em ordem crescente: percorrer só as formas de perto, NA MESMA ORDEM da lista, dá exatamente o mesmo
+     * resultado de percorrer todas. Refeito sozinho quando a lista cresce (a montagem e os testes acrescentam formas).
+     */
+    private void index() {
+        if (indexed == shapes.size()) return;
+        float x0 = Float.MAX_VALUE, z0 = Float.MAX_VALUE, x1 = -Float.MAX_VALUE, z1 = -Float.MAX_VALUE;
+        for (Shape s : shapes) {
+            x0 = Math.min(x0, s.cx - s.bound);
+            z0 = Math.min(z0, s.cz - s.bound);
+            x1 = Math.max(x1, s.cx + s.bound);
+            z1 = Math.max(z1, s.cz + s.bound);
+        }
+        if (shapes.isEmpty()) { x0 = z0 = 0; x1 = z1 = 1; }
+        gx0 = (int) Math.floor(x0 / CELL);
+        gz0 = (int) Math.floor(z0 / CELL);
+        gw = Math.max(1, (int) Math.floor(x1 / CELL) - gx0 + 1);
+        gh = Math.max(1, (int) Math.floor(z1 / CELL) - gz0 + 1);
+        int[] count = new int[gw * gh];
+        for (int pass = 0; pass < 2; pass++) {
+            if (pass == 1) {
+                cells = new int[gw * gh][];
+                for (int k = 0; k < cells.length; k++) cells[k] = count[k] == 0 ? null : new int[count[k]];
+                java.util.Arrays.fill(count, 0);
+            }
+            for (int i = 0; i < shapes.size(); i++) {
+                Shape s = shapes.get(i);
+                int ax = (int) Math.floor((s.cx - s.bound) / CELL) - gx0, bx = (int) Math.floor((s.cx + s.bound) / CELL) - gx0;
+                int az = (int) Math.floor((s.cz - s.bound) / CELL) - gz0, bz = (int) Math.floor((s.cz + s.bound) / CELL) - gz0;
+                for (int gz = az; gz <= bz; gz++)
+                    for (int gx = ax; gx <= bx; gx++) {
+                        int k = gx + gz * gw;
+                        if (pass == 1) cells[k][count[k]] = i;
+                        count[k]++;
+                    }
+            }
+        }
+        mark = new int[shapes.size()];
+        stamp = 0;
+        indexed = shapes.size();
+    }
+
+    /** Formas cujo círculo envolvente toca a célula do ponto (índices crescentes), ou null. */
+    private int[] cell(float x, float z) {
+        index();
+        int gx = (int) Math.floor(x / CELL) - gx0, gz = (int) Math.floor(z / CELL) - gz0;
+        if (gx < 0 || gz < 0 || gx >= gw || gz >= gh) return null;
+        return cells[gx + gz * gw];
+    }
+
+    /**
+     * Formas que podem tocar o quadrado de meio-lado {@code m} em volta de (x, z), em ordem crescente, em {@link #cand};
+     * devolve quantas. Sem alocar (a lógica roda sem coleta de lixo).
+     */
+    private int near(float x, float z, float m) {
+        index();
+        if (++stamp == Integer.MAX_VALUE) { java.util.Arrays.fill(mark, 0); stamp = 1; }
+        int ax = Math.max(0, (int) Math.floor((x - m) / CELL) - gx0), bx = Math.min(gw - 1, (int) Math.floor((x + m) / CELL) - gx0);
+        int az = Math.max(0, (int) Math.floor((z - m) / CELL) - gz0), bz = Math.min(gh - 1, (int) Math.floor((z + m) / CELL) - gz0);
+        int k = 0;
+        for (int gz = az; gz <= bz; gz++)
+            for (int gx = ax; gx <= bx; gx++) {
+                int[] c = cells[gx + gz * gw];
+                if (c == null) continue;
+                for (int i : c) {
+                    if (mark[i] == stamp) continue;
+                    mark[i] = stamp;
+                    if (k == cand.length) cand = java.util.Arrays.copyOf(cand, k * 2);
+                    cand[k++] = i;
+                }
+            }
+        java.util.Arrays.sort(cand, 0, k);
+        return k;
     }
 
     /** Chão pisável: dentro do limite e fora da água. */
@@ -271,6 +407,42 @@ public final class Collision {
      * {@code step} acima dos pés são pisáveis e não bloqueiam). Retorna o deslocamento aplicado.
      */
     public float[] resolve(float[] p, float rad, float y, float h, float step) {
+        // rodada 12.1: só as formas perto (índice); se os empurrões levarem o corpo para fora da vizinhança consultada, a
+        // conta é refeita com todas — o resultado é sempre o de percorrer a lista inteira, na mesma ordem
+        float ox = p[0], oz = p[1];
+        float[] r = resolveNear(p, rad, y, h, step, ox, oz);
+        if (r != null) return r;
+        p[0] = ox;
+        p[1] = oz;
+        return resolveAll(p, rad, y, h, step);
+    }
+
+    /** Margem (u) da vizinhança consultada além do raio: quanto os empurrões podem levar o corpo antes de refazer com todas. */
+    static final float NEAR_SLACK = 0.5f;
+
+    private float[] resolveNear(float[] p, float rad, float y, float h, float step, float ox, float oz) {
+        int k = near(ox, oz, rad + NEAR_SLACK);
+        float tx = 0, tz = 0;
+        for (int it = 0; it < 4; it++) {
+            boolean any = false;
+            for (int n = 0; n < k; n++) {
+                Shape s = shapes.get(cand[n]);
+                if (!s.body || s.y1 <= y + step || s.y0 >= y + h) continue;
+                float[] d = s.push(p[0], p[1], rad);
+                if (d == null) continue;
+                p[0] += d[0];
+                p[1] += d[1];
+                tx += d[0];
+                tz += d[1];
+                any = true;
+                if (Math.abs(p[0] - ox) > NEAR_SLACK || Math.abs(p[1] - oz) > NEAR_SLACK) return null;
+            }
+            if (!any) break;
+        }
+        return new float[]{tx, tz};
+    }
+
+    private float[] resolveAll(float[] p, float rad, float y, float h, float step) {
         float tx = 0, tz = 0;
         for (int it = 0; it < 4; it++) {
             boolean any = false;

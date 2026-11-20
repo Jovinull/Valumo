@@ -903,7 +903,7 @@ public final class GameLogic {
     public boolean safeSpot(float x, float z) {
         if (!Float.isFinite(x) || !Float.isFinite(z) || !collision.walkable(x, z)) return false;
         float[] p = {x, z};
-        float y = collision.floor(x, z, 99f, Player.RADIUS);
+        float y = collision.standAt(x, z, player.reach(), Player.RADIUS, Player.HEIGHT);   // rodada 12.1: onde se chega por baixo
         float[] d = collision.resolve(p, Player.RADIUS, y, 1.2f, Player.STEP);
         return Math.hypot(d[0], d[1]) < 0.02f;
     }

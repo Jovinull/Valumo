@@ -50,6 +50,9 @@ public final class Player {
         landTime = d.landTime;
     }
 
+    /** Rodada 12.1 — o mais alto que o herói chega acima do relevo: o salto (pés) mais o degrau que se pega no ar. */
+    public float reach() { return (jumpV > 0f ? jumpV * jumpV / (2f * gravUp) : 0f) + STEP; }
+
     /** Pede um salto (sai no próximo passo em que puder: no chão ou até {@link #coyote} s depois de sair dele). */
     public void requestJump() { if (jumpV > 0f) jumpQueued = jumpBuffer; }
 
@@ -116,7 +119,7 @@ public final class Player {
         this.x = x;
         this.z = z;
         this.yaw = yaw;
-        y = visualY = c.floor(x, z, 99f, RADIUS);
+        y = visualY = c.standAt(x, z, reach(), RADIUS, HEIGHT);
         vx = vz = vy = 0;
         grounded = true;
         jumping = false;
