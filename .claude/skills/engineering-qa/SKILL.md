@@ -68,6 +68,10 @@ isso em vez de inventar a contagem.
 - **Malhas de GPU:** `Mesh.liveMeshes/liveBytes` saem no relatório `perf`. Vazamento do criador:
   `game --roteiro tools/qa/vazamento-criador.txt SAIDA 30 && grep -o "malhas vivas.*" SAIDA/volta-*.txt` → a contagem tem de
   ser igual nas cinco voltas. Quem cria `App`, `World` ou `Assets` é dono: feche (`AutoCloseable`).
+- **Biblioteca registrada × carregada:** conteúdo novo no `props.json` não pode virar memória gasta.
+  - `game --roteiro tools/menu/14-memoria.txt SAIDA 30` (dados TEMPORÁRIOS; cabeçalho do roteiro) imprime malhas e MB no
+    menu, depois do criador, na vila e numa região.
+  - Compare com o binário de antes, intercalado e em ordem alternada: quem roda por último pega a GPU mais quente.
 - **Áudio:** um dispositivo por processo (ADR 0023). Sem saída (`SilentOut`) nada abre arquivo de música/ambiente
   (`AudioOut.streams()`); um pedido que falha não se repete a cada quadro. Confira com os testes de `AudioTest` da auditoria.
 - **Outras threads:** só a "composicao" (`AsyncComposer`); toda falha dela precisa terminar o pedido (`failed`), nunca sumir.
@@ -102,6 +106,9 @@ mudo e jogo com som não são o mesmo caminho: meça também com `-Dvx.som=loopb
 - **Ordem e estado global:** `-Djunit.jupiter.testclass.order.default=org.junit.jupiter.api.ClassOrderer\$Random` em
   `:game:test`/`:viewer:test` algumas vezes; estáticos mutáveis conhecidos: `VoxelMesher.conforming/crackMargin`,
   `FollowCamera.combatAssist`, `World.layout`, `Game.deathStyle`, propriedades `vx.*`.
+- **Saves antigos:** mudança que pode quebrar save (gerador, missão, formato, catálogo) passa por
+  `tools/qa/saves_antigos.sh RAIZ_ANTIGA RAIZ_NOVA output/tmp/X`. O binário antigo cria saves v1, v2 e do menu; os dois
+  os abrem; as linhas têm de sair iguais, com zero `.invalido`.
 - **Preferências do jogador:** testes e roteiros com `-Dvx.prefs=-`; roteiro que precisa gravar usa `-Dvx.prefs=` **e**
   `-Dvx.prefs.audio=` temporários.
 

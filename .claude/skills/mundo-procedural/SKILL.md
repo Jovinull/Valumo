@@ -15,11 +15,18 @@ instâncias de missão, persistência). Decisões: ADRs 0025 e 0026. Guias: `doc
    - Toda decisão usa `Rng.of(semente, regiao, categoria, …)`: nunca `java.util.Random`, relógio, ordem de
      `HashMap`/`HashSet` nem ordem de carga.
    - Uma categoria nova tem rótulo próprio, para não mover o resto.
-   - Mudou o resultado de alguma semente → suba `RegionGenerator.VERSION`.
+   - Mudou o resultado de alguma semente → é uma versão nova do gerador.
+     - A v1 está fixada em 8 sementes (`RegionGoldenTest` × `game/src/test/resources/regioes-v1.txt`): a referência
+       **nunca** é atualizada para passar.
+     - Subir `VERSION` hoje recusa todos os mundos v1. Antes da primeira versão nova, implemente o despacho por versão
+       da ADR 0029 (a v1 continua para os mundos v1).
+   - A biblioteca de conteúdo (`props.json` com os lotes 1 e 2) **não** é lida pelo gerador. Liberar um asset para o
+     gerador é trabalho de versão nova (guia `docs/processo/como-integrar-conteudo-ao-mundo.md` §8).
 2. **O mundo fixo não muda.**
    - `World.LEGACY` são as funções de antes; refatorar o relevo exige as referências 22/22 com desvio 0 e o gate 51/0.
 3. **A autoria está nos componentes.** Só props e NPCs aprovados da E. Asset novo só com aprovação e pelo pipeline
-   (`tools/env_e.py`).
+   (`tools/env_e.py`, ou a biblioteca `tools/conteudo_*.py` com `aprovacao.integracao = liberado`). Os assets com
+   interior (`depende_colisao_composta`) esperam a extensão do `Collision` (`docs/architecture/colisao-composta.md`).
 4. **Só vale o que passa na colisão real** (`Reachability.check`: a mesma `Collision` do jogo, o T1, o raio e o degrau do
    herói).
    - Reprovou: outra tentativa (máximo `MAX_ATTEMPTS`) ou recusa com motivo.

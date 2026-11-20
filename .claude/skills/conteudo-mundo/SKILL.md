@@ -85,6 +85,17 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
 - `viewer --bench "1920x1080,style=e,layout=bench_conteudo_{baixa,normal,alta}"`. A máquina compartilhada dá ruído
   de ±30% no tempo de quadro: compare draws e triângulos, e intercale a cena canônica antes e depois.
 
+## Integração (depois da aprovação artística)
+
+O caminho completo está no guia `docs/processo/como-integrar-conteudo-ao-mundo.md`.
+
+- **Três aprovações separadas:** artística, integração e distribuição procedural.
+- **Biblioteca:** o asset entra no `props.json` e no catálogo, e o jogo só o carrega quando uma cena o pede (ADR 0030).
+- **Gerador:** distribuir é versão nova do gerador (ADR 0029). A v1 está fixada por `RegionGoldenTest`.
+- **Colisão:** asset com interior espera a colisão composta (`docs/architecture/colisao-composta.md`).
+- **Autoria:** commits do laboratório entram com a autoria noreply (skill `git-commits`). Um PR com outro e-mail é
+  reprovado pelo `regras.yml`.
+
 ## Nunca
 
 - Mudar asset aprovado, referência canônica ou cena do jogo (as vitrines são `vitrine_conteudo_*` e `bench_conteudo_*`).

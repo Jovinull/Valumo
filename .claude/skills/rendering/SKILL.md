@@ -19,6 +19,10 @@ Referências: `docs/architecture/renderizacao.md`, `docs/art/presets-graficos.md
   com peso por desenho/material; luz de preenchimento por trás sempre ligada.
 - Direções A–D são referência histórica: não mude o visual delas sem necessidade (os parâmetros novos
   têm padrões neutros para elas).
+- **Props sob demanda (ADR 0030):** `Assets.props(estilo)` registra o `props.json` inteiro, mas só malha o que a cena
+  pede pelo nome (`PropSet.get`).
+  - Não itere `values()`/`entrySet()` do catálogo: isso carregaria a biblioteca inteira.
+  - Para medir, use `Assets.loadedProps` e as malhas vivas do roteiro `tools/menu/14-memoria.txt`.
 
 ## Benchmark (sempre assim)
 
