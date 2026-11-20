@@ -58,6 +58,7 @@ shot 17-mirante
 vista-lugar arvore
 wait 0.8
 shot 18-arvore
+vista-fim
 ir-lugar oficio
 wait 0.8
 shot 19-morador-do-oficio
