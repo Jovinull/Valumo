@@ -174,6 +174,32 @@ def collision_boxes(v, band=(3, 12), cell=2, skip=("foliage",)):
     for (x, y, z), c in v.v.items():
         if band[0] <= y <= band[1] and c[3] not in skip:
             occ.add((x // cell, z // cell))
+    return _merge(occ, cell)
+
+
+def cover_boxes(v, vs, cell=2, skip=("foliage",), floor_u=0.375, head_u=1.43):
+    """COBERTURA medida: teto sobre chão caminhável — colunas sem nada sólido entre o piso pisável (até 0,375 u) e a
+    cabeça do herói de pé num piso de 0,25 u (0,25 + 1,18 = 1,43 u), e com sólido ACIMA disso (abóbada, galpão, toldo).
+    É onde a câmera de terceira pessoa entraria num teto: o integrador põe ali formas SÓ DE CÂMERA. Uma célula da grade
+    só conta se TODAS as colunas dela forem cobertas (nunca declara teto onde não há). (x0, z0, x1, z1) em voxels."""
+    lo, hi = int(math.ceil(floor_u / vs - 1e-9)), int(math.ceil(head_u / vs - 1e-9))
+    body, top = set(), set()
+    for (x, y, z), c in v.v.items():
+        if c[3] in skip:
+            continue
+        if lo <= y < hi:
+            body.add((x, z))
+        elif y >= hi:
+            top.add((x, z))
+    covered = top - body
+    cells = {}
+    for (x, z) in covered:
+        cells[(x // cell, z // cell)] = cells.get((x // cell, z // cell), 0) + 1
+    return _merge({k for k, n in cells.items() if n == cell * cell}, cell)
+
+
+def _merge(occ, cell):
+    """Fusão gulosa de células ocupadas em retângulos (ordem estável: z, depois x)."""
     boxes = []
     left = set(occ)
     for (gx, gz) in sorted(occ, key=lambda k: (k[1], k[0])):

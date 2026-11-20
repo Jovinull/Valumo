@@ -69,6 +69,12 @@ def _points(pts, vs):
     for key in ("interacao", "spawns"):
         out[key] = [{"id": i, "pos_u": L.u(p, vs), "tipo": t} for (i, p, t) in pts.get(key, [])]
     out["area_segura_u"] = [[round(a * vs, 3) for a in r] for r in pts.get("area_segura", [])]
+    if pts.get("vagas"):                                  # vaga de NPC morador: posição local, rumo e papel (+ notas)
+        out["vagas"] = []
+        for item in pts["vagas"]:
+            i, p, r, papel = item[:4]
+            extra = item[4] if len(item) > 4 else {}
+            out["vagas"].append({"id": i, "pos_u": L.u(p, vs), "rumo": r, "papel": papel, **extra})
     if pts.get("formas"):
         out["formas_u"] = [{"tipo": t, "centro": [round(c[0] * vs, 3), round(c[1] * vs, 3)], "raio": round(r * vs, 3)}
                            for (t, c, r) in pts["formas"]]
@@ -176,8 +182,12 @@ def build(out):
             origin = write_vox(os.path.join(studies, name, "body.vox"), vox)
             _rig(os.path.join(studies, name), meta["nome"], vs, "body.vox", origin, size)
         m = L.measure(vox, vs, trunk_band=meta.get("tronco_faixa"))
-        if meta.get("colisao", {}).get("formas") and not pts.get("formas"):
+        measured = meta.get("colisao", {}).get("formas") and not pts.get("formas")
+        if measured:
             m["formas_medidas_u"] = [[round(c * vs, 3) for c in b] for b in L.collision_boxes(vox)]
+        cover = L.cover_boxes(vox, vs)
+        if cover:                                          # teto sobre chão caminhável: formas só de câmera
+            m["cobertura_u"] = [[round(c * vs, 3) for c in b] for b in cover]
         variants = []
         for tag, params in _variants(meta):
             vv, vpts = fn(**params)
@@ -198,18 +208,29 @@ def build(out):
                 vo = write_vox(os.path.join(studies, vname, "body.vox"), vv)
                 _rig(os.path.join(studies, vname), f"{meta['nome']} ({tag})", vs, "body.vox", vo, vsize)
             vm = L.measure(vv, vs, trunk_band=meta.get("tronco_faixa"))
-            variants.append({"id": vname, "prop": vname if published else None,
-                             "parametros": {k: v for k, v in params.items()},
-                             "dimensoes_u": vm["dimensoes_u"], "pegada_u": vm["pegada_u"],
-                             "faces_expostas": vm["faces_expostas"],
-                             "pontos_iguais": _same_points(_points(vpts, vs), _points(pts, vs)),
-                             **({"formas_u": _points(vpts, vs)["formas_u"]} if vpts.get("formas") else {})})
+            vrec = {"id": vname, "prop": vname if published else None,
+                    "parametros": {k: v for k, v in params.items()},
+                    "dimensoes_u": vm["dimensoes_u"], "pegada_u": vm["pegada_u"],
+                    "faces_expostas": vm["faces_expostas"],
+                    "pontos_iguais": _same_points(_points(vpts, vs), _points(pts, vs)),
+                    **({"formas_u": _points(vpts, vs)["formas_u"]} if vpts.get("formas") else {})}
+            if measured:                                    # colisão DA VARIAÇÃO (pode diferir da base)
+                vrec["formas_medidas_u"] = [[round(c * vs, 3) for c in b] for b in L.collision_boxes(vv)]
+                vrec["formas_iguais"] = vrec["formas_medidas_u"] == m["formas_medidas_u"]
+            variants.append(vrec)
+        # reserva do gerador: a UNIÃO exata das pegadas e o máximo das dimensões da base e de todas as variações
+        allp = [m["pegada_u"]] + [x["pegada_u"] for x in variants]
+        m["pegada_reservada_u"] = {"min": [min(p["min"][i] for p in allp) for i in range(2)],
+                                   "max": [max(p["max"][i] for p in allp) for i in range(2)]}
+        m["dimensoes_reservadas_u"] = [max(d[i] for d in [m["dimensoes_u"]] + [x["dimensoes_u"] for x in variants])
+                                       for i in range(3)]
         rec = {
             "id": name, "nome": meta["nome"], "categoria": meta["categoria"], "subcategoria": meta.get("sub"),
             "lote": meta.get("lote"), "estado": state, "versao": meta["versao"],
             "aprovacao": {"artistica": meta["aprovacao"],
-                          "decisao": (f"proprietário, avaliação do lote {meta.get('lote')} (2026-11-19)"
-                                      if meta.get("lote") in (1, 2) else "aguardando avaliação do proprietário"),
+                          "decisao": meta.get("decisao") or (f"proprietário, avaliação do lote {meta.get('lote')} (2026-11-19)"
+                                                             if meta.get("lote") in (1, 2)
+                                                             else "aguardando avaliação do proprietário"),
                           "integracao": meta["integracao"],
                           "distribuicao_procedural": meta["integracao"] == "liberado",
                           "dependencias": meta["dependencias"]},
