@@ -1,0 +1,113 @@
+{
+ "_doc": "Laboratório de conteúdo — cena de DESEMPENHO (baixa), só para viewer --bench (layout=...). Não é composição artística.",
+ "hero": [
+  0.0,
+  0.0,
+  180
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_forked",
+    "tree_poplar",
+    "tree_gnarled",
+    "tree_dead",
+    "tree_forked",
+    "tree_poplar"
+   ],
+   "count": 12,
+   "ring": [
+    15.0,
+    24
+   ],
+   "seed": 41,
+   "minDist": 3.0
+  }
+ ],
+ "creatures": [],
+ "clouds": [
+  [
+   -18,
+   13,
+   -20
+  ],
+  [
+   6,
+   15,
+   -26
+  ],
+  [
+   22,
+   12,
+   -18
+  ]
+ ],
+ "props": [
+  {
+   "n": "house_tall",
+   "x": 1.0,
+   "z": -8.5,
+   "r": 0,
+   "dy": 0.375
+  },
+  {
+   "n": "workshop_forge",
+   "x": 8.5,
+   "z": -5.0,
+   "r": 0,
+   "dy": 0.125
+  },
+  {
+   "n": "hut_herbalist",
+   "x": -1.5,
+   "z": -1.5,
+   "r": 20,
+   "dy": 0.125
+  },
+  {
+   "n": "cabin_hunter",
+   "x": -12.0,
+   "z": -0.5,
+   "r": 70,
+   "dy": 0.375
+  },
+  {
+   "n": "tower_watch",
+   "x": 14.0,
+   "z": -10.0,
+   "r": 315,
+   "dy": 0.375
+  },
+  {
+   "n": "barrel",
+   "x": -2.4,
+   "z": -4.6,
+   "r": 0
+  },
+  {
+   "n": "crate",
+   "x": 3.6,
+   "z": -5.2,
+   "r": 20
+  },
+  {
+   "n": "bush",
+   "x": -4.0,
+   "z": 1.8,
+   "r": 0
+  },
+  {
+   "n": "flower_yellow",
+   "x": 2.6,
+   "z": 1.6,
+   "r": 0
+  },
+  {
+   "n": "grass_tall",
+   "x": 7.6,
+   "z": 1.2,
+   "r": 0
+  }
+ ],
+ "npcs": []
+}

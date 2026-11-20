@@ -1,0 +1,97 @@
+{
+ "_doc": "Laboratório de conteúdo — cena de DESEMPENHO (alta), só para viewer --bench (layout=...). Não é composição artística.",
+ "hero": [
+  0.0,
+  0.0,
+  180
+ ],
+ "scatter": [
+  {
+   "props": [
+    "house_tall",
+    "workshop_forge",
+    "hut_herbalist",
+    "cabin_hunter",
+    "tower_watch",
+    "ruin_tower",
+    "ruin_house"
+   ],
+   "count": 30,
+   "ring": [
+    6.0,
+    22
+   ],
+   "seed": 44,
+   "minDist": 4.5
+  },
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4",
+    "tree_forked",
+    "tree_poplar",
+    "tree_gnarled",
+    "tree_dead",
+    "tree_forked",
+    "tree_poplar",
+    "tree_forked",
+    "tree_poplar",
+    "tree_gnarled",
+    "tree_dead",
+    "tree_forked",
+    "tree_poplar"
+   ],
+   "count": 260,
+   "ring": [
+    3.0,
+    24
+   ],
+   "seed": 45,
+   "minDist": 1.4
+  },
+  {
+   "props": [
+    "bush",
+    "fern",
+    "grass_tall",
+    "flower_white",
+    "rock_s",
+    "mushroom_red"
+   ],
+   "count": 160,
+   "ring": [
+    2.0,
+    23
+   ],
+   "seed": 46,
+   "minDist": 0.8,
+   "cluster": 4
+  }
+ ],
+ "creatures": [],
+ "clouds": [
+  [
+   -18,
+   13,
+   -20
+  ],
+  [
+   6,
+   15,
+   -26
+  ],
+  [
+   22,
+   12,
+   -18
+  ]
+ ],
+ "props": [],
+ "npcs": []
+}
