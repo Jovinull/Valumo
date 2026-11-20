@@ -230,21 +230,9 @@ public final class ProceduralScene {
         JsonArray objects = new JsonArray(), discoveries = new JsonArray();
         JsonObject kinds = L.version >= RegionGenerator.V2 ? read(assets, "descobertas_e.json").getAsJsonObject("tipos") : null;
         for (RegionLayout.Feature f : L.features) {
-            if (f.kind().equals("descoberta")) {                            // rodada 12 (v2): a descoberta do POI
-                RegionLayout.PointOfInterest poi = L.pois.stream().filter(p -> p.features().contains(f.id())).findFirst().orElseThrow();
-                JsonObject k = kinds.getAsJsonObject(poi.type());
-                JsonObject o = new JsonObject();
-                o.addProperty("id", f.id());
-                o.addProperty("nome", k.get("nome").getAsString());
-                o.addProperty("x", r3(f.x()));
-                o.addProperty("z", r3(f.z()));
-                o.addProperty("alcance", 1.6f);
-                o.addProperty("placa", 1.3f);
-                o.addProperty("moedas", k.get("moedas").getAsInt());
-                o.addProperty("verbo", k.get("verbo").getAsString());
-                o.addProperty("texto", k.get("texto").getAsString());
-                o.addProperty("jaVisto", k.get("jaVisto").getAsString());
-                discoveries.add(o);
+            if (f.kind().equals("descoberta")) {                            // rodada 12 (v2): a descoberta do lugar
+                RegionLayout.DiscoverySpot spot = L.discoverySpots.stream().filter(d -> d.id().equals(f.id())).findFirst().orElseThrow();
+                discoveries.add(discovery(kinds.getAsJsonObject(spot.type()), spot, f, L));
                 continue;
             }
             JsonObject o = new JsonObject();
@@ -418,6 +406,40 @@ public final class ProceduralScene {
     }
 
     /** Troca {chave} pelos valores; chave desconhecida = erro (texto com lacuna nunca chega à tela). */
+    /**
+     * Rodada 12.1 — a descoberta como dado da cena: o tipo de lugar ({@code descobertas_e.json → tipos}), o modo (usar com E
+     * ou chegar ao ponto), o achado e o objeto que o mostra (cheio/vazio), as moedas e os textos com os FATOS desta região
+     * (rumo da vila, do posto e do lago vistos do lugar; ao lado de que ruína a árvore cresceu): nada inventado.
+     */
+    static JsonObject discovery(JsonObject k, RegionLayout.DiscoverySpot spot, RegionLayout.Feature f, RegionLayout L) {
+        Map<String, String> facts = new java.util.HashMap<>();
+        facts.put("rumo_vila", rumo(L.sx - f.x(), L.sz - f.z()));
+        facts.put("rumo_posto", rumo(L.px - f.x(), L.pz - f.z()));
+        facts.put("lago", L.pond == null ? "" : " e o brilho do lago a " + rumo(L.pond[0] - f.x(), L.pond[1] - f.z()));
+        String ruinAsset = L.buildings.stream().filter(b -> b.role().equals("ruina")).map(RegionLayout.Building::asset).findFirst().orElse("");
+        facts.put("ruina", ruinAsset.equals("ruin_tower") ? "da torre caída" : "da casa em ruína");
+        JsonObject o = new JsonObject();
+        o.addProperty("id", f.id());
+        o.addProperty("tipo", spot.type());
+        o.addProperty("lugar", k.get("lugar").getAsString());
+        o.addProperty("categoria", k.get("categoria").getAsString());
+        o.addProperty("modo", k.get("modo").getAsString());
+        o.addProperty("x", r3(f.x()));
+        o.addProperty("z", r3(f.z()));
+        o.addProperty("y", r3(spot.y()));
+        o.addProperty("r", r3(spot.yawDeg()));
+        o.addProperty("alcance", k.get("modo").getAsString().equals("chegar") ? 0.6f : 1.6f);
+        o.addProperty("placa", r3(spot.y() + 1.1f));
+        o.addProperty("moedas", k.get("moedas").getAsInt());
+        o.addProperty("verbo", k.get("verbo").getAsString());
+        if (k.has("achado")) o.addProperty("achado", k.get("achado").getAsString());
+        if (k.has("objeto")) o.add("objeto", k.getAsJsonObject("objeto").deepCopy());
+        o.addProperty("texto", fill(k.get("texto").getAsString(), facts));
+        o.addProperty("jaVisto", fill(k.get("jaVisto").getAsString(), facts));
+        o.addProperty("diario", k.get("diario").getAsString());
+        return o;
+    }
+
     static String fill(String t, Map<String, String> params) {
         StringBuilder out = new StringBuilder();
         int i = 0;

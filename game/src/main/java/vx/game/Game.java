@@ -418,6 +418,7 @@ public final class Game implements AutoCloseable {
             if (!old) drawDeaths(f, cb);
         }
         drawObjects(f);
+        drawDiscoveryObjects(f);
         boolean showcase = menuOn && menuFlow.screen == vx.game.menu.MenuFlow.Screen.CHARACTERS;
         for (GameLogic.Npc n : logic.npcs) {
             // vitrine dos personagens: morador colado no herói confunde a silhueta (só desenho; a lógica não muda)
@@ -440,6 +441,22 @@ public final class Game implements AutoCloseable {
     /** Duração (s) e quantidade das sementes de luz que sobem da lanterna quando o marco acende (P1: ≤ 5 na tela). */
     static final float MOTE_LIFE = 2.4f;
     static final int MOTES = 5;
+
+    /**
+     * Rodada 12.1 — o objeto de cada achado (o pote nas cinzas da lareira, o jarro no parapeito): cheio até ser achado,
+     * vazio depois (o progresso da aventura). Apoiado no chão de colisão do ponto (a laje, o topo da muralha).
+     */
+    private void drawDiscoveryObjects(Renderer.Frame f) {
+        if (logic.scene == null) return;
+        for (SceneDef.Discovery d : logic.scene.discoveries) {
+            if (d.modelFull() == null) continue;
+            boolean taken = !menuActive() && logic.quests != null && logic.quests.discovered(d.id());
+            Assets.Prop pr = props.get(taken ? d.modelEmpty() : d.modelFull());
+            if (pr == null) continue;
+            Matrix4f m = new Matrix4f().translate(d.x(), logic.discoveryFloor(d), d.z()).rotateY((float) Math.toRadians(d.yawDeg()));
+            f.draws.add(new Renderer.Draw(pr.mesh(), m, pr.texture(), false, true));
+        }
+    }
 
     /** O marco no estado da missão (apagado/aceso) e, logo depois de acender, o efeito discreto. */
     private void drawObjects(Renderer.Frame f) {
@@ -733,8 +750,9 @@ public final class Game implements AutoCloseable {
             if (sc != null) interactPlate(sc, "Conversar com " + n.def.name());
         }
         SceneDef.Discovery dc = logic.cam.technicalView ? null : logic.discoveryCandidate;   // rodada 12: a descoberta
+        if (dc == null && !logic.cam.technicalView) dc = logic.arriveHint;     // rodada 12.1: o mirante (placa, sem E)
         if (dc != null) {
-            float[] sc = project(dc.x(), terrain.groundAt(dc.x(), dc.z()) + dc.plateY(), dc.z(), w, h);
+            float[] sc = project(dc.x(), logic.discoveryFloor(dc) + 1.1f, dc.z(), w, h);
             if (sc != null) interactPlate(sc, dc.verb());
         }
         SceneDef.WorldObject o = logic.objectCandidate;                   // rodada 10: o marco
@@ -850,14 +868,18 @@ public final class Game implements AutoCloseable {
             kit.text(cx, cy, rec, px(18), false, UiKit.INK_SOFT);
             cy += 60 * s;
         }
-        if (!logic.quests.discoveries().isEmpty() && cy < bottom) {         // rodada 12: os lugares descobertos nesta aventura
-            kit.text(cx, cy, "Descobertas", ph2, true, UiKit.INK);
+        if (!logic.quests.discoveries().isEmpty() && cy < bottom) {         // rodada 12.1: os TIPOS de lugar achados nesta aventura
+            kit.text(cx, cy, "Lugares", ph2, true, UiKit.INK);
             cy += 44 * s;
-            for (SceneDef.Discovery d : logic.scene.discoveries) {
-                if (!logic.quests.discovered(d.id()) || cy > bottom) continue;
+            for (var e : logic.knownPlaces().entrySet()) {
+                if (cy > bottom) break;
+                SceneDef.Discovery d = e.getKey();
                 kit.check(cx, cy + 2 * s, s);
-                kit.text(cx + 32 * s, cy, fit(d.name() + " · +" + d.coins() + " moedas", pt, cw - 32 * s), pt, true, UiKit.INK);
-                cy += pt * 1.6f;
+                String head = d.name() + (e.getValue() > 1 ? " · " + e.getValue() + " achados" : "");
+                kit.text(cx + 32 * s, cy, fit(head, pt, cw - 32 * s), pt, true, UiKit.INK);
+                cy += pt * 1.4f;
+                for (String l : wrap(d.journal(), px(18), cw - 32 * s)) { if (cy > bottom) break; kit.text(cx + 32 * s, cy, l, px(18), false, UiKit.INK_SOFT); cy += px(18) * 1.4f; }
+                cy += pt * 0.4f;
             }
             any = true;
         }

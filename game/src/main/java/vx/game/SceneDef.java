@@ -44,7 +44,11 @@ public final class SceneDef {
      * do E, altura da placa, moedas (uma vez), o verbo da placa e as frases (a primeira vez e as seguintes).
      */
     public record Discovery(String id, String name, float x, float z, float range, float plateY, int coins, String verb, String text,
-                            String seen) { }
+                            String seen, String type, String category, String mode, float y, float yawDeg, String find, String modelFull,
+                            String modelEmpty, String journal) {
+        /** Rodada 12.1: chegar ao ponto (o mirante) em vez de usar com E. */
+        public boolean arrive() { return "chegar".equals(mode); }
+    }
 
     public final List<Discovery> discoveries = new ArrayList<>();
 
@@ -141,9 +145,13 @@ public final class SceneDef {
         if (game.has("dialogos")) d.dialoguesFile = "scenes/" + game.get("dialogos").getAsString() + ".json";
         if (game.has("descobertas")) for (JsonElement el : game.getAsJsonArray("descobertas")) {
             JsonObject o = el.getAsJsonObject();
-            d.discoveries.add(new Discovery(o.get("id").getAsString(), o.get("nome").getAsString(), o.get("x").getAsFloat(), o.get("z").getAsFloat(),
+            JsonObject obj = o.has("objeto") ? o.getAsJsonObject("objeto") : null;
+            d.discoveries.add(new Discovery(o.get("id").getAsString(), o.get("lugar").getAsString(), o.get("x").getAsFloat(), o.get("z").getAsFloat(),
                     o.get("alcance").getAsFloat(), o.get("placa").getAsFloat(), o.get("moedas").getAsInt(), o.get("verbo").getAsString(),
-                    o.get("texto").getAsString(), o.get("jaVisto").getAsString()));
+                    o.get("texto").getAsString(), o.get("jaVisto").getAsString(), o.get("tipo").getAsString(), o.get("categoria").getAsString(),
+                    o.get("modo").getAsString(), o.get("y").getAsFloat(), o.get("r").getAsFloat(), o.has("achado") ? o.get("achado").getAsString() : null,
+                    obj != null ? obj.get("cheio").getAsString() : null, obj != null ? obj.get("vazio").getAsString() : null,
+                    o.get("diario").getAsString()));
         }
         if (game.has("objetos")) for (JsonElement el : game.getAsJsonArray("objetos")) {
             JsonObject o = el.getAsJsonObject();

@@ -117,6 +117,8 @@ public final class GameLogic {
     public SceneDef.WorldObject objectCandidate;
     /** Rodada 12 — a descoberta ao alcance do E (o mais perto entre morador, objeto e descoberta). */
     public SceneDef.Discovery discoveryCandidate;
+    /** Rodada 12.1 — descoberta de chegar (o mirante) por perto e ainda acima do herói: a placa mostra o verbo, nada no E. */
+    public SceneDef.Discovery arriveHint;
     /** Instante (tempo de quadro) em que cada objeto acendeu nesta sessão: o efeito discreto do desenho. */
     public final Map<String, Float> litAt = new HashMap<>();
     /** Tempo de jogo (s): soma dos passos fixos da exploração (vai no save e carimba o diário). */
@@ -392,6 +394,14 @@ public final class GameLogic {
         candidate = combat != null && combat.engaged() ? null : findCandidate();   // sem conversa no meio da luta
         objectCandidate = combat != null && combat.engaged() ? null : findObject();
         discoveryCandidate = combat != null && combat.engaged() ? null : findDiscovery();
+        arriveHint = null;
+        if (quests != null && (combat == null || !combat.engaged()))      // rodada 12.1: o mirante registra ao chegar nele
+            for (SceneDef.Discovery d : scene.discoveries) {
+                if (!d.arrive() || quests.discovered(d.id())) continue;
+                float dd = (float) Math.hypot(d.x() - player.x, d.z() - player.z), top = discoveryFloor(d);
+                if (dd <= d.range() && player.grounded && Math.abs(player.y - top) < 0.15f) useDiscovery(d);
+                else if (dd < 2.6f && player.y < top - 0.3f) arriveHint = d;
+            }
         if (candidate != null && objectCandidate != null) {                // rodada 10: o mais perto dos dois
             if (Math.hypot(objectCandidate.x() - player.x, objectCandidate.z() - player.z)
                     < Math.hypot(candidate.def.x() - player.x, candidate.def.z() - player.z)) candidate = null;
@@ -453,6 +463,7 @@ public final class GameLogic {
         float bestD = Float.MAX_VALUE;
         float fx = (float) Math.sin(player.yaw), fz = (float) Math.cos(player.yaw);
         for (SceneDef.Discovery o : scene.discoveries) {
+            if (o.arrive()) continue;                                      // rodada 12.1: o mirante não se usa com E
             float dx = o.x() - player.x, dz = o.z() - player.z, d = (float) Math.hypot(dx, dz);
             if (d > o.range() || d < 1e-4f) continue;
             if ((dx * fx + dz * fz) / d < Math.cos(INTERACT_ANGLE)) continue;
@@ -467,14 +478,40 @@ public final class GameLogic {
      * Devolve se foi descoberta agora.
      */
     public boolean useDiscovery(SceneDef.Discovery d) {
+        boolean newPlace = scene.discoveries.stream().noneMatch(o -> o != d && o.type().equals(d.type()) && quests.discovered(o.id()));
         boolean first = quests.discover(d.id(), d.coins());
         if (first) {
-            toast("Descoberta: " + d.name() + " · +" + d.coins() + " moedas", 6f);
+            // rodada 12.1: "Lugar novo" só na primeira vez que se acha um TIPO de lugar nesta aventura (o diário registra o
+            // tipo); os seguintes do mesmo tipo são só o achado. As moedas vêm do objeto que se vê (o pote, o jarro)
+            String coins = d.coins() > 0 ? " · +" + d.coins() + " moedas" : "";
+            toast(newPlace ? "Lugar novo: " + d.name() + coins : (d.find() != null ? d.find() : d.name()) + coins, 6f);
             message(d.text(), 6f);
             autosavePending = true;
         } else message(d.seen(), 4f);
         onAction.accept(first ? "descoberta" : "objeto-usar");
         return first;
+    }
+
+    /**
+     * Rodada 12.1 — a altura de pé no ponto de uma descoberta: o chão de colisão logo abaixo do ponto (a laje, o topo da
+     * muralha), não o meio voxel do catálogo. O objeto do achado é desenhado aqui e o mirante se registra aqui.
+     */
+    public float discoveryFloor(SceneDef.Discovery d) {
+        float g = collision.ground.height(d.x(), d.z());
+        return collision.floor(d.x(), d.z(), g + d.y() + 0.12f, Player.RADIUS);
+    }
+
+    /** Tipos de lugar já achados nesta aventura, na ordem do diário, com quantos de cada (rodada 12.1: "Lugares"). */
+    public java.util.LinkedHashMap<SceneDef.Discovery, Integer> knownPlaces() {
+        java.util.LinkedHashMap<SceneDef.Discovery, Integer> out = new java.util.LinkedHashMap<>();
+        java.util.Map<String, SceneDef.Discovery> firstOfType = new java.util.LinkedHashMap<>();
+        if (quests == null) return out;
+        for (SceneDef.Discovery d : scene.discoveries)
+            if (quests.discovered(d.id())) {
+                SceneDef.Discovery f = firstOfType.computeIfAbsent(d.type(), k -> d);
+                out.merge(f, 1, Integer::sum);
+            }
+        return out;
     }
 
     /** Rodada 10 — usar (E) um objeto: a missão decide; a frase vem do arquivo de falas. */
