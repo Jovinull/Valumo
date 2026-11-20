@@ -28,6 +28,8 @@ public final class Collision {
     public static final class Shape {
         public final String name;
         public final boolean circle, body, camera;
+        /** Rodada 12.3: a construção (composta) a que a forma pertence — o índice da zona de recorte dela; -1 = nenhuma. */
+        public int owner = -1;
         /** Rodada 09.2: o topo é chão (dá para pousar em cima com um salto; perfil "pisavel"). */
         public boolean stand;
         /**
@@ -131,6 +133,26 @@ public final class Collision {
 
     static float num(JsonObject o, String k, float def) { return o.has(k) ? o.get(k).getAsFloat() : def; }
 
+    /**
+     * Rodada 12.3 (P85) — zona de RECORTE de uma construção composta com interior estreito e aberto (a torre caída, perfil
+     * {@code "recorte"} em colisao_e.json): com o herói dentro dela ({@link #cutawayAt}), as consultas da CÂMERA ignoram as
+     * formas daquela construção ({@link #cameraSkip}) e o desenho recorta o que dela fica entre a câmera e o herói. A
+     * colisão do corpo não muda nunca.
+     */
+    public record Cutaway(int id, String prop, float x, float z, float r) { }
+
+    public final List<Cutaway> cutaways = new ArrayList<>();
+    /** Rodada 12.3 — zona cujas formas as consultas de câmera ignoram nesta chamada (-1 = nenhuma; quem chama põe e tira). */
+    public int cameraSkip = -1;
+
+    /** A zona de recorte que contém (x, z), com {@code extra} u de folga (histerese de quem chama), ou null. */
+    public Cutaway cutawayAt(float x, float z, float extra) {
+        for (Cutaway k : cutaways) if (Math.hypot(x - k.x(), z - k.z()) <= k.r() + extra) return k;
+        return null;
+    }
+
+    private boolean skipped(Shape s) { return cameraSkip >= 0 && s.owner == cameraSkip; }
+
     /** Acrescenta as formas de um prop posicionado (matriz de mundo + caixa da malha no espaço do modelo). */
     public void addProp(JsonObject prof, World.Placement p) {
         JsonObject pr = profileFor(prof, p.name());
@@ -175,6 +197,14 @@ public final class Collision {
         com.google.gson.JsonArray formas = pr.getAsJsonArray("formas");
         if (formas == null || formas.isEmpty()) throw new IllegalArgumentException("perfil composto sem formas em " + p.name());
         float scale = (float) Math.sqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
+        int owner = -1;
+        if (pr.has("recorte")) {                                          // rodada 12.3: interior estreito e aberto (a torre)
+            JsonObject rc = pr.getAsJsonObject("recorte");
+            com.google.gson.JsonArray ce = rc.getAsJsonArray("centro_u");
+            Vector3f c = m.transformPosition(new Vector3f(ce.get(0).getAsFloat(), 0f, ce.get(1).getAsFloat()));
+            owner = cutaways.size();
+            cutaways.add(new Cutaway(owner, p.name(), c.x, c.z, rc.get("raio_u").getAsFloat() * scale));
+        }
         for (int i = 0; i < formas.size(); i++) {
             JsonObject f = formas.get(i).getAsJsonObject();
             boolean body = !f.has("corpo") || f.get("corpo").getAsBoolean();
@@ -199,6 +229,7 @@ public final class Collision {
                 default -> throw new IllegalArgumentException("forma desconhecida em " + p.name() + ": " + kind);
             }
             s.stand = stand;
+            s.owner = owner;
             shapes.add(s);
         }
     }
@@ -544,7 +575,7 @@ public final class Collision {
         float dx = b.x - a.x, dz = b.z - a.z, len2 = dx * dx + dz * dz;
         int k = 0;
         for (Shape s : shapes) {
-            if (!s.camera || s.y1 < ylo || s.y0 > yhi) continue;
+            if (!s.camera || s.y1 < ylo || s.y0 > yhi || skipped(s)) continue;
             float t = len2 < 1e-9f ? 0f : Math.clamp(((s.cx - a.x) * dx + (s.cz - a.z) * dz) / len2, 0f, 1f);
             float ox = a.x + dx * t - s.cx, oz = a.z + dz * t - s.cz, rr = s.bound + m * (s.circle ? 1f : 1.4143f) + 1e-3f;   // caixa inflada por eixo: canto a m·√2
             if (ox * ox + oz * oz > rr * rr) continue;
@@ -557,7 +588,7 @@ public final class Collision {
     private int allCamera() {
         int k = 0;
         for (Shape s : shapes) {
-            if (!s.camera) continue;
+            if (!s.camera || skipped(s)) continue;
             if (k == scratch.length) scratch = java.util.Arrays.copyOf(scratch, k * 2);
             scratch[k++] = s;
         }
@@ -570,7 +601,7 @@ public final class Collision {
     /** Rodada 09.1: o olho da câmera está dentro do relevo ou de uma forma que bloqueia a câmera (sem folga). */
     public boolean cameraInside(Vector3f eye) {
         if (eye.y < ground.height(eye.x, eye.z)) return true;
-        for (Shape s : shapes) if (s.camera && s.contains(eye.x, eye.y, eye.z, 0f)) return true;
+        for (Shape s : shapes) if (s.camera && !skipped(s) && s.contains(eye.x, eye.y, eye.z, 0f)) return true;
         return false;
     }
 
