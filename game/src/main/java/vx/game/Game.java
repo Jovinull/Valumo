@@ -189,7 +189,11 @@ public final class Game implements AutoCloseable {
         logic.cam.sensitivity = logic.prefs.sensitivity;                  // rodada 11.1: câmera guardada nas preferências
         logic.cam.invertY = logic.prefs.invertY;
         npcActors.clear();
-        for (GameLogic.Npc n : logic.npcs) npcActors.put(n, new Actor(assets.rig(n.def.rig()), style.animExaggeration));
+        for (GameLogic.Npc n : logic.npcs) {
+            Actor ac = new Actor(assets.rig(n.def.rig()), style.animExaggeration);
+            npcActors.put(n, ac);
+            n.gestureLen = n.def.gesture() ? ac.duration(Animator.Clip.ATTACK) : 0f;   // rodada 12.2: o gesto de ofício do perfil dele
+        }
         sessions++;
     }
 
@@ -425,7 +429,8 @@ public final class Game implements AutoCloseable {
             if (showcase && behindHero(n.def.x(), n.def.z(), p)) continue;
             SceneDef.Line l = n == logic.talking ? logic.currentLine() : null;
             String expr = l != null ? l.expression() : null;
-            npcActors.get(n).submit(f, new Matrix4f().translate(n.def.x(), terrain.groundAt(n.def.x(), n.def.z()), n.def.z()).rotateY(n.yaw),
+            float ny = n.def.y() > 0.05f ? logic.npcFloor(n) : terrain.groundAt(n.def.x(), n.def.z());   // rodada 12.2: de pé na laje
+            npcActors.get(n).submit(f, new Matrix4f().translate(n.def.x(), ny, n.def.z()).rotateY(n.yaw),
                     logic.npcMotion(n, nMotion), blend, expr, terrain);
         }
         f.shadowFocus.set(p.x, p.y, p.z);

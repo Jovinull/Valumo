@@ -37,6 +37,11 @@ public final class GameLogic {
         public final SceneDef.Interactive def;
         public float yaw;
         public float emoteStart = -10f;
+        /**
+         * Rodada 12.2 — duração (s) do gesto de ofício do perfil de animação dele; 0 = não tem. Quem desenha preenche
+         * (só o desenho conhece o perfil); a lógica só escolhe QUANDO tocar.
+         */
+        public float gestureLen;
 
         Npc(SceneDef.Interactive def) {
             this.def = def;
@@ -610,11 +615,31 @@ public final class GameLogic {
 
     public boolean lastLine() { return talking != null && line >= dialogLines.size() - 1; }
 
-    /** Clipe e tempo do NPC (aceno ao começar a conversa, depois parado). */
+    /** Rodada 12.2: de quanto em quanto tempo (s) o morador de ofício toca o gesto dele, parado e fora da conversa. */
+    public static final float GESTURE_PERIOD = 9f;
+
+    /**
+     * Clipe e tempo do NPC (aceno ao começar a conversa, depois parado). Rodada 12.2: o morador de ofício com gesto
+     * ({@link Npc#gestureLen}) toca o gesto do perfil dele a cada {@link #GESTURE_PERIOD} s, com fase pela posição (dois
+     * moradores não gesticulam juntos), nunca durante a conversa nem por cima do aceno. Só desenho: nada de jogo muda.
+     */
     public Animator.Motion npcMotion(Npc n, Animator.Motion out) {
         float t = time - n.emoteStart;
         if (t >= 0 && t < EMOTE_TIME) return out.set(Animator.Clip.EMOTE, t);
+        if (n.gestureLen > 0f && n != talking) {
+            float ph = (time + Math.abs(n.def.x() * 3.7f + n.def.z() * 1.3f)) % GESTURE_PERIOD;
+            if (ph < n.gestureLen) return out.set(Animator.Clip.ATTACK, ph);
+        }
         return out.set(Animator.Clip.IDLE, time + n.def.x());
+    }
+
+    /**
+     * Rodada 12.2 — a altura em que o NPC fica de pé: o relevo, ou (morador de ofício num ponto elevado, como a laje da
+     * oficina) o chão de colisão do ponto. Pessoas não sustentam ninguém, então o corpo dele mesmo não conta.
+     */
+    public float npcFloor(Npc n) {
+        float g = collision.ground.height(n.def.x(), n.def.z());
+        return n.def.y() > 0.05f ? collision.floor(n.def.x(), n.def.z(), g + n.def.y() + 0.12f, Player.RADIUS) : g;
     }
 
     // ------------------------------------------------------------------ ações (teclado e cliques chegam aqui)
