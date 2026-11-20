@@ -10,7 +10,7 @@ import math
 
 import env_b as EB
 import conteudo_lib as L
-from conteudo_lib import (CORAL, CREAM, FINE, GLOW, GLOW_HI, IRON, IVY, LEAF_BUSH, MOSS_FIX, PINK, STONE, STONE_D, STONE_L,
+from conteudo_lib import (CORAL, CREAM, FINE, GLOW, GLOW_HI, GOLD, IRON, IVY, LEAF_BUSH, MOSS_FIX, PINK, STONE, STONE_D, STONE_L,
                           STRAW, STRAW_D, TEAL, TEAL_D, TERRACOTTA, TIMBER, WOOD, WOOD_D, WOOD_L, YELLOW, asset, light,
                           shade, shadow)
 from envlib import hash3
@@ -750,3 +750,52 @@ def weapon_rack():
     shade(v)
     v.rot_y90(2)                                                 # escudos e lanças para +z (a frente do contrato)
     return v, {"interacao": [("equipar", (-1, 0, 11), "pegar")]}
+
+
+# ============================================================================= pote de barro (achado)
+
+@asset("pote_achado", nome="Pote de barro com moedas", categoria="prop", sub="achado", lote=3,
+       voxel=FINE, frequencia="rara",
+       tags=["ruina", "achado", "exploracao", "lareira", "parapeito"],
+       funcao="rodada 12.1 — o que justifica a recompensa de um achado: moedas que se VEEM dentro do pote antes de pegar "
+              "(cheio) e o pote vazio depois (estado salvo). Nas cinzas da lareira da casa em ruína; esquecido no "
+              "parapeito da torre caída",
+       terreno=["piso", "pedra", "muro"], apoio={"tipo": "terreno"}, inclinacao_max_u=0.1,
+       area_livre={"raio_u": 0.2}, colisao={"tipo": "nenhum"},
+       publicar_variantes=True,
+       notas="só como objeto de um achado (o gerador nunca o espalha como decoração); aprovação artística pendente "
+             "(pedido do proprietário na rodada 12.1: 'seria bom algo pra representar isso')",
+       variacoes={"estado": ["cheio", "vazio"]})
+def pote_achado(estado="cheio"):
+    """Pote de barro bojudo (≈ 0,3 u), terracota com a boca mais clara e uma faixa escura no ombro, rachado de um lado.
+    Cheio: moedas douradas aparecendo na boca e duas caídas ao lado. Vazio: a boca aberta escura e a tampa de barro no
+    chão, encostada no pote."""
+    v = Vox()
+    body = [(0, 2.2), (1, 3.0), (2, 3.4), (3, 3.4), (4, 3.0), (5, 2.2), (6, 1.8), (7, 2.1)]   # (y, raio) em voxels de 1/16
+    for y, r in body:
+        for x in range(-4, 5):
+            for z in range(-4, 5):
+                d = math.hypot(x + 0.5, z + 0.5)
+                if d <= r and (d > r - 1.3 or y == 0):
+                    c = TERRACOTTA if y < 6 else light(TERRACOTTA)
+                    if y == 4:
+                        c = shadow(TERRACOTTA, 1.3)                   # faixa do ombro
+                    if y in (2, 3) and x == 2 and z in (0, 1):
+                        c = shadow(TERRACOTTA, 1.7)                   # a rachadura
+                    v.set(x, y, z, c)
+    if estado == "cheio":
+        for (x, z) in ((-1, -1), (0, -1), (-1, 0), (0, 0), (1, 0), (0, 1)):
+            v.set(x, 6, z, GOLD)                                     # moedas na boca
+        v.set(0, 7, 0, GOLD)
+        for (x, z) in ((4, -3), (5, -3), (-5, 3)):
+            v.set(x, 0, z, GOLD)                                     # duas caídas ao lado
+    else:
+        for (x, z) in ((-1, -1), (0, -1), (-1, 0), (0, 0)):
+            v.set(x, 1, z, shadow(TERRACOTTA, 2.2))                  # o fundo escuro, vazio
+        for x in range(3, 7):                                        # a tampa no chão, encostada
+            for z in range(-3, 1):
+                if math.hypot(x - 4.5, z + 1.0) <= 2.0:
+                    v.set(x, 0, z, light(TERRACOTTA))
+    shade(v)
+    return v, {"interacao": [("pegar", (0, 0, 5), "pegar")]}
+
