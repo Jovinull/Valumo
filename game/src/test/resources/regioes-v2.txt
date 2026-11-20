@@ -1,9 +1,9 @@
 # Gerador v2 (valumo.regiao) — referência fixada na aprovação da composição. Não edite à mão.
-1024 b1e05f2f1583bb2d7d75d2c05e337015a2d793816a206bff6f45292dfa2ba2ea tentativa=1 arranjo=0 props=155 pois=3
-2048 aa487d553a8e779deb31328fce41940cb65e8774bffabfd72fe3b4f8d7483310 tentativa=0 arranjo=0 props=154 pois=3
-4096 a5c1aeee468a147733fd738533b336fb8d734575a098a567cac438c7d59b1814 tentativa=0 arranjo=0 props=154 pois=4
-77 0a241997642959ba9af035d26a7d6cc2e00a9d92aee3907fe66ed7ec66d1c668 tentativa=0 arranjo=0 props=158 pois=3
-1 3b493fe461e9b96ffe7f73d338c02ce41130ad0b9342bb403e48fc77bc530f8a tentativa=0 arranjo=0 props=164 pois=3
-555 22222b2945a55c82a4d1c473c81ce4a690ab35949dc73d4ec71aa6a336e00955 tentativa=0 arranjo=0 props=149 pois=3
-9001 cd7d105aea4f123a0c4e287626ce8916e57d7325b6859abc5c7bdf70260f3532 tentativa=0 arranjo=0 props=153 pois=3
-31337 f29b6157f66389545664524dcb15e74f1fdcd2c126bc2080c5adece51aecfb22 tentativa=0 arranjo=0 props=166 pois=3
+1024 d22f2b690bbb4e2572c0d05eb9243afd90bc80105c98f68ba6fe5bd190b3df58 tentativa=1 arranjo=0 props=150 pois=3
+2048 432e0ddbb725ac28d6764bb4965b2f1540d0dc9e0395249ca93974b3dd7123f3 tentativa=0 arranjo=0 props=168 pois=3
+4096 074072d0bae2af17fde093fbae658de1058193d5fb29e7e917442a7d9a568a37 tentativa=0 arranjo=0 props=162 pois=4
+77 96eee61e6241bb8108a95e6168e23a4cacfcd2b0870ce92b6086e57c8622f76d tentativa=0 arranjo=0 props=149 pois=3
+1 767699925dec465a44633c418531eb1f3115e714f0b1e937e8c108f77238881b tentativa=1 arranjo=0 props=151 pois=4
+555 dcf4fc7a60bf60def7dfe47020a1e1f7c1f1dcaefe33397ce1ed94226c8a6424 tentativa=0 arranjo=0 props=160 pois=3
+9001 45c2ff0b3233d840d1aad4f9c2bb0eff27880edefd7c6021ef27a6f69ff629b4 tentativa=0 arranjo=0 props=158 pois=3
+31337 2f92492e89a2552349a376200f7df12c510f1a621655b6a7e58c372dc2b29de6 tentativa=0 arranjo=0 props=166 pois=3
