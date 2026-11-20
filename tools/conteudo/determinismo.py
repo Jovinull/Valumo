@@ -15,8 +15,8 @@ TOOLS = os.path.dirname(HERE)
 
 
 def gen(out):
-    code = (f"import sys; sys.path.insert(0, {TOOLS!r}); import env_e, conteudo_e, npcs_mundo_e; "
-            f"env_e.build({out!r}); conteudo_e.build({out!r}); npcs_mundo_e.build({out!r})")
+    code = (f"import sys; sys.path.insert(0, {TOOLS!r}); import env_e, conteudo_e, npcs_mundo_e, npc_acapela_e; "
+            f"env_e.build({out!r}); conteudo_e.build({out!r}); npcs_mundo_e.build({out!r}); npc_acapela_e.build({out!r})")
     subprocess.run([sys.executable, "-c", code], check=True, stdout=subprocess.DEVNULL)
 
 
