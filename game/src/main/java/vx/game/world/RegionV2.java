@@ -470,6 +470,12 @@ final class RegionV2 {
         return false;
     }
 
+    /**
+     * Caixa do modelo da árvore retorcida (centro e meias-medidas em x, z, u), para a conferência de desnível ao plantá-la
+     * junto da ruína. Medida do {@code props.json} (5,62 × 2,88 u); {@code GeneratorV2Test} confere que o modelo não mudou.
+     */
+    static final float[] GNARLED_CENTER = {-0.0625f, -0.0625f}, GNARLED_HALF = {2.8125f, 1.4375f};
+
     /** Profundidade da frente (u) da âncora de uma vaga: a fachada fica a esta distância do centro dela. */
     static float frontOf(RegionProfile P, String id) {
         if (id.equals("lavoura")) return 1.2f;
@@ -559,6 +565,42 @@ final class RegionV2 {
             case 1 -> new String[]{"tree_pine", "tree_pine", "tree_forked", "tree_pine", "tree_oak3", "tree_pine", "tree_birch", "tree_pine"};     // pinhal
             default -> new String[]{"tree_birch", "tree_willow", "tree_birch", "tree_forked", "tree_birch", "tree_oak", "tree_willow", "tree_oak4"}; // bétulas e salgueiros
         };
+        // rara: a árvore retorcida junto à ruína (o marco do lugar), por trás dela, NO patamar (chão plano), ANTES da mata.
+        // Ela nunca saía (0 de 60 sementes; GeneratorV2Test confere): a reserva da própria ruína (pegada + margens) cobria o
+        // patamar inteiro, e as 80 árvores da mata tomavam o anel em volta. Agora a reserva da PRÓPRIA ruína é trocada pela
+        // pegada dela com as margens (a árvore fica fora), e o tronco cabe no plano do patamar
+        RegionLayout.Building ruin = L.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElse(null);
+        if (ruin != null && vr.chance(0.4f)) {
+            float[] p = L.pads.getFirst();
+            Box own = null;                                                  // a pegada da ruína com as margens (a do ruin())
+            for (Box b : boxes)
+                if (own == null || Math.hypot(b.cx() - ruin.x(), b.cz() - ruin.z()) < Math.hypot(own.cx() - ruin.x(), own.cz() - ruin.z())) own = b;
+            for (int k = 0; k < 20; k++) {
+                float ang = (float) Math.toRadians(ruin.rotDeg() + 180f + vr.range(-50f, 50f)), d = vr.range(0.5f, 1.0f) * (p[2] - 0.7f);
+                float x = p[0] + (float) Math.sin(ang) * d, z = p[1] + (float) Math.cos(ang) * d;
+                if (own == null || dist(own, x, z) < 0.25f) continue;
+                boolean near = false;
+                for (float[] t : taken) {
+                    boolean ownBox = Math.abs(t[0] - own.cx()) < 1e-4f && Math.abs(t[1] - own.cz()) < 1e-4f;
+                    if (!ownBox && Math.hypot(t[0] - x, t[1] - z) < Math.max(1.8f, t[2])) { near = true; break; }
+                }
+                if (near || f.pathDistance(x, z) < 2.2f || f.pondDistance(x, z) < 4f) continue;
+                // a MESMA conferência de desnível da Reachability (cantos de 80% da caixa do modelo, girados, e o centro): a
+                // copa é larga e os cantos dela saem do patamar
+                float rot = vr.range(0f, 360f), c = (float) Math.cos(Math.toRadians(rot)), sn = (float) Math.sin(Math.toRadians(rot));
+                float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
+                for (float[] q : new float[][]{{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 0}}) {
+                    float lx = GNARLED_CENTER[0] + q[0] * GNARLED_HALF[0] * 0.8f, lz = GNARLED_CENTER[1] + q[1] * GNARLED_HALF[1] * 0.8f;
+                    float h = f.height(x + c * lx + sn * lz, z - sn * lx + c * lz, false);
+                    lo = Math.min(lo, h);
+                    hi = Math.max(hi, h);
+                }
+                if (hi - lo > 0.45f) continue;
+                L.props.add(new RegionLayout.Prop("tree_gnarled", x, z, rot));
+                taken.add(new float[]{x, z, 2.0f});
+                break;
+            }
+        }
         int placedTrees = 0;
         for (int k = 0; k < 900 && placedTrees < 80; k++) {
             float x = vr.range(-23f, 23f), z = vr.range(-23f, 23f);
@@ -588,19 +630,7 @@ final class RegionV2 {
                 put++;
             }
         }
-        // raras: a árvore retorcida junto à ruína (o marco do lugar) e a árvore seca na borda da mata
-        RegionLayout.Building ruin = L.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElse(null);
-        if (ruin != null && vr.chance(0.4f)) {
-            float[] p = L.pads.getFirst();
-            for (int k = 0; k < 20; k++) {
-                float ang = (float) Math.toRadians(ruin.rotDeg() + 180f + vr.range(-50f, 50f)), d = p[2] - vr.range(0.0f, 0.5f);
-                float x = p[0] + (float) Math.sin(ang) * d, z = p[1] + (float) Math.cos(ang) * d;
-                if (f.pathDistance(x, z) < 2.2f || crowded(taken, x, z, 1.8f) || f.pondDistance(x, z) < 4f) continue;
-                L.props.add(new RegionLayout.Prop("tree_gnarled", x, z, vr.range(0f, 360f)));
-                taken.add(new float[]{x, z, 2.0f});
-                break;
-            }
-        }
+        // rara: a árvore seca na borda da mata
         if (vr.chance(0.35f))
             for (int k = 0; k < 60; k++) {
                 float x = vr.range(-20f, 20f), z = vr.range(-20f, 20f), e = playableEdge(L, x, z);
