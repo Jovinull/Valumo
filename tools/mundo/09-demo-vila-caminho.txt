@@ -1,0 +1,104 @@
+# Rodada 12.2 — vila de caminho média com os moradores de ofício e a abóbada soterrada (semente 54): criar o mundo pelo
+# menu, o Quelmo ao lado da barraca (vaga lateral, gesto de oferecer), a Brásia no galpão da oficina, a Índira na cabana,
+# a trilha até a abóbada, entrar pela boca, o interior coberto (o teto segura a câmera; o rasgo de luz), pegar o pote entre
+# os barris, o diário, salvar, voltar ao menu e continuar. Dados TEMPORÁRIOS (tools/review122.sh demo).
+size 1920 1080
+esperar-menu 20
+record on
+wait 1.5
+click jogar
+esperar-menu 20
+wait 0.6
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 60
+wait 0.6
+click criar-mundo
+wait 0.4
+digitar Vila_da_Feira
+wait 0.3
+click campo:1
+digitar 54
+wait 0.4
+click confirmar-mundo
+esperar-menu 60
+wait 1.0
+menu-mundo Vila_da_Feira
+esperar-menu 30
+wait 0.6
+click entrar
+esperar-menu 60
+wait 1.5
+regiao
+ir-lugar oficio quelmo andando
+wait 3.0
+key E
+wait 1.6
+key E
+wait 1.4
+key E
+wait 1.4
+key E
+wait 1.0
+ir-lugar assentamento andando
+ir-lugar oficio brasia andando
+wait 3.0
+key E
+wait 1.6
+key E
+wait 1.4
+key E
+wait 1.4
+key E
+wait 1.0
+ir-lugar assentamento andando
+ir-lugar oficio indira andando
+wait 2.0
+key E
+wait 1.6
+key E
+wait 1.4
+key E
+wait 1.4
+key E
+wait 1.0
+ir-lugar assentamento andando
+seguir-ramo ida correndo
+wait 0.5
+ir-lugar ruina andando
+wait 0.8
+ir-lugar ruina-dentro andando
+wait 1.5
+look 400 0 2.0
+wait 1.0
+ir-lugar descoberta andando
+wait 0.8
+key E
+wait 3.5
+missao
+key J
+wait 3.0
+key J
+wait 0.6
+key ESC
+wait 0.6
+click salvar
+wait 1.0
+click menu-principal
+wait 0.6
+click menu-sem-salvar
+esperar-menu 60
+wait 1.0
+click jogar
+esperar-menu 20
+click escolher-personagem
+esperar-menu 60
+menu-mundo Vila_da_Feira
+esperar-menu 30
+wait 1.0
+click entrar
+esperar-menu 60
+wait 1.5
+missao
+wait 1.0
+record off

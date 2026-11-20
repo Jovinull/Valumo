@@ -1,0 +1,28 @@
+# Rodada 12.2 — a torre caída (semente 2): a porta, o interior (a câmera de sempre: perto da cabeça, limitação P85), o salto
+# para a muralha baixa (o mirante, 8 moedas) e a saída. Começa direto na região
+# (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=2).
+size 1920 1080
+click comecar
+wait 1.0
+record on
+wait 1.0
+regiao
+ir-lugar ruina
+wait 1.0
+ir-lugar ruina-dentro andando
+wait 1.5
+ir-lugar descoberta andando
+wait 1.0
+segurar W
+wait 0.1
+pular
+wait 0.8
+soltar W
+wait 3.5
+missao
+look 700 0 2.5
+wait 1.0
+ir-lugar ruina-dentro andando
+ir-lugar ruina andando
+wait 1.0
+record off

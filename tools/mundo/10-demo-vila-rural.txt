@@ -1,0 +1,34 @@
+# Rodada 12.2 — vila rural com os moradores de ofício (semente 28): o Arvel na porta da cabana do caçador (gesto de conferir
+# o equipamento), o Bramor no posto de vigia, a Índira na cabana da herbalista. Começa direto na região
+# (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=28).
+size 1920 1080
+click comecar
+wait 1.0
+record on
+wait 1.0
+regiao
+ir-lugar oficio arvel andando
+wait 4.0
+key E
+wait 1.6
+key E
+wait 1.4
+key E
+wait 1.4
+key E
+wait 1.0
+ir-lugar oficio bramor andando
+wait 2.5
+key E
+wait 1.6
+key E
+wait 1.4
+key E
+wait 1.4
+key E
+wait 1.0
+ir-lugar oficio indira andando
+wait 3.0
+look 300 0 1.5
+wait 1.0
+record off
