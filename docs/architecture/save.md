@@ -107,3 +107,15 @@ Detalhes: [catálogo de mundos](catalogo-de-mundos.md), [ADR 0028](../decisions/
   confirmação só oferece Sair e Cancelar; com alterações, Salvar e sair / Sair sem salvar / Cancelar.
   - "Salvar e sair" usa o salvamento de sempre (atômico, validado). Falhou: não sai.
   - "Sair sem salvar" não toca no arquivo: o último save (manual ou automático dos marcos) fica como estava.
+
+## Rodada 12 — descobertas (campo opcional)
+
+`progresso.descobertas`: os ids das descobertas de exploração desta aventura (ex.: `desc.r0.ruina.0`, a lareira da ruína
+num mundo v2).
+
+- **Quando aparece:** só quando há alguma. Um save sem descoberta é byte a byte o de antes, e um save sem o campo abre
+  igual.
+- **Validação:** id que a cena não tem = save recusado com o motivo (como objeto desconhecido).
+- **Formato:** a versão do formato não mudou; continuam v1 (vila) e v2 (procedural). Detalhes:
+  [persistência do mundo procedural](persistencia-mundo-procedural.md).
+

@@ -128,3 +128,66 @@ cache (`Terrain.release`), sem mudar o resultado de nenhuma semente. Detalhes: [
 - **Distribuir a biblioteca exige uma versão nova do gerador.** Os mundos v1 precisam continuar abrindo:
   [ADR 0029](../decisions/0029-versoes-do-gerador.md) (proposta). A colisão dos assets com interior:
   [colisao-composta.md](colisao-composta.md).
+
+## 9. Rodada 12 — duas versões do gerador, a v2 e a primeira descoberta
+
+**Versões** ([ADR 0029](../decisions/0029-versoes-do-gerador.md), implementada):
+
+- **Cada mundo usa para sempre a versão com que nasceu.** A v1 é o código da rodada 11, intocado, e
+  `regioes-v1.txt` continua 8/8. A v2 é a padrão dos mundos novos.
+- **Versão desconhecida:** o mundo continua na lista e não abre, com a explicação; nada é alterado.
+
+**A v2** (`vx.game.world.RegionV2`, perfil congelado `assets/scenes/regiao_v2_e.json`) tem a mesma região controlada da
+v1 (±16,5 u jogáveis):
+
+| Peça | Regra |
+|---|---|
+| estilo | **caminho** (55%: compacta, praça com chafariz em 75% das vezes, bancos) ou **rural** (sítios espaçados, poço de manivela). O mesmo em todas as tentativas: é a identidade do lugar |
+| patamar | 10,4 u (caminho) ou 11,2 u (rural); assentamento a 4,5–7 u do centro, posto do outro lado (patamar + 5–7 u) |
+| estalagem | a casa aprovada, ao fundo da praça, virada para ela; Kelyra ao lado da porta, de lado (quem fala com ela fica ao longo da fachada); placa da estalagem e barril |
+| construções | 3 ou 4 desejadas além da estalagem (piso de 2: uma segunda passada, com mais folga, tenta de novo as que não couberam), sorteadas por peso do estilo, giradas para a praça e conferidas **peça a peça** (a pegada da âncora e a de cada item do conjunto): dentro do patamar, sem invadir a praça, o corredor da saída da trilha, o chafariz/poço nem outra construção. Caminho: comerciante 5, ferreiro 4, guardião 3, herbalista 2, depósito 2. Rural: lavoura 5, caçador 4, herbalista 4, paiol 3, depósito 2, guardião 2, ferreiro 1 |
+| conjuntos | postos INTEIROS: âncora + itens no referencial dela, girados juntos (cestos só aqui; o lenheiro coberto só com o caçador) |
+| caminhos | de chão batido, da praça até cada porta (só pintam: o patamar já é plano) |
+| torre de vigia | o conjunto do guardião, numa vaga de borda de olho na saída da trilha; o Bramor mora nela quando ela existe |
+| ruína | `ruin_house` fora do assentamento, perto da trilha (a 1,4–7 u além do patamar dela), num **patamar** próprio, com uma **trilha secundária** escavada desde o ponto da trilha principal mais perto FORA da arena do posto (quem vai à ruína não passa pelos fungos) até o arco. POI `poi.r0.ruina.0` |
+| descoberta | na lareira da ruína: `desc.r0.ruina.0` (derivado do POI) |
+| posto e missão | as peças da v1 (`composePost`): o mesmo modelo de missão, o mesmo marco e os mesmos fungos, no fim da trilha |
+| mata | três composições com as árvores novas (bifurcada nas três); álamos em fileira de um lado da trilha (1 fileira na vila de caminho, 2 na rural); a retorcida (rara, ~40%) atrás da ruína, no plano do patamar, plantada antes da mata e com a mesma conferência de desnível da `Reachability`; a seca (rara) na borda da mata; pedras e arbustos só em chão quase plano |
+
+**Conferência:**
+
+- O `Reachability` passou a exigir os `checkpoints` da v2:
+  - cada entrada de construção (0,6 u);
+  - os pontos de interação dos interiores (1 u);
+  - a descoberta (1 u).
+- A v1 não tem nenhum, e o resultado dela não muda.
+- **Resultado** (sementes 1–60, binário final da rodada 12): 60 aceitas, 0 recusadas, 14 tentativas extras.
+
+**Determinismo:**
+
+- Rótulos com o prefixo `"v2"`.
+- A ordem de geração não muda nada, e a vegetação não move construção, missão, NPC nem POI (`GeneratorV2Test`).
+- A mesma semente na v1 e na v2 é outra região: outra chave e outro relevo no cache.
+
+**Descoberta:**
+
+- Usar (E) a lareira dá o aviso "Descoberta: …", 5 moedas **uma vez**, a frase do lugar e o registro no diário.
+- O save ganha o campo opcional `progresso.descobertas` (ausente = nenhuma).
+- **O que não muda:** a v1 e a vila não têm descoberta, e o save delas sai igual.
+
+**Densidade** (sementes 1–30):
+
+- 3–5 construções com a estalagem (as de caminho quase sempre 3: P81);
+- ≤ 190 props;
+- 272–365 formas de colisão (mediana 287).
+
+**v1 × v2:**
+
+| | v1 | v2 |
+|---|---|---|
+| assentamento | estalagem + poço/fogueira, 7 props em 3 arranjos | estalagem + 3–4 construções e conjuntos de ofício, chafariz ou poço de manivela, caminhos às portas, lavoura no rural |
+| lugares | assentamento e posto | + ruína com patamar e trilha própria |
+| exploração | a missão | a missão + uma descoberta |
+| árvores | 8 modelos aprovados | + bifurcada, álamo em fileira, seca e retorcida |
+| comparações | `output/visual-review/round-12/comparacoes/` | |
+

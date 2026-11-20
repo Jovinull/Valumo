@@ -460,3 +460,19 @@ e [0028](../decisions/0028-personagens-mundos-e-aventuras.md).
   `AudioPrefs` ganhou `geral` (volume principal).
 - **Roteiros:** `click` desenha um quadro antes de procurar o botão (os botões da tela atual). Os comandos novos estão em
   [menus.md](menus.md#como-acrescentar).
+
+## 17. Rodada 12 — interiores e descoberta
+
+- **Colisão composta:** oficina, ruína de casa e barraca têm interior. Paredes, peças baixas e telhado estão em formas
+  medidas dos voxels, e o piso elevado é chão pisável no degrau. O herói entra pela porta e não atravessa parede, e a
+  câmera não atravessa parede nem telhado. Contrato: [colisão composta](colisao-composta.md).
+- **Descoberta** (mundos v2):
+  - **Usar:** a lareira da ruína é um ponto de descoberta. Perto e de frente aparece a placa "Examinar a lareira"
+    (só o verbo, sem tecla na tela).
+  - **Primeira vez:** E dá o aviso "Descoberta: Casa tomada pela mata · +5 moedas", a frase do lugar, o som de objetivo
+    e o salvamento no primeiro passo seguro.
+  - **Depois:** só a frase de "já visto".
+  - **Diário:** ganha a seção "Descobertas", e a lista de mundos mostra "· 1 lugar descoberto".
+  - **Regra:** `GameLogic.useDiscovery`, `QuestSystem.discover` (uma vez), `progresso.descobertas` no save (opcional).
+- **Candidato:** NPC, objeto e descoberta disputam o E; vence o mais perto, mais ou menos à frente do herói.
+

@@ -72,6 +72,12 @@ com `aprovacao.artistica: candidato` e `integracao: aguardando_avaliacao` (teste
   exige que o asset esteja em pelo menos um conjunto.
 - **Conjuntos:** `aprovacao.artistica: aprovado_como_proposta`. A `integracao` deles é a do membro mais restrito:
   `depende_colisao_composta` se a âncora ou um item depender de formas compostas (teste).
+- **Rodada 12:** a colisão composta existe no jogo ([colisao-composta.md](colisao-composta.md)).
+  - **Liberados:** `workshop_forge`, `ruin_house` e `market_stall`, percorridos pelo `CompositeCollisionTest`. Os
+    conjuntos `ferreiro` e `comerciante` seguem a âncora e o item.
+  - **Torre arruinada:** passou a `aguardando_refinamento`, porque a porta é estreita demais para o herói (P74).
+  - **Regra do teste:** composto liberado ⇔ perfil `composta` em `colisao_e.json` ⇔ percorrido.
+  - **Dados corrigidos:** o spawn da ferreira (P73) e o ponto dos escombros da ruína.
 
 ## 3. Do modelo para o mundo
 

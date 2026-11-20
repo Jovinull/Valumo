@@ -43,13 +43,33 @@ missão em silêncio: o save é recusado com o motivo, e o original fica em `.in
 | v1 aberto no procedural | recusado: "é um save do mundo fixo (v1): abra sem -Dvx.mundo" |
 | v2 aberto no mundo fixo | recusado: "é um save de mundo procedural (v2): abra com -Dvx.mundo=procedural" |
 | v2 de outra semente | não acontece (pastas separadas); se copiado, "mundo salvo diferente deste (semente…)" |
-| v2 de outra versão do gerador ou outra tentativa | recusado, com o campo citado |
+| v2 de outra versão do gerador ou outra tentativa | recusado, com o campo citado (rodada 12: só acontece se o save e o `mundo.json` discordarem, porque a região é sempre gerada pela versão do mundo) |
+| rodada 12: mundo v1 aberto por um jogo que já cria v2 | abre **igual**: a região é gerada pela v1 (a versão do `mundo.json`), e o save confere |
+| rodada 12: mundo de uma versão que este jogo não conhece | não abre, com "Este mundo foi criado por uma versão mais nova do Valumo…"; **nenhum arquivo é tocado**, sem `.invalido` |
+| rodada 12: save sem `progresso.descobertas` | abre igual (ausente = nenhuma descoberta) |
+| rodada 12: descoberta que a região não tem | recusado ("descoberta desconhecida"), original guardado em `.invalido` (é corrupção de verdade) |
 | vínculos diferentes dos gerados agora | recusado: "os vínculos da missão salvos não batem com a região gerada agora" |
 
 - **Migração:** nenhuma. A v1 é o mundo fixo e continua sendo; não se inventam POIs para um save antigo.
 - **Escrita:** a mesma da rodada 10: temporário, `force`, reler e validar, movimento atômico.
 - **Testes:** `ProceduralWorldTest.saveDoMundoProcedural…` e `saveV1DaRodada10ESaveV2NaoSeConfundem`, mais toda a
   `SaveGameTest` da rodada 10.
+
+## Rodada 12 — versões do gerador e descobertas
+
+- **A versão fica gravada em dois lugares:** no `mundo.json` (`versaoGerador`) e no save v2 (`mundo.versaoGerador`).
+  - Quem abre gera a região pela versão do MUNDO (`ProceduralScene.create(assets, semente, versão)`). O save confere
+    contra essa região, então um mundo v1 continua abrindo, para sempre, num jogo que cria v2.
+- **Adoção de saves antigos por semente** (rodada 11): lê a versão gravada no próprio save (`SaveGame.peekGenerator`, só
+  leitura) e cria o mundo do catálogo nela.
+- **Descobertas** (`QuestSystem.discover`):
+  - Ficam em `progresso.descobertas`, a lista de ids estáveis (`desc.r0.ruina.0`).
+  - O campo só é escrito quando há alguma. Um save sem descoberta sai byte a byte igual ao de antes, e um save sem o
+    campo abre igual.
+  - Cada descoberta conta uma vez e paga uma vez.
+  - Pertencem à aventura (personagem × mundo): outro personagem no mesmo mundo descobre por conta própria.
+- **Sem v3:** nada disso mudou a versão do formato do save.
+- **Testes:** `GeneratorVersionTest`, `DiscoveryTest`, `RegionGoldenTest` (v1 e v2) e a matriz `tools/qa/saves_antigos.sh`.
 
 ## Mais regiões (planejado)
 
