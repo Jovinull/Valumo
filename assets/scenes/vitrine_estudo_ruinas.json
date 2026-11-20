@@ -1,0 +1,107 @@
+{
+ "_doc": "Laboratório de conteúdo, estudo de NPCs e ruínas — vitrine de RUÍNAS (gerada por tools/conteudo/vitrine_estudo.py; NÃO substitui nenhuma cena): a ruína de casa aprovada como régua, a abóbada soterrada e o sítio abandonado no relevo medido, com o herói.",
+ "hero": [
+  0.6,
+  2.4,
+  190
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4"
+   ],
+   "count": 50,
+   "ring": [
+    19.5,
+    24
+   ],
+   "seed": 41,
+   "minDist": 2.8
+  }
+ ],
+ "creatures": [],
+ "clouds": [
+  [
+   -18,
+   13,
+   -20
+  ],
+  [
+   6,
+   15,
+   -26
+  ],
+  [
+   22,
+   12,
+   -18
+  ]
+ ],
+ "props": [
+  {
+   "n": "ruin_house",
+   "x": -10.0,
+   "z": 1.0,
+   "r": 30,
+   "dy": 0.25
+  },
+  {
+   "n": "ruin_vault",
+   "x": -4.0,
+   "z": -9.5,
+   "r": 0,
+   "dy": 0.125
+  },
+  {
+   "n": "ruin_farmstead",
+   "x": 6.0,
+   "z": -4.5,
+   "r": 345,
+   "dy": 0.125
+  },
+  {
+   "n": "tree_oak",
+   "x": -9.5,
+   "z": -12.5,
+   "r": 0
+  },
+  {
+   "n": "rock_l",
+   "x": 5.2,
+   "z": -11.6,
+   "r": 0
+  },
+  {
+   "n": "bush",
+   "x": -4.6,
+   "z": -3.4,
+   "r": 0
+  },
+  {
+   "n": "grass_tall",
+   "x": -3.2,
+   "z": 1.6,
+   "r": 0
+  },
+  {
+   "n": "fern",
+   "x": 11.6,
+   "z": 1.0,
+   "r": 0
+  },
+  {
+   "n": "rock_s",
+   "x": -13.8,
+   "z": -5.0,
+   "r": 0
+  }
+ ],
+ "npcs": []
+}

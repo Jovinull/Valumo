@@ -1,0 +1,144 @@
+{
+ "_doc": "Laboratório de conteúdo, estudo de NPCs e ruínas — vitrine de NPCS DE OFÍCIO (gerada por tools/conteudo/vitrine_estudo.py; NÃO substitui nenhuma cena): Brásia na oficina, Quelmo atrás do balcão da barraca, Arvel na porta da cabana do caçador, ao lado de Índira e Bramor (aprovados).",
+ "hero": [
+  1.2,
+  3.2,
+  190
+ ],
+ "scatter": [
+  {
+   "props": [
+    "tree_oak",
+    "tree_oak3",
+    "tree_oak",
+    "tree_oak2",
+    "tree_pine",
+    "tree_pine",
+    "tree_birch",
+    "tree_oak4"
+   ],
+   "count": 50,
+   "ring": [
+    19.5,
+    24
+   ],
+   "seed": 43,
+   "minDist": 2.8
+  }
+ ],
+ "creatures": [],
+ "clouds": [
+  [
+   -18,
+   13,
+   -20
+  ],
+  [
+   6,
+   15,
+   -26
+  ],
+  [
+   22,
+   12,
+   -18
+  ]
+ ],
+ "props": [
+  {
+   "n": "workshop_forge",
+   "x": -7.5,
+   "z": -7.5,
+   "r": 0,
+   "dy": 0.125
+  },
+  {
+   "n": "market_stall",
+   "x": 0.5,
+   "z": -4.0,
+   "r": 0
+  },
+  {
+   "n": "cabin_hunter",
+   "x": 8.5,
+   "z": -7.0,
+   "r": 340,
+   "dy": 0.125
+  },
+  {
+   "n": "hut_herbalist",
+   "x": -11.0,
+   "z": 2.0,
+   "r": 40,
+   "dy": 0.375
+  },
+  {
+   "n": "tower_watch",
+   "x": 13.0,
+   "z": 0.5,
+   "r": 300,
+   "dy": 0.375
+  },
+  {
+   "n": "barrel",
+   "x": -3.2,
+   "z": -3.6,
+   "r": 0
+  },
+  {
+   "n": "crate",
+   "x": 2.6,
+   "z": -3.0,
+   "r": 20
+  },
+  {
+   "n": "lantern_post",
+   "x": -1.6,
+   "z": -1.2,
+   "r": 0
+  },
+  {
+   "n": "bush",
+   "x": 5.0,
+   "z": -1.4,
+   "r": 0
+  }
+ ],
+ "npcs": [
+  {
+   "rig": "characters/npc/brasia",
+   "x": -5.56,
+   "z": -7.06,
+   "r": 0,
+   "clip": "idle"
+  },
+  {
+   "rig": "characters/npc/quelmo",
+   "x": 0.531,
+   "z": -4.219,
+   "r": 0,
+   "clip": "idle"
+  },
+  {
+   "rig": "characters/npc/arvel",
+   "x": 8.558,
+   "z": -4.785,
+   "r": 340,
+   "clip": "idle"
+  },
+  {
+   "rig": "characters/npc/indira",
+   "x": -9.018,
+   "z": 3.681,
+   "r": 40,
+   "clip": "idle"
+  },
+  {
+   "rig": "characters/npc/bramor",
+   "x": 11.603,
+   "z": 1.956,
+   "r": 300,
+   "clip": "idle"
+  }
+ ]
+}
