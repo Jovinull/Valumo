@@ -42,7 +42,14 @@ public final class RegionProfile {
     public record Item(String prop, float x, float z, float yawDeg) { }
 
     /** Conjunto de ofício: âncora, itens e a caixa que envolve tudo (referencial da âncora). */
-    public record SetDef(String id, String trade, String anchor, List<Item> items, float x0, float z0, float x1, float z1) { }
+    public record SetDef(String id, String trade, String anchor, List<Item> items, float x0, float z0, float x1, float z1, Spot worker) { }
+
+    /**
+     * Rodada 12.2 — onde o trabalhador do conjunto fica, no referencial da âncora (x, z, altura do ponto acima do chão, rumo
+     * em relação ao conjunto) e de onde veio: o spawn "npc" da âncora ou a vaga recomendada de um item (a do feirante, ao lado
+     * da barraca). Ausente no perfil = o spawn da âncora, como na 12.1.
+     */
+    public record Spot(float x, float z, float y, float yawDeg, String origin) { }
 
     private final Map<String, Asset> assets;
     private final Map<String, SetDef> sets;
@@ -100,8 +107,13 @@ public final class RegionProfile {
                 items.add(new Item(it.get(0).getAsString(), it.get(1).getAsFloat(), it.get(2).getAsFloat(), it.get(3).getAsFloat()));
             }
             JsonArray b = s.getAsJsonArray("caixa");
+            Spot w = null;
+            if (s.has("trabalhador")) {
+                JsonArray t = s.getAsJsonArray("trabalhador");
+                w = new Spot(t.get(0).getAsFloat(), t.get(1).getAsFloat(), t.get(2).getAsFloat(), t.get(3).getAsFloat(), t.get(4).getAsString());
+            }
             sets.put(e.getKey(), new SetDef(e.getKey(), s.get("oficio").getAsString(), s.get("ancora").getAsString(), List.copyOf(items),
-                    b.get(0).getAsFloat(), b.get(1).getAsFloat(), b.get(2).getAsFloat(), b.get(3).getAsFloat()));
+                    b.get(0).getAsFloat(), b.get(1).getAsFloat(), b.get(2).getAsFloat(), b.get(3).getAsFloat(), w));
         }
         RegionProfile r = new RegionProfile(assets, sets);
         if (o.has("oficios"))                                              // rodada 12.1 (opcional: perfil sem moradores de ofício)

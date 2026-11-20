@@ -90,7 +90,8 @@ public final class RegionLayout {
      * Rodada 12.1 (v2, P76): quem trabalha num conjunto — o morador, o ofício, o conjunto e o spawn da âncora onde ele fica.
      * O mesmo morador também está em {@link #npcs} (posição e rumo).
      */
-    public record Worker(String npc, String trade, String set, String spawn) { }
+    /** Rodada 12.1; 12.2: {@code y} = altura do ponto acima do chão (a laje da oficina), {@code spawn} = a origem do ponto. */
+    public record Worker(String npc, String trade, String set, String spawn, float y) { }
     public final List<Worker> workers = new ArrayList<>();
     public final List<DiscoverySpot> discoverySpots = new ArrayList<>();
 

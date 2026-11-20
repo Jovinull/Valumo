@@ -414,20 +414,27 @@ final class RegionV2 {
         // NPC. Um morador por conjunto, um conjunto por morador, um spawn por morador; sem ninguém para o ofício, o spawn
         // fica vazio (o conjunto se lê pelos objetos) até o personagem novo entrar no perfil (moradores-dos-oficios.md).
         // RNG próprio: pôr ou tirar um morador não move construção, POI nem missão. Depois, os outros nas vagas da praça
+        // Rodada 12.2: o ofício pode ser de um morador SÓ de ofício (Brásia, Quelmo, Arvel, Índira: fora de RESIDENTS, a lista
+        // dos moradores comuns, que a v1 também usa e não pode mudar); quem já está na região não repete (um morador por
+        // conjunto; com várias vilas no futuro, o perfil lista mais de um por ofício). O ponto vem do perfil: o spawn da
+        // âncora ou a vaga recomendada de um item (o feirante ao lado da barraca), com a altura e o rumo dele.
         List<String> pool2 = new ArrayList<>(List.of(RegionGenerator.RESIDENTS));
         if (L.pond == null) pool2.remove("ondina");
+        List<String> residents = List.of(RegionGenerator.RESIDENTS);
         Rng wr = Rng.of(L.seed, "v2", L.regionId, "oficios", a);
         for (RegionLayout.Building b : L.buildings) {
             if (b.set() == null) continue;
             RegionProfile.SetDef sd = P.set(b.set());
             List<String> who = new ArrayList<>(P.workers(sd.trade()));
-            who.retainAll(pool2);
+            who.removeIf(id -> residents.contains(id) ? !pool2.contains(id) : L.npcs.stream().anyMatch(n -> n.id().equals(id)));
             RegionProfile.Point sp = P.asset(sd.anchor()).spawns().stream().filter(p -> "npc".equals(p.kind())).findFirst().orElse(null);
-            if (who.isEmpty() || sp == null) continue;
+            RegionProfile.Spot spot = sd.worker() != null ? sd.worker()
+                    : sp == null ? null : new RegionProfile.Spot(sp.x(), sp.z(), 0f, 0f, "ancora:" + sp.id());
+            if (who.isEmpty() || spot == null) continue;
             String id = who.get(wr.below(who.size()));
-            float[] w = world(b.x(), b.z(), b.rotDeg(), sp.x(), sp.z());
-            L.npcs.add(new RegionLayout.Npc(id, w[0], w[1], b.rotDeg()));       // de frente para a praça, como o conjunto
-            L.workers.add(new RegionLayout.Worker(id, sd.trade(), b.set(), sp.id()));
+            float[] w = world(b.x(), b.z(), b.rotDeg(), spot.x(), spot.z());
+            L.npcs.add(new RegionLayout.Npc(id, w[0], w[1], b.rotDeg() + spot.yawDeg()));   // de frente para a praça (+ o rumo da vaga)
+            L.workers.add(new RegionLayout.Worker(id, sd.trade(), b.set(), spot.origin(), spot.y()));
             pool2.remove(id);
         }
         int count = 2 + sr.below(2);
