@@ -36,9 +36,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompositeCollisionTest {
     static final Path A = Path.of("assets");
     static final float[] YAWS = {0f, 90f, 180f, 270f, 37f};
-    static final String[] COMPOSITE = {"workshop_forge", "ruin_tower", "ruin_house", "market_stall"};
+    static final String[] COMPOSITE = {"workshop_forge", "ruin_tower", "ruin_house", "market_stall", "ruin_vault", "ruin_farmstead"};
     /** Os que se entram (a torre arruinada não: ver {@link #aTorreArruinadaTemAPortaEstreitaDemaisENaoELiberada}). */
-    static final String[] ENTERABLE = {"workshop_forge", "ruin_house", "market_stall", "ruin_tower"};
+    static final String[] ENTERABLE = {"workshop_forge", "ruin_house", "market_stall", "ruin_tower", "ruin_vault", "ruin_farmstead"};
     static final float CELL = 0.125f, NPC = 0.3f;
     static final float OX = 6.0f, OZ = -4.0f;                            // longe da origem: a translação também conta
 
@@ -290,6 +290,25 @@ class CompositeCollisionTest {
                 if (name.equals("ruin_house")) {
                     Vector3f under = m.transformPosition(new Vector3f(0.35f, 1.3f, 0f)), over = m.transformPosition(new Vector3f(0.35f, 6f, 0f));
                     assertTrue(c.rayClear(under, over, 0f) < 0.999f, at + ": a copa da árvore de dentro não segura a câmera");
+                }
+                // rodada 12.2 — a abóbada é coberta: sob a cobertura medida pelo PR #8 (medidas.cobertura_u) o teto segura a
+                // câmera (ela encurta o braço em vez de entrar no teto), e o teto não é corpo (dá para entrar e andar); no rasgo
+                // de luz não há teto: a câmera passa
+                if (name.equals("ruin_vault")) {
+                    JsonArray cov = rec.getAsJsonObject("medidas").getAsJsonArray("cobertura_u");
+                    assertTrue(cov.size() >= 1, at + ": sem cobertura medida");
+                    for (JsonElement e : cov) {
+                        JsonArray b = e.getAsJsonArray();
+                        float cx = (b.get(0).getAsFloat() + b.get(2).getAsFloat()) / 2, cz = (b.get(1).getAsFloat() + b.get(3).getAsFloat()) / 2;
+                        Vector3f under = m.transformPosition(new Vector3f(cx, 1.45f, cz)), over = m.transformPosition(new Vector3f(cx, 6f, cz));
+                        assertTrue(c.rayClear(under, over, 0f) < 0.999f, at + ": o teto não segura a câmera sobre a cobertura " + b);
+                    }
+                    JsonArray slit = rec.getAsJsonObject("pontos").getAsJsonArray("interacao").asList().stream()
+                            .map(JsonElement::getAsJsonObject).filter(o -> o.get("id").getAsString().equals("rasgo_de_luz")).findFirst().orElseThrow()
+                            .getAsJsonArray("pos_u");
+                    Vector3f s0 = m.transformPosition(new Vector3f(slit.get(0).getAsFloat(), 1.45f, slit.get(2).getAsFloat()));
+                    Vector3f s1 = m.transformPosition(new Vector3f(slit.get(0).getAsFloat(), 6f, slit.get(2).getAsFloat()));
+                    assertTrue(c.rayClear(s0, s1, 0f) > 0.999f, at + ": o rasgo de luz deveria ficar aberto");
                 }
                 assertNotNull(m);
             }
