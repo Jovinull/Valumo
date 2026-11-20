@@ -30,6 +30,8 @@
 | [0026](0026-save-v2-mundo-procedural.md) | Save v2 só para o mundo procedural: semente, gerador, versão e vínculos resolvidos conferidos na volta; v1 intacto, sem migração (rodada 11) |
 | [0027](0027-porta-de-entrada-e-sessoes.md) | Porta de entrada: menu principal com a vila fixa como cenário (estado MENU, câmera de tomadas validadas), sessões trocáveis em tempo de execução e transições em passos com rótulo real (rodada 11.1) |
 | [0028](0028-personagens-mundos-e-aventuras.md) | Personagens e mundos com id estável; aventura = pasta do par personagem × mundo nos formatos v1/v2 (sem v3); saves e aparências antigos trazidos por cópia validada e registrada (rodada 11.1) |
+| [0029](0029-versoes-do-gerador.md) | **Proposta:** versões do gerador convivendo — a v1 congelada (referência de 8 sementes) para os mundos v1, a versão nova só para mundos novos; despacho por versão com peças compartilhadas; versão desconhecida recusada sem tocar no arquivo (integração dos lotes 1 e 2) |
+| [0030](0030-catalogo-de-props-sob-demanda.md) | Catálogo de props sob demanda: o `props.json` inteiro é registrado, mas cada malha só é feita quando uma cena a pede (integração dos lotes 1 e 2) |
 
 Só entram aqui decisões que mudam o rumo do projeto ou que alguém poderia querer desfazer. Escolhas
 locais ficam em comentários no código ou nos guias de arte.
