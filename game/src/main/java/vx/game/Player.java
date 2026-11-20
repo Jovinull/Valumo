@@ -194,7 +194,7 @@ public final class Player {
         x = p[0];
         z = p[1];
         // contato com o chão (rodada 09.2: relevo ou topo de prop pisável; salto com coyote e buffer)
-        float g = c.floor(x, z, y, RADIUS);
+        float g = c.support(x, z, y, RADIUS);                              // rodada 12.1: o apoio pelo corpo ao descer (Collision.support)
         lastFloor = g;
         landT += h;
         if (jumpQueued >= 0f) {
@@ -229,6 +229,23 @@ public final class Player {
                 vy = 0;
                 grounded = true;
                 jumping = false;
+            }
+        }
+        // rodada 12.1 — DESCENDO ao lado de um sólido cujo topo ficou acima dos pés, sem o centro sobre ele (com o centro em
+        // cima, o pouso acima já o pôs lá), o sólido é parede no mesmo passo. O "degrau no ar" (o corpo não empurra a até um
+        // degrau dos pés: é o que deixa alcançar topos até a altura do salto + 0,30) vale subindo; descendo, ele deixava o
+        // corpo escorregar POR DENTRO da borda da laje ou do muro e só ser empurrado lá embaixo — o "buga e vai para baixo"
+        // do teste físico (CompositeCollisionTest.quemPulaEmCimaDeUmSolidoBaixoNuncaFicaDentroDele).
+        if (!grounded && vy < 0f) {
+            float[] q = {x, z};
+            float[] side = c.resolve(q, RADIUS, y, HEIGHT, 0f);
+            if (side[0] != 0 || side[1] != 0) {
+                float pl = (float) Math.hypot(side[0], side[1]);
+                float nx = side[0] / pl, nz = side[1] / pl, vn = vx * nx + vz * nz;
+                if (vn < 0) { vx -= nx * vn; vz -= nz * vn; }
+                x = q[0];
+                z = q[1];
+                blocked = true;
             }
         }
         // rumo segue o deslocamento (giro com velocidade angular limitada), salvo quando o combate controla o rumo

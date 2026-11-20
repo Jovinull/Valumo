@@ -246,6 +246,27 @@ public final class Collision {
     }
 
     /**
+     * Rodada 12.1 — o chão de um CORPO (círculo de raio {@code rad}) com os pés em {@code y}: o de {@link #floor} (o topo sob
+     * o CENTRO, até um degrau acima dos pés: é assim que se sobe degrau, como sempre) ou um topo NA ALTURA DOS PÉS OU ABAIXO
+     * que o CÍRCULO ainda toca (mais de 1 mm). É o apoio do herói: quem sai andando da borda de uma laje só cai quando o
+     * corpo já saiu dela, e quem desce de um salto rente a uma borda pousa nela. Com o apoio só pelo centro ele descia
+     * 0,375 u com o corpo ainda 0,26 u sobre a laje e era jogado de lado no passo seguinte (o "buga e vai para baixo" do
+     * teste físico). Subir continua pelo centro: o trajeto por portas e degraus não muda. A conferência de alcance continua
+     * com {@link #floor}: o herói alcança pelo menos o que ela conta, e as regiões não mudam.
+     */
+    public float support(float x, float z, float y, float rad) {
+        float g = floor(x, z, y, rad);
+        int k = near(x, z, rad);
+        for (int n = 0; n < k; n++) {
+            Shape s = shapes.get(cand[n]);
+            if (!supports(s) || s.y1 <= g || s.y1 > y + 0.01f) continue;
+            float[] d = s.push(x, z, rad);
+            if (d != null && d[0] * d[0] + d[1] * d[1] > 1e-6f) g = s.y1;
+        }
+        return g;
+    }
+
+    /**
      * Rodada 12.1 — o topo desta forma segura quem está acima dela? Todo sólido (corpo) segura, menos pessoa e objeto de
      * missão; e o que o perfil marca como pisável. Antes só o "pisavel" segurava: com o topo de um corpo a até um degrau dos
      * pés o corpo deixa de empurrar ({@link #resolve}), e quem pulava em cima de uma cerca ou de um muro baixo caía DENTRO
