@@ -191,3 +191,62 @@ v1 (±16,5 u jogáveis):
 | árvores | 8 modelos aprovados | + bifurcada, álamo em fileira, seca e retorcida |
 | comparações | `output/visual-review/round-12/comparacoes/` | |
 
+
+## 10. Rodada 12.1 — acabamento da v2 (ainda não publicada)
+
+A v2 **não está publicada**. Por isso esta rodada mudou o resultado dela e refez `regioes-v2.txt` uma vez, no fim, com
+o motivo no commit. Publicada, qualquer mudança assim vira versão nova (ADR 0029).
+
+**A v1 não mudou:**
+
+- **300 sementes:** saem iguais às do binário da rodada 12, conferidas duas vezes: região, relevo, caminhos, encontros,
+  POIs, ids e vínculos.
+- **Referência:** `regioes-v1.txt` está intocado.
+- **Golden:** a única mudança foi no teste, porque o salto alterou o `combate_e.json`, que a impressão digital
+  embutia. Agora ela usa a cópia congelada `combate-da-referencia.json`.
+
+| Peça | Rodada 12 | 12.1 | Por quê |
+|---|---|---|---|
+| ruína | sempre `ruin_house` | **casa ou torre** (`RuinKind`, rótulo `"ruina-tipo"`, torre 40%): 200 sementes → casa 119, torre 81 | P74 resolvido + variedade pedida ("escolher entre POIs compatíveis") |
+| torre | não liberada (vão de 0,5 u) | **liberada**: escada recuada, arco de 8 voxels; POI `poi.r0.torre.0`, mirante na muralha baixa | P74 ([colisão composta](colisao-composta.md) §3) |
+| descobertas | uma (a lareira, 5 moedas) | **três tipos** (casa, torre, árvore), achado visível, "Lugar novo" por tipo | P77 + pergunta do proprietário ([descobertas](descobertas.md)) |
+| árvore retorcida | decoração (~40%) | **marco natural**: POI `poi.r0.arvore.0` e descoberta própria; 200 sementes → 77 | P77 (o tipo C só onde ela existe) |
+| vila de caminho | uma (3 construções, praça grande) | **pequena ou média** (rótulo `"porte"`, 50%) | P81 (tabela abaixo) |
+| moradores | Bramor "na torre" | **pelo ofício do conjunto** (`oficios` no perfil, rótulo `"oficios"`) | P76 ([moradores dos ofícios](moradores-dos-oficios.md)) |
+| relevo dos patamares | quantizado com ondulação | **plano por projeto** (`TerrainField.flat`, só v2): sem a ondulação de ruído no patamar, nos patamares das ruínas e na clareira do posto | o chão da torre de vigia e do quadro de avisos piscava (teste físico, semente 1024): o chão debaixo da construção saía um degrau acima do centro dela, e a primeira fiada de pedra ficava no plano da grama |
+| copa da ruína | a 1,4 u, colada na câmera | tronco mais alto, copa a ~2,2 u, fosca (presa à ruína) | P82: câmera colada 9/24 → 0/24 |
+| piso da laje | 0,30 u (pisável) sobre 0,375 desenhado | **exato** (0,375) com degraus de pedra nas entradas | P75: o herói afundava e subia |
+| colisão | lista inteira por consulta | índice espacial (mesmo resultado) | 340–718 formas por região v2 com os topos exatos |
+
+**Vila de caminho, pequena × média** (sementes 1–200, binário final; `p81` no pacote da rodada):
+
+| Porte | Regiões | Construções além da estalagem (média) | Conjuntos (média) | Praça → construção (média) | Patamar | Tentativas extras | Formas (média / máx.) | Criar (média) |
+|---|---|---|---|---|---|---|---|---|
+| caminho, pequena | 54 | 2,09 (2–3; 49 com 2) | 1,76 | 7,1 u | 10,4 u | 5 | 547 / 720 | 114 ms |
+| caminho, média | 54 | 3,07 (2–4; 46 com 3, 6 com 4) | 2,35 | 7,8 u | 11,8 u | 21 | 511 / 721 | 131 ms |
+| rural | 92 | 3,04 (2–4) | 1,28 | 7,4 u | 11,2 u | 9 | 379 / 662 | 110 ms |
+
+- **O que a média é:**
+  - patamar 11,8 u (não "a pequena ampliada");
+  - praça 3,4 u (a mesma ordem da pequena: nada de praça enorme com três casas);
+  - anel de vagas mais largo;
+  - uma construção desejada a mais;
+  - folga até 3,2 u entre vizinhas;
+  - segunda passada com piso 3.
+- **Tentativas:** nenhuma semente recusada. Das 35 tentativas extras, 15 foram poste da trilha em desnível e 13 foram
+  falta de lugar para a ruína (todas resolvidas na tentativa seguinte).
+- **Tempo:** criar a região leva cerca de 0,1 s, medido com o computador ocupado gravando vídeo; o desempenho limpo
+  está no pacote.
+
+**Descobertas e moradores na conferência:**
+
+- `descoberta:<id>` é exigido para os três tipos: o mirante a 1 u de altura, com o alcance do salto.
+- `falar:<id>` é exigido para o morador do ofício.
+
+**Testes novos ou refeitos:**
+
+- `GeneratorV2Test`: casa ou torre; a árvore ⇔ a descoberta dela; porte da vila; morador do ofício sem bloquear; orçamento
+  de formas 900.
+- `DiscoveryTest`: os três tipos, o pote cheio/vazio, o mirante, o diário e o save.
+- `CompositeCollisionTest`: a torre, o piso exato, a câmera ao lado da árvore.
+- `CollisionIndexTest`, `MobilityTest` e `RegionGoldenTest`: a v1 com o combate congelado; a v2 refeita.

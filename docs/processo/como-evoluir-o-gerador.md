@@ -1,7 +1,8 @@
 # Como evoluir o gerador sem quebrar os mundos de ninguém
 
-Guia da rodada 12. Os contratos estão em [ADR 0029](../decisions/0029-versoes-do-gerador.md),
-[colisão composta](../architecture/colisao-composta.md) e [mundo procedural](../architecture/mundo-procedural.md) §9.
+Guia da rodada 12, revisto na 12.1. Os contratos estão em [ADR 0029](../decisions/0029-versoes-do-gerador.md),
+[colisão composta](../architecture/colisao-composta.md), [mundo procedural](../architecture/mundo-procedural.md) §9–10,
+[descobertas](../architecture/descobertas.md) e [moradores dos ofícios](../architecture/moradores-dos-oficios.md).
 Os assets da biblioteca seguem o [guia de conteúdo](como-integrar-conteudo-ao-mundo.md).
 
 ## 1. Acrescentar uma versão nova do gerador
@@ -88,20 +89,42 @@ Siga [colisão composta](../architecture/colisao-composta.md) §6:
 
 ## 9. Criar um POI
 
-1. Escolha o lugar (fora do assentamento, perto da trilha) e um patamar (`RegionLayout.pads`).
+1. Escolha o lugar (fora do assentamento, perto da trilha) e um patamar (`RegionLayout.pads`). O patamar entra em
+   `ProceduralField.flat` sozinho (relevo plano por projeto: sem ondulação debaixo da construção, senão o chão de pedra
+   pisca com a grama).
 2. Faça a trilha secundária escavada (`RegionLayout.Branch`, `carve = true`).
 3. Dê o id derivado de rótulo (`poi.r0.<tipo>.<n>`), nunca de coordenada.
 4. Ponha as entradas e os pontos como `checkpoints`.
 5. Acrescente o tipo novo ao contrato ([pontos de interesse](../architecture/contrato-pontos-de-interesse.md)).
+6. **Variedade sem trocar tudo:** POIs compatíveis (mesmo papel, mesmo patamar, mesma trilha) são sorteados entre si com um
+   rótulo próprio, como a ruína de casa ou torre (`RegionV2.RuinKind`, rótulo `"ruina-tipo"`). O rótulo novo não move o
+   que já era sorteado antes dele.
 
-## 10. Acrescentar uma descoberta
+## 10. Acrescentar uma descoberta (rodada 12.1: por TIPO de lugar)
 
-1. **Dados:** um tipo novo em `assets/scenes/descobertas_e.json` (nome, verbo da placa, texto, texto de "já visto",
-   moedas pequenas). O texto só diz o que o lugar mostra.
-2. **Gerador:** uma `Feature` de `kind` `"descoberta"` com id derivado do POI (`desc.r0.<tipo>.<n>`), na lista de
-   features do POI, mais um `checkpoint` `descoberta:…`.
-3. **O que já existe:** `ProceduralScene` monta `jogo.descobertas`; `GameLogic.useDiscovery` dá o aviso, as moedas uma
-   vez, a frase e o salvamento seguinte; o diário lista.
+Leia [descobertas](../architecture/descobertas.md) antes: a descoberta é de um **tipo** de lugar ("Lugar novo" na primeira
+vez da aventura). O **achado** é o objeto de cada lugar, uma vez por lugar.
+
+1. **Dados:** um tipo novo em `assets/scenes/descobertas_e.json`:
+   - `lugar`, `categoria`;
+   - `modo` (`usar` = E num objeto; `chegar` = ficar de pé no ponto);
+   - `verbo`, `achado` e `objeto` cheio/vazio (se houver);
+   - `moedas` (pequenas; 0 vale);
+   - `texto`/`jaVisto`/`diario`.
+
+   O texto só diz o que o lugar mostra. Fato da região só por chave (`{rumo_vila}`, `{lago}`…), preenchida pelo
+   `ProceduralScene.discovery`.
+2. **Gerador:**
+   - um `RegionLayout.DiscoverySpot` (tipo, ponto, altura, rumo) e uma `Feature` `"descoberta"` com id derivado do POI
+     (`desc.r0.<tipo>.<n>`);
+   - um `checkpoint` `descoberta:…` (com altura: o mirante se alcança com o salto);
+   - o ponto vem do catálogo (`pontos.interacao` com `y`), nunca de coordenada escrita no gerador.
+3. **Objeto:** se o achado se vê, um asset com variante de estado (como `pote_achado` / `__estado-vazio`).
+   `Game.drawDiscoveryObjects` o apoia no chão de colisão do ponto.
+4. **O que já existe:**
+   - `GameLogic.useDiscovery` dá o aviso ("Lugar novo" ou só o achado), as moedas uma vez e o salvamento seguinte;
+   - `knownPlaces` alimenta o diário ("Lugares");
+   - o save usa o campo opcional de sempre (sem v3).
 
 ## 11. Validar a persistência
 
@@ -122,3 +145,22 @@ done
 ```
 
 Ou de uma vez: `tools/review12.sh comparacoes`.
+
+## 13. Pôr um morador num conjunto de ofício
+
+O guia completo, inclusive o contrato para quem desenha o personagem, está em
+[moradores dos ofícios](../architecture/moradores-dos-oficios.md).
+
+1. **Ofício no conjunto:** o conjunto tem `oficio` no catálogo e um spawn `npc` na âncora.
+2. **Ofício no morador:** em `assets/scenes/habitantes_e.json → <id>.oficio`. Nunca `if nome == …` no gerador.
+3. **Perfil:** `python3 tools/conteudo/perfil_regiao_v2.py` regera `oficios`; revise o diff.
+4. **Testes:** `GeneratorV2Test.oMoradorDoOficioFicaNoConjuntoSemBloquearNada` e a conferência de alcance (`falar:<id>`).
+5. **Versão:** com a v2 publicada, um morador novo no perfil muda regiões, então vira versão nova.
+
+## 14. Topos, degraus e piso (rodada 12.1)
+
+- **Colisão exata:** o topo de uma forma é o topo dos voxels. Piso elevado se sobe por degraus reais (≤ 0,30 u, de
+  preferência 0,125: `conteudo_lib.stone_steps`), nunca por um piso de colisão mais baixo que o desenho.
+- **Suporte:** todo sólido segura quem está em cima (`Collision.supports`); só pessoa e objeto de missão não.
+- **Colocação:** o herói nasce na superfície livre mais baixa ao alcance do salto (`Collision.standAt`). Ponto de partida
+  num telhado é defeito do gerador.
