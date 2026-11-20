@@ -12,12 +12,14 @@
 #   testes        MundoNpcTest, ConteudoMundoTest, interpenetração (NpcClipProbe) e caminhabilidade
 #   custo         malha real (MeshCost), faces dos NPCs e bench das duas vitrines (3 × 300 quadros, 1080p)
 #   determinismo  dois processos, byte a byte (env_e + conteudo_e + npcs_mundo_e)
+#   fechamento    vaga do feirante (antiga × laterais, 0/90/180/270/37°) e vídeos de revisão final (transições, câmera
+#                 de jogo), em <destino>/fechamento/
 # Rode build_assets antes (o Gradle faz sozinho em test/installDist). Saída fora do git (output/).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 dest="${1:-output/visual-review/world-content-lab/estudo-npcs-e-ruinas}"
 shift || true
-parts="${*:-npcs expressoes videos-npcs ruinas vitrines videos-ruinas testes custo determinismo}"
+parts="${*:-npcs expressoes videos-npcs ruinas vitrines videos-ruinas testes custo determinismo fechamento}"
 export JAVA_HOME="${JAVA_HOME:-$HOME/.sdkman/candidates/java/current}"
 PY=.venv/bin/python
 NPCS="brasia quelmo arvel"
@@ -162,5 +164,10 @@ if has determinismo; then
   t="$(mktemp -d output/tmp/determinismo.XXXXXX)"
   $PY tools/conteudo/determinismo.py "$t" > "$dest/testes/determinismo.txt" || true
   rm -rf "$t"
+fi
+if has fechamento; then
+  echo "== fechamento"
+  $PY tools/conteudo/vaga_feirante.py "$dest/fechamento/quelmo-vaga" >/dev/null
+  $PY tools/conteudo/videos_revisao.py "$dest/fechamento/videos-npcs"
 fi
 echo "pacote em $dest"
