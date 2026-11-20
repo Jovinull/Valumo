@@ -146,7 +146,47 @@ public final class Collision {
                 float cr = num(pr, "copa", 0.42f) * Math.min(w, d);
                 if (cr > 0) shapes.add(Shape.circle(p.name() + ":copa", c.x, c.z, cr, y0 + h * num(pr, "copaDe", 0.35f), y1, false, true));
             }
+            case "composta" -> addComposite(pr, p, m, yaw, cam);
             default -> throw new IllegalArgumentException("tipo de colisão desconhecido em " + p.name() + ": " + kind);
+        }
+    }
+
+    /**
+     * Rodada 12 — perfil {@code "composta"} (construção com interior: oficina, ruínas, barraca): várias caixas e círculos no
+     * espaço do MODELO (u, relativos à origem do modelo, não ao centro da caixa), cada um com {@code altura [a, b]} acima da
+     * base e as bandeiras {@code corpo} (padrão sim), {@code camera} (padrão = a do perfil) e {@code pisavel}. Cada forma
+     * passa pela matriz do posicionamento — translação, rumo e escala —, então gira com o prop. É a mesma {@link Shape} das
+     * outras: movimento, câmera, alcance e geração usam este mesmo contrato. Nomes {@code <prop>#<i>}.
+     */
+    private void addComposite(JsonObject pr, World.Placement p, Matrix4f m, float yaw, boolean camDefault) {
+        com.google.gson.JsonArray formas = pr.getAsJsonArray("formas");
+        if (formas == null || formas.isEmpty()) throw new IllegalArgumentException("perfil composto sem formas em " + p.name());
+        float scale = (float) Math.sqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
+        for (int i = 0; i < formas.size(); i++) {
+            JsonObject f = formas.get(i).getAsJsonObject();
+            boolean body = !f.has("corpo") || f.get("corpo").getAsBoolean();
+            boolean cam = f.has("camera") ? f.get("camera").getAsBoolean() : camDefault;
+            boolean stand = f.has("pisavel") && f.get("pisavel").getAsBoolean();
+            com.google.gson.JsonArray alt = f.getAsJsonArray("altura");
+            float a = alt.get(0).getAsFloat(), b = alt.get(1).getAsFloat();
+            String kind = f.get("tipo").getAsString(), name = p.name() + "#" + i;
+            Shape s;
+            switch (kind) {
+                case "caixa" -> {
+                    com.google.gson.JsonArray lo = f.getAsJsonArray("min"), hi = f.getAsJsonArray("max");
+                    float x0 = lo.get(0).getAsFloat(), z0 = lo.get(1).getAsFloat(), x1 = hi.get(0).getAsFloat(), z1 = hi.get(1).getAsFloat();
+                    Vector3f c = m.transformPosition(new Vector3f((x0 + x1) / 2, a, (z0 + z1) / 2));
+                    s = Shape.box(name, c.x, c.z, (x1 - x0) / 2 * scale, (z1 - z0) / 2 * scale, yaw, c.y, c.y + (b - a) * scale, body, cam);
+                }
+                case "circulo" -> {
+                    com.google.gson.JsonArray ce = f.getAsJsonArray("centro");
+                    Vector3f c = m.transformPosition(new Vector3f(ce.get(0).getAsFloat(), a, ce.get(1).getAsFloat()));
+                    s = Shape.circle(name, c.x, c.z, f.get("raio").getAsFloat() * scale, c.y, c.y + (b - a) * scale, body, cam);
+                }
+                default -> throw new IllegalArgumentException("forma desconhecida em " + p.name() + ": " + kind);
+            }
+            s.stand = stand;
+            shapes.add(s);
         }
     }
 
