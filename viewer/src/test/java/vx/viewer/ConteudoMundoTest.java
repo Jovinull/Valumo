@@ -119,7 +119,18 @@ class ConteudoMundoTest {
             assertTrue(a.getAsJsonArray("tags").size() >= 2, id + ": tags");
             assertTrue(a.has("colisao") && a.getAsJsonObject("colisao").has("tipo"), id + ": colisão");
             String st = a.get("estado").getAsString();
-            assertTrue(List.of("candidato", "recomendado", "rejeitado").contains(st), id + ": estado " + st);
+            assertTrue(List.of("aprovado", "rejeitado").contains(st), id + ": estado " + st);
+            JsonObject ap = a.getAsJsonObject("aprovacao");
+            String art = ap.get("artistica").getAsString(), integ = ap.get("integracao").getAsString();
+            assertTrue(List.of("aprovado", "aprovado_conceito", "rejeitado").contains(art), id + ": aprovação " + art);
+            assertTrue(List.of("liberado", "depende_colisao_composta", "aguardando_refinamento", "nao_distribuivel").contains(integ),
+                    id + ": integração " + integ);
+            assertEquals(integ.equals("liberado"), ap.get("distribuicao_procedural").getAsBoolean(), id + ": distribuição");
+            if (!integ.equals("liberado"))                // dependência nunca escondida
+                assertTrue(ap.getAsJsonArray("dependencias").size() > 0 || integ.equals("nao_distribuivel"), id + ": pendência sem dependência");
+            if (a.getAsJsonObject("colisao").has("formas"))  // forma composta ainda não existe no jogo: não pode estar liberado
+                assertNotEquals("liberado", integ, id + ": precisa de formas compostas e está liberado");
+            assertEquals(art.equals("rejeitado"), st.equals("rejeitado"), id + ": estado × aprovação");
             if (st.equals("rejeitado")) {
                 assertFalse(props.has(id), id + " rejeitado não pode ir para o props.json");
                 assertTrue(a.has("motivo_rejeicao") && !a.get("motivo_rejeicao").isJsonNull(), id + ": rejeitado sem motivo");
@@ -198,6 +209,39 @@ class ConteudoMundoTest {
             assertTrue(a.getAsJsonObject("custo").get("emissivo_pct").getAsFloat() <= 6f,
                     id + ": emissivo acima de 6% das faces (luz é ponto focal)");
         }
+    }
+
+    /**
+     * O vento afim da E (scene.vert) desloca SÓ o material folhagem, proporcional à altura acima da base do prop
+     * (0,022 × vento 0,8 × altura). Folhagem encostada em voxel rígido (musgo no telhado, hera na parede, folha de
+     * floreira) desliza sobre ele e abre fresta onde o mesher descartou a face do vizinho — reproduzido no laboratório
+     * (inclusive na casa aprovada). Em construções e POIs, acima de 1,7 u (deslocamento ≥ 1/4 de voxel de 1/8) nenhuma
+     * folhagem pode tocar sólido: vegetação presa é fosca; folhagem é o que balança solto.
+     */
+    @Test
+    void attachedFoliageDoesNotSlideOnRigidStructures() throws IOException {
+        int checked = 0;
+        int[][] nb = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+        for (JsonObject a : assets()) {
+            String cat = a.get("categoria").getAsString();
+            if (!cat.equals("construcao") && !cat.equals("poi")) continue;
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            int bad = 0, minY = (int) Math.ceil(1.7f / m.vs);
+            for (int x = 0; x < m.vox.sx; x++)
+                for (int y = 0; y < m.vox.sy; y++)
+                    for (int z = 0; z < m.vox.sz; z++) {
+                        int c = m.vox.get(x, y, z);
+                        if (c == 0 || (c >>> 24) - 1 != VoxModel.MAT_FOLIAGE || y + m.oy < minY) continue;
+                        for (int[] d : nb) {
+                            int n = m.at(x + m.ox + d[0], y + m.oy + d[1], z + m.oz + d[2]);
+                            if (n != 0 && (n >>> 24) - 1 != VoxModel.MAT_FOLIAGE) { bad++; break; }
+                        }
+                    }
+            assertEquals(0, bad, id + ": " + bad + " voxel(s) de folhagem presos a sólido acima de 1,7 u (deslizam com o vento)");
+            checked++;
+        }
+        assertTrue(checked >= 8, "construções/POIs conferidos: " + checked);
     }
 
     @Test
