@@ -1868,7 +1868,7 @@ public final class Game implements AutoCloseable {
         System.err.println("menu: " + msg);
     }
 
-    /**
+    /*
      * Criar/editar personagem: o criador aprovado (rodada 07.2) na mesma janela. Concluir grava o perfil (criar = id novo;
      * editar = o mesmo id, só a aparência e o nome); Cancelar (botão ou Esc) não grava nada.
      */

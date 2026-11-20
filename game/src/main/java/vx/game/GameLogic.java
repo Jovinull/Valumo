@@ -715,13 +715,13 @@ public final class GameLogic {
         resumeState = null;
     }
 
+    /** Há uma aventura em andamento que pode ser salva (é dela que o jogador sai)? */
+    public boolean inAdventure() { return started && quests != null && saveDir != null; }
+
     /**
      * Rodada 11.1 — há progresso que ainda não está no disco? A aventura começou, tem o que salvar, o save está ligado e o
      * progresso ou a posição mudaram desde o último salvamento (manual, automático dos marcos), o Continuar ou o começo.
      */
-    /** Há uma aventura em andamento que pode ser salva (é dela que o jogador sai)? */
-    public boolean inAdventure() { return started && quests != null && saveDir != null; }
-
     public boolean unsaved() {
         return started && quests != null && saveDir != null && !progressSnapshot().equals(savedSnapshot);
     }

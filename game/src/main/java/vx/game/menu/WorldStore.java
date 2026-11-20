@@ -47,9 +47,8 @@ public final class WorldStore {
     /**
      * Um mundo. {@code seed} só no procedural; {@code generatorVersion}: a versão com que foi criado (outra versão = o jogo
      * avisa e não abre os saves dele em silêncio).
-     */
-    /**
-     * {@code summary}: o resumo para o jogador, tirado dos FATOS da região gerada ({@code ProceduralScene.summary}) quando a
+     *
+     * <p>{@code summary}: o resumo para o jogador, tirado dos FATOS da região gerada ({@code ProceduralScene.summary}) quando a
      * prévia é feita; null enquanto não houver.
      */
     public record World(String id, String name, Kind kind, long seed, int generatorVersion, long createdAt, long usedAt,
