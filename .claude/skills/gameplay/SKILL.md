@@ -232,6 +232,10 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 - **Suporte** (`Collision.supports`): todo sólido segura quem está em cima, menos pessoa e objeto de missão
   (`Shape.person`). O defeito antigo: um corpo para de empurrar a um degrau dos pés, então quem pousava numa cerca
   afundava nela.
+- **Apoio do corpo** (`Collision.support`, só no `Player`): de pé num topo na altura dos pés ou abaixo enquanto o corpo
+  toca nele; subir é pelo centro. Descendo rente a um sólido mais alto que os pés, ele é parede no mesmo passo. Teste:
+  `CompositeCollisionTest.quemPulaEmCimaDeUmSolidoBaixoNuncaFicaDentroDele` (falha com a física anterior). A
+  conferência de alcance (`floor`) não muda: mexer nela muda regiões.
 - **Colocação** (`Collision.standAt`, `Player.place`): o herói vai para a superfície livre mais baixa ao alcance do
   salto. Começo, continuar e recomeço nunca põem o herói num telhado (o `place(99)` antigo punha).
 - **Índice espacial:** `floor`/`resolve`/`bodyAt` olham só as formas da vizinhança, com o mesmo resultado
