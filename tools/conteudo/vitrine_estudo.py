@@ -3,7 +3,8 @@
 
   vitrine_estudo_ruinas   a ruína de casa aprovada (régua), a abóbada soterrada e o sítio abandonado, no mesmo relevo
                           medido, com o herói; caminhabilidade até cada entrada e cada ponto de interação.
-  vitrine_estudo_npcs     um quarteirão de ofícios: oficina com forja (Brásia), barraca de feira (Quelmo), cabana do
+  vitrine_estudo_npcs     um quarteirão de ofícios: oficina com forja (Brásia), barraca de feira (Quelmo, na vaga
+                          lateral 'feirante_lateral' do catálogo, fechamento de 2026-11-20), cabana do
                           caçador (Arvel), ao lado da cabana da herbalista com Índira e da torre de vigia com Bramor
                           (aprovados, para comparar escala, cor e silhueta no mundo).
 
@@ -48,7 +49,7 @@ def main():
     ], [], cat, g, report, walk=walk)
     V.build_scene("vitrine_estudo_npcs", {
         "_doc": "Laboratório de conteúdo, estudo de NPCs e ruínas — vitrine de NPCS DE OFÍCIO (gerada por "
-                "tools/conteudo/vitrine_estudo.py; NÃO substitui nenhuma cena): Brásia na oficina, Quelmo atrás do balcão "
+                "tools/conteudo/vitrine_estudo.py; NÃO substitui nenhuma cena): Brásia na oficina, Quelmo na vaga lateral "
                 "da barraca, Arvel na porta da cabana do caçador, ao lado de Índira e Bramor (aprovados).",
         "hero": [1.2, 3.2, 190],
         "scatter": [{"props": V.BACK_TREES, "count": 50, "ring": [19.5, 24], "seed": 43, "minDist": 2.8}],
@@ -58,7 +59,6 @@ def main():
                           ("tower_watch", (12.5, 0.5), 300)]) + [
         ("barrel", -3.2, -3.6, 0), ("crate", 2.6, -3.0, 20), ("lantern_post", -1.6, -1.2, 0), ("bush", 5.0, -1.4, 0),
     ], [
-        ("characters/npc/quelmo", "market_stall", "feirante", "idle"),
         ("characters/npc/arvel", "cabin_hunter", "cacador", "idle"),
         ("characters/npc/indira", "hut_herbalist", "herbalista", "idle"),
         ("characters/npc/bramor", "tower_watch", "vigia", "idle"),
@@ -69,6 +69,13 @@ def main():
     px, pz = V.rot(FERREIRA_R12[0], FERREIRA_R12[1], forge["r"])
     doc["npcs"].insert(0, {"rig": "characters/npc/brasia", "x": round(forge["x"] + px, 3), "z": round(forge["z"] + pz, 3),
                            "r": forge["r"], "clip": "idle"})
+    stall = next(p for p in doc["props"] if p["n"] == "market_stall")     # Quelmo na vaga lateral do catálogo
+    vaga = next(q for q in cat["market_stall"]["pontos"]["vagas"] if q["id"] == "feirante_lateral")
+    qx, qz = V.rot(vaga["pos_u"][0], vaga["pos_u"][2], stall["r"])
+    doc["npcs"].insert(1, {"rig": "characters/npc/quelmo", "x": round(stall["x"] + qx, 3), "z": round(stall["z"] + qz, 3),
+                           "r": (stall["r"] + vaga["rumo"]) % 360, "clip": "idle"})
+    report.append(f"vitrine_estudo_npcs: characters/npc/quelmo na vaga 'feirante_lateral' da barraca → "
+                  f"({doc['npcs'][1]['x']}, {doc['npcs'][1]['z']})")
     report.append(f"vitrine_estudo_npcs: characters/npc/brasia no ponto da ferreira da rodada 12 → "
                   f"({doc['npcs'][0]['x']}, {doc['npcs'][0]['z']})")
     with open(path, "w") as f:

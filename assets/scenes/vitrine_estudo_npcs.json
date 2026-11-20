@@ -1,5 +1,5 @@
 {
- "_doc": "Laboratório de conteúdo, estudo de NPCs e ruínas — vitrine de NPCS DE OFÍCIO (gerada por tools/conteudo/vitrine_estudo.py; NÃO substitui nenhuma cena): Brásia na oficina, Quelmo atrás do balcão da barraca, Arvel na porta da cabana do caçador, ao lado de Índira e Bramor (aprovados).",
+ "_doc": "Laboratório de conteúdo, estudo de NPCs e ruínas — vitrine de NPCS DE OFÍCIO (gerada por tools/conteudo/vitrine_estudo.py; NÃO substitui nenhuma cena): Brásia na oficina, Quelmo na vaga lateral da barraca, Arvel na porta da cabana do caçador, ao lado de Índira e Bramor (aprovados).",
  "hero": [
   1.2,
   3.2,
@@ -114,9 +114,9 @@
   },
   {
    "rig": "characters/npc/quelmo",
-   "x": 0.531,
-   "z": -4.219,
-   "r": 0,
+   "x": 2.094,
+   "z": -3.719,
+   "r": 325,
    "clip": "idle"
   },
   {
