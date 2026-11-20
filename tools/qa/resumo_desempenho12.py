@@ -112,10 +112,10 @@ for cena in ["jogo_vila_e", "vitrine_conteudo_vila_a", "vitrine_conteudo_vila_b"
         runs = list(csv.DictReader(open(base + ".csv", encoding="utf-8")))
         frames = []
         if os.path.exists(base + ".quadros.csv"):
-            frames = sorted(float(l.split(",")[3]) for l in open(base + ".quadros.csv") if l.strip())
+            frames = sorted(float(l.split(",")[3]) for l in open(base + ".quadros.csv") if l.strip() and l[0].isalpha() and l[1] == ",")
         p99 = frames[min(len(frames) - 1, int(0.99 * len(frames)))] if frames else None
         txt = open(base + ".txt", encoding="utf-8", errors="replace").read() if os.path.exists(base + ".txt") else ""
-        g = find(r"GPU por passo \(ms/quadro\)\s+sombra ([\d.]+)\s+cena ([\d.]+)\s+bloom ([\d.]+)\s+composicao ([\d.]+)\s+\| soma ([\d.]+)", txt)
+        g = find(r"GPU por passo \(ms/quadro\)\s+sombra ([\d,.]+)\s+cena ([\d,.]+)\s+bloom ([\d,.]+)\s+composicao ([\d,.]+)\s+\| soma ([\d,.]+)", txt)
         r0 = runs[0]
         print(f"| `{cena}` | {k} | {fmt(med([float(r['mediana_ms']) for r in runs]))} | {fmt(med([float(r['p95_ms']) for r in runs]))} | {fmt(p99)} | "
               f"{fmt(g[0] if g else None)} | {fmt(g[1] if g else None)} | {fmt(g[4] if g else None)} | {r0['draws']} | {r0['tri_cena']} | "
