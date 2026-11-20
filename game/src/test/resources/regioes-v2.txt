@@ -1,6 +1,6 @@
 # Gerador v2 (valumo.regiao) — referência fixada na aprovação da composição. Não edite à mão.
 1024 d22f2b690bbb4e2572c0d05eb9243afd90bc80105c98f68ba6fe5bd190b3df58 tentativa=1 arranjo=0 props=150 pois=3
-2048 432e0ddbb725ac28d6764bb4965b2f1540d0dc9e0395249ca93974b3dd7123f3 tentativa=0 arranjo=0 props=168 pois=3
+2048 cdace6ef048d326972ea3f00cec4c1401cf2c7954035a0eb6b89ff983e25f304 tentativa=0 arranjo=0 props=168 pois=3
 4096 074072d0bae2af17fde093fbae658de1058193d5fb29e7e917442a7d9a568a37 tentativa=0 arranjo=0 props=162 pois=4
 77 96eee61e6241bb8108a95e6168e23a4cacfcd2b0870ce92b6086e57c8622f76d tentativa=0 arranjo=0 props=149 pois=3
 1 767699925dec465a44633c418531eb1f3115e714f0b1e937e8c108f77238881b tentativa=1 arranjo=0 props=151 pois=4
