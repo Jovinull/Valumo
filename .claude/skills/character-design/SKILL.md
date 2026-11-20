@@ -174,6 +174,25 @@ guarda só o modelo.
    copa por cima (`GameplayTest.everyResidentStandsOnFreeGroundWithRoomToTalk`); confira a conversa capturada
    (`tools/jogo/10-npcs-oficio.txt`) — passar no teste não garante que um poste fino não cubra o rosto.
 
+## NPC de ofício com acessórios e gesto próprio (provado com `tools/npcs_mundo_e.py`)
+
+1. **Chapéu, boina e coque são casca colada à cabeça** (`npcs_mundo_e.shell`: camadas de 6 vizinhos crescendo do
+   cabelo), em parte `hat` filha da `head`. Elipsoide solto flutua com faixa de ar
+   (`MundoNpcTest.hatSitsOnTheHeadWithoutAGap`).
+2. **Acessório fora do caminho dos membros:** braço pendurado ocupa x de 5 a 9 (voxels do esqueleto NPC); coxa gira
+   abaixo do quadril (y 14). Avental, bolso, bolsa de moedas e corda na FRENTE, dentro de |x| ≤ 4; bolsa grande nas
+   COSTAS, acima do quadril. Aba de chapéu do lado da mão que acena entra no aceno: caia a aba para o outro lado.
+3. **Meça a interpenetração nos clipes reais:** `tools/conteudo/npc_clip.sh NOVOS... -- APROVADOS...`
+   (`NpcClipProbe`, a cada 1/60 s de IDLE, WALK, RUN, EMOTE e cada gesto do perfil; profundidade em u e o instante).
+   Regra do `MundoNpcTest`: braço × tronco ≤ 1 voxel na escala do rig; os outros grupos ≤ o pior NPC aprovado.
+4. **Gesto de ofício** num perfil próprio (`assets/anim/npc_<papel>.json`) com o aceno IDÊNTICO ao `npc_vila`
+   (`emote`, poses e `carry` iguais, testado) e um `oficio` de 2 a 4 s (`"attack": "oficio"`). A testa fica fora do
+   alcance (~11,5 voxels de braço): gesto à frente do peito, na cintura ou apontando. Mão que sai do repouso em linha
+   reta corta a quina do tronco: ponha uma pose de passagem à frente. Valide `oficio`, `emote` e as sequências com
+   `WeaponCheck.validate` (inclusive `seq:walk:0.8,oficio,walk:0.8`: o andar muda o alcance).
+5. Pele avermelhada: a sombra pintada do queixo emenda na costeleta e lê como barba. Sombra mais leve
+   (`P(cor, ks=0.6)`) e costeleta curta; nunca pintura à mão.
+
 ## Rodada 06.1 — refinar NPCs sem virar recoloração
 
 1. Pergunta de aceite: **pintadas de preto, ainda se reconhecem?** Capture `set=trio`/`set=elenco` com

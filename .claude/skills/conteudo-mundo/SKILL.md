@@ -66,6 +66,18 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
 - A **caminhabilidade** (`walkability`: grade de 0,25 u, raio 0,3, degrau 0,30, água, perfis e formas compostas) tem de
   dar 100% dos alvos alcançáveis. Inalcançável é defeito do asset ou da composição, nunca da conferência.
 
+## Ruínas e lugares com interior (estudo pós-rodada 12)
+
+- **Sem degrau falso:** piso e soleira com topo ≤ 0,25 u (abaixo do degrau de 0,30 u: o pé não afunda); entulho com 1
+  voxel sobre o piso; peça baixa com topo plano e uma altura só (≤ 0,8 u, pisável); parede alta ≥ 1,25 u. A laje de
+  0,375 u e os topos de parede em degraus da `ruin_house` são o contraexemplo.
+- **Vão com folga:** corpo do herói = 0,6 u de diâmetro; boca, portão e porteira com ≥ 1,0 u; curral ou sala com
+  pelo menos 2,5 u por dentro (o curral de 1,9 u deixava o cocho inalcançável).
+- **Composição centrada:** a origem do prop é o centro da pegada (até 0,9 u): desloque a composição inteira, pontos
+  juntos (`conteudo_ruinas._shift`).
+- **Vitrine:** `tools/conteudo/vitrine_estudo.py` (cenas novas + caminhabilidade). Defeito de asset APROVADO já
+  conhecido vai para `PRE_EXISTENTES` com o motivo: relatado, nunca escondido, e não reprova o estudo.
+
 ## Validar
 
 - `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest` (e a suíte inteira antes de entregar). Os 10 testes:
