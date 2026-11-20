@@ -236,9 +236,16 @@ def hut_herbalist(telhado="palha", ervas=True):
         "spawns": [("herbalista", (3, 0, 20), "npc")],
         # rodada 12.2 (integração dos moradores): o spawn acima fica a 0,40 u da porta — a herbalista de pé ali bloquearia a
         # entrada. A vaga é 2 voxels para o lado (0,64 u da porta), de frente para a rua como a cabana; o spawn antigo fica
+        # rodada 12.3: a vaga ao lado da porta deixa a herbalista ATRÁS da placa do ofício do conjunto (0,8 u à frente dela,
+        # tabuleta na altura da cabeça): da rua e de lado ela some (capturas da rodada). A recomendada passa a ser a do varal
+        # de ervas (frente-direita, entre o varal e o cesto, virada 20° para a rua): inteira vista da rua e dos dois lados, a
+        # porta livre (2,45 u), a fala alcançável, 0,48 u de folga do corpo. A do lado fica registrada, não recomendada
         "vagas": [("herbalista_lado", (5, 0, 20), 0, "herbalista",
+                   {"substitui": "herbalista", "recomendada": False,
+                    "efetivacao": "rodada 12.2; substituída na 12.3 pela do varal (a placa a tapava)"}),
+                  ("herbalista_varal", (18, 0, 12), 20, "herbalista",
                    {"substitui": "herbalista", "recomendada": True,
-                    "efetivacao": "rodada 12.2: morador do conjunto da herbalista no gerador v2 (a porta livre)"})],
+                    "efetivacao": "rodada 12.3: morador do conjunto da herbalista no gerador v2 (junto ao varal, à vista da rua)"})],
     }
     return out, pts
 
