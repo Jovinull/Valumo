@@ -107,6 +107,7 @@ class ConteudoMundoTest {
         assertEquals("valumo.conteudo", cat.get("contrato").getAsString());
         assertEquals(1, cat.get("versao").getAsInt());
         JsonObject props = json(ENV.resolve("props.json"));
+        JsonObject collision = json(Path.of("assets/scenes/colisao_e.json"));     // o perfil que o jogo usa
         Set<String> ids = new HashSet<>();
         List<JsonObject> all = assets();
         assertTrue(all.size() >= 12, "o lote 1 tem pelo menos 12 candidatos; achei " + all.size());
@@ -134,8 +135,9 @@ class ConteudoMundoTest {
                         id + ": pendência sem dependência");
             assertEquals(art.equals("candidato"), integ.equals("aguardando_avaliacao"), id + ": candidato só aguarda avaliação");
             if (a.get("lote").getAsInt() >= 3) assertNotEquals("aprovado", art, id + ": lote não avaliado marcado como aprovado");
-            if (a.getAsJsonObject("colisao").has("formas"))  // forma composta ainda não existe no jogo: não pode estar liberado
-                assertNotEquals("liberado", integ, id + ": precisa de formas compostas e está liberado");
+            if (a.getAsJsonObject("colisao").has("formas") && integ.equals("liberado"))   // rodada 12: liberado só com o perfil composto no jogo
+                assertEquals("composta", collision.getAsJsonObject("props").getAsJsonObject(id).get("tipo").getAsString(),
+                        id + ": precisa de formas compostas e está liberado sem o perfil composto em colisao_e.json");
             assertEquals(art.equals("rejeitado"), st.equals("rejeitado"), id + ": estado × aprovação");
             assertEquals(art.equals("candidato"), st.equals("candidato"), id + ": estado × aprovação (candidato)");
             if (st.equals("rejeitado")) {
