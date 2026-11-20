@@ -88,6 +88,9 @@ class TowerCameraTest {
             lookout = points(rec, "interacao", "olhar", yaw, 1f).getFirst();
             assertEquals(1, c.cutaways.size(), "a torre tem uma zona de recorte");
             zone = c.cutaways.getFirst();
+            // o desenho acha a construção pela origem do modelo (a mesma matriz do posicionamento), não pelo centro da zona
+            assertEquals(OX, zone.ox(), 1e-4f, "origem x do modelo na zona");
+            assertEquals(OZ, zone.oz(), 1e-4f, "origem z do modelo na zona");
             Flood f = flood(c, out[0], out[1]);
             for (int iz = 0; iz < f.n(); iz += 2)
                 for (int ix = 0; ix < f.n(); ix += 2) {
