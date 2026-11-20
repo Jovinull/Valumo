@@ -146,11 +146,7 @@ public final class Reachability {
 
     /** O herói cabe ali: nenhum sólido (acima de um degrau) encosta no círculo dele. */
     static boolean free(Collision c, float x, float z, float y) {
-        for (Collision.Shape s : c.shapes) {
-            if (!s.body || s.y1 <= y + Player.STEP || s.y0 >= y + Player.HEIGHT) continue;
-            if (s.push(x, z, Player.RADIUS) != null) return false;
-        }
-        return true;
+        return !c.bodyAt(x, z, y, Player.RADIUS, Player.HEIGHT);           // rodada 12.1: pelo índice (o mesmo resultado)
     }
 
     static int nearestWalkable(boolean[] walk, int nx, int nz, float x0, float z0, float x, float z, float within) {

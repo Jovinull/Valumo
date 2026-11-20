@@ -417,6 +417,20 @@ public final class Collision {
         return resolveAll(p, rad, y, h, step);
     }
 
+    /**
+     * Rodada 12.1 — algum CORPO encosta num círculo de raio {@code rad} com os pés em {@code y} (acima do degrau e abaixo da
+     * cabeça)? A mesma regra do {@link #resolve}, sem empurrar: a conferência de alcance pergunta isso a cada célula.
+     */
+    public boolean bodyAt(float x, float z, float y, float rad, float h) {
+        int k = near(x, z, rad);
+        for (int n = 0; n < k; n++) {
+            Shape s = shapes.get(cand[n]);
+            if (!s.body || s.y1 <= y + Player.STEP || s.y0 >= y + h) continue;
+            if (s.push(x, z, rad) != null) return true;
+        }
+        return false;
+    }
+
     /** Margem (u) da vizinhança consultada além do raio: quanto os empurrões podem levar o corpo antes de refazer com todas. */
     static final float NEAR_SLACK = 0.5f;
 
