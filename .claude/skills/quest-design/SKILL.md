@@ -77,3 +77,9 @@ Mais: o mesmo resultado a 30 e a 144 quadros/s (entradas no começo de quadros d
 | Kelyra dizia "daqui eu vejo quando brilhar" e o marco não aparece da estalagem | fala escrita sem conferir a vista do NPC | falas por dedução (retorno do herói); regra acima |
 | A pausa deixava o jogador trocar a arena e sumir com os fungos da missão | ferramenta de comparação exposta no jogo normal | só no modo técnico (`technical`) |
 | Clique de roteiro "botão não está na tela" logo depois de abrir a pausa | os botões são os do último quadro desenhado | `shot` (ou um quadro desenhado) antes do `click` |
+
+## Rodada 12.2 — referência desconhecida no save
+
+`QuestSystem.UnknownReference` (missão, objeto, descoberta ou inimigo que a cena não tem) separa "a CENA é outra" de "o
+dado está quebrado". Numa região gerada vira `SaveGame.Incompatible` (sem `.invalido`); na vila fixa continua inválido.
+Missão nova nunca reaproveita o id de outra.

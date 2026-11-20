@@ -112,3 +112,18 @@ Se ficou abaixo da vila aprovada, diga e registre o que precisa melhorar.
 - **Defeitos já vistos (não repita):**
   - medir a média de construções com o computador gravando vídeo (os tempos saem ~20% maiores; as contagens não mudam);
   - perfil de região escrito à mão em vez de pelo script (`perfil_regiao_v2.py`).
+
+## Rodada 12.2 — quatro ruínas, moradores e saves de versão de testes (`mundo-procedural.md` §11)
+
+- **Ruína:** uma por região, entre quatro (`RuinKind`). Ordem sorteada com peso (`"ruina-tipos"`); cada tipo só entra onde
+  o terreno faz sentido (abóbada: sobe ≥ `VAULT_RISE` para os fundos; sítio: varia ≤ `FARM_FLAT` na pegada). Quem não cabe
+  cede a vez.
+- **Morador de ofício:** o ponto vem do perfil (`conjuntos.*.trabalhador`), nunca do nome. `RegionGenerator.RESIDENTS` é
+  da v1 e NUNCA muda: morador só de ofício entra pelo perfil.
+- **Campo novo na cena:** só para o que a v1 não tem (`y`, `gesto`, `oficio` dos moradores de ofício). Senão a cena da v1
+  muda e a referência dela quebra.
+- **Saves:** mudar a região de uma versão não publicada deixa os saves antigos recusados como "versão de testes", sem
+  `.invalido` (`SaveGame.Incompatible`). Confira com CÓPIA dos dados do proprietário, nunca com os originais.
+- **Ao publicar:** `RegionGenerator.published` passa a incluir a versão; a lista do que congela está no §11.
+- **Defeito já visto (não repita):** a conferência compara alturas do MUNDO; ponto relativo ao chão precisa somar o relevo
+  (o primeiro filtro da Brásia na laje ignorava o patamar).

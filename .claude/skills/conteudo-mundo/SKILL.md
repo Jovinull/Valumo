@@ -131,3 +131,14 @@ O caminho completo está no guia `docs/processo/como-integrar-conteudo-ao-mundo.
 - Afrouxar teste ou tolerância para passar: os testes deste laboratório acharam entrada bloqueada, galpão fechado, peças
   soltas e piso contado como parede, e todos foram corrigidos no asset.
 - Pôr no catálogo uma posição que o teste não confere.
+
+## Rodada 12.2 — integração do PR #8 (o que o integrador conferiu)
+
+- **Vaga** (`pontos.vagas`, com `recomendada`): é como o artista sugere o ponto do morador. O integrador confere no jogo:
+  corpo livre (0,55 u para o morador em chão aberto), porta a ≥ 0,6 u, conversa alcançável, visível pela câmera de jogo.
+  A do feirante saiu 1 voxel; a da herbalista é nova.
+- **Ruína com interior coberto:** `medidas.cobertura_u` vira formas só de câmera (o script de formas compostas já faz
+  isso); o teto nunca é corpo.
+- **Variação** com `formas_iguais: false` NÃO herda a colisão da base. Hoje nenhuma variação das ruínas novas é publicada.
+- **Candidato no mesmo PR** (o Acapela): fica fora do `build_assets.py` e do mundo até ser aprovado
+  (`docs/validation/integracao-pr8.md`).

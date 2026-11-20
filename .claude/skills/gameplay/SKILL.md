@@ -249,3 +249,20 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   - `vista-fim` antes de um `ir-lugar` que deve mostrar a câmera do jogador.
 - **O andador** (`… andando`) vai em linha reta, com tempo de 25 s. Ponto atrás de tronco ou parede = herói empurrando
   até o tempo esgotar: escolha o ponto livre mais perto de quem chega.
+
+## Rodada 12.2 — moradores de ofício no mundo e saves que não são lixo
+
+- **Morador de ofício** (`SceneDef.Interactive.trade/y/gesture`):
+  - **Altura:** de pé no chão de colisão do ponto (`GameLogic.npcFloor`); o corpo vai do chão à cabeça lá em cima.
+  - **Gesto:** o gesto de ofício (clipe ATTACK do perfil `npc_*`) a cada `GESTURE_PERIOD`, fora da conversa
+    (`npcMotion`); a duração vem do ator (`Game` preenche `Npc.gestureLen`).
+  - **Só desenho:** nada de comércio nem de ferraria.
+- **Conferência do corpo:** morador posto pelo gerador quer 0,55 u livres; morador de ofício (ponto autorado, conferido à
+  parte) usa o raio do corpo, acima dos pés.
+- **Save:** `SaveGame.Incompatible` (íntegro, de outra região ou de jogo mais novo) ≠ `Invalid` (quebrado, vai para
+  `.invalido`). `continueBlocker` mostra a frase sem "Jogo salvo inválido"; "Entrar" de novo não grava nada.
+- **Câmera na torre (P85):** a zona de câmera (braço curto, inclinação mínima, até quase vertical) foi medida andando e
+  NÃO adotada (52% → 26% colada, com câmera quase vertical em volta da torre). Não refaça sem a decisão do proprietário
+  (vão mais largo ou parede que esmaece).
+- **Roteiros:** `ir-lugar oficio <morador> [andando]`, `ir-lugar ponto <id-da-interação> [andando]`. Entre moradores,
+  passe pela praça (o andador vai em linha reta e prende em parede); converse com esperas de 1,4 s entre os E.

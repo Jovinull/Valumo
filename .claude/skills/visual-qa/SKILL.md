@@ -272,3 +272,17 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
   - tomada repetida.
 - **Dados do proprietário:** o script confere o sha256 de `output/aparencias` e `output/saves` antes e depois. Os mundos
   e personagens dele nunca são abertos: para testá-los, copie para uma pasta temporária.
+
+## Rodada 12.2 — moradores e ruínas (`tools/review122.sh`)
+
+- **Antes:** o binário da 12.1 num clone (`BASE=output/tmp/base-r121`), as mesmas sementes.
+- **Vídeos:** a vila de caminho (Quelmo, Brásia, Índira, abóbada, pote, salvar e continuar), a vila rural (Arvel, Bramor,
+  Índira), o sítio, a torre e o mundo v1 antigo.
+- **O que olhar:**
+  - morador afundado numa laje ou escondido atrás de mercadoria;
+  - gesto de ofício atravessando o corpo;
+  - teto da abóbada sendo atravessado pela câmera;
+  - rasgo de luz fechado;
+  - curral sem passagem;
+  - herói preso entre dois moradores (roteiro).
+- **Dados do proprietário:** os mundos e personagens dele só em CÓPIA; registre os hashes antes e depois.
