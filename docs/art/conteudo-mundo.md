@@ -74,6 +74,14 @@ Lições que valem para qualquer construção nova:
   fragmentos na torre v1 e 4 na oficina v1.
 - **Galpão aberto precisa de vão ≥ 0,9 u livre** entre obstáculos (o corpo tem 0,3 u de raio). A pedra de amolar da
   oficina v1 fechava a frente: o teste de entrada achou.
+- **Interior caminhável se confere com o corpo inteiro, não só com a entrada.** A caminhabilidade das vilas do lote 2
+  achou o interior da oficina inalcançável por dois motivos:
+  - as mãos-francesas do vão aberto desciam a 1,0 u do piso (o herói tem 1,18 u), deixando 0,375 u de passagem;
+  - a tina de têmpera e a bigorna deixavam vãos de 0,5 u.
+
+  Correção: mãos-francesas acima da cabeça (a partir de 1,625 u), tina do lado de fora, bigorna junto à parede da sala
+  e corredor até a forja. Verificado pelas duas entradas (forja, bigorna, bancada e o spawn da ferreira alcançáveis;
+  antes, nenhum).
 - **Palha não é telha**: fiada a cada 4 voxels, com aba pendente na borda; a cada 3, o cone vira pirâmide de degraus.
 - **Planta redonda**: mais de 6 prumos radiais lê como barril (cabana v1).
 
