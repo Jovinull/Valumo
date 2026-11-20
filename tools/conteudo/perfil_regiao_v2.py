@@ -12,6 +12,7 @@ props aprovados da v1 que a v2 também usa (estalagem, lanterna, placa, posto, m
     python3 tools/conteudo/perfil_regiao_v2.py
 """
 import json
+import math
 import os
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -35,6 +36,34 @@ def workers():
         if hab[npc].get("oficio"):
             out.setdefault(hab[npc]["oficio"], []).append(npc)
     return out
+
+
+def worker_spot(cat_by_id, s):
+    """Rodada 12.2 — onde o trabalhador do conjunto fica, no referencial da âncora: [x, z, y, rumo, origem]. Padrão: o spawn
+    "npc" da âncora (rumo 0: de frente, como o conjunto). Se um ITEM do conjunto tem uma vaga recomendada (pontos.vagas,
+    "recomendada": true — a do feirante na barraca, PR #8), vale a vaga: a posição dela no item, girada e deslocada pelo
+    item (a mesma conta de RegionV2.world: x' = c·x + s·z, z' = −s·x + c·z), e o rumo do item + o da vaga. Regra de dado:
+    nunca o nome do morador."""
+    anchor = cat_by_id[s["ancora"]]
+    spot = None
+    for e in anchor["pontos"].get("spawns", []):
+        if e.get("tipo") == "npc":
+            spot = [r3(e["pos_u"][0]), r3(e["pos_u"][2]), r3(e["pos_u"][1]), 0, "ancora:" + e["id"]]
+            break
+    for vg in anchor["pontos"].get("vagas", []) or []:                    # vaga recomendada na PRÓPRIA âncora (a herbalista)
+        if vg.get("recomendada"):
+            spot = [r3(vg["pos_u"][0]), r3(vg["pos_u"][2]), r3(vg["pos_u"][1]), r3(vg.get("rumo", 0)), "vaga:" + s["ancora"] + "#" + vg["id"]]
+    for i in s["itens"]:
+        rec = cat_by_id.get(i["id"].split("__")[0])
+        for vg in (rec or {}).get("pontos", {}).get("vagas", []) or []:
+            if not vg.get("recomendada"):
+                continue
+            t = math.radians(i.get("rumo", 0))
+            c, sn = math.cos(t), math.sin(t)
+            vx, vz = vg["pos_u"][0], vg["pos_u"][2]
+            spot = [r3(i["pos_u"][0] + c * vx + sn * vz), r3(i["pos_u"][1] - sn * vx + c * vz), r3(vg["pos_u"][1]),
+                    r3(i.get("rumo", 0) + vg.get("rumo", 0)), "vaga:" + i["id"] + "#" + vg["id"]]
+    return spot
 
 
 def main():
@@ -66,12 +95,16 @@ def main():
                      "pegada": [r3(o[0] * vs), r3(o[2] * vs), r3((o[0] + sz[0]) * vs), r3((o[2] + sz[2]) * vs)],
                      "altura": r3(sz[1] * vs), "livre": {}, "entradas": [], "interacao": [], "spawns": []}
     sets = {}
+    cat_by_id = {a["id"]: a for a in cat["assets"]}
     for s in cat["conjuntos"]:
         if s["aprovacao"]["integracao"] != "liberado":
             continue
         sets[s["id"]] = {"oficio": s["oficio"], "ancora": s["ancora"],
                          "itens": [[i["id"], r3(i["pos_u"][0]), r3(i["pos_u"][1]), i.get("rumo", 0)] for i in s["itens"]],
                          "caixa": [r3(s["caixa_u"]["min"][0]), r3(s["caixa_u"]["min"][1]), r3(s["caixa_u"]["max"][0]), r3(s["caixa_u"]["max"][1])]}
+        w = worker_spot(cat_by_id, s)
+        if w:
+            sets[s["id"]]["trabalhador"] = w
         for i in s["itens"]:
             base = i["id"].split("__")[0]
             if i["id"] not in assets and base in assets:            # variante publicada: a mesma pegada do original
@@ -82,7 +115,7 @@ def main():
             assets[n] = dict(assets[base], integracao="variante")
     doc = {"_doc": "Rodada 12 — perfil CONGELADO do gerador v2 (ADR 0029): pegada (u, espaço do modelo, x0 z0 x1 z1), altura, área "
                    "livre, entradas [id, x, z, rumo], interação [id, x, z] e spawns [id, x, z, tipo] de cada asset que a v2 usa, e os "
-                   "conjuntos de ofício (itens [prop, x, z, rumo] no referencial da âncora). Escrito por tools/conteudo/perfil_regiao_v2.py "
+                   "conjuntos de ofício (itens [prop, x, z, rumo] no referencial da âncora; trabalhador [x, z, y, rumo, origem]: o spawn npc da âncora ou a vaga recomendada de um item, rodada 12.2). Escrito por tools/conteudo/perfil_regiao_v2.py "
                    "a partir do catálogo e revisado; o gerador lê ESTE arquivo, nunca o catálogo gerado. RegionProfileTest confere.",
            "formato": "valumo.regiao.perfil", "versao": 2, "assets": assets, "conjuntos": sets, "oficios": workers()}
     with open(OUT, "w", encoding="utf-8") as f:
