@@ -44,7 +44,7 @@ def main():
             "altura": r3(m["dimensoes_u"][1]),
             "livre": {k: r3(v) for k, v in sorted(rec.get("area_livre", {}).items())},
             "entradas": [[e["id"], r3(e["pos_u"][0]), r3(e["pos_u"][2]), e.get("rumo", 0)] for e in p.get("entradas", [])],
-            "interacao": [[e["id"], r3(e["pos_u"][0]), r3(e["pos_u"][2])] for e in p.get("interacao", [])],
+            "interacao": [[e["id"], r3(e["pos_u"][0]), r3(e["pos_u"][2]), r3(e["pos_u"][1])] for e in p.get("interacao", [])],
             "spawns": [[e["id"], r3(e["pos_u"][0]), r3(e["pos_u"][2]), e["tipo"]] for e in p.get("spawns", [])],
         }
         assets[rec["id"]] = a
