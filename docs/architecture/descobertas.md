@@ -1,4 +1,4 @@
-# Descobertas: achados e lugares (rodada 12 → 12.1)
+# Descobertas: achados e lugares (rodada 12 → 12.1 → 12.2)
 
 **Status:** implementado no gerador v2. A rodada 12 tinha uma descoberta só: E na lareira da ruína dava 5 moedas e o
 aviso "Descoberta: …". A rodada 12.1 a refez a partir de duas perguntas do proprietário:
@@ -28,19 +28,35 @@ O registro por tipo é **derivado** dos achados salvos. Não há campo novo no s
 Hoje cada mundo tem uma região, então cada tipo aparece uma vez por mundo. O desenho já é o de um mundo com muitas
 regiões: o diário guarda 3 tipos, não 300 lugares.
 
-## 2. Os três tipos
+## 2. Os tipos (rodada 12.2: quatro ruínas e a árvore)
+
+**Quatro coisas diferentes, que não se confundem:**
+
+| O quê | Exemplo | Onde mora | Muda? |
+|---|---|---|---|
+| **tipo de lugar** | "Abóbada soterrada" | `descobertas_e.json → tipos.abobada` (dado) | não; é o que o diário lista em "Lugares", uma linha por tipo |
+| **instância do POI** | `poi.r0.abobada.0` | a região gerada (`RegionLayout.pois`), id por rótulo | só se a região muda (versão do gerador) |
+| **descoberta daquele POI** | `desc.r0.abobada.0` | o id derivado do POI; ela fica em `progresso.descobertas` quando achada | uma vez por aventura (personagem × mundo) |
+| **recompensa** | +5 moedas | o tipo (`moedas`); paga no passo da descoberta (`QuestSystem.discover`) | uma vez: salvar e reabrir NÃO devolve o pote cheio (`DiscoveryTest`) |
+
+**Por que quatro tipos de ruína e não "ruína" quatro vezes:** cada uma é um lugar diferente, com objeto e verbo próprios
+(o pote na lareira, o jarro no mirante, o pote entre os barris, a pedra do marco). O diário só cresce quando aparece um
+tipo novo.
 
 | Tipo | Categoria | Onde existe | Como se acha | Moedas |
 |---|---|---|---|---|
-| `casa`: Casa tomada pela mata | vestígio | toda região com a ruína de casa (119 de 200 sementes) | **E** no pote, nas cinzas da lareira ("Pegar o pote da lareira") | 5 (a comum) |
-| `torre`: Torre caída | mirante | toda região com a torre caída (81 de 200) | **chegar**: ficar de pé em cima da muralha baixa (1 u, sobe-se com um salto); embaixo, a placa "Subir na muralha" | 8 (pede o salto) |
-| `arvore`: Árvore retorcida | marco natural | só quando a árvore retorcida existe (77 de 200, sempre ao lado da ruína) | **E** na árvore ("Examinar a árvore") | 0 (o registro) |
+| `casa`: Casa tomada pela mata | vestígio | toda região com a ruína de casa (94 de 200 sementes na 12.2) | **E** no pote, nas cinzas da lareira ("Pegar o pote da lareira") | 5 (a comum) |
+| `torre`: Torre caída | mirante | toda região com a torre caída (71 de 200) | **chegar**: ficar de pé em cima da muralha baixa (1 u, sobe-se com um salto); embaixo, a placa "Subir na muralha" | 8 (pede o salto) |
+| `abobada`: Abóbada soterrada (12.2, PR #8) | abrigo soterrado | toda região com a abóbada (14 de 200; só num declive) | **E** no pote entre os barris do fundo ("Pegar o pote entre os barris"; depois, "Olhar o pote vazio") | 5 |
+| `sitio`: Sítio abandonado (12.2, PR #8) | vestígio de lavoura | toda região com o sítio (21 de 200; só em chão aberto) | **E** na pedra do marco ("Examinar a pedra do marco") | 0 (o registro) |
+| `arvore`: Árvore retorcida | marco natural | só quando a árvore retorcida existe (75 de 200, sempre ao lado da ruína) | **E** na árvore ("Examinar a árvore") | 0 (o registro) |
 
 - **Ids** derivados de rótulos, nunca de coordenada:
   - `desc.r0.ruina.0` (casa);
   - `desc.r0.torre.0` (torre);
+  - `desc.r0.abobada.0` (abóbada) e `desc.r0.sitio.0` (sítio), na 12.2;
   - `desc.r0.arvore.0` (árvore);
-  - POIs `poi.r0.ruina.0`, `poi.r0.torre.0`, `poi.r0.arvore.0`.
+  - POIs `poi.r0.ruina.0`, `poi.r0.torre.0`, `poi.r0.abobada.0`, `poi.r0.sitio.0`, `poi.r0.arvore.0`.
 - **Teto conservador:** uma região rende no máximo 8 moedas de achados; a missão do posto rende 30.
 
 ## 3. Textos
@@ -82,4 +98,7 @@ lago a sul. No parapeito, um jarro esquecido com moedas."
 
 - **Inventário:** não há; o pote não vai para lugar nenhum, as moedas vão para a carteira de sempre.
 - **Sorteio:** não há loot aleatório nem raridade; o que cada tipo dá está escrito no arquivo.
-- **Checklist:** nenhum mundo tem os três tipos garantidos (a árvore é rara, e a ruína é casa OU torre).
+- **Checklist:** nenhum mundo tem todos os tipos garantidos (a árvore é rara, e a ruína é UMA das quatro).
+- **Troca de ruína num mundo já salvo:** se a região de uma semente muda de ruína antes da publicação da v2, a descoberta
+  salva da ruína antiga não existe mais. O save é recusado como "de uma versão de testes", sem `.invalido` e sem tocar no
+  arquivo ([save](save.md)). Nunca se inventa a equivalência (a lareira não vira o mirante).
