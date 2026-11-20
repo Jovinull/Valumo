@@ -2506,6 +2506,15 @@ public final class Game implements AutoCloseable {
                             float vl = (float) Math.hypot(vx, vz);
                             float x = tx + vx / vl * (tr != null ? 1.3f : 0f), z = tz + vz / vl * (tr != null ? 1.3f : 0f);
                             if (tr == null) System.out.println("ir-lugar arvore: sem árvore retorcida nesta região (atrás da ruína)");
+                            else {                                              // o lugar livre em volta da árvore mais perto de quem chega:
+                                float best = Float.MAX_VALUE;                   // o vão entre ela e a torre pode ser estreito demais para andar
+                                for (int k = 0; k < 16; k++) {
+                                    double a = k * Math.PI / 8;
+                                    float cx = tr.x() + (float) Math.sin(a) * 1.3f, cz = tr.z() + (float) Math.cos(a) * 1.3f;
+                                    float dd = (float) Math.hypot(cx - logic.player.x, cz - logic.player.z);
+                                    if (dd < best && logic.safeSpot(cx, cz)) { best = dd; x = cx; z = cz; }
+                                }
+                            }
                             yield new float[]{x, z, (float) Math.toDegrees(Math.atan2((tr != null ? tr.x() : b.x()) - x, (tr != null ? tr.z() : b.z()) - z))};
                         }
                         case "oficio" -> {                                      // rodada 12.1: diante do morador de um conjunto (sem: a praça)
