@@ -82,8 +82,24 @@ desviar na luta.
 - **Por quê:** um corpo para de empurrar quando o topo está a até um degrau dos pés. Quem pousava em cima de uma cerca ou
   de um muro baixo ficava num sólido que não empurrava nem segurava, e afundava.
 
+**Apoio e borda, a física do corpo** (`Collision.support`, `Player.step`):
+
+- **Apoio pelo corpo ao descer:** o herói fica de pé num topo NA ALTURA DOS PÉS OU ABAIXO enquanto o corpo (o círculo de
+  0,26 u) ainda toca nele. Antes era só o centro: quem saía andando da borda de uma laje descia 0,375 u com o corpo
+  ainda 0,26 u sobre ela e era jogado de lado no passo seguinte. Subir degrau continua pelo centro, como sempre.
+- **A borda é parede na descida:** descendo ao lado de um sólido cujo topo ficou acima dos pés, sem o centro sobre ele,
+  o sólido empurra no mesmo passo. O "degrau no ar" (o alcance de altura do salto + 0,30) vale subindo; descendo, ele
+  deixava o corpo escorregar por dentro da lateral.
+- **A conferência de alcance não muda:** continua com o apoio pelo centro, então o herói alcança pelo menos o que ela
+  conta, e nenhuma região muda (v1: 300 sementes iguais; v2: 200 arranjos iguais).
+
 **Medido:**
 
+- `CompositeCollisionTest.quemPulaEmCimaDeUmSolidoBaixoNuncaFicaDentroDele`: em todo composto liberado, para cada um
+  dos 377 sólidos com o topo ao alcance, quem pula para cima nunca fica mais de 2 mm dentro de um corpo. Com a física
+  anterior, o teste acha 0,113 u dentro da laje da oficina.
+- `CompositeCollisionTest.oPisoDosInteriores…`: por cada entrada, seguindo o caminho da grade com a física real, sobe-se
+  pelos degraus até o meio do interior. Com a física anterior, a ruína a 90° não chega.
 - `MobilityTest`: todo sólido segura o salto; pessoa nunca é plataforma; a casa fica fora do alcance.
 - `CompositeCollisionTest`: a muralha de 1 u da torre se sobe com um salto andando.
 
