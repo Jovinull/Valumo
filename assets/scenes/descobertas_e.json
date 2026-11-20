@@ -1,0 +1,14 @@
+{
+ "_doc": "Rodada 12 — descobertas de exploração, por tipo de lugar (o gerador v2 põe uma em cada ruína). Ao usar (E) o ponto da descoberta: o aviso com o nome do lugar e as moedas, o registro no diário e a marca no progresso daquela aventura (personagem × mundo). Conta UMA vez (QuestSystem.discover). O texto só diz o que o lugar mostra (nada de fato inventado). Moedas: pequenas perto da missão (30).",
+ "formato": "valumo.descobertas",
+ "versao": 1,
+ "tipos": {
+  "ruin": {
+   "nome": "Casa tomada pela mata",
+   "verbo": "Examinar a lareira",
+   "texto": "A lareira ainda guarda marcas de fogo. Alguém morou aqui antes da mata voltar.",
+   "jaVisto": "A lareira fria, as paredes cobertas de hera. Nada mudou desde a sua última visita.",
+   "moedas": 5
+  }
+ }
+}
