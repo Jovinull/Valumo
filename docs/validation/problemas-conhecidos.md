@@ -1,4 +1,4 @@
-# Problemas conhecidos — estado atual (fechamento das rodadas 11 e 11.1)
+# Problemas conhecidos — estado atual (integração dos lotes 1 e 2 de conteúdo)
 
 Fonte única do que falta ou não funciona. Severidade: **grave** (bloqueia aprovação de asset ou
 expansão), **média** (visível na câmera de jogo), **baixa** (só de perto / cosmético). Rastreabilidade
@@ -162,6 +162,18 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | **P64** — o X real do gerenciador de janelas (Wayland/GNOME) não pôde ser clicado por automação; os roteiros usam o mesmo caminho do callback (`Window.simulateCloseRequest`) | média até o teste físico | `tools/menu/13-navegacao-*` | roteiro físico do menu, §5 |
 | **P65** — medição de desempenho do fechamento feita com Firefox e VS Code abertos (load ~2,3): os números absolutos subiram nos dois binários (menu ~13 ms × 10,7 ms na sessão da 11.1); a comparação válida é a intercalada na mesma sessão (+0,2 ms na mediana do menu, ruído) | baixa | `round-11-1-final/desempenho/` | repetir com a máquina ociosa antes de citar números absolutos |
 | **P66** — ajuda de controles: as instruções de tecla saíram da tela por decisão do proprietário; se um dia for preciso ensinar os controles, a proposta é um tutorial ou uma tela de ajuda própria (não implementado) | — (proposta) | `menus.md` (Texto na tela) | decisão do proprietário |
+
+## Abertos depois da integração dos lotes 1 e 2 (biblioteca de conteúdo)
+
+| Problema | Severidade | Evidência | Próximo passo |
+|---|---|---|---|
+| **P67** — a biblioteca (35 modelos, 6 variantes publicadas, 5 conjuntos) entrou só como biblioteca: nenhuma região a usa. P53 (variedade) continua aberto | — (escopo) | `RegionGoldenTest` (8 sementes idênticas à `main`) | gerador v2 ([ADR 0029](../decisions/0029-versoes-do-gerador.md)) |
+| **P68** — subir `RegionGenerator.VERSION` hoje recusa todos os mundos v1 existentes, e o save v2 recusado vai para `.invalido` como se estivesse corrompido | grave quando a v2 vier; nenhuma hoje | `Game.enterAdventure`, `SaveGame.parse` | despacho por versão (ADR 0029, proposta) ANTES da primeira mudança de gerador |
+| **P69** — `workshop_forge`, `ruin_tower`, `ruin_house` e `market_stall` (e os conjuntos `ferreiro` e `comerciante`) precisam de colisão composta; o `Collision` tem uma forma por prop | grave para usá-los no jogo; nenhuma na biblioteca | catálogo: `integracao = depende_colisao_composta` | [colisao-composta.md](../architecture/colisao-composta.md) |
+| **P70** — `stone_circle` aprovado como direção, aguardando refinamento artístico; também precisa de colisão composta (7 círculos) | baixa | catálogo: `aguardando_refinamento` | refino com o proprietário |
+| **P71** — vento na **casa aprovada** (`house`): o musgo do telhado é folhagem e desliza com o vento afim, abrindo frestas (defeito anterior aos lotes, achado pelo laboratório). Os lotes novos já usam musgo e hera foscos | baixa (só de perto, com vento) | `docs/art/conteudo/lote-1/vento-casa-aprovada.png`, `conteudo-mundo.md` §8 | corrigir no gerador da casa SEM mudar a pegada (a casa é da v1) e refazer as referências; tarefa futura, não feita nesta integração |
+| **P72** — a primeira abertura do criador mediu ~+150 ms com a carga sob demanda: mediana 1,89 s (1,80–2,09) × 1,73 s (1,64–1,82) na `main`, em 6 pares intercalados. Causa não encontrada: o perfil JFR mostra MENOS CPU na thread principal na sessão inteira (1061 × 1115 amostras; `VoxelMesher.build` 804 × 885) e a mesma pausa de GC (0,285 × 0,279 s), e o criador malha MENOS props | baixa (passo único sob "Abrindo o criador"; as aberturas seguintes usam o cache) | relatório da integração, §desempenho | perfil com relógio de parede (GPU/driver) da preparação do criador |
+| **P73** — oficina (`workshop_forge`): o ponto de interação `bigorna` fica a 0,125 u do spawn `ferreira` e `bancada` a 0,28 u; com a ferreira no lugar (corpo 0,3 u) o herói (0,26 u) não alcança nenhum dos dois. O teste do laboratório confere chão livre, mas não ponto × spawn | baixa hoje (a oficina não está liberada); grave ao liberar | catálogo: `pontos.interacao` × `pontos.spawns` | afastar os pontos ou o spawn no gerador da oficina; teste ponto × spawn com os corpos ([colisao-composta.md](../architecture/colisao-composta.md) §4) |
 
 ## Limitações aceitas (comportamento conhecido, não é defeito)
 
