@@ -2402,8 +2402,8 @@ public final class Game implements AutoCloseable {
                     float[] q = switch (t[1]) {                               // x, z, rumo (graus)
                         case "assentamento" -> new float[]{L.startX, L.startZ, L.startYawDeg};
                         case "posto" -> new float[]{L.px - L.gx * 2.6f, L.pz - L.gz * 2.6f, (float) Math.toDegrees(Math.atan2(L.gx, L.gz))};
-                        case "marco" -> {
-                            var f = L.features.getFirst();
+                        case "marco" -> {                                       // rodada 12: o marco pelo tipo (na v2 a descoberta vem antes)
+                            var f = L.features.stream().filter(x -> x.kind().equals("marco_de_luz")).findFirst().orElseThrow();
                             float a = (float) Math.toRadians(f.yawDeg());
                             float x = f.x() + (float) Math.sin(a) * 1.15f, z = f.z() + (float) Math.cos(a) * 1.15f;
                             yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(f.x() - x, f.z() - z))};
@@ -2559,7 +2559,8 @@ public final class Game implements AutoCloseable {
                     var L = procedural.layout;
                     System.out.printf(java.util.Locale.ROOT, "regiao: semente %s tentativa %d arranjo %d lago %s assentamento (%.2f, %.2f) posto (%.2f, %.2f) marco %s doador %s moradores %s props %d%n",
                             Long.toUnsignedString(procedural.seed), L.attempt, L.arrangement, L.pond != null ? String.format(java.util.Locale.ROOT, "(%.1f, %.1f)", L.pond[0], L.pond[1]) : "não",
-                            L.sx, L.sz, L.px, L.pz, L.features.isEmpty() ? "-" : L.features.getFirst().id(), procedural.binding != null ? procedural.binding.giver() : "-",
+                            L.sx, L.sz, L.px, L.pz, L.features.stream().filter(x -> x.kind().equals("marco_de_luz")).map(vx.game.world.RegionLayout.Feature::id).findFirst().orElse("-"),
+                            procedural.binding != null ? procedural.binding.giver() : "-",
                             L.npcs.stream().map(vx.game.world.RegionLayout.Npc::id).toList(), L.props.size());
                 }
                 case "missao" -> {                                         // rodada 10: estado das missões no log
