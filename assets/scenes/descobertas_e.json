@@ -1,5 +1,5 @@
 {
- "_doc": "Rodada 12 / 12.1 — descobertas de exploração, por TIPO de lugar (escrito à mão). O gerador v2 põe a da ruína da região (casa ou torre) e, quando a árvore retorcida existe, a dela. ACHADO: o objeto daquele lugar (o pote nas cinzas da lareira, o jarro no parapeito) — dá as moedas UMA vez, e o objeto passa de cheio para vazio (as moedas vêm de algo que se vê). LUGAR: na primeira vez que se acha um tipo de lugar nesta aventura (personagem × mundo), ele entra no diário ('Lugares'); num mundo com muitos lugares do mesmo tipo, os seguintes são só achados. modo: 'usar' (E, placa com o verbo) ou 'chegar' (estar de pé no ponto: o mirante, em cima da muralha baixa da torre, que se sobe com um salto). Textos: só o que o lugar mostra; {rumo_vila}, {rumo_posto}, {lago} e {ruina} vêm dos fatos da região (ProceduralScene.discovery). Moedas: a comum 5; a do mirante 8 (pede o salto); a árvore só o registro (nem todo lugar tem tesouro).",
+ "_doc": "Rodada 12 / 12.1 — descobertas de exploração, por TIPO de lugar (escrito à mão). O gerador v2 põe a da ruína da região (casa ou torre) e, quando a árvore retorcida existe, a dela. ACHADO: o objeto daquele lugar (o pote nas cinzas da lareira, o jarro no parapeito) — dá as moedas UMA vez, e o objeto passa de cheio para vazio (as moedas vêm de algo que se vê). LUGAR: na primeira vez que se acha um tipo de lugar nesta aventura (personagem × mundo), ele entra no diário ('Lugares'); num mundo com muitos lugares do mesmo tipo, os seguintes são só achados. modo: 'usar' (E, placa com o verbo) ou 'chegar' (estar de pé no ponto: o mirante, em cima da muralha baixa da torre, que se sobe com um salto). Textos: só o que o lugar mostra; {rumo_vila}, {rumo_posto}, {lago} e {ruina} vêm dos fatos da região (ProceduralScene.discovery). Moedas: a comum 5; a do mirante 8 (pede o salto); a árvore só o registro (nem todo lugar tem tesouro). verboVisto (opcional): a placa depois do achado (padrão: o verbo).",
  "formato": "valumo.descobertas",
  "versao": 2,
  "tipos": {
@@ -8,6 +8,7 @@
    "categoria": "vestígio",
    "modo": "usar",
    "verbo": "Pegar o pote da lareira",
+   "verboVisto": "Olhar o pote vazio",
    "achado": "Pote de barro",
    "objeto": {"cheio": "pote_achado", "vazio": "pote_achado__estado-vazio"},
    "moedas": 5,
