@@ -425,6 +425,7 @@ class ConteudoMundoTest {
             for (JsonElement e : a.getAsJsonObject("variacoes").getAsJsonArray("extremos")) {
                 JsonObject v = e.getAsJsonObject();
                 String vid = v.get("id").getAsString();
+                assertTrue(vid.startsWith(id + "__"), vid + ": a variação não é do asset " + id + " (a pegada comparada seria de outro)");
                 float[] vl = arr(v.getAsJsonObject("pegada_u"), "min"), vh = arr(v.getAsJsonObject("pegada_u"), "max");
                 for (int i = 0; i < 2; i++) {
                     assertEquals(bl[i], vl[i], 0.51f, vid + ": a pegada mudou (min)");
