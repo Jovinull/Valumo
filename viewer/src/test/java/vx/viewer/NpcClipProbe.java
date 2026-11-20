@@ -20,7 +20,8 @@ import java.util.Set;
 
 /**
  * Laboratório de conteúdo — interpenetração de um NPC nos clipes REAIS (o mesmo Animator e o mesmo perfil do jogo),
- * voxel a voxel, sem OpenGL. A cada 1/60 s de IDLE, WALK, RUN, EMOTE e de cada gesto do perfil, os voxels de cada
+ * voxel a voxel, sem OpenGL. A cada 1/60 s de IDLE, WALK, RUN, EMOTE, de cada gesto do perfil e das transições
+ * (andar → ofício → andar, andar → aceno → andar, ofício → aceno; só nos perfis com gesto de ofício), os voxels de cada
  * membro vão para o espaço de repouso de cada alvo e são comparados com as células reais do alvo:
  * <ul>
  *   <li><b>braço × tronco</b>: braço e antebraço (com luva ou mão) contra o tronco com tudo que está preso nele
@@ -115,6 +116,8 @@ final class NpcClipProbe {
         Animator.Motion mo = new Animator.Motion();
         List<String> what = new ArrayList<>(List.of("clip:IDLE", "clip:WALK", "clip:RUN", "clip:EMOTE"));
         if (an.prof != null) for (String mv : an.prof.moves.keySet()) if (!mv.equals("emote")) what.add(mv);
+        if (an.prof != null && an.prof.moves.containsKey("oficio"))       // transições: andar ↔ gesto, gesto → aceno
+            what.addAll(List.of("seq:walk:0.8,oficio,walk:0.8", "seq:walk:0.8,emote,walk:0.8", "seq:oficio,emote"));
         Map<String, Worst> out = new LinkedHashMap<>();
         for (String g : GROUPS.keySet()) out.put(g, new Worst(0, 0, "—"));
         out.put("pé × chão", new Worst(0, 0, "—"));
@@ -122,10 +125,13 @@ final class NpcClipProbe {
         int samples = 0;
         for (String w : what) {
             Animator.Clip clip = w.startsWith("clip:") ? Animator.Clip.valueOf(w.substring(5)) : null;
-            float dur = clip != null ? an.duration(clip) : an.moveDuration(w);
+            Sequencer seq = w.startsWith("seq:") ? Sequencer.of(w.substring(4), an) : null;
+            mo = new Animator.Motion();                                  // estado limpo a cada clipe/gesto/sequência
+            float dur = seq != null ? seq.total : clip != null ? an.duration(clip) : an.moveDuration(w);
             if (dur <= 0) throw new IllegalStateException(dir + ": clipe/gesto sem duração: " + w);
             for (float t = 0; t <= dur; t += DT) {
-                if (clip != null) mo.set(clip, t);
+                if (seq != null) mo = seq.eval(t, new Animator.Motion());
+                else if (clip != null) mo.set(clip, t);
                 else {
                     mo.set(Animator.Clip.IDLE, t);
                     mo.move = w;

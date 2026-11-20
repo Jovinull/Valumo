@@ -257,6 +257,30 @@ class MundoNpcTest {
     }
 
     @Test
+    void placementPointsExistInTheCatalogAndTheApprovalIsRecorded() throws IOException {
+        // meta.conteudo: a construção é um asset do catálogo e o ponto é um spawn ou uma vaga DELA (o integrador lê daí);
+        // aprovado só com a decisão do proprietário registrada; integração com dono declarado
+        JsonObject cat = ConteudoMundoTest.catalog();
+        Map<String, JsonObject> byId = new java.util.HashMap<>();
+        for (var e : cat.getAsJsonArray("assets")) byId.put(e.getAsJsonObject().get("id").getAsString(), e.getAsJsonObject());
+        for (String rig : NPCS) {
+            JsonObject c = meta(rig).getAsJsonObject("conteudo");
+            JsonObject b = byId.get(c.get("construcao").getAsString());
+            assertNotNull(b, rig + ": construção fora do catálogo: " + c.get("construcao"));
+            Set<String> pontos = new HashSet<>();
+            for (String k : List.of("spawns", "vagas"))
+                if (b.getAsJsonObject("pontos").has(k))
+                    for (var e : b.getAsJsonObject("pontos").getAsJsonArray(k)) pontos.add(e.getAsJsonObject().get("id").getAsString());
+            assertTrue(pontos.contains(c.get("ponto").getAsString()), rig + ": ponto '" + c.get("ponto") + "' não existe em " + b.get("id"));
+            assertEquals("aprovado", c.get("aprovacao").getAsString(), rig);
+            assertTrue(c.get("decisao").getAsString().startsWith("proprietário"), rig + ": aprovação sem decisão registrada");
+            assertTrue(c.get("integracao").getAsString().contains("Claude principal"), rig + ": integração sem dono");
+        }
+        // Quelmo: a vaga escolhida é a lateral (as mercadorias escondem o spawn antigo atrás do balcão)
+        assertEquals("feirante_lateral", meta("characters/npc/quelmo").getAsJsonObject("conteudo").get("ponto").getAsString());
+    }
+
+    @Test
     void metadataSaysOnlyWhatTheyAreInTheGame() throws IOException {
         for (String rig : NPCS) {
             String doc = Files.readString(VilaNpcTest.A.resolve(rig).resolve("rig.json")).toLowerCase(Locale.ROOT);
