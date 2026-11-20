@@ -77,6 +77,23 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
   juntos (`conteudo_ruinas._shift`).
 - **Vitrine:** `tools/conteudo/vitrine_estudo.py` (cenas novas + caminhabilidade). Defeito de asset APROVADO já
   conhecido vai para `PRE_EXISTENTES` com o motivo: relatado, nunca escondido, e não reprova o estudo.
+- **Teto:** interior coberto declara `colisao.camera: "teto_coberto"`; o catálogo mede `cobertura_u` (onde a câmera
+  precisa de forma só de câmera).
+- **Variações:** pontos invariantes (exato); pegada e colisão são as REAIS de cada variação; o gerador reserva
+  `pegada_reservada_u` (união exata). Nunca esconda a diferença com tolerância.
+
+## Vaga de NPC morador (provado com o Quelmo na barraca)
+
+- **Lugar:** a vaga fica no espaço LOCAL da construção (`pontos.vagas`: `pos_u`, `rumo`, `papel`), nunca em coordenada do
+  mundo. Spawn antigo fica por compatibilidade, com `substitui` na vaga nova.
+- **Medida** (`tools/conteudo/vaga_feirante.py`) em 0°, 90°, 180°, 270° e um ângulo torto:
+  - folga até o sólido ≥ raio do corpo (0,3 u);
+  - nada sobre a cabeça;
+  - herói a 1,0 u na frente, em chão livre e alcançável, com linha livre até o NPC;
+  - entradas da construção e do conjunto alcançáveis com o NPC no lugar;
+  - pixels visíveis na câmera de jogo.
+- **Uma construção por cena:** com vizinhas, a câmera de jogo entra no telhado da outra e a medida mente. A
+  visibilidade é a diferença entre a mesma cena com e sem SÓ aquele NPC.
 
 ## Validar
 
