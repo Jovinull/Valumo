@@ -106,6 +106,8 @@ public final class Renderer implements AutoCloseable {
     public static final int SHADOW_SIZE = Integer.getInteger("vx.shadow", 2048);
 
     private final Shader scene = new Shader("scene.vert", "scene.frag");
+    /** Rodada 12.3: a mesma cena com o recorte contextual (VX_CUT), só para os desenhos com {@link Draw#cut} > 0. */
+    private final Shader sceneCut = new Shader("scene.vert", "scene.frag", "VX_CUT");
     private final Shader depth = new Shader("depth.vert", "depth.frag");
     /** Pré-passo de profundidade: mesmo vertex shader da cena (inclui o vento), fragment shader vazio. */
     private final Shader prepass = new Shader("scene.vert", "depth.frag");
@@ -223,6 +225,29 @@ public final class Renderer implements AutoCloseable {
         render(f, target, 0, 0, outW, outH, ssaa);
     }
 
+    /** Os uniforms do passo de cena que valem para o quadro inteiro (os dois programas: a cena e a variante do recorte). */
+    private Shader sceneUniforms(Shader sh, Frame f, Toggles tg) {
+        StyleProfile s = f.style;
+        return sh
+                .set("uView", f.camera.view()).set("uViewProj", f.camera.viewProj()).set("uLightVP", lightVP)
+                .set("uTime", f.time).set("uWind", s.wind * WIND_SCALE).set("uAffineWind", s.affineWind)
+                .set("uFogStart", s.fogStart > 0 ? s.fogStart + 0.8f * f.camera.distance : 0f).set("uFogMax", s.fogMax).set("uFogSunColor", s.fogSunColor)
+                .set("uFillDir", s.fillDir).set("uFillColor", s.fillColor)
+                .set("uOutlineFoliage", s.outlineFoliage).set("uSilhouette", tg.silhouette)
+                .set("uClay", !tg.textures)
+                .set("uSunDir", s.sunDir).set("uSunColor", s.sunColor)
+                .set("uSkyAmb", s.skyAmb).set("uGroundAmb", s.groundAmb)
+                .set("uCamPos", f.camera.position())
+                .set("uFogColor", s.fogColor).set("uRimColor", s.rimColor).set("uShadowTint", s.shadowTint)
+                .set("uAoStrength", tg.ao ? s.aoStrength : 0f)
+                .set("uShadowStrength", s.shadowStrength).set("uShadowSoft", s.shadowSoft).set("uShadowTaps", s.shadowTaps)
+                .set("uWrap", s.wrap).set("uFaceShade", s.faceShade)
+                .set("uRim", s.rim).set("uSpec", s.spec).set("uEmissive", s.emissive).set("uBacklight", s.backlight)
+                .set("uFogDensity", tg.fog && !tg.studio ? s.fogDensity : 0f).set("uFogHeight", s.fogHeight)
+                .set("uShadows", tg.shadows)
+                .set("uShadowMap", 0).set("uAtlas", 1).set("uAlpha", 1f);
+    }
+
     /** Variante que compõe o resultado no retângulo (vx, vy, outW, outH) do alvo. */
     public void render(Frame f, Framebuffer target, int vx, int vy, int outW, int outH, float ssaa) {
         StyleProfile s = f.style;
@@ -293,27 +318,13 @@ public final class Renderer implements AutoCloseable {
             glColorMask(true, true, true, true);
         }
 
-        scene.use()
-                .set("uView", f.camera.view()).set("uViewProj", f.camera.viewProj()).set("uLightVP", lightVP)
-                .set("uTime", f.time).set("uWind", s.wind * WIND_SCALE).set("uAffineWind", s.affineWind)
-                .set("uFogStart", s.fogStart > 0 ? s.fogStart + 0.8f * f.camera.distance : 0f).set("uFogMax", s.fogMax).set("uFogSunColor", s.fogSunColor)
-                .set("uFillDir", s.fillDir).set("uFillColor", s.fillColor)
-                .set("uOutlineFoliage", s.outlineFoliage).set("uSilhouette", tg.silhouette)
-                .set("uClay", !tg.textures)
-                .set("uSunDir", s.sunDir).set("uSunColor", s.sunColor)
-                .set("uSkyAmb", s.skyAmb).set("uGroundAmb", s.groundAmb)
-                .set("uCamPos", f.camera.position())
-                .set("uFogColor", s.fogColor).set("uRimColor", s.rimColor).set("uShadowTint", s.shadowTint)
-                .set("uAoStrength", tg.ao ? s.aoStrength : 0f)
-                .set("uShadowStrength", s.shadowStrength).set("uShadowSoft", s.shadowSoft).set("uShadowTaps", s.shadowTaps)
-                .set("uWrap", s.wrap).set("uFaceShade", s.faceShade)
-                .set("uRim", s.rim).set("uSpec", s.spec).set("uEmissive", s.emissive).set("uBacklight", s.backlight)
-                .set("uFogDensity", tg.fog && !tg.studio ? s.fogDensity : 0f).set("uFogHeight", s.fogHeight)
-                .set("uShadows", tg.shadows)
-                .set("uShadowMap", 0).set("uAtlas", 1).set("uAlpha", 1f)
-                .set("uCutTarget", f.cutTarget).set("uCutRadius", f.cutRadius);
+        boolean anyCut = false;
+        for (Draw d : f.draws) anyCut |= d.cut > 0f;
+        if (anyCut) sceneUniforms(sceneCut.use(), f, tg).set("uCutTarget", f.cutTarget).set("uCutRadius", f.cutRadius);
+        sceneUniforms(scene.use(), f, tg);
         Texture.bind(0, shadowMap.depth);
         frustum.set(f.camera.viewProj());
+        Shader current = scene;
         for (int pass = 0; pass < 3; pass++) {
             boolean transparent = pass == 1;
             if (pass == 2) {                                   // depuração por cima de tudo
@@ -334,10 +345,12 @@ public final class Renderer implements AutoCloseable {
                 lastTriangles += d.mesh.vertexCount / 3;
                 boolean tex = d.texture != null && tg.textures;
                 if (tex) d.texture.bind(1);
-                scene.set("uUseTex", tex).set("uModel", d.model).set("uOutlineWeight", d.outline).set("uFlash", d.flash).set("uFade", d.fade)
-                        .set("uCut", d.cut);
+                Shader sh = d.cut > 0f ? sceneCut : scene;                    // rodada 12.3: a variante só para o recorte
+                if (sh != current) current = sh.use();
+                sh.set("uUseTex", tex).set("uModel", d.model).set("uOutlineWeight", d.outline).set("uFlash", d.flash).set("uFade", d.fade);
+                if (sh == sceneCut) sh.set("uCut", d.cut);
                 boolean far = d.terrain && f.style.terrainFarEnd > 0 && f.toggles.terrainFar;
-                scene.set("uTerrainFarStart", f.style.terrainFarStart).set("uTerrainFarEnd", far ? f.style.terrainFarEnd : 0f);
+                sh.set("uTerrainFarStart", f.style.terrainFarStart).set("uTerrainFarEnd", far ? f.style.terrainFarEnd : 0f);
                 d.mesh.draw();
             }
         }
@@ -404,6 +417,7 @@ public final class Renderer implements AutoCloseable {
         glDeleteVertexArrays(emptyVao);
         for (int q : gpuQuery) if (q != 0) glDeleteQueries(q);
         scene.close();
+        sceneCut.close();
         depth.close();
         prepass.close();
         sky.close();
