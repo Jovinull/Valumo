@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
-"""Acapela (NPC, direção E): uma criaturinha de rabo de lagarto, cabeça grande e franjada, em jardineira.
+"""Acapela (NPC, direção E): uma criaturinha de rabo peludo de lagarto e cabeça redonda com tufinhos, em jardineira.
 
-Mesmo esqueleto dos NPCs da vila (`npcs_vila_e`: quadril 14, pescoço 29, ombros ±5,8 / 26,5) — a locomoção, o aceno
-compartilhado (`npc_vila`) e os validadores valem sem mudança. O que é PRÓPRIO dele:
+Mesmo esqueleto dos NPCs da vila (`npcs_vila_e`: quadril 14, pescoço 29, ombros ±5,8 / 26,5) — a locomoção e os
+validadores valem sem mudança; o perfil é o `npc_acapela` (o de `npc_vila` com o aceno passando à frente das franjas
+da bochecha). O que é PRÓPRIO dele:
 
-  cabeça    crânio largo (proporção chibi, ~2,2 cabeças), placa do rosto plana; franjas pontudas da cor da pele nas
-            bochechas e duas orelhas-franja no alto; topete creme em chama no meio da testa e juba creme fofa atrás;
-            olhos grandes de contorno verde-claro e pupila escura vertical; dois pontinhos de sobrancelha; sorriso
-            com duas presas
+  cabeça    crânio redondo (proporção chibi, ~2,1 cabeças), placa do rosto plana de contorno redondo; anel de
+            tufinhos pontudos da cor da pele em volta e colar de pelo verde-escuro no queixo e nas bochechas; cabelo
+            creme espetado (mechas inclinadas para um lado, mecha em V na testa, nuca) com DOIS TUFOS que descem atrás
+            dos lados até os ombros; olhos grandes de íris escura (preta em cima, roxa embaixo, com fenda) e brilho,
+            asinha verde-clara do lado de fora; sobrancelhas retangulares; focinho pequeno; boca ":3" no dia a dia e as
+            duas presas quando ri
   corpo     gola alta preta de manga comprida; jardineira roxa (peitilho, alças com dois botões claros, bolso lilás,
-            shorts com barra dobrada lilás); mãos e antebraços de pelo marrom com garras; pernas e pés menta com dedos
-  rabo      parte `tail` (filha do tronco): o Animator já balança o rabo no parado, no andar, na corrida e no salto
+            shorts com barra dobrada lilás); patas de pelo marrom com tufos e três garras; pernas e pés menta com dedos
+  rabo      parte `tail` (filha do tronco), peluda, com tufos no dorso e na ponta: o Animator já o balança no parado, no
+            andar, na corrida e no salto
 
-Altura narrativa por reamostragem do rig pronto (`npcs_oficios_e.scale_vox`), como os NPCs de ofício.
+Altura narrativa por reamostragem do rig pronto, como os NPCs de ofício, mas com `scale_keep` (os traços do rosto
+vencem quando duas fileiras caem no mesmo voxel).
 
 Saída: assets/characters/npc/acapela/ (gerado; não edite à mão).
 """
@@ -44,7 +49,11 @@ FUR = P("#97593a")                              # mãos e antebraços de pelo
 FUR_L = P("#b5774f")
 CLAW = P("#f2e9d6")                             # garras e presas
 BUTTON = C("#d9d9e2", "metal")
-EYE_W = C("#d3f6b9")                            # mancha clara do olho (verde-amarelada)
+EYE_W = C("#cdf5c2")                            # asinha verde-clara do lado de fora do olho
+IRIS_HI = C("#7d61b0")                          # íris: roxo da metade de baixo
+IRIS_LO = C("#55408a")
+FUR_G = P("#5f8e77", ks=0.7)                    # colar de pelo verde-escuro (queixo e bochechas), pontas do rabo
+BROW_SH = C("#78a998")                          # sombra verde sob as sobrancelhas
 EYE_INK = C("#2d4c47")                          # traço do olho
 PUPIL = C("#1d1d24")
 EYE_HI = C("#ffffff")
@@ -77,15 +86,18 @@ def paint(v, x, y, c, out=0):
 
 
 def skull():
+    """Crânio REDONDO; a placa do rosto é plana (contrato) com contorno de círculo."""
+    import math
     v = Vox()
-    B.sblob(v, 0, NECK + 9.5, 0.0, 8.6, 9.0, 7.6, MINT, p=2.3, p_lo=2.1)
+    cy = NECK + 9.5
+    B.sblob(v, 0, cy, 0.0, 8.8, 9.2, 7.6, MINT, p=2.05)
     for k in [k for k in v.v if k[2] > FZ or k[1] < NECK]:
         del v.v[k]
-    for x in range(-9, 9):                                       # placa do rosto plana, queixo arredondado
-        for y in range(NECK + 1, NECK + 16):
-            half = 4.6 if y <= NECK + 1 else 6.0 if y == NECK + 2 else 7.2 if y == NECK + 3 else 8.2
+    for x in range(-9, 9):
+        for y in range(NECK + 1, NECK + 18):
+            half = math.sqrt(max(0.0, 8.6 ** 2 - (y + 0.5 - cy) ** 2))
             f = front(v, x, y)
-            if f is not None and f < FZ and abs(x + 0.5) <= half:
+            if f is not None and f < FZ and abs(x + 0.5) <= half - 0.3:
                 for z in range(f, FZ + 1):
                     v.set(x, y, z, MINT)
     L.shade(v)
@@ -93,7 +105,7 @@ def skull():
 
 
 def tri(v, a, b, c, z0, z1, col=MINT, tip_col=MINT_D):
-    """Triângulo de lado reto (a e b na base, c na ponta) extrudado em z0..z1; o terço da ponta um tom abaixo."""
+    """Triângulo de lado reto (a e b na base, c na ponta) extrudado em z0..z1; o terço da ponta num segundo tom."""
     xs, ys = [p[0] for p in (a, b, c)], [p[1] for p in (a, b, c)]
 
     def side(p, q, r):
@@ -110,141 +122,149 @@ def tri(v, a, b, c, z0, z1, col=MINT, tip_col=MINT_D):
                     v.set(x, y, z, tip_col if far > 0.66 else col)
 
 
-# Franjas do lado +x (o lado −x é o espelho x → −1 − x): (base a, base b, ponta), em voxels do esqueleto NPC
-FRILLS = (((3.5, NECK + 18.0), (8.8, NECK + 12.5), (13.0, NECK + 26.0)),    # orelha pontuda
-          ((8.8, NECK + 14.0), (8.8, NECK + 7.0), (16.5, NECK + 10.5)),      # tufo do meio
-          ((8.6, NECK + 8.5), (5.5, NECK + 2.0), (14.5, NECK + 1.5)))        # bochecha
-
-
-def frills(v):
-    """Contorno em estrela da cor da pele, de lados retos (atrás da placa do rosto, z ≤ 4: não cobrem os olhos)."""
+def ring(v):
+    """Contorno de tufinhos pontudos em volta da cabeça redonda (atrás da placa do rosto, z ≤ 3) e, embaixo, o colar
+    de pelo verde-escuro do queixo e das bochechas. Ângulos do lado +x (0° = para fora, 90° = para cima); −x é espelho."""
+    import math
     f = Vox()
-    for (a, b, c) in FRILLS:
-        tri(f, a, b, c, -2, 4)
-        m = lambda p: (-p[0], p[1])                              # espelho em torno de x = 0 (centros de voxel)
-        tri(f, m(a), m(b), m(c), -2, 4)
-    for k in [k for k in f.v if k in v.v or k[1] < NECK]:
+    c = (0.0, NECK + 9.5)
+    R = 8.4
+    tufts = [(a, 3.6, 2.4, MINT, MINT_D) for a in (0, 24, 48, 70)] + \
+            [(a, 4.4, 2.6, FUR_G, FUR_G) for a in (-24, -48, -72)]
+    for (deg, length, half, col, tip_col) in tufts:
+        for sx in (1, -1):
+            a = math.radians(deg)
+            n = (sx * math.cos(a), math.sin(a))
+            t = (-n[1], n[0])
+            b = (c[0] + n[0] * (R - 1.2), c[1] + n[1] * (R - 1.2))
+            tip = (c[0] + n[0] * (R + length), c[1] + n[1] * (R + length) + (0.6 if deg > 0 else 0.0))
+            tri(f, (b[0] + t[0] * half, b[1] + t[1] * half), (b[0] - t[0] * half, b[1] - t[1] * half), tip, -3, 3,
+                col, tip_col)
+    for k in [k for k in f.v if k in v.v or k[1] < NECK - 1]:
         del f.v[k]
-    L.shade(f, only={MINT})
+    L.shade(f, only={MINT, FUR_G})
     v.merge(f)
 
 
-def hair(sk, v):
-    """Cabelo creme: cobre a parte de trás do crânio (casca de 3 voxels, de y = pescoço + 4 para cima), com tufos
-    descendo na nuca; aparece de frente na borda de cima, atrás da franja em V."""
-    import npcs_mundo_e as M
+def hair(v):
+    """Cabelo creme espetado (três pontas no alto, inclinadas para +x), mecha caindo sobre a testa e os DOIS TUFOS que
+    descem atrás dos lados da nuca até a altura dos ombros (atrás dos ombros, fora do caminho dos braços)."""
     h = Vox()
-    for i, layer in enumerate(M.shell(sk, lambda x, y, z: z <= 1 and y >= NECK + 4, thick=3)):
-        for q in layer:
-            h.set(*q, CREAM)
-    for x0 in range(-8, 8, 3):                                   # tufos da nuca, apontando para baixo
-        tri(h, (x0 - 1.0, NECK + 6), (x0 + 2.0, NECK + 6), (x0 + 0.5, NECK + 2.5), -7, -4, CREAM, CREAM_D)
-    for k in [k for k in h.v if k in v.v]:
-        del h.v[k]
-    L.shade(h, only={CREAM})
-    v.merge(h, overwrite=False)
-
-
-def tuft(v):
-    """Topete creme: ponta em V na testa e uma chama alta que sobe do alto da cabeça e curva para +x."""
-    t = Vox()
-    top = max(k[1] for k in v.v if abs(k[0] + 0.5) <= 3 and v.v[k] != CREAM)
-    for x in range(-4, 4):                                       # ponta em V na testa
-        bottom = NECK + 17 - max(0, 2.5 - abs(x + 0.5))
-        for y in range(int(round(bottom)), top + 1):
+    top = max(k[1] for k in v.v if abs(k[0] + 0.5) <= 3)
+    import npcs_mundo_e as M
+    for layer in M.shell(v, lambda x, y, z: z <= 0 and y >= NECK + 8 and abs(x + 0.5) <= 6.5, thick=2):
+        for q in layer:                                               # cabelo atrás: só no meio da nuca (de frente, o
+            h.set(*q, CREAM)                                          # contorno da cabeça continua menta)
+    for x0 in range(-5, 6, 3):                                        # borda de baixo do cabelo em pontas
+        tri(h, (x0 - 1.4, NECK + 9), (x0 + 1.4, NECK + 9), (x0, NECK + 6.0), -8, -5, CREAM, CREAM_D)
+    for (a, b, c) in (((-6, top - 1), (5, top - 1), (4.5, top + 6.5)),      # mecha larga, ponta para +x
+                      ((2, top - 1), (8.5, top - 3), (11.5, top + 3.0)),      # segunda mecha, mais deitada
+                      ((-6, top - 2), (-1.5, top - 1), (-4.0, top + 3.5))):   # pontinha do outro lado
+        tri(h, a, b, c, -3, 4, CREAM, CREAM_D)
+    for (x, y) in [(x, y) for x in range(-3, 5) for y in range(NECK + 15, top + 1)]:   # mecha na testa (ponta em V)
+        if y >= NECK + 15 + abs(x - 0.5) * 0.9:
             z = front(v, x, y)
             if z is not None:
-                t.set(x, y, z + 1, CREAM)
-    for i in range(10):                                          # chama: base larga, curva para +x no alto
-        y = top - 3 + i
-        cx = -0.5 + 0.07 * i * i
-        hw = 4.8 * (1 - i / 10) ** 0.8 + 0.5
-        for x in range(int(cx - hw) - 1, int(cx + hw) + 2):
-            if abs(x + 0.5 - cx) <= hw:
-                for z in range(-3, 5 - i // 3):
-                    t.set(x, y, z, CREAM_D if (i > 7 or abs(x + 0.5 - cx) > hw - 1) else CREAM)
-    for k in [k for k in t.v if k in v.v and k[1] < top - 1]:
-        del t.v[k]
-    for (x, y, z) in list(t.v):                                  # dois tons fixos (a sombra roxa deixava rosado)
-        if (x, y + 1, z) not in t.v and t.v[(x, y, z)] == CREAM:
-            t.v[(x, y, z)] = C("#f8e6bd")
-    v.merge(t)
+                h.set(x, y, z + 1, CREAM)
+    for sx in (1, -1):                                                # os dois tufos de trás, até os ombros
+        b = Vox()
+        B.sblob(b, sx * 7.6, NECK + 7.0, -4.4, 3.0, 3.6, 2.8, CREAM, p=2.2)
+        B.sblob(b, sx * 9.9, NECK + 2.6, -4.6, 3.1, 4.8, 2.9, CREAM, p=2.2)
+        for (a, c2, tip) in (((7.4, NECK - 1.2), (10.6, NECK - 1.2), (8.6, NECK - 5.0)),
+                             ((9.8, NECK - 0.6), (12.9, NECK + 0.4), (12.6, NECK - 3.6))):
+            tri(b, (sx * a[0], a[1]), (sx * c2[0], c2[1]), (sx * tip[0], tip[1]), -6, -3, CREAM, CREAM_D)
+        for k in [k for k in b.v if (abs(k[0] + 0.5) < 6.5 and k[1] < NECK + 2) or k[2] > -2]:
+            del b.v[k]
+        h.merge(b)
+    for k in [k for k in h.v if k in v.v]:
+        del h.v[k]
+    for (x, y, z) in list(h.v):                                       # dois tons fixos: topo claro, sem sombra rosada
+        if (x, y + 1, z) not in h.v and h.v[(x, y, z)] == CREAM:
+            h.v[(x, y, z)] = C("#f8e6bd")
+    v.merge(h)
 
 
 def eyes(v, expr):
-    """Mancha verde-clara grande (6 × 7) com pupila escura de 3 × 5 do lado de dentro e brilho branco no alto."""
+    """Olho grande de íris escura (preta em cima, roxa embaixo, com a fenda descendo pelo roxo), brilhos brancos no
+    alto, e a asinha verde-clara recortada do lado de fora."""
     e0 = NECK + 7
-    for (x0, x1, px0) in ((-8, -3, -6), (2, 7, 3)):
-        joy = expr == "joy"
-        for x in range(x0, x1 + 1):
-            for y in range(e0, e0 + 7):
-                if (x in (x0, x1)) and (y in (e0, e0 + 6)):
-                    continue                                     # cantos arredondados
-                paint(v, x, y, EYE_W)
-        if joy:                                                  # olho feliz: arco escuro, mancha clara em volta
-            for x in range(x0 + 1, x1):
-                paint(v, x, e0 + 3, EYE_INK)
-                paint(v, x, e0 + 4 if x in (x0 + 2, x1 - 2) else e0 + 3, EYE_INK)
-            continue
-        pw, ph, py0 = {"surprise": (2, 3, e0 + 2), "determined": (2, 4, e0 + 1)}.get(expr, (3, 5, e0 + 1))
-        pxs = range(px0 + (1 if pw == 2 and px0 < 0 else 0), px0 + (1 if pw == 2 and px0 < 0 else 0) + pw)
-        for x in pxs:
-            for y in range(py0, py0 + ph):
-                paint(v, x, y, PUPIL)
-        hx = min(pxs)
-        paint(v, hx, py0 + ph - 1, EYE_HI)                       # brilho: canto de cima, lado da luz
-        if ph >= 4:
-            paint(v, hx, py0 + ph - 2, EYE_HI)
-        for x in range(x0 + 1, x1):                              # traço de cima
-            paint(v, x, e0 + 6, EYE_INK)
-        if expr == "determined":                                 # pálpebra baixa
+    for (x0, x1, outer, slit) in ((-7, -2, -8, -5), (1, 6, 7, 4)):
+        step = -1 if outer < 0 else 1
+        for y in range(e0 + 1, e0 + 6):                               # asinha de fora, recortada em pontas
+            paint(v, outer, y, EYE_W)
+            if y in (e0 + 2, e0 + 4):
+                paint(v, outer + step, y, EYE_W)
+        if expr == "joy":                                             # olho feliz: arco escuro
             for x in range(x0, x1 + 1):
-                paint(v, x, e0 + 5, EYE_INK)
+                paint(v, x, e0 + 3 + (1 if x in (x0 + 1, x1 - 1) else 0) - (1 if x in (x0, x1) else 0), EYE_INK)
+                if x not in (x0, x1):
+                    paint(v, x, e0 + 4 if x not in (x0 + 1, x1 - 1) else e0 + 5, EYE_INK)
+            continue
+        top = e0 + (4 if expr == "determined" else 5)
+        for x in range(x0, x1 + 1):
+            for y in range(e0, top + 1):
+                if (x in (x0, x1)) and (y in (e0, top)):
+                    continue                                          # cantos arredondados
+                col = PUPIL if y >= e0 + 3 else (IRIS_HI if y == e0 + 1 else IRIS_LO)
+                if x == slit and y < e0 + 3 and y > e0:
+                    col = PUPIL                                       # a fenda desce pelo roxo
+                paint(v, x, y, col)
+        hx = x0 + 1
+        if expr == "surprise":                                        # olhar arregalado: brilho pequeno, íris menor
+            paint(v, hx + 1, top - 1, EYE_HI)
+            for x in (x0, x1):
+                for y in range(e0, top + 1):
+                    paint(v, x, y, MINT)
+            continue
+        for (x, y) in ((hx, top - 1), (hx + 1, top - 1), (hx, top - 2), (hx + 1, top - 2)):   # brilho 2 × 2
+            paint(v, x, y, EYE_HI)
+        paint(v, x1 - 1, e0 + 1, EYE_HI)                              # brilhinho de baixo, do outro lado
+        if expr == "determined":
+            for x in range(x0, x1 + 1):
+                paint(v, x, top, EYE_INK)
 
 
 def brows(v, expr):
     lift = {"surprise": 1, "determined": -1}.get(expr, 0)
-    y = NECK + 15 + lift
-    for (a, b) in ((-6, -5), (4, 5)):
+    y = NECK + 14 + lift
+    for (a, b, sh) in ((-5, -4, -6), (3, 4, 5)):
+        paint(v, sh, NECK + 13, BROW_SH)                              # sombra verde embaixo e para fora
         for x in (a, b):
             paint(v, x, y, BROW)
             paint(v, x, y + 1, BROW)
-    if expr == "determined":                                     # inclinadas para o meio
-        paint(v, -4, y, BROW)
-        paint(v, 3, y, BROW)
+    if expr == "determined":                                          # inclinadas para o meio
+        paint(v, -3, y, BROW)
+        paint(v, 2, y, BROW)
 
 
 def mouth(v, expr):
     m0 = NECK + 3
-    for x in (-1, 0):                                            # narinas
-        paint(v, x, NECK + 6, NOSE)
-    if expr == "surprise":                                       # "o" redondo: 4 × 4 sem os cantos
-        for (y, a, b) in ((m0 + 2, -1, 0), (m0 + 1, -2, 1), (m0, -2, 1), (m0 - 1, -1, 0)):
+    paint(v, -2, NECK + 6, NOSE)                                      # focinho: curvinha e ponto
+    paint(v, 1, NECK + 6, NOSE)
+    if expr == "surprise":                                            # bocão aberto com língua e uma presa
+        for (y, a, b) in ((m0 + 1, -4, 3), (m0, -4, 3), (m0 - 1, -3, 2), (m0 - 2, -2, 1)):
             for x in range(a, b + 1):
                 paint(v, x, y, MOUTH)
+        for x in (-1, 0, 1):
+            paint(v, x, m0 - 1, TONGUE)
+        paint(v, 2, m0 + 1, CLAW)
+        paint(v, 2, m0, CLAW)
         return
-    if expr == "joy":                                            # boca aberta com as duas presas
-        for (y, a, b) in ((m0 + 2, -4, 3), (m0 + 1, -4, 3), (m0, -3, 2), (m0 - 1, -2, 1)):
+    if expr == "joy":                                                 # boca aberta com as duas presas
+        for (y, a, b) in ((m0 + 1, -4, 3), (m0, -4, 3), (m0 - 1, -3, 2)):
             for x in range(a, b + 1):
                 paint(v, x, y, MOUTH)
         for x in (-3, 2):
-            paint(v, x, m0 + 2, CLAW)
             paint(v, x, m0 + 1, CLAW)
-        for x in (-1, 0):                                        # língua
+            paint(v, x, m0, CLAW)
+        for x in (-1, 0):
             paint(v, x, m0 - 1, TONGUE)
         return
-    if expr == "determined":                                     # boca fechada, uma presa à mostra
-        for x in range(-3, 3):
-            paint(v, x, m0 + 1, MOUTH)
-        paint(v, 1, m0, CLAW)
+    for (x, y) in ((-3, m0 + 1), (-2, m0), (-1, m0 + 1), (0, m0 + 1), (1, m0), (2, m0 + 1)):   # ":3"
+        paint(v, x, y, EYE_INK)
+    if expr == "determined":                                          # uma presa à mostra
         paint(v, 1, m0 - 1, CLAW)
-        return
-    for (y, a, b) in ((m0 + 2, -3, 2), (m0 + 1, -3, 2), (m0, -2, 1)):   # sorriso aberto pequeno
-        for x in range(a, b + 1):
-            paint(v, x, y, MOUTH)
-    for x in (-2, 1):                                            # as duas presas, nos cantos de cima
-        paint(v, x, m0 + 2, CLAW)
-        paint(v, x, m0 + 1, CLAW)
+        paint(v, 1, m0 - 2, CLAW)
 
 
 def head(expr, base):
@@ -257,12 +277,9 @@ def head(expr, base):
 
 
 def head_base():
-    sk = skull()
-    v = Vox()
-    v.merge(sk)
-    frills(v)
-    hair(sk, v)
-    tuft(v)
+    v = skull()
+    ring(v)
+    hair(v)
     return v
 
 
@@ -303,23 +320,28 @@ def dress_torso(t):
 
 
 def dress_arms(arm, farm):
+    """Manga preta até o cotovelo; antebraço e mão de pelo marrom com tufos no punho e nas costas da mão; três garras."""
     for pos in list(arm.v):
         arm.v[pos] = BLACK
     lo = min(k[1] for k in farm.v)
     for (x, y, z) in list(farm.v):
         farm.v[(x, y, z)] = FUR if y < ELBOW - 1 else BLACK
-    for (x, y, z) in [k for k in farm.v if k[1] == ELBOW - 2]:  # punho de pelo em tufos, logo abaixo do cotovelo
-        if (x + z) % 2 == 0:
-            for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                q = (x + dx, ELBOW - 2, z + dz)
-                if q not in farm.v:
-                    farm.v[q] = FUR_L
+    for yy in (ELBOW - 2, lo + 4):                                    # tufos: punho de pelo e costas da mão
+        for (x, y, z) in [k for k in farm.v if k[1] == yy]:
+            if (x + z) % 2 == 0:
+                for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    q = (x + dx, yy, z + dz)
+                    if q not in farm.v:
+                        farm.v[q] = FUR_L
+                        if (x + dx + z + dz) % 3 == 0 and (x + 2 * dx, yy, z + 2 * dz) not in farm.v:
+                            farm.v[(x + 2 * dx, yy, z + 2 * dz)] = FUR_L     # ponta do tufo (encostada)
     hand = [k for k in farm.v if k[1] <= lo + 1]
     if hand:
         zmax = max(k[2] for k in hand)
-        for (x, y, z) in hand:                                   # garras: as pontas da frente da mão
-            if z >= zmax - 1 and y == lo:
-                farm.v[(x, y, z)] = CLAW
+        front_cells = sorted({k[0] for k in hand if k[2] == zmax})
+        for x in front_cells[:3]:                                     # três garras saindo da frente da mão
+            farm.v[(x, lo, zmax + 1)] = CLAW
+            farm.v[(x, lo + 1, zmax)] = FUR
     L.shade(farm, only={FUR})
 
 
@@ -345,18 +367,32 @@ def dress_legs(thigh, shin):
 
 
 def tail():
-    """Rabo de lagarto: nasce DENTRO da base das costas (junta firme, acima do topo das coxas), vai para trás e desce
-    até perto do chão; a ponta curva para o lado."""
+    """Rabo de lagarto PELUDO: nasce dentro da base das costas (junta firme, acima do topo das coxas), vai para trás e
+    desce até perto do chão; tufos pontudos no dorso e na ponta, com as pontas no verde-escuro do colar."""
     t = Vox()
-    pts = [(0, HIP + 2.5, -2.6, 1.9), (0, HIP + 2, -5.0, 2.0), (0, HIP, -7.0, 2.0), (0.2, HIP - 4, -8.5, 2.1), (0.8, HIP - 7, -11.0, 1.8),
-           (1.8, HIP - 9.5, -13.5, 1.5), (3.2, HIP - 11, -15.5, 1.25), (5.0, HIP - 11.6, -17.0, 1.0)]
+    pts = [(0, HIP + 2.5, -2.6, 1.9), (0, HIP + 2, -5.0, 2.0), (0, HIP, -7.0, 2.0), (0.2, HIP - 4, -8.5, 2.1),
+           (0.8, HIP - 7, -11.0, 1.8), (1.8, HIP - 9.5, -13.5, 1.5), (3.2, HIP - 11, -15.5, 1.25), (5.0, HIP - 11.6, -17.0, 1.0)]
     for (a, b) in zip(pts, pts[1:]):
         for i in range(9):
             u = i / 8
-            c = [a[k] + (b[k] - a[k]) * u for k in range(4)]
-            B.sblob(t, c[0], c[1], c[2], c[3], c[3], c[3], MINT, p=2.0)
-    for (x, y, z) in list(t.v):                                  # barriga do rabo um tom abaixo
-        if (x, y - 1, z) not in t.v and y > 3:
+            cc = [a[k] + (b[k] - a[k]) * u for k in range(4)]
+            B.sblob(t, cc[0], cc[1], cc[2], cc[3], cc[3], cc[3], MINT, p=2.0)
+    for (a, b) in zip(pts[2:-1], pts[3:]):                           # tufos no dorso: cunhas para cima e para trás
+        mx, my, mz, r = [(a[k] + b[k]) / 2 for k in range(4)]
+        for dz in (-0.8, 0.8):
+            tuft = Vox()
+            tri(tuft, (mz - 1.6, my + r - 0.5), (mz + 1.4, my + r - 0.5), (mz - 2.2, my + r + 2.2), 0, 0, MINT, FUR_G)
+            for (z, y, _), col in tuft.v.items():                     # o triângulo vive no plano (z, y)
+                t.set(int(round(mx + dz)), y, z, col)
+    tip = pts[-1]
+    tri_tip = Vox()
+    tri(tri_tip, (tip[2] + 0.8, tip[1] - 1.4), (tip[2] + 0.8, tip[1] + 1.4), (tip[2] - 2.6, tip[1] + 0.2), 0, 0,
+        MINT, FUR_G)
+    for (z, y, _), col in tri_tip.v.items():                          # tufo da ponta
+        for xx in (int(tip[0]) - 1, int(tip[0])):
+            t.set(xx, y, z, col)
+    for (x, y, z) in list(t.v):                                       # barriga do rabo um tom abaixo
+        if (x, y - 1, z) not in t.v and y > 3 and t.v[(x, y, z)] == MINT:
             t.v[(x, y, z)] = MINT_D
     L.shade(t, only={MINT})
     return t
@@ -408,13 +444,13 @@ def build_rig():
                 "weaponMode": "none", "weaponProfile": "npc_acapela",
                 "hands": {"r": [-EL_X - 0.3, 15.0, 1.0], "l": [EL_X + 0.3, 15.0, 1.0]},
                 "volumes": T.volumes(),
-                "note": "Acapela: criaturinha de rabo de lagarto, cabeça grande e franjada, topete creme, gola alta preta, "
-                        "jardineira roxa, mãos de pelo marrom"}
+                "note": "Acapela: criaturinha de rabo peludo de lagarto, cabeça redonda com tufinhos, cabelo creme espetado "
+                        "com dois tufos até os ombros, gola alta preta, jardineira roxa, patas de pelo marrom"}
     return rig
 
 
 # cores que vencem na reamostragem, da mais forte para a mais fraca
-FEATURES = [EYE_HI, CLAW, PUPIL, BROW, MOUTH, TONGUE, NOSE, EYE_INK, BUTTON]
+FEATURES = [EYE_HI, CLAW, PUPIL, BROW, MOUTH, TONGUE, NOSE, EYE_INK, IRIS_HI, IRIS_LO, EYE_W, BROW_SH, BUTTON]
 
 
 def scale_keep(v, scale):
