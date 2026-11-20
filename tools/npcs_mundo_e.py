@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """NPCs de ofício do mundo procedural (laboratório de conteúdo, estudo pós-rodada 12): Brásia, Quelmo e Arvel.
+APROVADOS pelo proprietário (2026-11-20); a integração como moradores dos conjuntos é do Claude principal.
 
 Moram nas construções da biblioteca que apareciam vazias na v2 (P76): a ferreira na oficina com forja, o feirante na
 barraca de feira, o caçador na cabana do caçador. A herbalista já existe (Índira) e o guardião também (Bramor):
@@ -73,9 +74,11 @@ PLACEMENT = {
                                "de frente para a rua; a forja fica atrás dela, à direita"],
                    acessorios=["coque preso por tira de couro (parte hat)", "avental de couro com alças cruzadas",
                                "luvas de couro", "mangas arregaçadas", "martelo no bolso do avental"]),
-    "quelmo": dict(construcao="market_stall", conjunto="comerciante", ponto="feirante",
-                   restricoes=["atrás do balcão, sob o toldo; as mercadorias da barraca escondem quase todo o corpo da "
-                               "câmera de jogo: vaga ao lado do balcão ou mercadorias mais baixas no meio"],
+    "quelmo": dict(construcao="market_stall", conjunto="comerciante", ponto="feirante_lateral",
+                   restricoes=["na vaga 'feirante_lateral' da barraca (ao lado da ponta direita do balcão, fora da aba "
+                               "do toldo, virado 35° para o balcão e o freguês); nunca no spawn antigo 'feirante', atrás "
+                               "do balcão, onde as mercadorias o escondem da câmera de jogo",
+                               "a barraca aprovada não muda (decisão do proprietário, 2026-11-20)"],
                    acessorios=["boina caída para a esquerda com pena (parte hat)", "casaco aberto", "faixa diagonal",
                                "avental curto", "bolsa de moedas no cinto"]),
     "arvel": dict(construcao="cabin_hunter", conjunto="cacador", ponto="cacador",
@@ -84,6 +87,8 @@ PLACEMENT = {
                               "corda a tiracolo", "bolsa de caça nas costas", "botas altas com punho de pele"]),
 }
 ANIMATIONS = ["idle", "walk", "run", "emote (aceno, idêntico ao npc_vila)", "oficio (clipe ATTACK)"]
+DECISAO = "proprietário, fechamento do estudo de NPCs de ofício e ruínas (2026-11-20): aprovado"
+INTEGRACAO = "aguardando o Claude principal: moradores dos conjuntos no gerador v2, depois da validação da rodada 12.1"
 
 LEATHER, LEATHER_D, LEATHER_L = P("#8a5a3c"), P("#6a4230"), P("#a9744c")
 IRON = C("#5d4a5a", "metal")
@@ -371,7 +376,8 @@ def build_one(key, out):
                        worldUnits=round(top * VS, 3), escala=round(scale, 4), role=s["role"], note=s["note"],
                        weaponProfile=s["profile"],
                        conteudo=dict(origem="laboratório de conteúdo, estudo de NPCs de ofício e ruínas (pós-rodada 12)",
-                                     aprovacao="candidato", animacoes=ANIMATIONS, **PLACEMENT[key]))
+                                     aprovacao="aprovado", decisao=DECISAO, integracao=INTEGRACAO,
+                                     animacoes=ANIMATIONS, **PLACEMENT[key]))
     scaled.meta["hands"] = {side: [round(q * scale, 2) for q in c] for side, c in rig.meta["hands"].items()}
     for vol in scaled.meta.get("volumes", []):
         vol["a"] = [round(q * scale, 2) for q in vol["a"]]
