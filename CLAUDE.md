@@ -12,9 +12,12 @@ vila ao fundo, personagens, mundos criados pela interface, aventura = personagem
 **publicadas** na tag `worlds-and-menus-v0.5` ([fechamento](docs/validation/relatorio-fechamento-rodadas-11.md);
 relatórios [11](docs/validation/relatorio-rodada-11.md) e [11.1](docs/validation/relatorio-rodada-11-1.md)). **Lotes 1 e
 2 de conteúdo** (PRs #3 e #5) integrados como **biblioteca**: 35 modelos, 6 variantes e 5 conjuntos no catálogo e nas
-vitrines, sem distribuição no gerador ([relatório](docs/validation/relatorio-integracao-conteudo.md)). Próximo passo do
-conteúdo: versões do gerador ([ADR 0029](docs/decisions/0029-versoes-do-gerador.md), proposta) e colisão composta
-([proposta](docs/architecture/colisao-composta.md)). O checkpoint anterior é
+vitrines ([relatório](docs/validation/relatorio-integracao-conteudo.md)). **Rodada 12 — "Mundos com Identidade"**
+(ramo LOCAL `feature/world-generation-v2`, à espera da avaliação do proprietário: sem push, sem PR): versões do gerador
+convivendo ([ADR 0029](docs/decisions/0029-versoes-do-gerador.md), implementada; a v1 congelada, a v2 padrão dos mundos
+novos), [colisão composta](docs/architecture/colisao-composta.md) (oficina, ruína de casa e barraca liberadas), gerador
+v2 com a biblioteca (vilas de caminho e rurais, conjuntos inteiros, ruína a explorar) e a primeira descoberta com
+recompensa ([relatório](docs/validation/relatorio-rodada-12.md)). O checkpoint anterior é
 `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
@@ -41,6 +44,9 @@ export JAVA_HOME=~/.sdkman/candidates/java/current
 ./gradlew jogo                                      # menu principal → personagem → mundo (vila ou gerado) → aventura (rodada 11.1)
 ./gradlew jogo -Dvx.menu=nao                        # entrada antiga: escolha de aparência na vila (padrão dos roteiros)
 tools/review111.sh [capturas|resolucoes|video|desempenho|transicoes|testes|validadores|regressao|zip]  # 11.1: menu (tools/menu/), dados TEMPORÁRIOS
+./gradlew jogo -Dvx.mundo=procedural -Dvx.gerador=1|2 -Dvx.semente=1024   # rodada 12: região v1 (congelada) ou v2 (padrão dos mundos novos)
+tools/review12.sh [vistas|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # rodada 12: v2, v1 × v2, demo, saves antigos (RAIZ_ANTIGA=...)
+python3 tools/conteudo/formas_compostas.py          # rodada 12: formas de colisão compostas medidas dos voxels → colisao_e.json (revise o diff)
 ./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024   # rodada 11: região gerada pela semente (save em output/saves-procedural/s1024/)
 tools/review11.sh [vistas|videos|desempenho|testes|validadores|regressao|zip]   # rodada 11: sementes 1024 2048 4096 77 (tools/mundo/)
@@ -147,18 +153,28 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **Validação:** só vale se passar na colisão real (`Reachability`), com no máximo 4 tentativas; senão a semente é
     recusada com motivo.
   - **Missões:** vêm de modelo + fatos (sem fatos, sem missão), com ids estáveis e sem coordenadas.
-  - **Versão:** mudou o resultado de uma semente → é uma versão nova do gerador. As 8 sementes da v1 estão fixadas
-    (`RegionGoldenTest`, `regioes-v1.txt`); **nunca** atualize a referência para passar. Subir `VERSION` hoje recusa
-    todos os mundos v1: antes, o despacho por versão da [ADR 0029](docs/decisions/0029-versoes-do-gerador.md).
+  - **Versões** (rodada 12, [ADR 0029](docs/decisions/0029-versoes-do-gerador.md)): cada mundo é gerado, para sempre,
+    pela versão com que nasceu (`mundo.json`/save v2 → `ProceduralScene.create(assets, semente, versão)`); `LATEST = V2`
+    para mundos novos. Mudou o resultado de uma semente → é uma VERSÃO NOVA (classe nova, rótulos novos), nunca uma mudança
+    no caminho de uma versão publicada. As 8 sementes de cada versão estão fixadas (`RegionGoldenTest`, `regioes-v1.txt`,
+    `regioes-v2.txt`); **nunca** atualize uma referência para passar. Versão desconhecida = não abre, nada tocado, sem
+    `.invalido`. Guia: `docs/processo/como-evoluir-o-gerador.md`.
+  - **v2** (`RegionV2`): lê o perfil CONGELADO `assets/scenes/regiao_v2_e.json` (nunca o catálogo gerado); conjuntos
+    postos inteiros; restritos só em conjuntos; a ruína com patamar, trilha e descoberta.
   - **Save v2:** guarda o mundo e os vínculos, e recusa diferença. O v1 fica intacto.
 - **Biblioteca de conteúdo** (lotes 1 e 2, ADR 0030, skill `conteudo-mundo`,
   [guia](docs/processo/como-integrar-conteudo-ao-mundo.md)):
   - **Registro × carga:** registrar no `props.json` não é carregar. O `Assets.props` malha só o que a cena pede; nunca
     itere o catálogo inteiro.
   - **Três aprovações separadas:** artística, integração e distribuição procedural. Aprovado na arte ≠ pronto para o jogo.
-  - **Liberação:** só `liberado` entra em cena de jogo. Os que dependem de colisão composta esperam a
-    [extensão](docs/architecture/colisao-composta.md); `restrito_a_conjuntos` nunca sai solto.
-  - **Gerador:** nada da biblioteca entra no gerador v1.
+  - **Liberação:** só `liberado` entra em cena de jogo; `restrito_a_conjuntos` nunca sai solto.
+  - **Colisão composta** (rodada 12, [contrato](docs/architecture/colisao-composta.md)): perfil `composta` em
+    `colisao_e.json`, formas medidas dos voxels por `tools/conteudo/formas_compostas.py` (corpo, câmera, piso elevado
+    pisável). Composto liberado ⇔ percorrido pelo `CompositeCollisionTest` em 5 rumos. Ponto de interação = o objeto (de
+    pé a até 1 u); inalcançável é defeito do ponto ou do modelo, nunca da conferência.
+  - **Gerador:** nada da biblioteca entra no gerador v1; a v2 distribui os liberados.
+  - **Descobertas** (rodada 12): `descobertas_e.json` (dados), `QuestSystem.discover` (uma vez), `progresso.descobertas`
+    opcional no save (sem v3).
 - **Porta de entrada** (rodada 11.1, ADRs 0027–0028, [menus](docs/architecture/menus.md)):
   - **Regras sem GL:** `MenuFlow` (telas, campos, pedidos); `Game` cumpre os pedidos em transições por passos com
     rótulo real (nunca porcentagem); `MenuView` desenha e fecha os próprios recursos.
@@ -219,5 +235,6 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Porta de entrada (11.1) | `vx.game.menu`: `MenuFlow`, `CharacterStore`, `WorldStore`, `Cinematic`; `vx.game`: `MenuView`, `Game` (sessões, transições, pedidos, câmera do menu), `GameLogic` (`MENU`, `beginAdventure`, `leaving`); criador: `CreatorState.cancelLabel`; dados `assets/scenes/apresentacao_e.json`; `MenuStoresTest`, `MenuFlowTest`, `MenuAdventureTest`, `ApresentacaoTest`; roteiros `tools/menu/`; `docs/architecture/menus.md`, `perfis-de-personagem.md`, `catalogo-de-mundos.md` |
 | Mundo procedural (11) | `viewer`: `TerrainField`, `World.LEGACY`, `World(assets, style, field, doc)`, `Terrain.of(field)`; `vx.game.world`: `Rng`, `RegionLayout`, `ProceduralField`, `RegionGenerator`; `vx.game`: `ProceduralScene`, `Reachability`, `SceneDef.fromDoc`, `SaveGame` v2; dados `habitantes_e.json`, `modelos_missao_e.json`; `ProceduralWorldTest`; roteiros `tools/mundo/`; `docs/architecture/mundo-procedural.md` + contratos |
 | Biblioteca de conteúdo (lotes 1 e 2) | `tools/conteudo_lib.py`, `conteudo_construcoes.py`, `conteudo_vegetacao.py`, `conteudo_poi.py`, `conteudo_props.py`, `conteudo_assentamento.py`, `conteudo_conjuntos.py`, `conteudo_e.py` → `props.json` + `conteudo_catalogo.json` (gerados); QA `tools/conteudo/`; vitrines `assets/scenes/vitrine_conteudo_*`, `bench_conteudo_*`; `viewer`: `Assets.PropSet` (sob demanda); `ConteudoMundoTest`, `AssetsLazyTest`, `RegionGoldenTest`; `docs/architecture/catalogo-de-conteudo.md`, `colisao-composta.md`, `docs/art/conteudo-mundo.md`; skill `conteudo-mundo` |
+| Gerador v2 e descobertas (12) | `vx.game.world`: `RegionGenerator` (`V1`/`V2`/`LATEST`, `compose(…, versão, perfil, …)`), `RegionV2`, `RegionProfile`, `RegionLayout` (`version`, `key()`, `pads`, `branches`, `buildings`, `checkpoints`), `ProceduralField` (patamares e trilhas da v2); `vx.game`: `Collision.addComposite`, `Reachability` (checkpoints), `ProceduralScene.create(…, versão)`, `SaveGame.peekGenerator`, `WorldStore.World.supported()`, `QuestSystem.discover`, `SceneDef.Discovery`, `GameLogic.useDiscovery`; dados `regiao_v2_e.json`, `descobertas_e.json`, `colisao_e.json` (compostos); `tools/conteudo/formas_compostas.py`, `perfil_regiao_v2.py`; roteiros `tools/mundo/04-vistas-v2.txt`, `05-demo-v2.txt`, `06-demo-v1-antigo.txt`; `GeneratorVersionTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `DiscoveryTest`, `RegionGoldenTest`; `docs/processo/como-evoluir-o-gerador.md` |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |

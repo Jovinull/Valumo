@@ -55,9 +55,18 @@ Depois, os **lotes 1 e 2 do laboratório de conteúdo** entraram como **bibliote
 - vitrines de vila;
 - um catálogo com medidas, pontos e estado de cada um.
 
-Nenhuma região gerada mudou: a distribuição espera uma versão nova do gerador e a colisão composta. O jogo só carrega o
-que a cena usa ([relatório](docs/validation/relatorio-integracao-conteudo.md),
+O jogo só carrega o que a cena usa ([relatório](docs/validation/relatorio-integracao-conteudo.md),
 [guia](docs/processo/como-integrar-conteudo-ao-mundo.md)).
+
+A **Rodada 12 — "Mundos com Identidade"** (em avaliação, ramo local) pôs essa biblioteca nos mundos gerados:
+
+- **Versões do gerador convivendo:** um mundo criado antes continua idêntico, para sempre, e os novos nascem na v2.
+- **A v2:** vilas de caminho (praça com chafariz, comércio, oficina) e rurais (sítios, horta, paiol, caçador), com os
+  conjuntos de ofício inteiros e uma ruína fora da vila, com trilha própria.
+- **Colisão composta:** dá para entrar na oficina e na ruína.
+- **Exploração:** a primeira descoberta com recompensa, na lareira da ruína.
+
+Detalhes no [relatório](docs/validation/relatorio-rodada-12.md) e no [guia](docs/processo/como-evoluir-o-gerador.md).
 
 ## Requisitos
 
