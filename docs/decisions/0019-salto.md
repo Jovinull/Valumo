@@ -53,3 +53,52 @@ Altura (0,62 u), tempo no ar (~0,42 s), coyote (0,09 s) e buffer (0,12 s) contin
    horizontal não cai (`landingWhileRunningDoesNotStopTheRun`). Parado, os pés abrem.
 5. **Prévia no visualizador:** `salto=parado|andando|correndo` reproduz a física do `Player` para pranchas de perfil.
    `salto=antigo-…` mostra a apresentação da 09.2 para comparação.
+
+## Adendo — rodada 12.1: o salto que sobe nas coisas (a física mudou, a pedido do proprietário)
+
+**Contexto:** no teste físico da rodada 12, o proprietário relatou:
+
+- o salto parecia curto e pesado;
+- não se subia em pedras pequenas onde daria para ficar em cima;
+- quem pulava sobre uma parede quebrada da ruína afundava nela.
+
+A referência pedida foi a dos jogos de exploração em voxel em que o salto é a ferramenta de andar pelo mundo, não só de
+desviar na luta.
+
+**Decisão** (números só em `combate_e.json → salto` e `sensacao.*.ar`):
+
+| | 09.2–12 | 12.1 |
+|---|---|---|
+| altura | 0,62 u | **1,0 u**: com o degrau de 0,30 u no ar, alcança topos até 1,30 u |
+| gravidade subida / queda | 24 / 34 u/s² | **18 / 26**: sobe em 0,33 s, desce em 0,28 s; continua caindo mais rápido do que sobe |
+| tempo no ar | ~0,42 s | ~0,61 s |
+| coyote / buffer | 0,09 / 0,12 s | **0,11 / 0,15 s** |
+| controle no ar (perfil C) | 55% | **85%**: corrige o rumo no ar, dá para mirar o topo de uma pedra |
+
+**A regra de suporte é a mesma para tudo** (`Collision.supports`):
+
+- **Antes:** só o pisável segurava.
+- **Agora:** todo sólido segura quem está acima dele, menos pessoa e objeto de missão.
+- **Por quê:** um corpo para de empurrar quando o topo está a até um degrau dos pés. Quem pousava em cima de uma cerca ou
+  de um muro baixo ficava num sólido que não empurrava nem segurava, e afundava.
+
+**Medido:**
+
+- `MobilityTest`: todo sólido segura o salto; pessoa nunca é plataforma; a casa fica fora do alcance.
+- `CompositeCollisionTest`: a muralha de 1 u da torre se sobe com um salto andando.
+
+**O que não muda:**
+
+- golpe no ar, salto duplo e escalada continuam fora;
+- a animação continua a da 09.3, sobre a física nova;
+- a esquiva não muda;
+- a câmera de exploração continua a da rodada 08 (a suavização de altura `visualY` é a mesma);
+- desnível maior que o alcance continua parede.
+
+**Consequências:**
+
+- Sobe-se em pedra média, toco, tronco caído, caixote, cerca, mureta e no muro baixo das ruínas.
+- Não se sobe em casa (o telhado fica fora do alcance) nem em árvore (o corpo do tronco tem a altura da árvore inteira).
+- Os validadores de salto leem a janela do JSON (`DodgeJumpPolishTest`), nunca um número copiado.
+- A referência das regiões (`RegionGoldenTest`) usa uma cópia congelada do combate da referência, porque o salto muda o
+  JSON de combate e não muda nenhuma região.
