@@ -409,16 +409,27 @@ final class RegionV2 {
             sampleCurve(new float[][]{start, door}, 0.5f, pts);
             L.branches.add(new RegionLayout.Branch(List.copyOf(pts), L.plateauH, L.plateauH, false));
         }
-        // ---- moradores: o Bramor na torre de vigia (se houver), os outros nas vagas da praça
+        // ---- moradores dos ofícios (rodada 12.1, P76): cada conjunto posto tem um ofício (o do catálogo) e o spawn do
+        // trabalhador na âncora; QUEM exerce o ofício vem do perfil congelado (habitantes_e.json → oficio), nunca do nome do
+        // NPC. Um morador por conjunto, um conjunto por morador, um spawn por morador; sem ninguém para o ofício, o spawn
+        // fica vazio (o conjunto se lê pelos objetos) até o personagem novo entrar no perfil (moradores-dos-oficios.md).
+        // RNG próprio: pôr ou tirar um morador não move construção, POI nem missão. Depois, os outros nas vagas da praça
         List<String> pool2 = new ArrayList<>(List.of(RegionGenerator.RESIDENTS));
         if (L.pond == null) pool2.remove("ondina");
-        for (RegionLayout.Building b : L.buildings)
-            if ("conjunto.guardiao".equals(b.set())) {
-                RegionProfile.Point v = P.asset("tower_watch").spawns().getFirst();
-                float[] w = world(b.x(), b.z(), b.rotDeg(), v.x() + 0.5f, v.z() + 0.9f);
-                L.npcs.add(new RegionLayout.Npc("bramor", w[0], w[1], b.rotDeg() + 20f));
-                pool2.remove("bramor");
-            }
+        Rng wr = Rng.of(L.seed, "v2", L.regionId, "oficios", a);
+        for (RegionLayout.Building b : L.buildings) {
+            if (b.set() == null) continue;
+            RegionProfile.SetDef sd = P.set(b.set());
+            List<String> who = new ArrayList<>(P.workers(sd.trade()));
+            who.retainAll(pool2);
+            RegionProfile.Point sp = P.asset(sd.anchor()).spawns().stream().filter(p -> "npc".equals(p.kind())).findFirst().orElse(null);
+            if (who.isEmpty() || sp == null) continue;
+            String id = who.get(wr.below(who.size()));
+            float[] w = world(b.x(), b.z(), b.rotDeg(), sp.x(), sp.z());
+            L.npcs.add(new RegionLayout.Npc(id, w[0], w[1], b.rotDeg()));       // de frente para a praça, como o conjunto
+            L.workers.add(new RegionLayout.Worker(id, sd.trade(), b.set(), sp.id()));
+            pool2.remove(id);
+        }
         int count = 2 + sr.below(2);
         List<float[]> ring = new ArrayList<>();
         for (int k = 0; k < 28; k++) ring.add(new float[]{sr.range(0f, 360f), sr.range(plaza - 0.4f, plaza + 1.8f)});

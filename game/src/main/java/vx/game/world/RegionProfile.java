@@ -46,6 +46,8 @@ public final class RegionProfile {
 
     private final Map<String, Asset> assets;
     private final Map<String, SetDef> sets;
+    /** Rodada 12.1 (P76): ofício de conjunto → moradores que o exercem (em ordem; vazio = o spawn fica sem ninguém). */
+    private final Map<String, List<String>> workers = new java.util.TreeMap<>();
 
     private RegionProfile(Map<String, Asset> assets, Map<String, SetDef> sets) {
         this.assets = Collections.unmodifiableMap(assets);
@@ -59,6 +61,9 @@ public final class RegionProfile {
     }
 
     public boolean has(String id) { return assets.containsKey(id); }
+
+    /** Os moradores que exercem o ofício (do perfil congelado; nunca pelo nome do NPC). */
+    public List<String> workers(String trade) { return workers.getOrDefault(trade, List.of()); }
 
     public SetDef set(String id) {
         SetDef s = sets.get(id);
@@ -99,6 +104,12 @@ public final class RegionProfile {
                     b.get(0).getAsFloat(), b.get(1).getAsFloat(), b.get(2).getAsFloat(), b.get(3).getAsFloat()));
         }
         RegionProfile r = new RegionProfile(assets, sets);
+        if (o.has("oficios"))                                              // rodada 12.1 (opcional: perfil sem moradores de ofício)
+            for (var e : o.getAsJsonObject("oficios").entrySet()) {
+                List<String> who = new ArrayList<>();
+                for (JsonElement n : e.getValue().getAsJsonArray()) who.add(n.getAsString());
+                r.workers.put(e.getKey(), List.copyOf(who));
+            }
         for (SetDef s : sets.values()) {                                    // tudo o que um conjunto usa está no perfil
             r.asset(s.anchor());
             for (Item i : s.items()) r.asset(i.prop());
