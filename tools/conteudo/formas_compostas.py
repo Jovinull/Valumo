@@ -3,12 +3,11 @@
 
 * Assets com interior (o catálogo marca `colisao.formas`): perfil `"tipo": "composta"`, com as formas MEDIDAS dos voxels
   no espaço do modelo (u), que giram com o prop:
-    - corpo: cada coluna de voxels com algo na faixa [0,375; 1,2) u — acima do degrau, abaixo da cabeça do herói —, da
-      base desse voxel ao topo da parede contínua (vão de até 2 voxels conta como parede: janela, frincha), fundidas em
-      retângulos gulosos na resolução do voxel. Peça baixa (topo < 1,2 u: bigorna, tina, balcão) não bloqueia a câmera;
-      peça de até 0,8 u é pisável (como o caixote);
-    - arco, lintel, telhado, toldo: o que fica acima da parede contínua ou só existe acima da cabeça vira forma SÓ de
-      câmera (corpo livre), fundida numa grade de 0,25 u, da base ao topo do que está lá.
+    - sólido (rodada 12.1): toda peça que começa abaixo da cabeça de quem está no chão sob ela é corpo E pisável, com a
+      base e o topo EXATOS do voxel (laje, degrau, parede, peça baixa, muro quebrado); fundidas em retângulos SÓ entre
+      colunas da mesma base e do mesmo topo. Peça baixa (topo < 1,2 u) não bloqueia a câmera;
+    - arco, lintel, telhado, toldo e a copa acima da cabeça: forma SÓ de câmera (corpo livre), fundida numa grade de
+      0,25 u, da base ao topo do que está lá.
 * Os outros assets da biblioteca: o perfil simples que o catálogo já entrega (`colisao`, sem as notas); variantes
   publicadas (`<id>__…`) usam o do original por prefixo (`"<id>*"`).
 
@@ -18,6 +17,7 @@ arquivo sai byte a byte igual. Revise o diff antes de commitar; o teste Composit
     python3 tools/conteudo/formas_compostas.py [--conferir]
 """
 import json
+import math
 import os
 import sys
 
@@ -27,14 +27,19 @@ import voxlib  # noqa: E402
 
 ENV = os.path.join(ROOT, "assets", "environment", "e")
 COL = os.path.join(ROOT, "assets", "scenes", "colisao_e.json")
-BODY_LO = 0.375          # faixa do corpo (o que fica acima do degrau): a mesma do catálogo (collision_boxes)
 HEAD = 1.2               # altura do herói (Player.HEIGHT): o que começa acima disto não bloqueia o corpo
 GAP = 2                  # vão (em voxels) que ainda conta como a mesma parede
 CAMERA_MIN = 1.2         # topo abaixo disso: peça baixa, a câmera passa por cima
-STAND_MAX = 0.8          # topo até isso: pisável (o salto sobe; caixote 0,5, barril 0,75)
 GRID = 0.25              # grade das formas de câmera (a da conferência de alcance)
-STEP = 0.30              # o degrau que se sobe a pé (Player.STEP): o topo do piso elevado pisável
-FLOOR_MIN = 0.25         # laje abaixo da faixa do corpo com topo a partir disto = piso elevado
+REACH = 2.0              # topo que ninguém alcança (laje 0,375 + salto + degrau < 2 u): o topo exato só importa à câmera,
+                         # então paredes altas agrupam o topo numa grade de GRID para cima (menos formas, mesmo corpo)
+STEP = 0.30              # o degrau que se sobe a pé (Player.STEP); no ar também se pega um topo até um degrau acima dos pés
+
+
+def jump_reach():
+    """Quanto acima dos pés o herói pega um topo: a altura do salto (combate_e.json → salto) mais o degrau."""
+    doc = json.load(open(os.path.join(ROOT, "assets", "scenes", "combate_e.json"), encoding="utf-8"))
+    return doc["salto"]["altura"] + STEP
 
 
 def r4(v):
@@ -59,21 +64,55 @@ def columns(name, man, foliage=False):
     return cols, vs
 
 
-def run_top(spans, vs):
-    """Topo da coluna contínua que começa na faixa do corpo (None se a coluna não tem nada nela) e o que sobra acima."""
-    start = next((i for i, (a, b) in enumerate(spans) if b > BODY_LO and a < BODY_HI), None)
-    if start is None:
-        return None, [s for s in spans if s[0] >= BODY_LO]
-    top = spans[start][1]
-    i = start + 1
-    while i < len(spans) and spans[i][0] - top <= GAP * vs + 1e-6:
-        top = max(top, spans[i][1])
-        i += 1
-    return top, spans[i:]
-
-
 def inside(px, pz, rect):
     return rect[0] <= px < rect[2] and rect[1] <= pz < rect[3]
+
+
+def reachable_tops(runs_of, jump, vs):
+    """Topos que o herói alcança: busca sobre os lugares de pé (coluna, altura), a partir do chão livre em volta. Um lugar
+    só é de pé se o corpo cabe ali: nenhuma coluna a até RADIUS tem sólido entre um degrau acima dos pés e a cabeça (sem
+    isso a busca subia por saliências de 1 voxel até o telhado). De um lugar de pé passa a outro vizinho até `jump` acima
+    (salto + degrau) ou mais abaixo. Não confere o caminho pelo ar: no máximo sobra forma sólida onde ninguém chega."""
+    from collections import deque
+    rad = max(1, round(0.26 / vs))                                         # o raio do herói (Player.RADIUS) em voxels
+    xs = [c[0] for c in runs_of]
+    zs = [c[1] for c in runs_of]
+    x0, x1, z0, z1 = min(xs) - rad - 1, max(xs) + rad + 1, min(zs) - rad - 1, max(zs) + rad + 1
+
+    def fits(c, t):
+        for dx in range(-rad, rad + 1):
+            for dz in range(-rad, rad + 1):
+                for lo, hi in runs_of.get((c[0] + dx, c[1] + dz), ()):
+                    if hi > t + STEP + 1e-6 and lo < t + HEAD - 1e-6:
+                        return False
+        return True
+
+    def places(c):
+        runs = runs_of.get(c, [])
+        out = [] if runs and runs[0][0] <= 1e-6 else [(-1, 0.0)]          # o chão, se a coluna está livre embaixo
+        out += [(k, r[1]) for k, r in enumerate(runs)]
+        return [(k, t) for k, t in out if fits(c, t)]
+
+    seen, q = set(), deque()
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            for k, t in places((x, z)):
+                if k == -1 and (x in (x0, x1) or z in (z0, z1)):        # a borda: o chão de fora, por onde se chega
+                    seen.add(((x, z), -1))
+                    q.append(((x, z), 0.0))
+    while q:
+        (x, z), h = q.popleft()
+        for dx in (-1, 0, 1):
+            for dz in (-1, 0, 1):
+                n = (x + dx, z + dz)
+                if not (x0 <= n[0] <= x1 and z0 <= n[1] <= z1):
+                    continue
+                for k, t in places(n):
+                    if (n, k) in seen or t > h + jump + 1e-6:
+                        continue
+                    seen.add((n, k))
+                    q.append((n, t))
+    return {s for s in seen if s[1] >= 0}
 
 
 def merge(cells, grid):
@@ -99,29 +138,48 @@ def merge(cells, grid):
 
 
 def composite(name, rec, man):
-    """Formas medidas coluna a coluna (o voxel do modelo): o que bloqueia o CORPO é a coluna com voxel na faixa
-    [0,375; 1,2) u — acima do degrau, abaixo da cabeça do herói —, da base desse voxel ao topo da parede contínua; o que
-    fica acima (arco, lintel, telhado, toldo), o que só existe acima da cabeça e a copa de folhagem acima da cabeça seguram
-    só a câmera."""
+    """Formas medidas coluna a coluna (o voxel do modelo). Rodada 12.1: UMA regra para tudo o que é sólido.
+
+    Em cada coluna, os voxels (sem folhagem) formam corridas contínuas (vão de até GAP voxels conta como a mesma peça).
+    Subindo a partir do chão (0):
+      - corrida que começa abaixo de chão + altura do herói é SÓLIDA: corpo E pisável, com a base e o topo EXATOS do
+        voxel (laje, degrau, parede, bigorna, muro quebrado). Quem está acima dela fica em cima; quem está ao lado e
+        abaixo do topo menos um degrau é barrado; um degrau (topo até 0,30 u acima dos pés) se sobe andando.
+        Segura a câmera se o topo passa de 1,2 u (peça baixa: a câmera passa por cima);
+      - o que começa a uma altura de herói ou mais acima do topo sólido (arco, lintel, telhado, toldo) é SÓ de câmera.
+    A copa de folhagem acima da cabeça também é só de câmera. Fusão em retângulos gulosos SÓ entre colunas da mesma
+    base e do mesmo topo: um retângulo nunca tem um topo que a geometria não tem (rodada 12: a parede em degraus virava
+    um bloco com o topo do degrau mais alto, e quem pulava nela afundava)."""
     cols, vs = columns(name, man)
-    body, upper, floor = {}, {}, {}
+    runs_of = {}
     for (px, pz), spans in cols.items():
         i, j = round((px - vs / 2) / vs), round((pz - vs / 2) / vs)
-        low = [b for a, b in spans if a < BODY_LO - 1e-6]
-        if low and max(low) >= FLOOR_MIN - 1e-6:                          # laje de piso elevada (oficina, ruína: 0,375 u)
-            floor[(i, j)] = (0.0, max(low))
-        first = next((k for k, (a, b) in enumerate(spans) if a >= BODY_LO - 1e-6 and a < HEAD), None)
-        rest = spans
-        if first is not None:
-            lo, top, k = spans[first][0], spans[first][1], first + 1
-            while k < len(spans) and spans[k][0] - top <= GAP * vs + 1e-6:
-                top = max(top, spans[k][1])
-                k += 1
-            body[(i, j)] = (lo, top)
-            rest = spans[k:]
-        rest = [sp for sp in rest if sp[0] >= BODY_LO - 1e-6]
-        if rest:
-            upper[(i, j)] = (rest[0][0], rest[-1][1])
+        runs = []
+        for a0, b0 in spans:
+            if runs and a0 - runs[-1][1] <= GAP * vs + 1e-6:
+                runs[-1][1] = max(runs[-1][1], b0)
+            else:
+                runs.append([a0, b0])
+        runs = [[max(a0, 0.0), b0] for a0, b0 in runs if b0 > 1e-6]      # sem a fundação enterrada
+        if runs:
+            runs_of[(i, j)] = runs
+    reach = reachable_tops(runs_of, jump_reach(), vs)
+    solid, upper = {}, {}
+    for (i, j), runs in runs_of.items():
+        f, pieces = 0.0, []
+        for k, (lo, hi) in enumerate(runs):
+            # sólido: começa abaixo da cabeça de quem está no topo sólido de baixo, OU o herói alcança o topo dele (degrau
+            # alto de escada, beiral ao lado de um balcão): o que se alcança tem de segurar, senão se atravessa a pedra
+            if lo < f + HEAD - 1e-6 or ((i, j), k) in reach:
+                top = hi if hi <= REACH else math.ceil(hi / GRID - 1e-6) * GRID
+                pieces.append((r4(lo), r4(top)))
+                f = hi
+            else:
+                rest = runs[k:]
+                upper[(i, j)] = (rest[0][0], rest[-1][1])
+                break
+        if pieces:
+            solid[(i, j)] = tuple(pieces)
     # folhagem não empurra o corpo (o herói passa entre os arbustos), mas a COPA acima da cabeça segura a câmera, como a
     # copa das árvores soltas (perfil "tronco": copa só para a câmera). Arbusto baixo (abaixo da cabeça) não segura nada
     leaves, _ = columns(name, man, foliage=True)
@@ -132,21 +190,17 @@ def composite(name, rec, man):
             a, b = upper.get((i, j), (1e9, -1e9))
             upper[(i, j)] = (min(a, high[0][0]), max(b, high[-1][1]))
     shapes = []
-    # piso elevado onde não há corpo: pisável, com o topo no degrau que se sobe a pé (o herói entra sem pular; o pé fica
-    # no máximo 0,075 u abaixo da laje de 0,375). Não bloqueia corpo nem câmera
-    for k in list(floor):
-        if k in body:
-            del floor[k]
-    for (x0, z0, x1, z1, lo, hi) in merge(floor, vs):
-        shapes.append({"tipo": "caixa", "min": [r4(x0), r4(z0)], "max": [r4(x1), r4(z1)], "altura": [0.0, min(r4(hi), STEP)],
-                       "corpo": False, "camera": False, "pisavel": True})
-    for (x0, z0, x1, z1, lo, hi) in merge(body, vs):
-        s = {"tipo": "caixa", "min": [r4(x0), r4(z0)], "max": [r4(x1), r4(z1)], "altura": [r4(lo), r4(hi)]}
-        if hi < CAMERA_MIN:
-            s["camera"] = False
-        if hi <= STAND_MAX:
-            s["pisavel"] = True
-        shapes.append(s)
+    # sólidos: agrupados pela (base, topo) exata de cada peça da coluna; um retângulo por grupo contíguo
+    groups = {}
+    for cell, pieces in solid.items():
+        for piece in pieces:
+            groups.setdefault(piece, {})[cell] = piece
+    for (lo, hi) in sorted(groups):
+        for (x0, z0, x1, z1, _, _) in merge(groups[(lo, hi)], vs):
+            s = {"tipo": "caixa", "min": [r4(x0), r4(z0)], "max": [r4(x1), r4(z1)], "altura": [lo, hi], "pisavel": True}
+            if hi < CAMERA_MIN:
+                s["camera"] = False
+            shapes.append(s)
     # o que fica acima: só para a câmera, numa grade mais grossa (o telhado não precisa de precisão de voxel)
     coarse = {}
     k = max(1, round(GRID / vs))
