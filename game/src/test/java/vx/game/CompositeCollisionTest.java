@@ -38,7 +38,7 @@ class CompositeCollisionTest {
     static final float[] YAWS = {0f, 90f, 180f, 270f, 37f};
     static final String[] COMPOSITE = {"workshop_forge", "ruin_tower", "ruin_house", "market_stall"};
     /** Os que se entram (a torre arruinada não: ver {@link #aTorreArruinadaTemAPortaEstreitaDemaisENaoELiberada}). */
-    static final String[] ENTERABLE = {"workshop_forge", "ruin_house", "market_stall"};
+    static final String[] ENTERABLE = {"workshop_forge", "ruin_house", "market_stall", "ruin_tower"};
     static final float CELL = 0.125f, NPC = 0.3f;
     static final float OX = 6.0f, OZ = -4.0f;                            // longe da origem: a translação também conta
 
@@ -96,7 +96,10 @@ class CompositeCollisionTest {
         }
     }
 
-    static Flood flood(Collision c, float sx, float sz) {
+    static Flood flood(Collision c, float sx, float sz) { return flood(c, sx, sz, Player.RADIUS); }
+
+    /** A busca com um corpo de raio {@code rad} (a folga: um corpo mais largo que o do herói também passa?). */
+    static Flood flood(Collision c, float sx, float sz, float rad) {
         float x0 = OX - 8f, z0 = OZ - 8f;
         int n = (int) (16f / CELL);
         boolean[] free = new boolean[n * n], seen = new boolean[n * n];
@@ -105,7 +108,7 @@ class CompositeCollisionTest {
             for (int ix = 0; ix < n; ix++) {
                 float x = x0 + (ix + 0.5f) * CELL, z = z0 + (iz + 0.5f) * CELL;
                 h[ix + iz * n] = c.floor(x, z, 99f, Player.RADIUS);
-                free[ix + iz * n] = Reachability.free(c, x, z, h[ix + iz * n]);
+                free[ix + iz * n] = !c.bodyAt(x, z, h[ix + iz * n], rad, Player.HEIGHT);
             }
         int s = (int) ((sx - x0) / CELL) + (int) ((sz - z0) / CELL) * n;
         assertTrue(free[s], "o ponto de partida (fora do prop) é livre");
@@ -255,27 +258,56 @@ class CompositeCollisionTest {
     }
 
     /**
-     * Piso elevado (a laje de pedra da oficina e da ruína tem o topo a 0,375 u): por dentro o chão é a forma pisável no
-     * degrau que se sobe a pé (0,30 u) — o herói não anda afundado na laje e entra sem pular.
+     * P75 (rodada 12.1) — o piso dos interiores É a laje desenhada. A laje de pedra da oficina e da ruína tem o topo a
+     * 0,375 u; na rodada 12 o chão pisável era um degrau a 0,30 u (o herói afundava 0,075 u, e ao chegar andando afundava
+     * mais até a altura desenhada alcançar). Agora: (1) por dentro, o chão é o topo EXATO da laje; (2) por CADA entrada, a pé
+     * e sem pular, com a física real do herói, sobe-se pelos degraus de pedra (cada um 0,125 u) e termina-se de pé sobre a
+     * laje, na altura dela.
      */
     @Test
-    void oPisoElevadoDosInterioresEChao() throws Exception {
+    void oPisoDosInterioresEALajeDesenhadaESeEntraAPePelosDegraus() throws Exception {
         JsonObject cat = catalog();
+        final float slab = 0.375f;
         for (String name : new String[]{"workshop_forge", "ruin_house"})
             for (float yaw : YAWS) {
                 JsonObject rec = cat.getAsJsonObject(name);
                 Collision c = build(name, yaw, 1f, false, rec);
                 Matrix4f m = new Matrix4f().translate(OX, 0, OZ).rotateY((float) Math.toRadians(yaw));
                 JsonArray r = rec.getAsJsonObject("pontos").getAsJsonArray("area_segura_u").get(0).getAsJsonArray();
-                int raised = 0, n = 0;
+                String at = name + " a " + yaw + "°";
+                int exact = 0, n = 0;
                 for (float lx = r.get(0).getAsFloat(); lx < r.get(2).getAsFloat(); lx += 0.25f)
                     for (float lz = r.get(1).getAsFloat(); lz < r.get(3).getAsFloat(); lz += 0.25f) {
                         Vector3f w = m.transformPosition(new Vector3f(lx + 0.125f, 0, lz + 0.125f));
-                        if (!Reachability.free(c, w.x, w.z, c.floor(w.x, w.z, 99f, Player.RADIUS))) continue;
+                        float y = c.floor(w.x, w.z, slab + 0.05f, Player.RADIUS);
+                        if (!Reachability.free(c, w.x, w.z, y)) continue;
                         n++;
-                        if (c.floor(w.x, w.z, 99f, Player.RADIUS) >= Player.STEP - 1e-3f) raised++;
+                        if (Math.abs(y - slab) < 1e-4f) exact++;
                     }
-                assertTrue(n > 0 && raised >= n * 3 / 4, name + " a " + yaw + "°: o chão de dentro é a laje (" + raised + " de " + n + ")");
+                assertTrue(n > 0 && exact >= n * 3 / 4, at + ": o chão de dentro é o topo da laje, exato (" + exact + " de " + n + ")");
+                // a pé, por cada entrada, até o meio da área segura
+                Vector3f mid = m.transformPosition(new Vector3f((r.get(0).getAsFloat() + r.get(2).getAsFloat()) / 2, 0,
+                        (r.get(1).getAsFloat() + r.get(3).getAsFloat()) / 2));
+                for (float[] e : points(rec, "entradas", null, yaw, 1f)) {
+                    float dx = e[0] - mid.x, dz = e[2] - mid.z, d = (float) Math.hypot(dx, dz);
+                    Player p = new Player();
+                    p.place(e[0] + dx / d * 1.2f, e[2] + dz / d * 1.2f, (float) Math.atan2(-dx, -dz), c);
+                    float[] target = {e[0], e[2]};
+                    boolean inside = false;
+                    for (int i = 0; i < 600; i++) {
+                        if (!inside && Math.hypot(target[0] - p.x, target[1] - p.z) < 0.3f) { target = new float[]{mid.x, mid.z}; inside = true; }
+                        float ex = target[0] - p.x, ez = target[1] - p.z, el = (float) Math.hypot(ex, ez);
+                        boolean go = el > 0.15f;
+                        p.update(1f / 60f, go ? ex / el : 0f, go ? ez / el : 0f, false, c);
+                        assertEquals(0, p.jumps, at + ": entrou sem pular");
+                    }
+                    // dentro da área segura do catálogo (o caminho em linha reta até o meio pode parar atrás do tronco da árvore
+                    // jovem da ruína: o que se confere é ter entrado a pé e estar de pé lá dentro)
+                    Vector3f lp = new Matrix4f(m).invert().transformPosition(new Vector3f(p.x, 0, p.z));
+                    boolean inArea = lp.x >= r.get(0).getAsFloat() && lp.x <= r.get(2).getAsFloat() && lp.z >= r.get(1).getAsFloat() && lp.z <= r.get(3).getAsFloat();
+                    assertTrue(inside && inArea, at + ": entrou a pé pela " + java.util.Arrays.toString(e) + " (parou em " + lp.x + ", " + lp.z + " do modelo)");
+                    assertEquals(slab, p.y, 1e-3f, at + ": de pé na altura da laje, sem afundar");
+                }
             }
     }
 
@@ -315,22 +347,42 @@ class CompositeCollisionTest {
     }
 
     /**
-     * A torre arruinada (rodada 12, P74): sob o arco da porta, o vão livre entre as colunas que descem abaixo da cabeça do
-     * herói é de ~0,5 u — menos que o corpo dele (2 × {@link Player#RADIUS} = 0,52 u) —, então o interior é inalcançável
-     * com a colisão real, em qualquer rumo. Por isso a torre NÃO é liberada (o catálogo continua dizendo que depende) e o
-     * gerador v2 não a planta. Corrigir é decisão de arte (alargar o arco), não de colisão.
+     * P74 (rodada 12.1) — a torre arruinada com a escada recuada e o arco de 8 voxels. Na rodada 12 sobravam ~0,5 u sob o
+     * arco (o corpo tem 0,52 u) e ela ficou de fora; a causa eram os degraus 3 e 4 da escada interna logo atrás da boca da
+     * porta. Agora, em todos os rumos: entra-se e chega-se ao centro COM FOLGA (o mesmo percurso com um corpo 0,12 u mais
+     * largo de cada lado também chega), sai-se (a busca é de ida e volta), e quem está no chão de dentro sobe na muralha
+     * baixa do mirante com um salto, com a física real do herói, e fica de pé em cima dela.
      */
     @Test
-    void aTorreArruinadaTemAPortaEstreitaDemaisENaoELiberada() throws Exception {
+    void p74ATorreArruinadaEntraComFolgaESeSobeNaMuralhaDoMirante() throws Exception {
         JsonObject rec = catalog().getAsJsonObject("ruin_tower");
+        assertEquals("liberado", rec.getAsJsonObject("aprovacao").get("integracao").getAsString());
+        CombatDef def = CombatDef.load(ProceduralWorldTest.A, "combate_e");
         for (float yaw : YAWS) {
             Collision c = build("ruin_tower", yaw, 1f, false, rec);
             float[] o = outside(rec, yaw);
-            Flood f = flood(c, o[0], o[1]);
-            float[] centro = points(rec, "interacao", null, yaw, 1f).getFirst();
-            assertFalse(f.near(centro[0], centro[2], 0.35f), "a 37°/90°/…: se passou a entrar, reavalie a liberação da torre");
+            String at = "torre a " + yaw + "°";
+            float[] centro = points(rec, "interacao", "examinar", yaw, 1f).getFirst();
+            assertTrue(flood(c, o[0], o[1]).near(centro[0], centro[2], 0.35f), at + ": entra e chega ao centro");
+            assertTrue(flood(c, o[0], o[1], Player.RADIUS + 0.12f).near(centro[0], centro[2], 0.45f), at + ": com folga (corpo 0,12 u mais largo de cada lado)");
+            // o mirante: em cima da muralha baixa; parte do chão de dentro, 0,9 u antes dele, e pula andando para ele
+            float[] m = points(rec, "interacao", "olhar", yaw, 1f).getFirst();
+            float dx = m[0] - centro[0], dz = m[2] - centro[2], d = (float) Math.hypot(dx, dz);
+            Player p = new Player();
+            p.applyFeel(def.feels.get("C"));
+            p.applyJump(def);
+            p.place(m[0] - dx / d * 0.9f, m[2] - dz / d * 0.9f, (float) Math.atan2(dx, dz), c);
+            float floor0 = p.y;
+            for (int i = 0; i < 180; i++) {
+                if (i == 6) p.requestJump();
+                float ex = m[0] - p.x, ez = m[2] - p.z, el = (float) Math.hypot(ex, ez);
+                boolean go = el > 0.12f;
+                p.update(1f / 60f, go ? ex / el : 0f, go ? ez / el : 0f, false, c);
+            }
+            assertTrue(p.grounded, at + ": pousou");
+            assertEquals(m[1], p.y, 0.13f, at + ": de pé em cima da muralha (pés a " + p.y + ", muralha a " + m[1] + ", chão a " + floor0 + ")");
+            assertTrue(Math.hypot(m[0] - p.x, m[2] - p.z) < 0.5f, at + ": no ponto do mirante");
         }
-        assertNotEquals("liberado", rec.getAsJsonObject("aprovacao").get("integracao").getAsString());
     }
 
     /**
