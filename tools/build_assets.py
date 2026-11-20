@@ -31,6 +31,8 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            "npcs_vila_e",
            # NPCs de ofício com altura narrativa (Bramor, Teodor, Pluma, Ondina, Lunara)
            "npcs_oficios_e",
+           # laboratório: NPCs de ofício do mundo procedural (Brásia, Quelmo, Arvel), mesma altura narrativa
+           "npcs_mundo_e",
            # rodada 06.1: prova técnica de personalização modular (lê assets de chars_e)
            "custom_e",
            # rodada 07: componentes de personalização em tempo de execução (lê assets de chars_e)
