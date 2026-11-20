@@ -48,6 +48,16 @@ assentamento, trilha, posto, encontro e a mesma aventura vinculada ao lugar gera
 -Dvx.semente=1024`). A **Rodada 11.1** deu ao jogo uma porta de entrada: menu principal com a vila ao fundo, personagens
 salvos, mundos criados pela interface (nome e semente, com prévia real) e a aventura de cada personagem em cada mundo
 ([relatório](docs/validation/relatorio-rodada-11-1.md); [fechamento](docs/validation/relatorio-fechamento-rodadas-11.md)).
+Depois, os **lotes 1 e 2 do laboratório de conteúdo** entraram como **biblioteca**:
+
+- 35 modelos, entre construções, árvores, ruínas, estruturas e props;
+- 6 variantes publicadas e 5 conjuntos de ofício;
+- vitrines de vila;
+- um catálogo com medidas, pontos e estado de cada um.
+
+Nenhuma região gerada mudou: a distribuição espera uma versão nova do gerador e a colisão composta. O jogo só carrega o
+que a cena usa ([relatório](docs/validation/relatorio-integracao-conteudo.md),
+[guia](docs/processo/como-integrar-conteudo-ao-mundo.md)).
 
 ## Requisitos
 

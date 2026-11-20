@@ -9,10 +9,12 @@ proprietário**.
 gameplay, mas **não** é o modelo de produção: o Valumo terá mundo procedural. **Rodada 11** (fundação procedural:
 uma região por semente, POIs, missão instanciada, save v2) e **Rodada 11.1** (porta de entrada: menu principal com a
 vila ao fundo, personagens, mundos criados pela interface, aventura = personagem × mundo, X da janela com confirmação)
-**fechadas** em commits LOCAIS no ramo `rodada-11/mundo-procedural`, **à espera da autorização para publicar**
-([fechamento](docs/validation/relatorio-fechamento-rodadas-11.md); relatórios [11](docs/validation/relatorio-rodada-11.md)
-e [11.1](docs/validation/relatorio-rodada-11-1.md)). Próxima prioridade: conteúdo e variedade das regiões
-([handoff do laboratório de assets](docs/processo/handoff-laboratorio-de-assets.md)). O checkpoint anterior é
+**publicadas** na tag `worlds-and-menus-v0.5` ([fechamento](docs/validation/relatorio-fechamento-rodadas-11.md);
+relatórios [11](docs/validation/relatorio-rodada-11.md) e [11.1](docs/validation/relatorio-rodada-11-1.md)). **Lotes 1 e
+2 de conteúdo** (PRs #3 e #5) integrados como **biblioteca**: 35 modelos, 6 variantes e 5 conjuntos no catálogo e nas
+vitrines, sem distribuição no gerador ([relatório](docs/validation/relatorio-integracao-conteudo.md)). Próximo passo do
+conteúdo: versões do gerador ([ADR 0029](docs/decisions/0029-versoes-do-gerador.md), proposta) e colisão composta
+([proposta](docs/architecture/colisao-composta.md)). O checkpoint anterior é
 `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
@@ -24,7 +26,8 @@ e [11.1](docs/validation/relatorio-rodada-11-1.md)). Próxima prioridade: conte�
 4. A skill da tarefa em `.claude/skills/`: `character-design`, `voxel-art`, `weapon-animation`,
    `rendering`, `visual-qa`, `git-commits`, `character-customization`, `game-ui`, `gameplay`, `combat`, `audio`,
    `music-composition`, `sound-design`, `audio-qa`, `engineering-qa` (avisos da IDE, Gradle, vazamentos, desempenho, falso verde),
-   `quest-design` (missões, objetos com estado, falas por contexto, matriz de travamentos), `mundo-procedural` (semente,
+   `quest-design` (missões, objetos com estado, falas por contexto, matriz de travamentos), `conteudo-mundo` (biblioteca de
+   conteúdo: asset, variante, conjunto, vitrine, catálogo `valumo.conteudo/1`), `mundo-procedural` (semente,
    região, POI, validação espacial, vínculos de missão, save v2); menus da 11.1 em `game-ui`.
 5. `docs/validation/problemas-conhecidos.md` — o que está aberto e o que é limitação aceita
    (histórico completo: `matriz-de-problemas.md`).
@@ -66,6 +69,8 @@ tools/anim.sh output/tmp/x "mode=lineup,style=e,set=herois,clip=walk" 60 30   # 
 tools/reference.sh [pasta]                          # refaz as referências canônicas
 python3 tools/check_links.py                        # links da documentação
 tools/qa/medir_desempenho.sh BINARIOS ROTULO [N]    # QA de engenharia: vila, combate, criador e bench, antes × depois (skill engineering-qa)
+tools/qa/saves_antigos.sh RAIZ_ANTIGA . output/tmp/s   # saves (v1, v2, menu) feitos por um binário antigo, abertos pelos dois: iguais, sem .invalido
+game/build/install/game/bin/game --roteiro tools/menu/14-memoria.txt SAIDA 30   # malhas/MB vivos e tempos (dados TEMPORÁRIOS; cabeçalho do roteiro)
 tools/qa/audio_tempo_real.sh ROTEIRO SAIDA          # som em TEMPO REAL pelo backend wave do OpenAL Soft (nada nos alto-falantes) + buracos
 python3 tools/qa/sessao_longa.py N > R              # sessão longa: vila, conversa, pausa, combate, criador; "amostra" = recursos vivos
 python3 tools/qa/ide_diagnosticos.py . /tmp/jdt/ws x.json   # o que a aba Problems mostraria num import limpo (0 erros)
@@ -142,8 +147,18 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **Validação:** só vale se passar na colisão real (`Reachability`), com no máximo 4 tentativas; senão a semente é
     recusada com motivo.
   - **Missões:** vêm de modelo + fatos (sem fatos, sem missão), com ids estáveis e sem coordenadas.
-  - **Versão:** mudou o resultado de uma semente → suba `RegionGenerator.VERSION`.
+  - **Versão:** mudou o resultado de uma semente → é uma versão nova do gerador. As 8 sementes da v1 estão fixadas
+    (`RegionGoldenTest`, `regioes-v1.txt`); **nunca** atualize a referência para passar. Subir `VERSION` hoje recusa
+    todos os mundos v1: antes, o despacho por versão da [ADR 0029](docs/decisions/0029-versoes-do-gerador.md).
   - **Save v2:** guarda o mundo e os vínculos, e recusa diferença. O v1 fica intacto.
+- **Biblioteca de conteúdo** (lotes 1 e 2, ADR 0030, skill `conteudo-mundo`,
+  [guia](docs/processo/como-integrar-conteudo-ao-mundo.md)):
+  - **Registro × carga:** registrar no `props.json` não é carregar. O `Assets.props` malha só o que a cena pede; nunca
+    itere o catálogo inteiro.
+  - **Três aprovações separadas:** artística, integração e distribuição procedural. Aprovado na arte ≠ pronto para o jogo.
+  - **Liberação:** só `liberado` entra em cena de jogo. Os que dependem de colisão composta esperam a
+    [extensão](docs/architecture/colisao-composta.md); `restrito_a_conjuntos` nunca sai solto.
+  - **Gerador:** nada da biblioteca entra no gerador v1.
 - **Porta de entrada** (rodada 11.1, ADRs 0027–0028, [menus](docs/architecture/menus.md)):
   - **Regras sem GL:** `MenuFlow` (telas, campos, pedidos); `Game` cumpre os pedidos em transições por passos com
     rótulo real (nunca porcentagem); `MenuView` desenha e fecha os próprios recursos.
@@ -203,5 +218,6 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Missões e save (10) | `vx.game.quest`: `QuestDefinition`, `QuestProgress`, `QuestState`, `QuestEvent`, `QuestSystem`; `vx.game`: `DialogueBook`, `SaveGame`, `SceneDef.WorldObject`, `GameLogic` (falas, objetos, avisos, salvar/continuar), `Game` (marco, rastreador, diário); dados `assets/scenes/missoes_e.json`, `dialogos_e.json`, `jogo_vila_e.json → jogo.objetos`, `combate_e.json → encontros.trilha`; marco `tools/env_e.py → trail_beacon`; sons `fontes/audio/sfx/missao/`; `QuestTest`, `AdventureTest`, `SaveGameTest`; roteiros `tools/aventura/`; `docs/architecture/missoes.md`, `save.md`, `missao-luzes-do-posto.md` |
 | Porta de entrada (11.1) | `vx.game.menu`: `MenuFlow`, `CharacterStore`, `WorldStore`, `Cinematic`; `vx.game`: `MenuView`, `Game` (sessões, transições, pedidos, câmera do menu), `GameLogic` (`MENU`, `beginAdventure`, `leaving`); criador: `CreatorState.cancelLabel`; dados `assets/scenes/apresentacao_e.json`; `MenuStoresTest`, `MenuFlowTest`, `MenuAdventureTest`, `ApresentacaoTest`; roteiros `tools/menu/`; `docs/architecture/menus.md`, `perfis-de-personagem.md`, `catalogo-de-mundos.md` |
 | Mundo procedural (11) | `viewer`: `TerrainField`, `World.LEGACY`, `World(assets, style, field, doc)`, `Terrain.of(field)`; `vx.game.world`: `Rng`, `RegionLayout`, `ProceduralField`, `RegionGenerator`; `vx.game`: `ProceduralScene`, `Reachability`, `SceneDef.fromDoc`, `SaveGame` v2; dados `habitantes_e.json`, `modelos_missao_e.json`; `ProceduralWorldTest`; roteiros `tools/mundo/`; `docs/architecture/mundo-procedural.md` + contratos |
+| Biblioteca de conteúdo (lotes 1 e 2) | `tools/conteudo_lib.py`, `conteudo_construcoes.py`, `conteudo_vegetacao.py`, `conteudo_poi.py`, `conteudo_props.py`, `conteudo_assentamento.py`, `conteudo_conjuntos.py`, `conteudo_e.py` → `props.json` + `conteudo_catalogo.json` (gerados); QA `tools/conteudo/`; vitrines `assets/scenes/vitrine_conteudo_*`, `bench_conteudo_*`; `viewer`: `Assets.PropSet` (sob demanda); `ConteudoMundoTest`, `AssetsLazyTest`, `RegionGoldenTest`; `docs/architecture/catalogo-de-conteudo.md`, `colisao-composta.md`, `docs/art/conteudo-mundo.md`; skill `conteudo-mundo` |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |
