@@ -127,6 +127,44 @@ class CompositeCollisionTest {
         return new Flood(x0, z0, n, free, seen);
     }
 
+    /**
+     * Rodada 12.1 — o caminho na grade (a mesma busca: corpo livre, desnível até um degrau) de (sx, sz) até a célula
+     * alcançada mais perto de (gx, gz): os centros das células, do começo ao fim. Para o herói andar com a física real por
+     * onde a busca passou (um andador em linha reta prende nas quinas que a busca contorna).
+     */
+    static List<float[]> path(Collision c, float sx, float sz, float gx, float gz) {
+        Flood f = flood(c, sx, sz);
+        int n = f.n(), goal = -1;
+        float best = Float.MAX_VALUE;
+        for (int k = 0; k < n * n; k++) {
+            if (!f.seen()[k]) continue;
+            float d = (float) Math.hypot(f.x0() + (k % n + 0.5f) * CELL - gx, f.z0() + (k / n + 0.5f) * CELL - gz);
+            if (d < best) { best = d; goal = k; }
+        }
+        int s = (int) ((sx - f.x0()) / CELL) + (int) ((sz - f.z0()) / CELL) * n;
+        int[] from = new int[n * n];
+        java.util.Arrays.fill(from, -1);
+        float[] h = new float[n * n];
+        for (int k = 0; k < n * n; k++) h[k] = c.floor(f.x0() + (k % n + 0.5f) * CELL, f.z0() + (k / n + 0.5f) * CELL, 99f, Player.RADIUS);
+        ArrayDeque<Integer> q = new ArrayDeque<>(List.of(s));
+        from[s] = s;
+        while (!q.isEmpty() && from[goal] < 0) {
+            int k = q.poll(), ix = k % n, iz = k / n;
+            for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int jx = ix + d[0], jz = iz + d[1], j = jx + jz * n;
+                if (jx < 0 || jz < 0 || jx >= n || jz >= n || from[j] >= 0 || !f.free()[j] || Math.abs(h[j] - h[k]) > Player.STEP) continue;
+                from[j] = k;
+                q.add(j);
+            }
+        }
+        List<float[]> out = new ArrayList<>();
+        for (int k = goal; ; k = from[k]) {
+            out.addFirst(new float[]{f.x0() + (k % n + 0.5f) * CELL, f.z0() + (k / n + 0.5f) * CELL});
+            if (k == s) break;
+        }
+        return out;
+    }
+
     /** Partida: 3,5 u à frente da primeira entrada, no rumo dela (fora do prop). */
     static float[] outside(JsonObject rec, float yaw) {
         float[] e = points(rec, "entradas", null, yaw, 1f).getFirst();
@@ -262,7 +300,9 @@ class CompositeCollisionTest {
      * 0,375 u; na rodada 12 o chão pisável era um degrau a 0,30 u (o herói afundava 0,075 u, e ao chegar andando afundava
      * mais até a altura desenhada alcançar). Agora: (1) por dentro, o chão é o topo EXATO da laje; (2) por CADA entrada, a pé
      * e sem pular, com a física real do herói, sobe-se pelos degraus de pedra (cada um 0,125 u) e termina-se de pé sobre a
-     * laje, na altura dela.
+     * laje, na altura dela. O herói parte de fora, no eixo da entrada (o rumo do catálogo), e segue até o meio da área segura
+     * o caminho que a busca na grade acha (um andador em linha reta prende nas quinas e nas peças à altura da cabeça logo
+     * dentro da porta, que a busca contorna).
      */
     @Test
     void oPisoDosInterioresEALajeDesenhadaESeEntraAPePelosDegraus() throws Exception {
@@ -289,23 +329,28 @@ class CompositeCollisionTest {
                 Vector3f mid = m.transformPosition(new Vector3f((r.get(0).getAsFloat() + r.get(2).getAsFloat()) / 2, 0,
                         (r.get(1).getAsFloat() + r.get(3).getAsFloat()) / 2));
                 for (float[] e : points(rec, "entradas", null, yaw, 1f)) {
-                    float dx = e[0] - mid.x, dz = e[2] - mid.z, d = (float) Math.hypot(dx, dz);
+                    float ix = (float) Math.sin(Math.toRadians(e[3])), iz = (float) Math.cos(Math.toRadians(e[3]));
+                    if (ix * (mid.x - e[0]) + iz * (mid.z - e[2]) < 0) { ix = -ix; iz = -iz; }   // o eixo da porta, para dentro
+                    float sx = e[0] - ix * 1.2f, sz = e[2] - iz * 1.2f;
+                    List<float[]> route = path(c, sx, sz, mid.x, mid.z);
                     Player p = new Player();
-                    p.place(e[0] + dx / d * 1.2f, e[2] + dz / d * 1.2f, (float) Math.atan2(-dx, -dz), c);
-                    float[] target = {e[0], e[2]};
+                    p.place(sx, sz, (float) Math.atan2(ix, iz), c);
+                    int leg = 0;
+                    float[] target = route.getFirst();
                     boolean inside = false;
-                    for (int i = 0; i < 600; i++) {
-                        if (!inside && Math.hypot(target[0] - p.x, target[1] - p.z) < 0.3f) { target = new float[]{mid.x, mid.z}; inside = true; }
+                    for (int i = 0; i < 900; i++) {
+                        while (leg < route.size() - 1 && Math.hypot(target[0] - p.x, target[1] - p.z) < 0.15f) target = route.get(++leg);
+                        if (!inside && (p.x - e[0]) * ix + (p.z - e[2]) * iz > 0.3f) inside = true;
                         float ex = target[0] - p.x, ez = target[1] - p.z, el = (float) Math.hypot(ex, ez);
                         boolean go = el > 0.15f;
                         p.update(1f / 60f, go ? ex / el : 0f, go ? ez / el : 0f, false, c);
                         assertEquals(0, p.jumps, at + ": entrou sem pular");
                     }
-                    // dentro da área segura do catálogo (o caminho em linha reta até o meio pode parar atrás do tronco da árvore
-                    // jovem da ruína: o que se confere é ter entrado a pé e estar de pé lá dentro)
+                    // passou da soleira e chegou ao fim do caminho, dentro da área segura do catálogo
                     Vector3f lp = new Matrix4f(m).invert().transformPosition(new Vector3f(p.x, 0, p.z));
                     boolean inArea = lp.x >= r.get(0).getAsFloat() && lp.x <= r.get(2).getAsFloat() && lp.z >= r.get(1).getAsFloat() && lp.z <= r.get(3).getAsFloat();
-                    assertTrue(inside && inArea, at + ": entrou a pé pela " + java.util.Arrays.toString(e) + " (parou em " + lp.x + ", " + lp.z + " do modelo)");
+                    assertTrue(inside && inArea && Math.hypot(route.getLast()[0] - p.x, route.getLast()[1] - p.z) < 0.3f,
+                            at + ": entrou a pé pela " + java.util.Arrays.toString(e) + " e seguiu o caminho até o meio (parou em " + lp.x + ", " + lp.z + " do modelo)");
                     assertEquals(slab, p.y, 1e-3f, at + ": de pé na altura da laje, sem afundar");
                 }
             }
@@ -419,6 +464,76 @@ class CompositeCollisionTest {
             assertEquals(m[1], p.y, 0.13f, at + ": de pé em cima da muralha (pés a " + p.y + ", muralha a " + m[1] + ", chão a " + floor0 + ")");
             assertTrue(Math.hypot(m[0] - p.x, m[2] - p.z) < 0.5f, at + ": no ponto do mirante");
         }
+    }
+
+    /**
+     * Teste físico da rodada 12 ("uma parede que parece escada quebrada: só subo pulando, e o herói vai para baixo") —
+     * em todo composto liberado, para CADA sólido com o topo ao alcance do salto (mais de um degrau e até 1,30 u acima de
+     * onde se está), o herói parte do lugar livre mais perto, anda para o meio do sólido e pula, com a física real. Em
+     * nenhum passo ele fica DENTRO de um corpo (pés abaixo de um topo, encostado nele); e, no fim, está de pé num chão de
+     * verdade (um topo ou o relevo). Na rodada 12 o corpo deixava de empurrar a um degrau dos pés sem passar a segurar, e
+     * quem pousava em cima afundava.
+     */
+    @Test
+    void quemPulaEmCimaDeUmSolidoBaixoNuncaFicaDentroDele() throws Exception {
+        CombatDef def = CombatDef.load(ProceduralWorldTest.A, "combate_e");
+        int tried = 0, onTop = 0;
+        for (String name : ENTERABLE) {
+            JsonObject rec = catalog().getAsJsonObject(name);
+            for (float yaw : new float[]{0f, 37f}) {
+                Collision c = build(name, yaw, 1f, false, rec);
+                for (Collision.Shape s : List.copyOf(c.shapes)) {
+                    if (!s.body || s.person) continue;
+                    // o lugar livre mais perto, em 8 rumos, a uma distância que deixa correr para o salto
+                    float[] start = null;
+                    float startY = 0f;
+                    for (int k = 0; k < 8 && start == null; k++) {
+                        double a = k * Math.PI / 4;
+                        float d = s.bound + Player.RADIUS + 0.45f;
+                        float x = s.cx + (float) Math.sin(a) * d, z = s.cz + (float) Math.cos(a) * d;
+                        float y = c.standAt(x, z, 0.05f, Player.RADIUS, Player.HEIGHT);
+                        if (!c.bodyAt(x, z, y, Player.RADIUS, Player.HEIGHT)) { start = new float[]{x, z}; startY = y; }
+                    }
+                    if (start == null || s.y1 <= startY + Player.STEP + 0.01f || s.y1 > startY + 1.30f) continue;
+                    String at = name + " a " + yaw + "° → " + s.name + " (topo " + s.y1 + ", partindo de " + startY + ")";
+                    Player p = new Player();
+                    p.applyFeel(def.feels.get("C"));
+                    p.applyJump(def);
+                    p.place(start[0], start[1], (float) Math.atan2(s.cx - start[0], s.cz - start[1]), c);
+                    java.util.ArrayDeque<String> trail = new java.util.ArrayDeque<>();
+                    boolean jumped = false;
+                    for (int i = 0; i < 150; i++) {
+                        if (!jumped && s.push(p.x, p.z, Player.RADIUS + 0.5f) != null) { p.requestJump(); jumped = true; }   // pula a 0,5 u dele
+                        if (trail.size() > 8) trail.removeFirst();
+                        trail.addLast(String.format(java.util.Locale.ROOT, "[%d (%.3f,%.3f) y%.3f vy%.2f g%s b%s]", i, p.x, p.z, p.y, p.vy, p.grounded, p.blocked));
+                        float ex = s.cx - p.x, ez = s.cz - p.z, el = (float) Math.hypot(ex, ez);
+                        boolean go = el > 0.08f;
+                        p.update(1f / 60f, go ? ex / el : 0f, go ? ez / el : 0f, false, c);
+                        // dentro = o corpo entra mais de 2 mm numa forma (encostar numa parede ou viga, profundidade ~0, é tocar)
+                        for (Collision.Shape q : c.shapes) {
+                            if (!q.body || q.y1 <= p.y + Player.STEP || q.y0 >= p.y + Player.HEIGHT) continue;
+                            float[] v = q.push(p.x, p.z, Player.RADIUS);
+                            if (v != null && Math.hypot(v[0], v[1]) > 0.002f) {
+                                StringBuilder all = new StringBuilder();
+                                for (Collision.Shape w : c.shapes) {
+                                    float[] u = w.body ? w.push(p.x, p.z, Player.RADIUS) : null;
+                                    if (u != null) all.append(String.format(java.util.Locale.ROOT, " %s[%.3f–%.3f]%s %.3f;", w.name, w.y0, w.y1, w.circle ? "c" : "", Math.hypot(u[0], u[1])));
+                                }
+                                fail(String.format(java.util.Locale.ROOT, "%s: passo %d, %.3f u dentro de %s [%.3f–%.3f] com os pés a %.3f; (%.3f, %.3f) v (%.2f, %.2f) chão %s; toca:%s",
+                                        at, i, Math.hypot(v[0], v[1]), q.name, q.y0, q.y1, p.y, p.x, p.z, p.vx, p.vz, p.grounded, all) + " trilha " + trail);
+                            }
+                        }
+                    }
+                    assertTrue(p.grounded, at + ": pousou");
+                    assertEquals(c.support(p.x, p.z, p.y + 0.01f, Player.RADIUS), p.y, 0.02f, at + ": de pé num chão de verdade (o apoio do corpo)");
+                    tried++;
+                    if (Math.abs(p.y - s.y1) < 0.02f) onTop++;
+                }
+            }
+        }
+        // pousar EM CIMA depende da forma (peça estreita, sob outra, cercada de parede): é conferido onde é definido
+        // (MobilityTest, o mirante da torre); aqui o que vale para todas é nunca ficar dentro
+        assertTrue(tried >= 40 && onTop > 0, "sólidos baixos conferidos: " + tried + " (em cima de " + onTop + ")");
     }
 
     /**
