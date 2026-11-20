@@ -1,14 +1,41 @@
 {
- "_doc": "Rodada 12 — descobertas de exploração, por tipo de lugar (o gerador v2 põe uma em cada ruína). Ao usar (E) o ponto da descoberta: o aviso com o nome do lugar e as moedas, o registro no diário e a marca no progresso daquela aventura (personagem × mundo). Conta UMA vez (QuestSystem.discover). O texto só diz o que o lugar mostra (nada de fato inventado). Moedas: pequenas perto da missão (30).",
+ "_doc": "Rodada 12 / 12.1 — descobertas de exploração, por TIPO de lugar (escrito à mão). O gerador v2 põe a da ruína da região (casa ou torre) e, quando a árvore retorcida existe, a dela. ACHADO: o objeto daquele lugar (o pote nas cinzas da lareira, o jarro no parapeito) — dá as moedas UMA vez, e o objeto passa de cheio para vazio (as moedas vêm de algo que se vê). LUGAR: na primeira vez que se acha um tipo de lugar nesta aventura (personagem × mundo), ele entra no diário ('Lugares'); num mundo com muitos lugares do mesmo tipo, os seguintes são só achados. modo: 'usar' (E, placa com o verbo) ou 'chegar' (estar de pé no ponto: o mirante, em cima da muralha baixa da torre, que se sobe com um salto). Textos: só o que o lugar mostra; {rumo_vila}, {rumo_posto}, {lago} e {ruina} vêm dos fatos da região (ProceduralScene.discovery). Moedas: a comum 5; a do mirante 8 (pede o salto); a árvore só o registro (nem todo lugar tem tesouro).",
  "formato": "valumo.descobertas",
- "versao": 1,
+ "versao": 2,
  "tipos": {
-  "ruin": {
-   "nome": "Casa tomada pela mata",
-   "verbo": "Examinar a lareira",
-   "texto": "A lareira ainda guarda marcas de fogo. Alguém morou aqui antes da mata voltar.",
-   "jaVisto": "A lareira fria, as paredes cobertas de hera. Nada mudou desde a sua última visita.",
-   "moedas": 5
+  "casa": {
+   "lugar": "Casa tomada pela mata",
+   "categoria": "vestígio",
+   "modo": "usar",
+   "verbo": "Pegar o pote da lareira",
+   "achado": "Pote de barro",
+   "objeto": {"cheio": "pote_achado", "vazio": "pote_achado__estado-vazio"},
+   "moedas": 5,
+   "texto": "Nas cinzas da lareira, um pote de barro com moedas. Quem morou aqui guardou o que tinha perto do fogo.",
+   "jaVisto": "O pote vazio continua nas cinzas da lareira.",
+   "diario": "Casas que a mata tomou. A lareira costuma ser o último canto que alguém esvazia."
+  },
+  "torre": {
+   "lugar": "Torre caída",
+   "categoria": "mirante",
+   "modo": "chegar",
+   "verbo": "Subir na muralha",
+   "achado": "Jarro esquecido",
+   "objeto": {"cheio": "pote_achado", "vazio": "pote_achado__estado-vazio"},
+   "moedas": 8,
+   "texto": "Da muralha caída se vê a vila a {rumo_vila} e o posto da trilha a {rumo_posto}{lago}. No parapeito, um jarro esquecido com moedas.",
+   "jaVisto": "Da muralha, o mesmo vale: a vila a {rumo_vila}, o posto a {rumo_posto}.",
+   "diario": "Torres de vigia que caíram. A muralha baixa ainda serve de mirante."
+  },
+  "arvore": {
+   "lugar": "Árvore retorcida",
+   "categoria": "marco natural",
+   "modo": "usar",
+   "verbo": "Examinar a árvore",
+   "moedas": 0,
+   "texto": "O tronco cresceu torcido ao lado {ruina}, como se tivesse desviado das pedras para achar sol.",
+   "jaVisto": "A árvore retorcida continua de guarda ao lado {ruina}.",
+   "diario": "Árvores velhas que crescem torcidas junto das ruínas."
   }
  }
 }
