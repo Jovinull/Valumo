@@ -106,11 +106,14 @@ def build(out):
         vs = meta["voxel"]
         b = vox.bounds()
         size = [b[3] - b[0] + 1, b[4] - b[1] + 1, b[5] - b[2] + 1]
-        state = meta.get("estado", "candidato")
+        state = "rejeitado" if meta["aprovacao"] == "rejeitado" else "aprovado"
+        # affineWind MEDIDO: só quem ainda tem material folhagem (o vento afim do estilo E desloca só a folhagem; a flag
+        # do prop autoriza o mesher a fundir essas faces). Estrutura rígida sem folhagem não declara vento.
+        wind = any(c[3] == "foliage" for c in vox.v.values())
         if state != "rejeitado":
             origin = write_vox(os.path.join(env, name + ".vox"), vox)
             entry = {"file": name + ".vox", "voxelSize": vs, "origin": origin, "sizeVoxels": size, "conteudo": True}
-            if meta.get("wind"):
+            if wind:
                 entry["affineWind"] = True
             manifest[name] = entry
             _rig(os.path.join(studies, name), meta["nome"], vs, f"../../../environment/e/{name}.vox", origin, size)
@@ -137,6 +140,10 @@ def build(out):
         rec = {
             "id": name, "nome": meta["nome"], "categoria": meta["categoria"], "subcategoria": meta.get("sub"),
             "lote": meta.get("lote"), "estado": state, "versao": meta["versao"],
+            "aprovacao": {"artistica": meta["aprovacao"], "decisao": "proprietário, avaliação do lote 1 (2026-11-19)",
+                          "integracao": meta["integracao"],
+                          "distribuicao_procedural": meta["integracao"] == "liberado",
+                          "dependencias": meta["dependencias"]},
             "fonte": f"tools/{fn.__module__}.py:{fn.__name__}",
             "prop": name if state != "rejeitado" else None,
             "origem": "x = z = 0 no centro da pegada; y = 0 = chão (soleira); unidades em u; voxel em u",
@@ -145,7 +152,7 @@ def build(out):
             "terreno": meta.get("terreno", []), "apoio": meta.get("apoio"),
             "inclinacao_max_u": meta.get("inclinacao_max_u"), "area_livre": meta.get("area_livre"),
             "colisao": meta.get("colisao"), "restricoes": meta.get("restricoes", []),
-            "affineWind": bool(meta.get("wind")),
+            "affineWind": wind,
             "medidas": m,
             "custo": {"faces_expostas": m["faces_expostas"], "voxels": m["voxels"], "classe": _cost_class(m["faces_expostas"]),
                       "emissivo_pct": m["emissivo_pct"]},
@@ -155,7 +162,7 @@ def build(out):
         }
         catalog.append(rec)
         for s in ([f"conteudo-lote{meta.get('lote')}", f"conteudo-{meta['categoria']}"]
-                  + ([f"conteudo-{meta['categoria']}-recomendados"] if state == "recomendado" else [])):
+                  + ([f"conteudo-{meta['categoria']}-liberados"] if meta["integracao"] == "liberado" else [])):
             lineups.setdefault(s, []).append(name)
         lineups[f"conteudo-{name.replace('_', '-')}"] = [name]
         if variants:
