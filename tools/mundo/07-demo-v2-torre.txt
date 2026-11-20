@@ -1,0 +1,98 @@
+# Rodada 12.1 — demonstração principal (aplicação real, entrada injetada, som da aplicação por loopback): criar um mundo
+# com a semente 31 (vila de caminho MÉDIA, torre caída com a árvore retorcida, o Bramor no conjunto do guardião), andar
+# até o Bramor, seguir a trilha até a torre, entrar pela porta (arco de 8 voxels), subir na muralha baixa com um SALTO (o
+# mirante: registro, o jarro e as moedas), dar a volta até a árvore retorcida (o marco natural), o diário ("Lugares"),
+# salvar, voltar ao menu, continuar e ver que ficou. Dados TEMPORÁRIOS (tools/review121.sh demo).
+size 1920 1080
+esperar-menu 20
+record on
+wait 2
+click jogar
+esperar-menu 20
+wait 0.8
+menu-personagem Aventureiro
+wait 0.4
+click escolher-personagem
+esperar-menu 60
+wait 0.8
+click criar-mundo
+wait 0.5
+digitar Vale_da_Torre
+wait 0.3
+click campo:1
+digitar 31
+wait 0.5
+click confirmar-mundo
+esperar-menu 60
+wait 1.2
+menu-mundo Vale_da_Torre
+esperar-menu 30
+wait 0.8
+click entrar
+esperar-menu 60
+wait 1.5
+regiao
+missao
+# a vila média e o morador do ofício (o guardião de trilhas no conjunto dele)
+ir-lugar oficio andando
+wait 2.0
+# de volta à praça, a trilha até a bifurcação e a trilha da torre
+ir-lugar assentamento andando
+seguir-ramo ida correndo
+wait 0.6
+ir-lugar ruina-dentro andando
+wait 1.0
+# embaixo da muralha baixa: a placa "Subir na muralha"; um salto andando para ela
+ir-lugar descoberta andando
+wait 1.2
+segurar W
+wait 0.1
+pular
+wait 0.8
+soltar W
+wait 3.5
+estado
+missao
+look 700 0 2.5
+wait 1.0
+# desce, sai pela porta, contorna o patamar e chega à árvore retorcida
+ir-lugar ruina-dentro andando
+ir-lugar ruina andando
+ir-lugar ruina-lado andando
+ir-lugar arvore andando
+wait 0.8
+key E
+wait 3.5
+missao
+key J
+wait 3.5
+key J
+wait 0.6
+key ESC
+wait 0.6
+click salvar
+wait 1.2
+click menu-principal
+wait 0.8
+click menu-sem-salvar
+esperar-menu 60
+wait 1.2
+click jogar
+esperar-menu 20
+wait 0.5
+click escolher-personagem
+esperar-menu 60
+wait 0.5
+menu-mundo Vale_da_Torre
+esperar-menu 30
+menu-estado
+wait 2.0
+click entrar
+esperar-menu 60
+wait 1.5
+missao
+key J
+wait 3.5
+key J
+wait 1.0
+record off

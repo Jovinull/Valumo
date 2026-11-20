@@ -1,0 +1,35 @@
+# Rodada 12.1 — a ruína de casa (semente 14, vila de caminho média): subir pelos degraus de pedra do arco (o piso é a laje
+# desenhada, sem afundar), pegar o pote de barro nas cinzas da lareira (5 moedas; o pote fica vazio), contornar o patamar
+# até a árvore retorcida e o diário. Começa direto na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=14).
+size 1920 1080
+click comecar
+wait 1.0
+record on
+wait 1.0
+regiao
+ir-lugar ruina
+wait 0.8
+seguir-ramo ida correndo
+wait 0.5
+ir-lugar ruina-dentro andando
+wait 1.0
+ir-lugar descoberta andando
+wait 1.2
+key E
+wait 3.5
+estado
+missao
+look -500 0 2.0
+wait 1.5
+ir-lugar ruina-dentro andando
+ir-lugar ruina andando
+ir-lugar ruina-lado andando
+ir-lugar arvore andando
+wait 0.8
+key E
+wait 3.5
+key J
+wait 3.5
+key J
+wait 0.8
+record off
