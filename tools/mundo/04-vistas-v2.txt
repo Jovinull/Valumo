@@ -1,0 +1,56 @@
+# Rodada 12 — vistas de uma região do gerador v2 (rode com -Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=N): geral,
+# assentamento, construções e conjuntos, trilha, ruína (de fora, a entrada e o interior pela colisão real), posto, câmera
+# do jogador e moradores; de dia e no fim de tarde. Posições calculadas da região gerada; nada escrito à mão por semente.
+size 1920 1080
+regiao
+settle
+click comecar
+wait 1.0
+vista-lugar geral
+wait 0.8
+shot 01-geral
+vista-lugar assentamento
+wait 0.6
+shot 02-assentamento
+vista-lugar construcao 1
+wait 0.6
+shot 03-construcao-1
+vista-lugar construcao 2
+wait 0.6
+shot 04-construcao-2
+vista-lugar construcao 3
+wait 0.6
+shot 05-construcao-3
+vista-lugar trilha
+wait 0.6
+shot 06-trilha
+vista-lugar ruina
+wait 0.6
+shot 07-ruina
+vista-lugar posto
+wait 0.6
+shot 08-posto
+vista-fim
+ir-lugar assentamento
+wait 0.8
+shot 09-camera-jogador
+ir-lugar construcao 0
+wait 0.8
+shot 10-entrada-construcao
+ir-lugar doador
+wait 0.6
+shot 11-morador
+ir-lugar ruina
+wait 0.8
+shot 12-entrada-ruina
+ir-lugar ruina-dentro
+wait 0.8
+estado
+shot 13-dentro-da-ruina
+luz tarde
+vista-lugar geral
+wait 0.8
+shot 14-geral-tarde
+vista-lugar assentamento
+wait 0.6
+shot 15-assentamento-tarde
