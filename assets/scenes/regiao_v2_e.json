@@ -508,6 +508,58 @@
    ],
    "spawns": []
   },
+  "ruin_farmstead": {
+   "categoria": "poi",
+   "frequencia": "incomum",
+   "integracao": "liberado",
+   "pegada": [
+    -4.0,
+    -2.0,
+    4.25,
+    2.0
+   ],
+   "altura": 4.875,
+   "livre": {
+    "frente_u": 2.0,
+    "raio_u": 4.2
+   },
+   "entradas": [
+    [
+     "portao",
+     -1.688,
+     -0.438,
+     0
+    ],
+    [
+     "porteira",
+     2.062,
+     2.438,
+     0
+    ]
+   ],
+   "interacao": [
+    [
+     "pedra_do_marco",
+     -0.562,
+     -0.688,
+     0.312
+    ],
+    [
+     "cocho",
+     2.188,
+     -0.438,
+     0.312
+    ]
+   ],
+   "spawns": [
+    [
+     "curral",
+     1.562,
+     0.188,
+     "criatura"
+    ]
+   ]
+  },
   "ruin_house": {
    "categoria": "poi",
    "frequencia": "incomum",
@@ -608,6 +660,58 @@
      "covil_2",
      0.562,
      -0.312,
+     "criatura"
+    ]
+   ]
+  },
+  "ruin_vault": {
+   "categoria": "poi",
+   "frequencia": "incomum",
+   "integracao": "liberado",
+   "pegada": [
+    -2.125,
+    -3.375,
+    2.0,
+    1.75
+   ],
+   "altura": 3.5,
+   "livre": {
+    "frente_u": 2.0,
+    "raio_u": 3.2
+   },
+   "entradas": [
+    [
+     "boca",
+     0.062,
+     2.062,
+     0
+    ]
+   ],
+   "interacao": [
+    [
+     "tabua_entalhada",
+     0.062,
+     -1.438,
+     0.312
+    ],
+    [
+     "barris",
+     -0.438,
+     -0.688,
+     0.312
+    ],
+    [
+     "rasgo_de_luz",
+     0.062,
+     -1.062,
+     0.312
+    ]
+   ],
+   "spawns": [
+    [
+     "fundo",
+     0.438,
+     -1.312,
      "criatura"
     ]
    ]
