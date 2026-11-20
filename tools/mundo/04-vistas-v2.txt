@@ -47,6 +47,24 @@ ir-lugar ruina-dentro
 wait 0.8
 estado
 shot 13-dentro-da-ruina
+# rodada 12.1: o achado (o pote na lareira, ou embaixo da muralha da torre com a placa), o mirante visto de cima, a árvore
+# retorcida (sem ela, a ruína por trás) e o morador de um ofício (sem nenhum, a praça) — nunca a mesma tomada repetida
+ir-lugar descoberta
+wait 0.8
+shot 16-achado
+ir-lugar mirante
+wait 1.0
+shot 17-mirante
+vista-lugar arvore
+wait 0.8
+shot 18-arvore
+ir-lugar oficio
+wait 0.8
+shot 19-morador-do-oficio
+ir-lugar ruina-dentro
+vista-lugar ruina-alto
+wait 0.8
+shot 20-ruina-de-cima
 luz tarde
 vista-lugar geral
 wait 0.8
