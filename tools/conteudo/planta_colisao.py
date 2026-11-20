@@ -109,7 +109,7 @@ def draw_one(name, prof, entry, rec, path):
         d.text((P(x, z)[0] + 6, P(x, z)[1] + 6), e.get("id", "spawn"), fill=(90, 30, 120), font=text_font(14))
     estado = (rec or {}).get("aprovacao", {}).get("integracao", "?")
     legend = (f"{name} ({estado}) — {len(prof['formas'])} formas: {counts['corpo']} de corpo (vermelho), {counts['camera']} só de câmera "
-              f"(azul tracejado), {counts['piso']} de piso (verde). Entradas (seta), interação (amarelo, círculo de 1 u), "
+              f"(azul tracejado), {counts['piso']} de piso sem corpo (verde; desde a 12.1 o chão é o topo exato do próprio corpo). Entradas (seta), interação (amarelo, círculo de 1 u), "
               f"spawn (roxo: corpo 0,3 u; folga 0,56 u). Grade de 1 u, +z = frente (para baixo).")
     font = text_font(15)
     y = H - 110
