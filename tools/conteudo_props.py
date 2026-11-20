@@ -768,7 +768,7 @@ def weapon_rack():
        variacoes={"estado": ["cheio", "vazio"]})
 def pote_achado(estado="cheio"):
     """Pote de barro bojudo (≈ 0,3 u), terracota com a boca mais clara e uma faixa escura no ombro, rachado de um lado.
-    Cheio: moedas douradas aparecendo na boca e duas caídas ao lado. Vazio: a boca aberta escura e a tampa de barro no
+    Cheio: moedas douradas aparecendo na boca e um montinho caído, encostado na base. Vazio: a boca aberta escura e a tampa de barro no
     chão, encostada no pote."""
     v = Vox()
     body = [(0, 2.2), (1, 3.0), (2, 3.4), (3, 3.4), (4, 3.0), (5, 2.2), (6, 1.8), (7, 2.1)]   # (y, raio) em voxels de 1/16
@@ -787,8 +787,8 @@ def pote_achado(estado="cheio"):
         for (x, z) in ((-1, -1), (0, -1), (-1, 0), (0, 0), (1, 0), (0, 1)):
             v.set(x, 6, z, GOLD)                                     # moedas na boca
         v.set(0, 7, 0, GOLD)
-        for (x, z) in ((4, -3), (5, -3), (-5, 3)):
-            v.set(x, 0, z, GOLD)                                     # duas caídas ao lado
+        for (x, z) in ((2, -1), (2, 0), (3, 0), (3, -1)):
+            v.set(x, 0, z, GOLD)                                     # um montinho caído, encostado na base (nunca peça solta)
     else:
         for (x, z) in ((-1, -1), (0, -1), (-1, 0), (0, 0)):
             v.set(x, 1, z, shadow(TERRACOTTA, 2.2))                  # o fundo escuro, vazio
