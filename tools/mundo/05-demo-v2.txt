@@ -1,0 +1,80 @@
+# Rodada 12 — demonstração principal (aplicação real, entrada injetada, som da aplicação por loopback): abrir o Valumo,
+# escolher o personagem, criar um mundo com semente, entrar no mundo v2, andar pelo assentamento, chegar a um conjunto de
+# ofício (a oficina), seguir a trilha até a ruína, entrar nela pela colisão real, examinar a lareira (descoberta e moedas),
+# o diário, salvar, voltar ao menu, continuar e ver que a descoberta ficou. Dados TEMPORÁRIOS (tools/review12.sh demo).
+size 1920 1080
+esperar-menu 20
+record on
+wait 3
+click jogar
+esperar-menu 20
+wait 1.0
+menu-personagem Aventureiro
+wait 0.6
+click escolher-personagem
+esperar-menu 60
+wait 1.0
+click criar-mundo
+wait 0.6
+digitar Vale_das_Ruinas
+wait 0.3
+click campo:1
+digitar 31337
+wait 0.5
+click confirmar-mundo
+esperar-menu 60
+wait 1.5
+menu-mundo Vale_das_Ruinas
+esperar-menu 30
+menu-estado
+wait 1.0
+click entrar
+esperar-menu 60
+wait 1.5
+regiao
+missao
+ir-lugar construcao 2 andando
+wait 1.5
+ir-lugar construcao 1 andando
+wait 1.5
+seguir-ramo ida correndo
+wait 0.8
+ir-lugar ruina-dentro andando
+wait 1.0
+ir-lugar descoberta andando
+wait 0.6
+key E
+wait 3.5
+missao
+key J
+wait 3.0
+key J
+wait 0.6
+key ESC
+wait 0.6
+click salvar
+wait 1.2
+click menu-principal
+wait 0.8
+click menu-sem-salvar
+esperar-menu 60
+wait 1.5
+click jogar
+esperar-menu 20
+wait 0.6
+click escolher-personagem
+esperar-menu 60
+wait 0.6
+menu-mundo Vale_das_Ruinas
+esperar-menu 30
+menu-estado
+wait 2.0
+click entrar
+esperar-menu 60
+wait 1.5
+missao
+key J
+wait 3.5
+key J
+wait 1.0
+record off

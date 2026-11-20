@@ -1,0 +1,29 @@
+# Rodada 12 — um mundo v1 ANTIGO (criado pelo binário publicado antes da rodada, com a aventura do Aventureiro salva)
+# aberto pelo executável novo, que já cria mundos v2: a mesma região v1 (estalagem, poço, trilha, posto), o mesmo
+# progresso. Rode com os dados da matriz de saves antigos (tools/review12.sh demo-v1). Som da aplicação por loopback.
+size 1920 1080
+esperar-menu 20
+record on
+wait 2
+click jogar
+esperar-menu 20
+wait 0.8
+menu-personagem Aventureiro
+click escolher-personagem
+esperar-menu 60
+wait 0.8
+menu-mundo Gemeo
+esperar-menu 30
+menu-estado
+wait 2.0
+click entrar
+esperar-menu 60
+wait 1.5
+regiao
+missao
+estado
+seguir-trilha ida
+wait 1.0
+estado
+wait 1.0
+record off
