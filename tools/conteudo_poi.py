@@ -355,9 +355,10 @@ def ruin_house(semente=1, telhado_caido=True):
     # translúcido; agora começa a ~2,2 u, acima da linha da câmera de quem está no piso), a mesma árvore jovem
     EB.trunk_b(v, 14, 1.6, 0.9, y0=3, roots=3, seed=125 + s)
     crown = Vox()
-    sblob(crown, 0, 21, 0, 4.6, 3.6, 4.4, L.LEAF, p=2.2)
+    # a copa fosca (L.LEAF_FIX): presa ao tronco a 2 u, a folhagem que balança deslizaria sobre ele (regra da E, P82)
+    sblob(crown, 0, 21, 0, 4.6, 3.6, 4.4, L.LEAF_FIX, p=2.2)
     import env_e as EE
-    EE.canopy_paint(crown, L.LEAF, 126 + s)
+    EE.canopy_paint(crown, L.LEAF_FIX, 126 + s)
     for k in [k for k in v.v if k in crown.v]:
         del v.v[k]
     v.merge(crown)

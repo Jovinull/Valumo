@@ -45,6 +45,9 @@ MOSS, LEAF_BUSH, LEAF = _c("MOSS"), _c("LEAF_BUSH"), _c("LEAF")
 # descartada pelo mesher). Reproduzido no laboratório — inclusive na casa aprovada. Folhagem fica só no que balança de
 # verdade e solto: copas, arbustos, ervas penduradas (testado: nenhum contato folhagem × rígido acima de 1,7 u).
 MOSS_FIX = P("#92b54e")
+# rodada 12.1: copa PRESA ao próprio tronco acima de 1,7 u dentro de uma construção (a árvore jovem da ruína de casa, com a
+# copa subida para a câmera, P82) — a mesma folha, fosca: não balança, então não desliza sobre o tronco rígido
+LEAF_FIX = P("#%02x%02x%02x" % tuple(LEAF[:3]))
 IVY = P("#6a9f47")
 BARK, BARK_D = _c("BARK"), _c("BARK_D")
 GOLD = EB.GOLD
