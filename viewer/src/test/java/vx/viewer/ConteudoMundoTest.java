@@ -41,10 +41,11 @@ class ConteudoMundoTest {
      * Orçamento de triângulos (malha fundida) RELATIVO aos aprovados, medidos com o mesmo mesher
      * (tools/conteudo/MeshCost.java): casa 17 776, posto 9 492, carvalho O3 6 946, salgueiro 11 904, árvore-marco 26 538.
      * Construção ≤ 1,15 × casa; POI ≤ casa; árvore comum ≤ 1,2 × carvalho; árvore rara/incomum ≤ salgueiro;
-     * prop pequeno ≤ 3 000.
+     * estrutura complementar ≤ posto de trilha (9 492); prop comum ≤ 3 000 (≈ 2 × fogueira 1 440, que repete muito);
+     * prop incomum/raro ≤ 4 500 (≈ 3 × fogueira).
      */
     static final Map<String, Integer> TRI_BUDGET = Map.of("construcao", 20500, "poi", 17800, "vegetacao/comum", 8400,
-            "vegetacao", 11900, "prop", 3000);
+            "vegetacao", 11900, "estrutura", 9500, "prop/comum", 3000, "prop", 4500);
 
     static JsonObject json(Path p) throws IOException { return JsonParser.parseString(Files.readString(p)).getAsJsonObject(); }
 
@@ -119,18 +120,23 @@ class ConteudoMundoTest {
             assertTrue(a.getAsJsonArray("tags").size() >= 2, id + ": tags");
             assertTrue(a.has("colisao") && a.getAsJsonObject("colisao").has("tipo"), id + ": colisão");
             String st = a.get("estado").getAsString();
-            assertTrue(List.of("aprovado", "rejeitado").contains(st), id + ": estado " + st);
+            assertTrue(List.of("aprovado", "candidato", "rejeitado").contains(st), id + ": estado " + st);
             JsonObject ap = a.getAsJsonObject("aprovacao");
             String art = ap.get("artistica").getAsString(), integ = ap.get("integracao").getAsString();
-            assertTrue(List.of("aprovado", "aprovado_conceito", "rejeitado").contains(art), id + ": aprovação " + art);
-            assertTrue(List.of("liberado", "depende_colisao_composta", "aguardando_refinamento", "nao_distribuivel").contains(integ),
+            assertTrue(List.of("aprovado", "aprovado_conceito", "candidato", "rejeitado").contains(art), id + ": aprovação " + art);
+            assertTrue(List.of("liberado", "depende_colisao_composta", "aguardando_refinamento", "aguardando_avaliacao",
+                    "nao_distribuivel").contains(integ),
                     id + ": integração " + integ);
             assertEquals(integ.equals("liberado"), ap.get("distribuicao_procedural").getAsBoolean(), id + ": distribuição");
             if (!integ.equals("liberado"))                // dependência nunca escondida
-                assertTrue(ap.getAsJsonArray("dependencias").size() > 0 || integ.equals("nao_distribuivel"), id + ": pendência sem dependência");
+                assertTrue(ap.getAsJsonArray("dependencias").size() > 0 || integ.equals("nao_distribuivel")
+                        || integ.equals("aguardando_avaliacao"), id + ": pendência sem dependência");
+            assertEquals(art.equals("candidato"), integ.equals("aguardando_avaliacao"), id + ": candidato só aguarda avaliação");
+            if (a.get("lote").getAsInt() >= 2) assertNotEquals("aprovado", art, id + ": lote não avaliado marcado como aprovado");
             if (a.getAsJsonObject("colisao").has("formas"))  // forma composta ainda não existe no jogo: não pode estar liberado
                 assertNotEquals("liberado", integ, id + ": precisa de formas compostas e está liberado");
             assertEquals(art.equals("rejeitado"), st.equals("rejeitado"), id + ": estado × aprovação");
+            assertEquals(art.equals("candidato"), st.equals("candidato"), id + ": estado × aprovação (candidato)");
             if (st.equals("rejeitado")) {
                 assertFalse(props.has(id), id + " rejeitado não pode ir para o props.json");
                 assertTrue(a.has("motivo_rejeicao") && !a.get("motivo_rejeicao").isJsonNull(), id + ": rejeitado sem motivo");
@@ -139,8 +145,18 @@ class ConteudoMundoTest {
                 assertTrue(props.getAsJsonObject(id).has("conteudo"), id + ": entrada sem a marca 'conteudo'");
             }
         }
+        Set<String> published = new HashSet<>(ids);     // variantes publicadas como prop próprio (ex.: placa por ofício)
+        for (JsonObject a : all)
+            for (JsonElement e : a.getAsJsonObject("variacoes").getAsJsonArray("extremos")) {
+                JsonObject v = e.getAsJsonObject();
+                if (v.has("prop") && !v.get("prop").isJsonNull()) {
+                    assertTrue(props.has(v.get("prop").getAsString()), v.get("prop").getAsString() + " publicada e ausente do props.json");
+                    assertEquals(a.get("id").getAsString(), props.getAsJsonObject(v.get("prop").getAsString()).get("variante_de").getAsString());
+                    published.add(v.get("prop").getAsString());
+                }
+            }
         for (String name : props.keySet())   // o que é do laboratório está no catálogo; o resto é aprovado e intocado
-            if (props.getAsJsonObject(name).has("conteudo")) assertTrue(ids.contains(name), name + " marcado e fora do catálogo");
+            if (props.getAsJsonObject(name).has("conteudo")) assertTrue(published.contains(name), name + " marcado e fora do catálogo");
         for (String approved : List.of("house", "trail_post", "well", "tree_oak", "tree_willow", "trail_beacon_on"))
             assertFalse(props.getAsJsonObject(approved).has("conteudo"), approved + " é aprovado e não pode virar do laboratório");
     }
@@ -206,8 +222,11 @@ class ConteudoMundoTest {
                         per[mat]++;
                     }
             if (per[VoxModel.MAT_FOLIAGE] > 0) assertTrue(a.get("affineWind").getAsBoolean(), id + ": folhagem sem affineWind");
-            assertTrue(a.getAsJsonObject("custo").get("emissivo_pct").getAsFloat() <= 6f,
-                    id + ": emissivo acima de 6% das faces (luz é ponto focal)");
+            // luz é ponto focal: ≤ 6% das faces; FONTE DE LUZ (tag) até a fração da fogueira aprovada (25,1%, medida;
+            // o poste com lanterna aprovado tem 7,9% e o marco aceso 7,4%)
+            boolean source = a.getAsJsonArray("tags").toString().contains("\"fonte_de_luz\"");
+            float em = a.getAsJsonObject("custo").get("emissivo_pct").getAsFloat();
+            assertTrue(em <= (source ? 25.1f : 6f), id + ": emissivo " + em + "% acima do limite (" + (source ? "fonte de luz" : "ponto focal") + ")");
         }
     }
 
@@ -224,7 +243,7 @@ class ConteudoMundoTest {
         int[][] nb = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
         for (JsonObject a : assets()) {
             String cat = a.get("categoria").getAsString();
-            if (!cat.equals("construcao") && !cat.equals("poi")) continue;
+            if (!cat.equals("construcao") && !cat.equals("poi") && !cat.equals("estrutura")) continue;
             String id = a.get("id").getAsString();
             Model m = load(a);
             int bad = 0, minY = (int) Math.ceil(1.7f / m.vs);
@@ -417,6 +436,76 @@ class ConteudoMundoTest {
             }
         }
         assertTrue(n >= 20, "variações conferidas: " + n);
+    }
+
+    /** Cantos (mundo) de uma pegada {"min","max"} crescida por g, girada por r graus (rotateY do viewer) e transladada. */
+    static double[][] rect(JsonObject peg, double x, double z, double r, double g) {
+        float[] lo = arr(peg, "min"), hi = arr(peg, "max");
+        double[][] c = {{lo[0] - g, lo[1] - g}, {hi[0] + g, lo[1] - g}, {hi[0] + g, hi[1] + g}, {lo[0] - g, hi[1] + g}};
+        double a = Math.toRadians(r), cs = Math.cos(a), sn = Math.sin(a);
+        for (double[] p : c) { double px = p[0], pz = p[1]; p[0] = x + px * cs + pz * sn; p[1] = z - px * sn + pz * cs; }
+        return c;
+    }
+
+    /** Separação de eixos (encostar não conta). */
+    static boolean overlap(double[][] p, double[][] q) {
+        for (double[][] poly : new double[][][]{p, q})
+            for (int i = 0; i < 4; i++) {
+                double ax = poly[(i + 1) % 4][1] - poly[i][1], az = -(poly[(i + 1) % 4][0] - poly[i][0]);
+                double pmin = 1e9, pmax = -1e9, qmin = 1e9, qmax = -1e9;
+                for (double[] v : p) { double d = ax * v[0] + az * v[1]; pmin = Math.min(pmin, d); pmax = Math.max(pmax, d); }
+                for (double[] v : q) { double d = ax * v[0] + az * v[1]; qmin = Math.min(qmin, d); qmax = Math.max(qmax, d); }
+                if (pmax <= qmin + 1e-6 || qmax <= pmin + 1e-6) return false;
+            }
+        return true;
+    }
+
+    /**
+     * Conjuntos de ofício (lote 2): cada item existe no props.json, não invade a pegada da âncora nem a de outro item,
+     * e nenhuma entrada da âncora fica a menos de 0,3 u (o raio do herói) de um item. Conferido de novo aqui, com a
+     * pegada do catálogo, independente do validador do build.
+     */
+    @Test
+    void craftSetsKeepAnchorEntrancesFreeAndDoNotOverlap() throws IOException {
+        JsonObject cat = catalog(), props = json(ENV.resolve("props.json"));
+        Map<String, JsonObject> peg = new HashMap<>();
+        Map<String, JsonObject> rec = new HashMap<>();
+        for (JsonObject a : assets()) {
+            peg.put(a.get("id").getAsString(), a.getAsJsonObject("medidas").getAsJsonObject("pegada_u"));
+            rec.put(a.get("id").getAsString(), a);
+            for (JsonElement e : a.getAsJsonObject("variacoes").getAsJsonArray("extremos")) {
+                JsonObject v = e.getAsJsonObject();
+                if (v.has("prop") && !v.get("prop").isJsonNull()) peg.put(v.get("prop").getAsString(), v.getAsJsonObject("pegada_u"));
+            }
+        }
+        int sets = 0;
+        for (JsonElement e : cat.getAsJsonArray("conjuntos")) {
+            JsonObject s = e.getAsJsonObject();
+            String sid = s.get("id").getAsString(), anchor = s.get("ancora").getAsString();
+            assertTrue(props.has(anchor) && peg.containsKey(anchor), sid + ": âncora " + anchor);
+            double[][] a = rect(peg.get(anchor), 0, 0, 0, 0);
+            List<double[][]> placed = new ArrayList<>();
+            for (JsonElement ie : s.getAsJsonArray("itens")) {
+                JsonObject it = ie.getAsJsonObject();
+                String iid = it.get("id").getAsString();
+                assertTrue(props.has(iid) && peg.containsKey(iid), sid + ": item " + iid + " inexistente");
+                float[] pos = arr(it, "pos_u");
+                double r = it.get("rumo").getAsDouble();
+                double[][] box = rect(peg.get(iid), pos[0], pos[1], r, 0);
+                assertFalse(overlap(box, a), sid + ": " + iid + " invade a âncora");
+                for (double[][] o : placed) assertFalse(overlap(box, o), sid + ": " + iid + " sobrepõe outro item");
+                double[][] grown = rect(peg.get(iid), pos[0], pos[1], r, 0.3);
+                for (JsonElement de : rec.get(anchor).getAsJsonObject("pontos").getAsJsonArray("entradas")) {
+                    float[] d = arr(de.getAsJsonObject(), "pos_u");
+                    double[][] pt = {{d[0] - 0.01, d[2] - 0.01}, {d[0] + 0.01, d[2] - 0.01}, {d[0] + 0.01, d[2] + 0.01}, {d[0] - 0.01, d[2] + 0.01}};
+                    assertFalse(overlap(grown, pt), sid + ": " + iid + " bloqueia uma entrada da âncora");
+                }
+                placed.add(box);
+            }
+            assertTrue(placed.size() >= 3, sid + ": conjunto com menos de 3 itens não comunica o ofício");
+            sets++;
+        }
+        assertTrue(sets >= 5, "conjuntos conferidos: " + sets);
     }
 
     @Test
