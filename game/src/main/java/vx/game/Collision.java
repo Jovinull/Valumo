@@ -139,7 +139,8 @@ public final class Collision {
      * formas daquela construção ({@link #cameraSkip}) e o desenho recorta o que dela fica entre a câmera e o herói. A
      * colisão do corpo não muda nunca.
      */
-    public record Cutaway(int id, String prop, float x, float z, float r) { }
+    /** Zona (centro x, z e raio r, em u de mundo) e a origem do modelo da construção (ox, oz): é por ela que o desenho a acha. */
+    public record Cutaway(int id, String prop, float x, float z, float r, float ox, float oz) { }
 
     public final List<Cutaway> cutaways = new ArrayList<>();
     /** Rodada 12.3 — zona cujas formas as consultas de câmera ignoram nesta chamada (-1 = nenhuma; quem chama põe e tira). */
@@ -203,7 +204,7 @@ public final class Collision {
             com.google.gson.JsonArray ce = rc.getAsJsonArray("centro_u");
             Vector3f c = m.transformPosition(new Vector3f(ce.get(0).getAsFloat(), 0f, ce.get(1).getAsFloat()));
             owner = cutaways.size();
-            cutaways.add(new Cutaway(owner, p.name(), c.x, c.z, rc.get("raio_u").getAsFloat() * scale));
+            cutaways.add(new Cutaway(owner, p.name(), c.x, c.z, rc.get("raio_u").getAsFloat() * scale, m.m30(), m.m32()));
         }
         for (int i = 0; i < formas.size(); i++) {
             JsonObject f = formas.get(i).getAsJsonObject();
