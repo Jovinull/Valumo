@@ -33,7 +33,8 @@ public final class Terrain implements Animator.Ground {
             for (int x = 0; x < n; x++) {
                 float wx = (x + 0.5f) * tv - World.SIZE / 2, wz = (z + 0.5f) * tv - World.SIZE / 2;
                 float h = field.height(wx, wz, !key.equals("e"));
-                top[x + z * n] = Math.clamp(World.quantize(mode, h, wx, wz, tv), 0, ny - 1);
+                // rodada 12.1: no patamar plano por projeto, sem a ondulação de ruído (o chão debaixo da construção num degrau só)
+                top[x + z * n] = Math.clamp(World.quantize(field.flat(wx, wz) ? 0 : mode, h, wx, wz, tv), 0, ny - 1);
             }
     }
 

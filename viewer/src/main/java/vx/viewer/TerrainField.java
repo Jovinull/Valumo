@@ -13,6 +13,13 @@ public interface TerrainField {
     /** Altura contínua (u). {@code carvePath}: rebaixar o caminho (só as direções A–D; a E nunca rebaixa). */
     float height(float x, float z, boolean carvePath);
 
+    /**
+     * Rodada 12.1 — o relevo aqui é PLANO por projeto (patamar de construção)? A grade quantiza esses pontos sem a ondulação
+     * de ruído do modo de relevo, para o chão debaixo de uma construção ficar num degrau só. Padrão: não (o relevo legado e
+     * a v1 não mudam).
+     */
+    default boolean flat(float x, float z) { return false; }
+
     /** Distância (u) ao eixo do caminho mais perto (grande se não houver caminho). */
     float pathDistance(float x, float z);
 
