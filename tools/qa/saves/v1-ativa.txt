@@ -1,0 +1,31 @@
+# Saves antigos (integração dos lotes de conteúdo): vila (save v1) com a missão ATIVA — aceita da Kelyra, nada mais.
+# Mesmos passos do tools/aventura/01-aventura.txt até a aceitação; salva pela pausa. Rode com -Dvx.savegame=PASTA_TEMP.
+size 1280 720
+settle
+wait 1.5
+click comecar
+wait 1.2
+missao
+ir -2.7 1.1
+wait 0.4
+key E
+wait 1.4
+key E
+wait 1.2
+key E
+wait 1.2
+key E
+wait 1.0
+key E
+wait 1.6
+key E
+wait 1.2
+key E
+wait 1.0
+missao
+key ESC
+wait 0.4
+click salvar
+wait 0.8
+missao
+estado

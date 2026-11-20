@@ -1,0 +1,40 @@
+# Saves antigos: região gerada (save v2) com a missão CONCLUÍDA — o tools/mundo/02-aventura.txt sem gravar quadros.
+size 1280 720
+settle
+regiao
+wait 1.2
+click comecar
+wait 1.0
+ir-lugar doador andando
+wait 0.4
+conversar aceitar 1.3
+missao
+key J
+wait 1.4
+key J
+wait 0.4
+seguir-trilha ida correndo
+wait 0.4
+lutar 30
+wait 2.5
+missao
+ir-lugar marco andando
+wait 0.3
+key E
+wait 1.4
+missao
+seguir-trilha volta correndo
+ir-lugar doador andando
+wait 0.3
+conversar aceitar 1.3
+missao
+key J
+wait 1.4
+key J
+key ESC
+wait 0.4
+click salvar
+wait 0.8
+missao
+click sair
+wait 0.4

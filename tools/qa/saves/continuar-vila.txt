@@ -1,0 +1,8 @@
+# Saves antigos: abre o save da vila (v1) pelo Continuar e imprime missão e posição. Não grava nada.
+size 1280 720
+settle
+wait 1.5
+click continuar-jogo
+wait 1.4
+missao
+estado

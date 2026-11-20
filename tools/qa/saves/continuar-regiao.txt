@@ -1,0 +1,9 @@
+# Saves antigos: abre o save da região (v2) pelo Continuar: região, missão (marco aceso) e posição. Não grava nada.
+size 1280 720
+settle
+wait 1.2
+click continuar-jogo
+wait 1.4
+regiao
+missao
+estado

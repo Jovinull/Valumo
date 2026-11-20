@@ -1,0 +1,73 @@
+# Saves antigos: vila (save v1) com a missão CONCLUÍDA — o tools/aventura/01-aventura.txt sem gravar quadros.
+size 1280 720
+settle
+wait 1.5
+click comecar
+wait 1.2
+missao
+ir -2.7 1.1
+wait 0.4
+key E
+wait 1.4
+key E
+wait 1.2
+key E
+wait 1.2
+key E
+wait 1.0
+key E
+wait 1.6
+key E
+wait 1.2
+key E
+wait 1.0
+missao
+key J
+wait 1.6
+key J
+wait 0.5
+ir -0.6 3.6 correndo
+ir 0.3 6.2 correndo
+ir 0.4 8.0 correndo
+wait 0.3
+ir -0.9 9.8
+wait 0.2
+lutar 25
+wait 2.5
+missao
+ir -1.15 13.3
+mirar -1.15 14.35 0.4
+wait 0.6
+key E
+wait 0.2
+ir 0.4 11.3 correndo
+ir 0.4 12.0
+mirar 0.4 16.0 0.4
+wait 0.2
+wait 1.6
+missao
+ir -0.6 10.6 correndo
+ir 0.4 8.0 correndo
+ir 0.3 6.0 correndo
+ir -0.6 3.6 correndo
+ir -2.7 1.1
+wait 0.4
+key E
+wait 1.4
+key E
+wait 1.4
+key E
+wait 1.2
+key E
+wait 1.0
+missao
+key J
+wait 1.6
+key J
+key ESC
+wait 0.6
+click salvar
+wait 1.0
+missao
+click sair
+wait 0.5

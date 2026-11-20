@@ -1,0 +1,18 @@
+# Saves antigos pelo menu (rodada 11.1): Brisa × vila, com os dados criados pelo binário antigo (02, 03 e 04 de tools/menu).
+# Entra e imprime o estado do menu, a região, a missão e a posição. Não grava nada.
+size 1280 720
+esperar-menu 20
+click jogar
+esperar-menu 20
+menu-personagem Brisa
+click escolher-personagem
+esperar-menu 30
+menu-mundo vila
+esperar-menu 30
+menu-estado
+click entrar
+esperar-menu 60
+wait 1
+regiao
+missao
+estado
