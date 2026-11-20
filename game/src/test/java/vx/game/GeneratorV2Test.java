@@ -130,6 +130,9 @@ class GeneratorV2Test {
             assertTrue(v2(s).reach.targets().values().stream().allMatch(Boolean::booleanValue), "s" + s + ": tudo alcançável");
             float d = (float) Math.hypot(r.x() - L.sx, r.z() - L.sz);
             assertTrue(d > L.plateauR, "a ruína fica fora do assentamento");
+            // quem vai à ruína não passa pela arena dos fungos: a trilha dela sai da principal antes do posto
+            float[] fork = L.branches.stream().filter(RegionLayout.Branch::carve).findFirst().orElseThrow().points().getFirst();
+            assertTrue(Math.hypot(fork[0] - L.px, fork[1] - L.pz) >= L.clearingR + 3.4f, "s" + s + ": a trilha da ruína sai de dentro da arena");
         }
     }
 
