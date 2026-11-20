@@ -311,6 +311,42 @@ class CompositeCollisionTest {
             }
     }
 
+    /**
+     * P82 (rodada 12.1) — a câmera do jogador dentro da ruína de casa: diante da lareira, ao lado da árvore jovem e logo
+     * dentro do arco, girando a câmera em 8 rumos. Na rodada 12 a copa começava a 1,375 u (logo acima da cabeça) e segurava a
+     * câmera colada atrás da cabeça em quase todo rumo; com a copa subida (~2,2 u) a câmera fica longe na maioria dos rumos
+     * (as paredes, o tronco e a chaminé ainda seguram alguns, como devem). Mede-se com a câmera real (FollowCamera).
+     */
+    @Test
+    void p82ACameraDentroDaRuinaNaoColaNaCabeca() throws Exception {
+        JsonObject rec = catalog().getAsJsonObject("ruin_house");
+        Collision c = build("ruin_house", 0f, 1f, false, rec);
+        float[] hearth = points(rec, "interacao", null, 0f, 1f).stream().filter(p -> true).findFirst().orElseThrow();
+        float[] arch = points(rec, "entradas", null, 0f, 1f).getFirst();
+        float ox = OX, oz = OZ;                                           // a árvore jovem está na origem do modelo
+        float hx = hearth[0] + (ox - hearth[0]) / (float) Math.hypot(ox - hearth[0], oz - hearth[2]) * 0.9f;
+        float hz = hearth[2] + (oz - hearth[2]) / (float) Math.hypot(ox - hearth[0], oz - hearth[2]) * 0.9f;
+        float[][] spots = {{hx, hz}, {ox - 0.7f, oz + 0.2f}, {arch[0] + (ox - arch[0]) * 0.35f, arch[2] + (oz - arch[2]) * 0.35f}};
+        String[] names = {"diante da lareira", "ao lado da árvore", "logo dentro do arco"};
+        StringBuilder report = new StringBuilder();
+        int glued = 0, total = 0;
+        for (int k = 0; k < spots.length; k++) {
+            float y = c.standAt(spots[k][0], spots[k][1], 1.3f, Player.RADIUS, Player.HEIGHT);
+            report.append(names[k]).append(':');
+            for (int r = 0; r < 8; r++) {
+                FollowCamera cam = new FollowCamera();
+                cam.yaw = (float) Math.toRadians(r * 45);
+                for (int i = 0; i < 90; i++) cam.update(1f / 60f, spots[k][0], y, spots[k][1], c);
+                report.append(String.format(java.util.Locale.ROOT, " %.2f", cam.dist));
+                if (cam.dist < 1.2f) glued++;
+                total++;
+            }
+            report.append(" |");
+        }
+        System.out.println("P82 distâncias da câmera (u): " + report + " coladas (< 1,2 u): " + glued + " de " + total);
+        assertTrue(glued <= total / 3, "câmera colada atrás da cabeça em " + glued + " de " + total + " rumos: " + report);
+    }
+
     /** Nenhum asset com formas compostas sai liberado sem passar aqui dentro (a lista ENTERABLE é a dos conferidos). */
     @Test
     void todoCompostoLiberadoFoiPercorridoAqui() throws Exception {
