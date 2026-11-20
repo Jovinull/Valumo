@@ -1,0 +1,198 @@
+{
+ "name": "npc_acapela",
+ "description": "Perfil do Acapela (NPC, laboratório de conteúdo): o de npc_vila (mãos livres, balanço da locomoção) com o ACENO trazido para a frente das franjas da bochecha — a mão do aceno compartilhado passava por dentro delas (x ±11–12, z ~2). Cotovelo para a FRENTE (o antebraço passa diante das franjas, que ficam em z ≤ 4), mão aberta para fora dentro do alcance do braço (~11,5 voxels), cabeça sem virar para a mão. Posições em voxels do esqueleto NPC (ombro ±5,8 / 26,5). A mão sobe passando por fora e pela frente (pose wave_out), nunca em linha reta pela bochecha.",
+ "rightItem": null,
+ "leftItem": null,
+ "tipLength": 0,
+ "attack": "emote",
+ "defaults": {
+  "rElbow": [
+   -1,
+   -0.6,
+   -0.6
+  ],
+  "lElbow": [
+   1,
+   -0.6,
+   -0.6
+  ]
+ },
+ "carry": {
+  "idle": "rest",
+  "walk": "rest",
+  "run": "rest",
+  "free": "r",
+  "swingWalk": 1.2,
+  "swingRun": 1.9
+ },
+ "poses": {
+  "rest": {
+   "r": [
+    -7.2,
+    15.2,
+    1.6
+   ],
+   "rDir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "rEdge": [
+    1,
+    0,
+    0
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ],
+   "lMode": "free",
+   "l": [
+    7.0,
+    16.0,
+    1.8
+   ],
+   "lElbow": [
+    0.6,
+    -0.3,
+    -1
+   ]
+  },
+  "wave_up": {
+   "base": "rest",
+   "r": [
+    -11.0,
+    32.2,
+    8.0
+   ],
+   "rElbow": [
+    -0.4,
+    -0.7,
+    1.0
+   ],
+   "head": [
+    -4,
+    2,
+    5
+   ],
+   "torso": [
+    0,
+    -5,
+    2
+   ]
+  },
+  "wave_a": {
+   "base": "wave_up",
+   "r": [
+    -11.8,
+    32.4,
+    7.6
+   ]
+  },
+  "wave_b": {
+   "base": "wave_up",
+   "r": [
+    -10.2,
+    33.0,
+    8.2
+   ],
+   "head": [
+    -5,
+    0,
+    7
+   ]
+  },
+  "wave_out": {
+   "base": "rest",
+   "r": [
+    -11.0,
+    23.0,
+    6.5
+   ],
+   "rElbow": [
+    -0.6,
+    -0.6,
+    0.6
+   ],
+   "head": [
+    -2,
+    0,
+    2
+   ],
+   "torso": [
+    0,
+    -2,
+    1
+   ]
+  }
+ },
+ "moves": {
+  "emote": {
+   "label": "Acena",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.22,
+     "pose": "wave_out"
+    },
+    {
+     "t": 0.48,
+     "pose": "wave_up"
+    },
+    {
+     "t": 0.7,
+     "pose": "wave_a"
+    },
+    {
+     "t": 0.94,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.18,
+     "pose": "wave_a"
+    },
+    {
+     "t": 1.42,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.68,
+     "pose": "wave_up",
+     "stop": true
+    },
+    {
+     "t": 1.9,
+     "pose": "wave_out"
+    },
+    {
+     "t": 2.2,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.48
+    ],
+    "exec": [
+     0.48,
+     1.42
+    ],
+    "follow": [
+     1.42,
+     1.68
+    ],
+    "recover": [
+     1.68,
+     2.2
+    ]
+   }
+  }
+ }
+}
