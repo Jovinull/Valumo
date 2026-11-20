@@ -31,9 +31,11 @@ uniform float uSpec;
 uniform float uEmissive;
 uniform float uFlash;        // rodada 09: lampejo de impacto (0 = nada); puxa para um branco quente, antes da névoa
 uniform float uFade;         // rodada 09.3: personagem com a câmera colada nele vira pontilhado (0 = opaco; até 0,75)
+#ifdef VX_CUT                // rodada 12.3: só na variante dos desenhos recortados (Renderer.sceneCut); os outros não pagam
 uniform float uCut;          // rodada 12.3: recorte desta construção entre a câmera e o herói (0 = nada; 1 = raio inteiro)
 uniform vec3 uCutTarget;     // rodada 12.3: o alvo do recorte (o peito do herói)
 uniform float uCutRadius;    // rodada 12.3: raio (u) do cone câmera → alvo, medido na altura do alvo
+#endif
 uniform float uBacklight;    // translucidez de folhagem
 uniform float uFogDensity;
 uniform float uFogHeight;
@@ -100,6 +102,7 @@ float bayer4(vec2 p) {
     return (float(m[i]) + 0.5) / 16.0;
 }
 
+#ifdef VX_CUT
 // Rodada 12.3 (P85): recorte contextual. Só nos desenhos marcados (a construção em cuja zona o herói está): some o fragmento
 // ANTES do herói dentro de um CONE com o vértice na câmera e raio uCutRadius na altura do alvo. Na tela, o cone é um disco de
 // tamanho constante em volta do herói (o que está perto da câmera não abre um buraco maior); a borda (o quarto de fora) é
@@ -117,10 +120,13 @@ bool cutAway() {
     if (k < 0.75) return true;                                       // o miolo (CameraCutaway.CORE)
     return k < 1.0 && bayer4(gl_FragCoord.xy) < (1.0 - k) / 0.25;
 }
+#endif
 
 void main() {
     if (uFade > 0.0 && bayer4(gl_FragCoord.xy) < uFade) discard;
+#ifdef VX_CUT
     if (cutAway()) discard;
+#endif
     vec3 base = vColor;
     if (uUseTex) {
         vec4 t = texture(uAtlas, vUv);
