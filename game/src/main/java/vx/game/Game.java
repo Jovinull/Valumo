@@ -45,6 +45,18 @@ public final class Game implements AutoCloseable {
      */
     static final boolean PROCEDURAL = "procedural".equals(System.getProperty("vx.mundo"));
     static final long SEED = Long.parseUnsignedLong(System.getProperty("vx.semente", "1024"));
+
+    /**
+     * Rodada 12 — a versão do gerador do modo técnico ({@code -Dvx.mundo=procedural}): {@code -Dvx.gerador=N}; senão a do
+     * save que já existe na pasta da semente (um mundo v1 continua v1); senão a mais nova.
+     */
+    static int cliGenerator() {
+        String g = System.getProperty("vx.gerador");
+        if (g != null) return Integer.parseInt(g);
+        Path dir = SaveGame.procDir(ProceduralScene.worldId(SEED));
+        int saved = dir == null ? -1 : SaveGame.peekGenerator(dir.resolve(SaveGame.FILE));
+        return saved > 0 ? saved : vx.game.world.RegionGenerator.LATEST;
+    }
     /** A região gerada (null no modo padrão) e o tempo de gerar + conferir (ms). */
     ProceduralScene procedural;
     double generateMs;
@@ -123,10 +135,10 @@ public final class Game implements AutoCloseable {
         long w0 = System.nanoTime();
         if (PROCEDURAL) {                                                 // rodada 11: região gerada pela semente (modo técnico)
             long g0 = System.nanoTime();
-            ProceduralScene ps = ProceduralScene.create(assetsPath, SEED);
+            ProceduralScene ps = ProceduralScene.create(assetsPath, SEED, cliGenerator());
             generateMs = (System.nanoTime() - g0) / 1e6;
             System.out.printf(java.util.Locale.ROOT, "mundo: procedural, semente %s, %s v%d, tentativa %d, gerado e conferido em %.0f ms%s%n",
-                    Long.toUnsignedString(SEED), vx.game.world.RegionGenerator.ID, vx.game.world.RegionGenerator.VERSION, ps.layout.attempt,
+                    Long.toUnsignedString(SEED), vx.game.world.RegionGenerator.ID, ps.version(), ps.layout.attempt,
                     generateMs, ps.log.isEmpty() ? "" : " (" + ps.log.size() + " tentativa(s) recusada(s))");
             w0 = System.nanoTime();
             openSession(new World(assets, style, ps.field, ps.worldDoc), ps.scene(), ps, SaveGame.procDir(ps.worldId()));
@@ -1546,7 +1558,7 @@ public final class Game implements AutoCloseable {
                 ProceduralScene[] ps = new ProceduralScene[1];
                 transition(new Step("Gerando a região da semente " + Long.toUnsignedString(r.seed()), () -> {
                     try {
-                        ps[0] = generate(r.seed());
+                        ps[0] = generate(r.seed(), vx.game.world.RegionGenerator.LATEST);   // o mundo novo nasce na mais nova
                     } catch (ProceduralScene.Rejected e) {
                         steps.clear();
                         f.failed(r, rejected(r.seed()));
@@ -1571,7 +1583,7 @@ public final class Game implements AutoCloseable {
                     try {
                         made[0] = f.worlds.create(r.name(), r.seed(), vx.game.menu.CharacterStore.now(), seed -> {
                             try {
-                                ps[0] = generate(seed);
+                                ps[0] = generate(seed, vx.game.world.RegionGenerator.LATEST);
                             } catch (ProceduralScene.Rejected e) {
                                 throw new vx.game.menu.WorldStore.CreateFailed(rejected(seed));
                             }
@@ -1598,11 +1610,14 @@ public final class Game implements AutoCloseable {
      * Gera a região da semente pelo caminho do jogo. QA: {@code -Dvx.qa.recusar=SEMENTE} simula a recusa do gerador para
      * essa semente (nenhuma semente conhecida é recusada; o caminho de falha da interface precisa ser exercitado).
      */
-    ProceduralScene generate(long seed) {
+    ProceduralScene generate(long seed, int version) {
         if (Long.toUnsignedString(seed).equals(System.getProperty("vx.qa.recusar")))
             throw new ProceduralScene.Rejected("semente " + Long.toUnsignedString(seed) + " recusada por -Dvx.qa.recusar (simulação de QA)");
-        return ProceduralScene.create(assetsPath, seed);
+        return ProceduralScene.create(assetsPath, seed, version);
     }
+
+    /** Mensagem para o jogador quando o mundo é de uma versão mais nova do Valumo (o arquivo fica como está). */
+    static final String NEWER_WORLD = "Este mundo foi criado por uma versão mais nova do Valumo e não pode ser aberto aqui. Nada foi alterado.";
 
     /** Mensagem para o jogador quando a semente não gera região jogável (o motivo técnico vai para o console). */
     static String rejected(long seed) {
@@ -1683,7 +1698,7 @@ public final class Game implements AutoCloseable {
      * a chave da prévia no {@code mundo.json}. Mundo, relevo e FBO temporários fecham aqui.
      */
     private void worldPreview(vx.game.menu.WorldStore.World wd, ProceduralScene ps) {
-        if (ps == null) ps = generate(wd.seed());
+        if (ps == null) ps = generate(wd.seed(), wd.generatorVersion());   // a região DESTE mundo (a versão dele)
         World w = new World(assets, style, ps.field, ps.worldDoc);
         Framebuffer fb = null;
         try {
@@ -1724,9 +1739,8 @@ public final class Game implements AutoCloseable {
         var wd = r.world();
         Path dir = f.worlds.adventureDir(wd.id(), prof.id());
         boolean resume = vx.game.menu.MenuFlow.hasSave(dir);
-        if (!wd.legacy() && wd.generatorVersion() != vx.game.world.RegionGenerator.VERSION) {
-            f.failed(r, "Este mundo foi criado pelo gerador v" + wd.generatorVersion() + "; esta versão do jogo gera v"
-                    + vx.game.world.RegionGenerator.VERSION + ". A mesma semente daria outra região.");
+        if (!wd.supported()) {                                            // rodada 12: mundo de um jogo mais novo: nada é lido nem gravado
+            f.failed(r, NEWER_WORLD);
             return;
         }
         ProceduralScene[] ps = new ProceduralScene[1];
@@ -1734,7 +1748,7 @@ public final class Game implements AutoCloseable {
         List<Step> l = new ArrayList<>();
         if (!wd.legacy()) l.add(new Step("Gerando a região da semente " + wd.seedText(), () -> {
             try {
-                ps[0] = generate(wd.seed());
+                ps[0] = generate(wd.seed(), wd.generatorVersion());       // rodada 12: sempre a versão do mundo
             } catch (ProceduralScene.Rejected e) {
                 steps.clear();
                 f.failed(r, rejected(wd.seed()));
@@ -1810,11 +1824,12 @@ public final class Game implements AutoCloseable {
             boolean proc = o.kind() == vx.game.menu.WorldStore.Kind.PROCEDURAL;
             ProceduralScene ps = null;
             try {
-                if (proc) ps = ProceduralScene.create(assetsPath, o.seed());
+                int ver = proc ? SaveGame.peekGenerator(o.file()) : -1;            // rodada 12: a versão gravada no save
+                if (proc) ps = ProceduralScene.create(assetsPath, o.seed(), ver);
                 ProceduralScene psf = ps;
                 vx.viewer.Appearance a = readSave(assetsPath, catalog, o.file(), ps).appearance();
                 vx.game.menu.WorldStore.World w = proc
-                        ? ws.list(null).stream().filter(x -> !x.legacy() && x.seed() == o.seed()).findFirst().orElse(null)
+                        ? ws.list(null).stream().filter(x -> !x.legacy() && x.seed() == o.seed() && x.generatorVersion() == ver).findFirst().orElse(null)
                         : vx.game.menu.WorldStore.legacy();
                 vx.game.menu.WorldStore.World wf = w;
                 var p = cs.list(null).stream().filter(x -> x.appearance().signature().equals(a.signature())
@@ -1823,7 +1838,7 @@ public final class Game implements AutoCloseable {
                     String n = vx.game.menu.CharacterStore.cleanName(a.name);
                     p = cs.create(n != null ? n : GameLogic.presetName(a.preset), a, now);
                 }
-                if (w == null) w = ws.create("", o.seed(), now, s -> { });
+                if (w == null) w = ws.create("", o.seed(), ver, now, s -> { });
                 ws.importSave(o, w.id(), p.id(), now, f -> validateSave(assetsPath, catalog, f, psf));
                 cs.touch(p, Files.getLastModifiedTime(o.file()).toMillis());   // a última aventura = quando o save foi gravado
                 out.add(o.file() + " → " + w.name() + " / " + p.name());
@@ -2168,7 +2183,7 @@ public final class Game implements AutoCloseable {
                 case "menu-estado" -> System.out.println("menu-estado: " + menuState());
                 case "previa-comparar" -> {                                // rodada 11.1: vista atual × alternativa da prévia (semente, pasta)
                     long seed = Long.parseUnsignedLong(t[1]);
-                    ProceduralScene ps = ProceduralScene.create(assetsPath, seed);
+                    ProceduralScene ps = ProceduralScene.create(assetsPath, seed, t.length > 3 ? Integer.parseInt(t[3]) : vx.game.world.RegionGenerator.LATEST);
                     World pw = new World(assets, style, ps.field, ps.worldDoc);
                     try {
                         Collision col = Collision.build(pw.terrainGrid, Collision.profiles(assetsPath), pw.placements(), pw.bodies(), ps.scene());
@@ -2471,7 +2486,7 @@ public final class Game implements AutoCloseable {
                     long mem0 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
                     for (int i = 0; i < n; i++) {
                         long a0 = System.nanoTime();
-                        ProceduralScene ps = ProceduralScene.create(assetsPath, procedural.seed);
+                        ProceduralScene ps = ProceduralScene.create(assetsPath, procedural.seed, procedural.version());
                         tot[i] = (System.nanoTime() - a0) / 1e6;
                         comp[i] = ps.composeNanos / 1e6;
                         val[i] = ps.validateNanos / 1e6;

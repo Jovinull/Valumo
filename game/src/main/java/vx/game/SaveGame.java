@@ -118,7 +118,7 @@ public final class SaveGame {
         m.addProperty("tipo", "procedural");
         m.addProperty("semente", Long.toUnsignedString(ps.seed));
         m.addProperty("gerador", vx.game.world.RegionGenerator.ID);
-        m.addProperty("versaoGerador", vx.game.world.RegionGenerator.VERSION);
+        m.addProperty("versaoGerador", ps.version());                     // rodada 12: a versão DA REGIÃO (a do mundo)
         m.addProperty("tentativa", ps.layout.attempt);
         m.addProperty("regiao", ps.layout.regionId);
         return m;
@@ -193,6 +193,23 @@ public final class SaveGame {
     }
 
     // ------------------------------------------------------------------ leitura
+
+    /**
+     * Rodada 12 — a versão do gerador gravada num save de mundo procedural, SEM validar nada (só para escolher com que
+     * versão gerar a região antes de ler o save de verdade). Ausente, ilegível ou save da vila fixa = -1. Não escreve nada.
+     */
+    public static int peekGenerator(Path file) {
+        try {
+            if (!Files.isRegularFile(file) || Files.size(file) > MAX_BYTES) return -1;
+            JsonObject o = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonElement m = o.get("mundo");
+            if (m == null || !m.isJsonObject()) return -1;
+            JsonElement v = m.getAsJsonObject().get("versaoGerador");
+            return v != null && v.isJsonPrimitive() && v.getAsJsonPrimitive().isNumber() ? v.getAsInt() : -1;
+        } catch (IOException | RuntimeException e) {
+            return -1;
+        }
+    }
 
     /** Lê o save da pasta (sem save = {@code Loaded(null, null, null)}); inválido = motivo + original em {@code .invalido}. */
     public static Loaded read(Path dir, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects) {

@@ -13,6 +13,11 @@ public final class RegionLayout {
     /** Tentativa de composição que passou na validação (0 = a primeira). */
     public final int attempt;
     public final String regionId;
+    /**
+     * Rodada 12 (ADR 0029) — a versão do gerador que compôs esta região. Cada mundo usa para sempre a versão com que
+     * nasceu: o relevo, a cena e o save leem a versão DAQUI, nunca da mais nova.
+     */
+    public final int version;
 
     // relevo
     public float noiseX, noiseZ, amplitude, rimN, rimS, rimE, rimW;
@@ -56,11 +61,15 @@ public final class RegionLayout {
     /** Raio da arena (a clareira do posto). */
     public float arenaR;
 
-    RegionLayout(long seed, int attempt, String regionId) {
+    RegionLayout(long seed, int attempt, String regionId, int version) {
         this.seed = seed;
         this.attempt = attempt;
         this.regionId = regionId;
+        this.version = version;
     }
+
+    /** Identidade da região gerada (semente, versão, região): "s1024.g1.r0". A mesma semente em outra versão é outra região. */
+    public String key() { return "s" + Long.toUnsignedString(seed) + ".g" + version + "." + regionId; }
 
     public PointOfInterest poi(String type) {
         for (PointOfInterest p : pois) if (p.type().equals(type)) return p;

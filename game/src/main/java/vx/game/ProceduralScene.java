@@ -102,11 +102,20 @@ public final class ProceduralScene {
 
     public String worldId() { return worldId(seed); }
 
-    public static ProceduralScene create(Path assets, long seed) {
+    /** A versão do gerador desta região (a do mundo). */
+    public int version() { return layout.version; }
+
+    /**
+     * Gera a região da semente na versão {@code version} do gerador — a do MUNDO (rodada 12, ADR 0029): um mundo v1 é
+     * sempre gerado pela v1, mesmo num jogo que já cria mundos v2. Versão não suportada = {@link Rejected}.
+     */
+    public static ProceduralScene create(Path assets, long seed, int version) {
+        if (!RegionGenerator.supports(version))
+            throw new Rejected("versão " + version + " do gerador não suportada por este jogo (semente " + Long.toUnsignedString(seed) + ")");
         List<String> log = new ArrayList<>();
         for (int attempt = 0; attempt < RegionGenerator.MAX_ATTEMPTS; attempt++) {
             long t0 = System.nanoTime();
-            RegionLayout L = RegionGenerator.compose(seed, attempt);
+            RegionLayout L = RegionGenerator.compose(seed, attempt, version);
             ProceduralField field = new ProceduralField(L);
             Docs d = docs(assets, L);
             long t1 = System.nanoTime();
@@ -228,7 +237,7 @@ public final class ProceduralScene {
             objects.add(o);
         }
         JsonObject game = new JsonObject();
-        game.addProperty("_doc", "Gerado (rodada 11): semente " + Long.toUnsignedString(L.seed) + ", " + RegionGenerator.ID + " v" + RegionGenerator.VERSION
+        game.addProperty("_doc", "Gerado (rodada 11): semente " + Long.toUnsignedString(L.seed) + ", " + RegionGenerator.ID + " v" + L.version
                 + ", tentativa " + L.attempt + ".");
         game.add("inicio", arr(L.startX, L.startZ, L.startYawDeg));
         JsonObject lim = new JsonObject();

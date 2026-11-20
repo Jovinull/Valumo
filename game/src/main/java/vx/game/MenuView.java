@@ -111,6 +111,7 @@ final class MenuView implements AutoCloseable {
     /** O mundo precisa de prévia (nunca teve, arquivo sumiu, ou é de outra versão do gerador/da prévia)? */
     boolean needsPreview(WorldStore.World w) {
         if (w.legacy()) return legacyPic == null;
+        if (!w.supported()) return false;                                 // rodada 12: mundo de um jogo mais novo: não é gerado aqui
         return !w.expectedPreviewKey().equals(w.previewKey()) || w.summary() == null || !Files.isRegularFile(flow.worlds.previewFile(w.id()));
     }
 

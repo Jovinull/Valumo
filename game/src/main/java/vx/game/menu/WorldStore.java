@@ -67,6 +67,12 @@ public final class WorldStore {
         public World withPreview(String key, String sum) { return new World(id, name, kind, seed, generatorVersion, createdAt, usedAt, key, sum); }
 
         public World named(String n) { return new World(id, n, kind, seed, generatorVersion, createdAt, usedAt, previewKey, summary); }
+
+        /**
+         * Rodada 12 — este jogo sabe gerar o mundo? Um mundo criado por uma versão mais nova do Valumo (gerador
+         * desconhecido) continua na lista, intacto, mas não abre nem ganha prévia.
+         */
+        public boolean supported() { return legacy() || RegionGenerator.supports(generatorVersion); }
     }
 
     /** Criar mundo falhou (semente malformada, região recusada, disco): a mensagem é para o jogador. */
@@ -211,11 +217,20 @@ public final class WorldStore {
      * (recusada = {@link CreateFailed} com a mensagem dela, nada gravado). Nome vazio = "Mundo &lt;semente&gt;".
      */
     public World create(String name, long seed, long now, SeedCheck check) throws CreateFailed {
+        return create(name, seed, RegionGenerator.LATEST, now, check);
+    }
+
+    /**
+     * Rodada 12 — cria na versão {@code version} do gerador. Mundo novo pelo menu: a mais nova ({@link RegionGenerator#LATEST});
+     * mundo para um save antigo adotado: a versão gravada no save (a região dele é a dessa versão).
+     */
+    public World create(String name, long seed, int version, long now, SeedCheck check) throws CreateFailed {
         if (root == null) throw new CreateFailed("Os mundos estão desligados nesta sessão.");
+        if (!RegionGenerator.supports(version)) throw new CreateFailed("Versão do gerador não suportada: " + version);
         check.check(seed);                                                  // lança CreateFailed: nada é criado
         String n = cleanName(name);
         if (n == null) n = "Mundo " + Long.toUnsignedString(seed);
-        World w = new World(newId(), n, Kind.PROCEDURAL, seed, RegionGenerator.VERSION, now, 0L, null, null);
+        World w = new World(newId(), n, Kind.PROCEDURAL, seed, version, now, 0L, null, null);
         try {
             save(w);
         } catch (IOException e) {

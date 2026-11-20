@@ -13,10 +13,19 @@ import java.util.List;
  * pede outra tentativa ({@code attempt}) — no máximo {@link #MAX_ATTEMPTS} — ou recusa a semente com o motivo.
  */
 public final class RegionGenerator {
-    /** Versão do algoritmo. Mudou o resultado de alguma semente → suba a versão (o save recusa outra versão). */
-    public static final int VERSION = 1;
     public static final String ID = "valumo.regiao";
+    /**
+     * Rodada 12 (ADR 0029) — versões que convivem no mesmo executável. Cada mundo guarda a versão com que nasceu e é
+     * sempre gerado por ela: a v1 é o algoritmo da rodada 11, CONGELADO (referência {@code regioes-v1.txt}); uma versão
+     * nova nunca muda o caminho de uma antiga.
+     */
+    public static final int V1 = 1, V2 = 2;
+    /** A versão com que os mundos NOVOS nascem (a mais nova aprovada). */
+    public static final int LATEST = V1;
     public static final int MAX_ATTEMPTS = 4;
+
+    /** Esta versão do jogo sabe gerar a versão {@code v}? (Desconhecida = mundo de um jogo mais novo: não abre.) */
+    public static boolean supports(int v) { return v == V1; }
     /** Metade do lado da região jogável (u): tudo cabe em ±17, a floresta fecha até a borda do mundo (±24). */
     static final float HALF = 16.5f;
 
@@ -25,12 +34,21 @@ public final class RegionGenerator {
 
     private RegionGenerator() { }
 
-    public static RegionLayout compose(long seed, int attempt) { return compose(seed, attempt, true); }
+    /** Compõe a região da semente na versão pedida (a do MUNDO, nunca "a mais nova"). */
+    public static RegionLayout compose(long seed, int attempt, int version) { return compose(seed, attempt, version, true); }
 
     /** {@code vegetation=false}: sem a vegetação (teste de independência: ela não pode mover lugar, encontro nem marco). */
-    public static RegionLayout compose(long seed, int attempt, boolean vegetation) {
+    public static RegionLayout compose(long seed, int attempt, int version, boolean vegetation) {
+        return switch (version) {
+            case V1 -> composeV1(seed, attempt, vegetation);
+            default -> throw new IllegalArgumentException("versão do gerador não suportada: " + version);
+        };
+    }
+
+    /** A v1 (rodada 11), congelada: nenhuma conta, rótulo ou ordem de sorteio daqui muda (referência {@code regioes-v1.txt}). */
+    static RegionLayout composeV1(long seed, int attempt, boolean vegetation) {
         String region = "r0";
-        RegionLayout L = new RegionLayout(seed, attempt, region);
+        RegionLayout L = new RegionLayout(seed, attempt, region, V1);
         String a = "t" + attempt;
         // ---------------------------------------------------------- relevo
         Rng tr = Rng.of(seed, region, "relevo", a);

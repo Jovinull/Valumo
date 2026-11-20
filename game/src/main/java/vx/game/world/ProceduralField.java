@@ -18,7 +18,7 @@ public final class ProceduralField implements TerrainField {
 
     public ProceduralField(RegionLayout layout) {
         this.L = layout;
-        this.id = "proc." + Long.toUnsignedString(layout.seed) + ".v" + RegionGenerator.VERSION + "." + layout.attempt;
+        this.id = "proc." + Long.toUnsignedString(layout.seed) + ".v" + layout.version + "." + layout.attempt;
         cum = new float[layout.path.size()];
         float t = 0;
         for (int i = 1; i < layout.path.size(); i++) {
