@@ -1,4 +1,5 @@
-"""Laboratório de conteúdo — ruínas novas (estudo pós-rodada 12): a abóbada soterrada e o sítio abandonado. Candidatas.
+"""Laboratório de conteúdo — ruínas novas (estudo pós-rodada 12): a abóbada soterrada e o sítio abandonado. APROVADAS
+pelo proprietário sem redesenho (2026-11-20); a integração ao gerador v2 é do Claude principal (depois da rodada 12.1).
 
 A `ruin_house` aparecia em todas as regiões v2 e a `ruin_tower` espera o arco alargado (P74). Estas são FONTES NOVAS,
 com ids novos, sem tocar nas duas (nem em conteudo_poi.py). Mesma civilização da vila e da ruína de casa: pedra
@@ -92,14 +93,20 @@ SPRING = 10                   # nascença do arco (1,25 u): a cabeça do herói 
               "no fundo",
        terreno=["grama", "mata", "encosta_suave"], apoio={"tipo": "patamar", "margem_u": 0.5}, inclinacao_max_u=0.5,
        area_livre={"frente_u": 2.0, "raio_u": 3.2},
-       colisao={"tipo": "nenhum", "formas": "paredes", "_nota": "paredes da abóbada, morro, barris e o nicho: formas "
-                "compostas medidas; o interior (1,75 u × 3,1 u) é caminhável; o teto (≥ 1,25 u) é só câmera"},
+       colisao={"tipo": "nenhum", "formas": "paredes", "camera": "teto_coberto",
+                "_nota": "paredes da abóbada, morro, barris e o nicho: formas compostas medidas; o interior (1,75 u × "
+                         "3,1 u) é caminhável. TETO: o interior é coberto — a abóbada e o morro precisam de formas SÓ DE "
+                         "CÂMERA sobre medidas.cobertura_u (a câmera de terceira pessoa encurta o braço em vez de entrar "
+                         "no teto); o rasgo de luz não tem teto e fica sem forma de câmera"},
        restricoes=["fora do núcleo da vila (≥ 12 u do assentamento)", "fundo do morro voltado para o declive ou para a "
                    "mata; a boca para uma clareira ou trilha", "nunca com a boca para a água"],
        relacoes=[("perto_de", "tag:trilha", [3.0, 12.0])],
        variacoes={"semente": [1, 2, 3], "raizes": [True, False]},
+       aprovacao="aprovado", integracao="depende_colisao_composta",
+       decisao="proprietário, fechamento do estudo de NPCs de ofício e ruínas (2026-11-20): aprovada sem redesenho",
        dependencias=["formas compostas no Collision (interior caminhável)",
-                     "formas só de câmera para o teto e o morro (o interior é coberto)"],
+                     "formas só de câmera para o teto e o morro sobre medidas.cobertura_u (o interior é coberto)",
+                     "integração ao gerador v2 pelo Claude principal, depois da validação da rodada 12.1"],
        notas="Piso 0,25 u e soleira 0,125 u (abaixo do degrau de 0,30 u); entulho com 1 voxel sobre o piso.")
 def ruin_vault(semente=1, raizes=True):
     v = Vox()
@@ -268,7 +275,10 @@ CORRAL = (30, -2)             # centro do curral (voxels)
                    "um marco e precisa de céu atrás", "nunca dentro da mata fechada"],
        relacoes=[("perto_de", "tag:trilha", [2.0, 10.0])],
        variacoes={"semente": [1, 2, 3], "porteira_caida": [True, False]},
-       dependencias=["formas compostas no Collision (curral com porteira; empena com o portão vazado)"],
+       aprovacao="aprovado", integracao="depende_colisao_composta",
+       decisao="proprietário, fechamento do estudo de NPCs de ofício e ruínas (2026-11-20): aprovada sem redesenho",
+       dependencias=["formas compostas no Collision (curral com porteira; empena com o portão vazado)",
+                     "integração ao gerador v2 pelo Claude principal, depois da validação da rodada 12.1"],
        notas="Rastro das fundações e soleira com 0,25 u; mureta do curral com topo plano a 0,75 u (peça baixa "
              "pisável, uma altura só, sem degrau falso); a empena passa de 1,25 u.")
 def ruin_farmstead(semente=1, porteira_caida=True):
