@@ -47,7 +47,8 @@ regiões: o diário guarda 3 tipos, não 300 lugares.
 
 Os textos estão em `assets/scenes/descobertas_e.json` (escrito à mão; versão 2):
 
-- `lugar`, `categoria`, `modo`, `verbo`;
+- `lugar`, `categoria`, `modo`, `verbo` (a placa) e `verboVisto` (a placa depois do achado: "Olhar o pote vazio";
+  padrão = o verbo);
 - `achado` e `objeto` (cheio e vazio);
 - `moedas`;
 - `texto` (a primeira vez), `jaVisto` (as seguintes) e `diario` (o tipo de lugar).
