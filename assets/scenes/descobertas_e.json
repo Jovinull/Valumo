@@ -23,7 +23,7 @@
    "achado": "Jarro esquecido",
    "objeto": {"cheio": "pote_achado", "vazio": "pote_achado__estado-vazio"},
    "moedas": 8,
-   "texto": "Da muralha caída se vê a vila a {rumo_vila} e o posto da trilha a {rumo_posto}{lago}. No parapeito, um jarro esquecido com moedas.",
+   "texto": "Da muralha caída se vê a vila a {rumo_vila} e o posto da trilha a {rumo_posto}.{lago} No parapeito, um jarro esquecido com moedas.",
    "jaVisto": "Da muralha, o mesmo vale: a vila a {rumo_vila}, o posto a {rumo_posto}.",
    "diario": "Torres de vigia que caíram. A muralha baixa ainda serve de mirante."
   },
