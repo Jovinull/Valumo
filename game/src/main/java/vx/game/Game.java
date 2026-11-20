@@ -2392,10 +2392,29 @@ public final class Game implements AutoCloseable {
                         }
                         case "construcao" -> {                               // rodada 12 (v2): a N-ésima construção (0 = a estalagem)
                             var bs = L.buildings.stream().filter(x -> !x.role().equals("ruina") && !x.role().equals("praca")).toList();
-                            var b = bs.get(Math.min(Integer.parseInt(t[2]), bs.size() - 1));
-                            yield new float[]{b.x(), b.z(), b.rotDeg() + 28f, 26f, 11f};
+                            int i = Integer.parseInt(t[2]);
+                            // rodada 12.1 (P84): sem a N-ésima, o assentamento pelo lado oposto (antes repetia a última construção)
+                            if (i >= bs.size()) yield new float[]{L.sx, L.sz, (float) Math.toDegrees(Math.atan2(L.fx, L.fz)) + 205f, 30f, 16f};
+                            var b = bs.get(i);
+                            // o alvo é a FRENTE da construção (1,6 u da origem, no rumo dela), não o centro: de dentro das próprias
+                            // paredes nenhum rumo tem vista livre e a escolha do desvio era sorte (tomadas atrás de outro telhado)
+                            float fa = (float) Math.toRadians(b.rotDeg());
+                            yield new float[]{b.x() + (float) Math.sin(fa) * 1.6f, b.z() + (float) Math.cos(fa) * 1.6f, b.rotDeg() + 28f, 26f, 11f};
                         }
                         case "posto" -> new float[]{L.px + L.gx, L.pz + L.gz, (float) Math.toDegrees(Math.atan2(-L.gx, -L.gz)) + 20f, 26f, 8.5f};
+                        case "ruina-alto" -> {                               // rodada 12.1: o interior da ruína visto de cima
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            yield new float[]{b.x(), b.z(), b.rotDeg() + 20f, 58f, 7.5f};
+                        }
+                        case "arvore" -> {                                   // rodada 12.1: a árvore retorcida com a ruína atrás (sem ela: a ruína por trás)
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            var tr = L.features.stream().filter(f -> f.id().contains(".arvore.")).findFirst().orElse(null);
+                            if (tr == null) {
+                                System.out.println("vista-lugar arvore: sem árvore retorcida nesta região (a ruína por trás)");
+                                yield new float[]{b.x(), b.z(), b.rotDeg() + 180f + 25f, 30f, 9.5f};
+                            }
+                            yield new float[]{tr.x(), tr.z(), (float) Math.toDegrees(Math.atan2(tr.x() - b.x(), tr.z() - b.z())) + 30f, 22f, 8.0f};
+                        }
                         case "trilha" -> {
                             float[] m = L.path.get(L.path.size() / 2), m2 = L.path.get(L.path.size() / 2 + 2);
                             yield new float[]{m[0], m[1], (float) Math.toDegrees(Math.atan2(-(m2[1] - m[1]), m2[0] - m[0])), 34f, 9.5f};
@@ -2440,11 +2459,12 @@ public final class Game implements AutoCloseable {
                             float[] m = L.path.get(L.path.size() / 2), m2 = L.path.get(L.path.size() / 2 + 2);
                             yield new float[]{m[0], m[1], (float) Math.toDegrees(Math.atan2(m2[0] - m[0], m2[1] - m[1]))};
                         }
-                        case "ruina", "ruina-dentro" -> {                       // rodada 12 (v2): diante do arco, ou já lá dentro
-                            var cp = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:poi." + L.regionId + ".ruina.0:")).findFirst().orElseThrow();
+                        case "ruina", "ruina-dentro" -> {                       // rodada 12 (v2): diante da entrada, ou já lá dentro
+                            String rp = L.pois.stream().filter(p -> p.type().equals("ruin") || p.type().equals("ruin_tower")).findFirst().orElseThrow().id();
+                            var cp = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:" + rp + ":")).findFirst().orElseThrow();
                             var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
                             float vx = cp.x() - b.x(), vz = cp.z() - b.z(), vl = (float) Math.hypot(vx, vz);
-                            float k = t[1].equals("ruina") ? 1.2f : -1.6f;           // fora do arco, ou 1,6 u para dentro dele
+                            float k = t[1].equals("ruina") ? 1.2f : -1.0f;           // fora da entrada, ou 1,0 u para dentro (longe do tronco)
                             float x = cp.x() + vx / vl * k, z = cp.z() + vz / vl * k;
                             yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(b.x() - x, b.z() - z))};
                         }
@@ -2454,6 +2474,39 @@ public final class Game implements AutoCloseable {
                             float vx = b.x() - dc.x(), vz = b.z() - dc.z(), vl = (float) Math.hypot(vx, vz);
                             float x = dc.x() + vx / vl * 0.9f, z = dc.z() + vz / vl * 0.9f;
                             yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(dc.x() - x, dc.z() - z))};
+                        }
+                        case "mirante" -> {                                     // rodada 12.1: EM CIMA da muralha da torre, olhando para fora
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            var dc = logic.scene.discoveries.stream().filter(SceneDef.Discovery::arrive).findFirst().orElse(null);
+                            if (dc != null) yield new float[]{dc.x(), dc.z(), (float) Math.toDegrees(Math.atan2(dc.x() - b.x(), dc.z() - b.z()))};
+                            // casa (sem mirante): de dentro, perto da entrada, olhando para fora (outra tomada, nunca a do achado)
+                            String rp = L.pois.stream().filter(p -> p.type().equals("ruin") || p.type().equals("ruin_tower")).findFirst().orElseThrow().id();
+                            var cp = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:" + rp + ":")).findFirst().orElseThrow();
+                            float vx = cp.x() - b.x(), vz = cp.z() - b.z(), vl = (float) Math.hypot(vx, vz);
+                            yield new float[]{cp.x() - vx / vl * 0.8f, cp.z() - vz / vl * 0.8f, (float) Math.toDegrees(Math.atan2(vx, vz))};
+                        }
+                        case "arvore" -> {                                      // rodada 12.1: diante da árvore retorcida (sem ela: atrás da ruína)
+                            var b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
+                            var tr = logic.scene.discoveries.stream().filter(d -> d.type().equals("arvore")).findFirst().orElse(null);
+                            float tx = tr != null ? tr.x() : b.x() - (float) Math.sin(Math.toRadians(b.rotDeg())) * 3.5f;
+                            float tz = tr != null ? tr.z() : b.z() - (float) Math.cos(Math.toRadians(b.rotDeg())) * 3.5f;
+                            float vx = (tr != null ? b.x() : tx) - (tr != null ? tr.x() : b.x()), vz = (tr != null ? b.z() : tz) - (tr != null ? tr.z() : b.z());
+                            float vl = (float) Math.hypot(vx, vz);
+                            float x = tx + vx / vl * (tr != null ? 1.3f : 0f), z = tz + vz / vl * (tr != null ? 1.3f : 0f);
+                            if (tr == null) System.out.println("ir-lugar arvore: sem árvore retorcida nesta região (atrás da ruína)");
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2((tr != null ? tr.x() : b.x()) - x, (tr != null ? tr.z() : b.z()) - z))};
+                        }
+                        case "oficio" -> {                                      // rodada 12.1: diante do morador de um conjunto (sem: a praça)
+                            if (L.workers.isEmpty()) {
+                                System.out.println("ir-lugar oficio: nenhum morador de ofício nesta região (a praça)");
+                                var inn = L.buildings.stream().filter(x -> x.role().equals("estalagem")).findFirst().orElseThrow();
+                                yield new float[]{L.sx, L.sz, (float) Math.toDegrees(Math.atan2(inn.x() - L.sx, inn.z() - L.sz)) + 60f};
+                            }
+                            var wk = L.workers.getFirst();
+                            SceneDef.Interactive n = logic.scene.interactives.stream().filter(i -> i.id().equals(wk.npc())).findFirst().orElseThrow();
+                            float a = (float) Math.toRadians(n.yawDeg());
+                            float x = n.x() + (float) Math.sin(a) * 1.1f, z = n.z() + (float) Math.cos(a) * 1.1f;
+                            yield new float[]{x, z, (float) Math.toDegrees(Math.atan2(n.x() - x, n.z() - z))};
                         }
                         case "construcao" -> {                                  // rodada 12 (v2): diante da porta da N-ésima construção
                             var cps = L.checkpoints.stream().filter(c -> c.name().startsWith("entrada:b")).toList();
