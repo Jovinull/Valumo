@@ -1,0 +1,395 @@
+package vx.viewer;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.junit.jupiter.api.Test;
+import vx.engine.VoxModel;
+import vx.engine.VoxelMesher;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Laboratório de conteúdo do mundo — propriedades REAIS dos assets novos e do catálogo {@code valumo.conteudo/1}
+ * ({@code assets/environment/e/conteudo_catalogo.json}, gerado por {@code tools/conteudo_e.py}).
+ *
+ * <p>Tudo é conferido contra a geometria carregada pelo MESMO leitor do jogo ({@link VoxModel}) e malhada pelo MESMO
+ * mesher ({@link VoxelMesher}, fusão exata): medidas declaradas = medidas dos voxels; entradas fora das paredes e da
+ * forma de colisão; pontos de interação de pé num lugar livre; tronco onde a colisão do jogo o põe; variações que não
+ * mudam a pegada; orçamento de triângulos por categoria. Nenhum asset aprovado é tocado (os ids do catálogo não
+ * existem no props.json aprovado).
+ */
+class ConteudoMundoTest {
+    static final Path A = Path.of("assets");
+    static final Path ENV = A.resolve("environment/e");
+    static final float EPS = 1e-3f;
+    /** Altura do corpo do herói em voxels de 1/8 u (1,25 u): a coluna de pé precisa estar livre nessa faixa. */
+    static final int BODY = 10;
+    /**
+     * Orçamento de triângulos (malha fundida) RELATIVO aos aprovados, medidos com o mesmo mesher
+     * (tools/conteudo/MeshCost.java): casa 17 776, posto 9 492, carvalho O3 6 946, salgueiro 11 904, árvore-marco 26 538.
+     * Construção ≤ 1,15 × casa; POI ≤ casa; árvore comum ≤ 1,2 × carvalho; árvore rara/incomum ≤ salgueiro;
+     * prop pequeno ≤ 3 000.
+     */
+    static final Map<String, Integer> TRI_BUDGET = Map.of("construcao", 20500, "poi", 17800, "vegetacao/comum", 8400,
+            "vegetacao", 11900, "prop", 3000);
+
+    static JsonObject json(Path p) throws IOException { return JsonParser.parseString(Files.readString(p)).getAsJsonObject(); }
+
+    static JsonObject catalog() throws IOException { return json(ENV.resolve("conteudo_catalogo.json")); }
+
+    static List<JsonObject> assets() throws IOException {
+        List<JsonObject> out = new ArrayList<>();
+        for (JsonElement e : catalog().getAsJsonArray("assets")) out.add(e.getAsJsonObject());
+        return out;
+    }
+
+    /** Asset carregado no espaço do modelo: voxels sólidos (chave → cor com material) e a origem. */
+    record Model(VoxModel vox, int ox, int oy, int oz, float vs) {
+        int at(int x, int y, int z) {
+            int gx = x - ox, gy = y - oy, gz = z - oz;
+            if (gx < 0 || gy < 0 || gz < 0 || gx >= vox.sx || gy >= vox.sy || gz >= vox.sz) return 0;
+            return vox.get(gx, gy, gz);
+        }
+        /** Voxel sólido (não folhagem) na coluna (x, z) entre y0 e y1. */
+        boolean solidIn(int x, int z, int y0, int y1) {
+            for (int y = y0; y <= y1; y++) {
+                int c = at(x, y, z);
+                if (c != 0 && (c >>> 24) - 1 != VoxModel.MAT_FOLIAGE) return true;
+            }
+            return false;
+        }
+        int vx(float u) { return (int) Math.floor(u / vs); }
+    }
+
+    static Model load(JsonObject a) throws IOException {
+        String id = a.get("id").getAsString();
+        boolean rejected = a.get("estado").getAsString().equals("rejeitado");
+        Path dir = rejected ? A.resolve("studies/conteudo/" + id) : ENV;
+        JsonObject entry = rejected
+                ? json(dir.resolve("rig.json")).getAsJsonArray("parts").get(0).getAsJsonObject()
+                : json(ENV.resolve("props.json")).getAsJsonObject(id);
+        JsonArray o = entry.getAsJsonArray("origin");
+        VoxModel m = VoxModel.load(dir.resolve(rejected ? "body.vox" : entry.get("file").getAsString()));
+        return new Model(m, o.get(0).getAsInt(), o.get(1).getAsInt(), o.get(2).getAsInt(), a.getAsJsonObject("medidas").get("voxel").getAsFloat());
+    }
+
+    static float[] arr(JsonObject o, String k) {
+        JsonArray a = o.getAsJsonArray(k);
+        float[] f = new float[a.size()];
+        for (int i = 0; i < f.length; i++) f[i] = a.get(i).getAsFloat();
+        return f;
+    }
+
+    static void finite(String where, JsonElement e) {
+        if (e.isJsonObject()) for (var en : e.getAsJsonObject().entrySet()) finite(where + "." + en.getKey(), en.getValue());
+        else if (e.isJsonArray()) { int i = 0; for (JsonElement x : e.getAsJsonArray()) finite(where + "[" + i++ + "]", x); }
+        else if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber())
+            assertTrue(Double.isFinite(e.getAsDouble()), where + " não é finito");
+    }
+
+    @Test
+    void catalogIsWellFormedAndDoesNotTouchApprovedProps() throws IOException {
+        JsonObject cat = catalog();
+        assertEquals("valumo.conteudo", cat.get("contrato").getAsString());
+        assertEquals(1, cat.get("versao").getAsInt());
+        JsonObject props = json(ENV.resolve("props.json"));
+        Set<String> ids = new HashSet<>();
+        List<JsonObject> all = assets();
+        assertTrue(all.size() >= 12, "o lote 1 tem pelo menos 12 candidatos; achei " + all.size());
+        for (JsonObject a : all) {
+            String id = a.get("id").getAsString();
+            assertTrue(ids.add(id), "id repetido: " + id);
+            assertTrue(id.matches("[a-z][a-z0-9_]*"), "id fora do padrão do props.json: " + id);
+            finite(id, a);
+            for (String k : List.of("nome", "categoria", "funcao", "frequencia", "estado", "fonte"))
+                assertTrue(a.has(k) && !a.get(k).isJsonNull() && !a.get(k).getAsString().isBlank(), id + ": falta " + k);
+            assertTrue(a.getAsJsonArray("tags").size() >= 2, id + ": tags");
+            assertTrue(a.has("colisao") && a.getAsJsonObject("colisao").has("tipo"), id + ": colisão");
+            String st = a.get("estado").getAsString();
+            assertTrue(List.of("candidato", "recomendado", "rejeitado").contains(st), id + ": estado " + st);
+            if (st.equals("rejeitado")) {
+                assertFalse(props.has(id), id + " rejeitado não pode ir para o props.json");
+                assertTrue(a.has("motivo_rejeicao") && !a.get("motivo_rejeicao").isJsonNull(), id + ": rejeitado sem motivo");
+            } else {
+                assertTrue(props.has(id), id + " ausente do props.json");
+                assertTrue(props.getAsJsonObject(id).has("conteudo"), id + ": entrada sem a marca 'conteudo'");
+            }
+        }
+        for (String name : props.keySet())   // o que é do laboratório está no catálogo; o resto é aprovado e intocado
+            if (props.getAsJsonObject(name).has("conteudo")) assertTrue(ids.contains(name), name + " marcado e fora do catálogo");
+        for (String approved : List.of("house", "trail_post", "well", "tree_oak", "tree_willow", "trail_beacon_on"))
+            assertFalse(props.getAsJsonObject(approved).has("conteudo"), approved + " é aprovado e não pode virar do laboratório");
+    }
+
+    @Test
+    void declaredMeasuresMatchTheLoadedVoxels() throws IOException {
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            JsonObject med = a.getAsJsonObject("medidas");
+            float vs = m.vs;
+            float expected = switch (a.get("categoria").getAsString()) {
+                case "construcao", "poi", "vegetacao" -> a.has("subcategoria") && "planta".equals(a.get("subcategoria").getAsString()) ? -1 : 0.125f;
+                default -> -1;
+            };
+            if (expected > 0) assertEquals(expected, vs, EPS, id + ": voxel da família");
+            float[] lo = arr(med.getAsJsonObject("caixa_u"), "min"), hi = arr(med.getAsJsonObject("caixa_u"), "max");
+            assertEquals(m.ox * vs, lo[0], EPS, id + " caixa x");
+            assertEquals(m.oy * vs, lo[1], EPS, id + " caixa y");
+            assertEquals(m.oz * vs, lo[2], EPS, id + " caixa z");
+            assertEquals((m.ox + m.vox.sx) * vs, hi[0], EPS, id + " caixa x1");
+            assertEquals((m.oy + m.vox.sy) * vs, hi[1], EPS, id + " caixa y1");
+            assertEquals((m.oz + m.vox.sz) * vs, hi[2], EPS, id + " caixa z1");
+            // pegada = colunas com voxel na faixa do chão (y 0..3), medida aqui de novo
+            int n = 0, fx0 = Integer.MAX_VALUE, fz0 = Integer.MAX_VALUE, fx1 = Integer.MIN_VALUE, fz1 = Integer.MIN_VALUE, voxels = 0;
+            for (int x = m.ox; x < m.ox + m.vox.sx; x++)
+                for (int z = m.oz; z < m.oz + m.vox.sz; z++) {
+                    boolean any = false;
+                    for (int y = m.oy; y < m.oy + m.vox.sy; y++) {
+                        if (m.at(x, y, z) == 0) continue;
+                        voxels++;
+                        if (y >= 0 && y <= 3) any = true;
+                    }
+                    if (any) { n++; fx0 = Math.min(fx0, x); fz0 = Math.min(fz0, z); fx1 = Math.max(fx1, x); fz1 = Math.max(fz1, z); }
+                }
+            JsonObject foot = med.getAsJsonObject("pegada_u");
+            assertEquals(n * vs * vs, foot.get("area_u2").getAsFloat(), 0.01f, id + ": área da pegada");
+            assertEquals(fx0 * vs, arr(foot, "min")[0], EPS, id + ": pegada x0");
+            assertEquals((fz1 + 1) * vs, arr(foot, "max")[1], EPS, id + ": pegada z1");
+            assertEquals(voxels, med.get("voxels").getAsInt(), id + ": número de voxels");
+            assertTrue(voxels > 0, id + ": modelo vazio");
+            // a origem do prop é o centro da pegada: o centro da pegada fica perto de x = z = 0 (até 0,6 u)
+            assertTrue(Math.abs((fx0 + fx1 + 1) * 0.5f * vs) < 0.9f && Math.abs((fz0 + fz1 + 1) * 0.5f * vs) < 0.9f,
+                    id + ": pegada longe da origem (" + (fx0 + fx1 + 1) * 0.5f * vs + ", " + (fz0 + fz1 + 1) * 0.5f * vs + ")");
+        }
+    }
+
+    @Test
+    void paletteMaterialsAreValidAndFoliageDeclaresWind() throws IOException {
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            int[] per = new int[5];
+            for (int x = 0; x < m.vox.sx; x++)
+                for (int y = 0; y < m.vox.sy; y++)
+                    for (int z = 0; z < m.vox.sz; z++) {
+                        int c = m.vox.get(x, y, z);
+                        if (c == 0) continue;
+                        int mat = (c >>> 24) - 1;
+                        assertTrue(mat >= 0 && mat <= 4, id + ": material inválido " + mat);
+                        int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+                        assertFalse(r + g + b < 30 || r + g + b > 750, id + ": preto/branco puro em (" + x + "," + y + "," + z + ")");
+                        per[mat]++;
+                    }
+            if (per[VoxModel.MAT_FOLIAGE] > 0) assertTrue(a.get("affineWind").getAsBoolean(), id + ": folhagem sem affineWind");
+            assertTrue(a.getAsJsonObject("custo").get("emissivo_pct").getAsFloat() <= 6f,
+                    id + ": emissivo acima de 6% das faces (luz é ponto focal)");
+        }
+    }
+
+    @Test
+    void noLooseVoxelsOrTinyFragments() throws IOException {
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            Set<Long> cells = new HashSet<>();
+            for (int x = 0; x < m.vox.sx; x++)
+                for (int y = 0; y < m.vox.sy; y++)
+                    for (int z = 0; z < m.vox.sz; z++) if (m.vox.get(x, y, z) != 0) cells.add(QualityTest.key(x, y, z));
+            Set<Long> seen = new HashSet<>();
+            int[][] nb = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+            List<Integer> small = new ArrayList<>();
+            for (long c : cells) {
+                if (!seen.add(c)) continue;
+                ArrayDeque<Long> q = new ArrayDeque<>(List.of(c));
+                int size = 0;
+                while (!q.isEmpty()) {
+                    long k = q.pop();
+                    size++;
+                    int x = (int) ((k >>> 40) & 0xFFFFF) - 512, y = QualityTest.y(k), z = QualityTest.z(k);
+                    for (int[] d : nb) {
+                        long n2 = QualityTest.key(x + d[0], y + d[1], z + d[2]);
+                        if (cells.contains(n2) && seen.add(n2)) q.push(n2);
+                    }
+                }
+                if (size < 4) small.add(size);
+            }
+            assertTrue(small.isEmpty(), id + ": " + small.size() + " fragmento(s) com menos de 4 voxels (peça solta)");
+        }
+    }
+
+    /** Forma de colisão do jogo hoje (Collision.addProp): caixa/círculo centrados no CENTRO DA CAIXA da malha. */
+    static boolean insideProfile(JsonObject a, float x, float z) {
+        JsonObject c = a.getAsJsonObject("colisao");
+        float[] lo = arr(a.getAsJsonObject("medidas").getAsJsonObject("caixa_u"), "min"), hi = arr(a.getAsJsonObject("medidas").getAsJsonObject("caixa_u"), "max");
+        float cx = (lo[0] + hi[0]) / 2, cz = (lo[2] + hi[2]) / 2, w = hi[0] - lo[0], d = hi[2] - lo[2];
+        return switch (c.get("tipo").getAsString()) {
+            case "caixa" -> {
+                float k = c.has("escala") ? c.get("escala").getAsFloat() : 1f;
+                yield Math.abs(x - cx) < w / 2 * k && Math.abs(z - cz) < d / 2 * k;
+            }
+            case "circulo" -> Math.hypot(x - cx, z - cz) < (c.has("raio") ? c.get("raio").getAsFloat() : Math.min(w, d) / 2);
+            case "tronco" -> Math.hypot(x - cx, z - cz) < c.get("raio").getAsFloat();
+            default -> false;
+        };
+    }
+
+    /** Formas compostas (medidas: retângulos; autoradas: círculos), em u no espaço do modelo, com folga do raio do herói. */
+    static boolean insideComposite(JsonObject a, float x, float z) {
+        float hero = 0.3f;
+        JsonObject med = a.getAsJsonObject("medidas"), pts = a.getAsJsonObject("pontos");
+        if (med.has("formas_medidas_u")) for (JsonElement e : med.getAsJsonArray("formas_medidas_u")) {
+            JsonArray b = e.getAsJsonArray();
+            if (x > b.get(0).getAsFloat() - hero && x < b.get(2).getAsFloat() + hero && z > b.get(1).getAsFloat() - hero && z < b.get(3).getAsFloat() + hero) return true;
+        }
+        if (pts.has("formas_u")) for (JsonElement e : pts.getAsJsonArray("formas_u")) {
+            JsonObject f = e.getAsJsonObject();
+            float[] c = arr(f, "centro");
+            if (Math.hypot(x - c[0], z - c[1]) < f.get("raio").getAsFloat() + hero) return true;
+        }
+        return false;
+    }
+
+    @Test
+    void entrancesAreOutsideWallsAndOutsideTheCollisionShape() throws IOException {
+        int checked = 0;
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            for (JsonElement e : a.getAsJsonObject("pontos").getAsJsonArray("entradas")) {
+                JsonObject p = e.getAsJsonObject();
+                float[] pos = arr(p, "pos_u");
+                int x = m.vx(pos[0]), z = m.vx(pos[2]);
+                assertFalse(m.solidIn(x, z, 1, BODY), id + "/" + p.get("id").getAsString() + ": entrada dentro de parede/sólido");
+                String who = id + "/" + p.get("id").getAsString();
+                if (insideProfile(a, pos[0], pos[2])) {       // só vale com formas compostas, e fora de todas elas
+                    assertTrue(a.getAsJsonObject("colisao").has("formas"), who + ": entrada dentro da forma de colisão simples");
+                    assertFalse(insideComposite(a, pos[0], pos[2]), who + ": entrada dentro das formas compostas");
+                }
+                // a entrada olha para o asset: andando no rumo invertido, acha sólido antes de passar do centro da
+                // pegada (porta de casa a ~1 u; vão de um anel aberto até o altar no meio)
+                double r = Math.toRadians(p.get("rumo").getAsFloat());
+                float dx = (float) -Math.sin(r), dz = (float) -Math.cos(r);
+                JsonObject foot = a.getAsJsonObject("medidas").getAsJsonObject("pegada_u");
+                float fcx = (arr(foot, "min")[0] + arr(foot, "max")[0]) / 2, fcz = (arr(foot, "min")[1] + arr(foot, "max")[1]) / 2;
+                float reach = (float) Math.hypot(pos[0] - fcx, pos[2] - fcz) + 0.5f;
+                boolean hit = false;
+                for (float t = 0; t <= reach && !hit; t += 0.0625f) hit = m.solidIn(m.vx(pos[0] + dx * t), m.vx(pos[2] + dz * t), 0, BODY + 6);
+                assertTrue(hit, id + "/" + p.get("id").getAsString() + ": entrada não aponta para o asset");
+                checked++;
+            }
+        }
+        assertTrue(checked >= 10, "conferiu poucas entradas: " + checked);
+    }
+
+    @Test
+    void interactionAndSpawnPointsStandOnFreeGroundAndCompositeShapesCoverThem() throws IOException {
+        int checked = 0;
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            JsonObject pts = a.getAsJsonObject("pontos");
+            boolean composite = a.getAsJsonObject("colisao").has("formas");
+            for (String kind : List.of("interacao", "spawns")) {
+                for (JsonElement e : pts.getAsJsonArray(kind)) {
+                    JsonObject p = e.getAsJsonObject();
+                    float[] pos = arr(p, "pos_u");
+                    int x = m.vx(pos[0]), y = m.vx(pos[1]), z = m.vx(pos[2]);
+                    String who = id + "/" + kind + "/" + p.get("id").getAsString();
+                    // de pé: há um lugar livre do corpo a até 1 u do ponto, com chão (relevo y < 0 ou piso do asset)
+                    boolean stand = false;
+                    for (int dx = -8; dx <= 8 && !stand; dx++)
+                        for (int dz = -8; dz <= 8 && !stand; dz++) {
+                            if (dx * dx + dz * dz > 64) continue;
+                            int fy = y;
+                            while (fy > 0 && m.at(x + dx, fy - 1, z + dz) == 0) fy--;
+                            stand = !m.solidIn(x + dx, z + dz, fy, fy + BODY - 1);
+                        }
+                    assertTrue(stand, who + ": sem lugar livre de pé a até 1 u");
+                    if (insideProfile(a, pos[0], pos[2]))
+                        assertTrue(composite, who + ": ponto dentro da forma de colisão simples sem 'formas' compostas declaradas");
+                    checked++;
+                }
+            }
+        }
+        assertTrue(checked >= 15, "conferiu poucos pontos: " + checked);
+    }
+
+    @Test
+    void treeTrunksSitWhereTheGameCollisionPutsThem() throws IOException {
+        int trees = 0;
+        for (JsonObject a : assets()) {
+            JsonObject c = a.getAsJsonObject("colisao");
+            if (!c.get("tipo").getAsString().equals("tronco")) continue;
+            String id = a.get("id").getAsString();
+            JsonObject med = a.getAsJsonObject("medidas");
+            assertTrue(med.has("tronco_u"), id + ": árvore sem tronco medido");
+            float[] tc = arr(med.getAsJsonObject("tronco_u"), "centro");
+            float[] lo = arr(med.getAsJsonObject("caixa_u"), "min"), hi = arr(med.getAsJsonObject("caixa_u"), "max");
+            float off = (float) Math.hypot(tc[0] - (lo[0] + hi[0]) / 2, tc[1] - (lo[2] + hi[2]) / 2);
+            float r = c.get("raio").getAsFloat(), tr = med.getAsJsonObject("tronco_u").get("raio").getAsFloat();
+            // Collision.addProp põe o círculo no centro da CAIXA; se o tronco está longe dele, o herói atravessa o tronco
+            assertTrue(off <= Math.max(0.15f, r * 0.6f) || c.has("deslocamento"),
+                    id + ": tronco a " + off + " u do centro da caixa (raio " + r + "): declare 'deslocamento' ou recentre");
+            assertTrue(r <= tr + 0.15f && r >= tr * 0.5f, id + ": raio de colisão " + r + " incoerente com o tronco medido " + tr);
+            trees++;
+        }
+        assertTrue(trees >= 4, "árvores conferidas: " + trees);
+    }
+
+    @Test
+    void variantsKeepTheFootprintAndThePoints() throws IOException {
+        int n = 0;
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            JsonObject base = a.getAsJsonObject("medidas").getAsJsonObject("pegada_u");
+            float[] bl = arr(base, "min"), bh = arr(base, "max");
+            float bH = arr(a.getAsJsonObject("medidas"), "dimensoes_u")[1];
+            for (JsonElement e : a.getAsJsonObject("variacoes").getAsJsonArray("extremos")) {
+                JsonObject v = e.getAsJsonObject();
+                String vid = v.get("id").getAsString();
+                float[] vl = arr(v.getAsJsonObject("pegada_u"), "min"), vh = arr(v.getAsJsonObject("pegada_u"), "max");
+                for (int i = 0; i < 2; i++) {
+                    assertEquals(bl[i], vl[i], 0.51f, vid + ": a pegada mudou (min)");
+                    assertEquals(bh[i], vh[i], 0.51f, vid + ": a pegada mudou (max)");
+                }
+                float vH = arr(v, "dimensoes_u")[1];
+                assertEquals(bH, vH, bH * 0.16f, vid + ": a altura mudou mais que 16%");
+                assertTrue(v.get("pontos_iguais").getAsBoolean(), vid + ": a variação moveu entrada/interação");
+                n++;
+            }
+        }
+        assertTrue(n >= 20, "variações conferidas: " + n);
+    }
+
+    @Test
+    void meshCostStaysWithinTheCategoryBudget() throws IOException {
+        Map<String, Integer> worst = new HashMap<>();
+        for (JsonObject a : assets()) {
+            String id = a.get("id").getAsString();
+            Model m = load(a);
+            float[] data = VoxelMesher.buildDataMerged(m.vox, m.vs, m.ox, m.oy, m.oz, a.get("affineWind").getAsBoolean());
+            int tris = data.length / 13 / 3;
+            String cat = a.get("categoria").getAsString();
+            String freq = a.get("frequencia").getAsString();
+            int budget = TRI_BUDGET.getOrDefault(cat + "/" + freq, TRI_BUDGET.getOrDefault(cat, 3000));
+            assertTrue(tris > 0, id + ": malha vazia");
+            assertTrue(tris <= budget, id + ": " + tris + " triângulos > orçamento " + budget + " (" + cat + ")");
+            worst.merge(cat, tris, Math::max);
+        }
+        System.out.println("conteudo: pior custo por categoria (triângulos) " + worst);
+    }
+}
