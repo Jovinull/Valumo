@@ -76,6 +76,15 @@ public final class RegionLayout {
 
     public final List<Checkpoint> checkpoints = new ArrayList<>();
 
+    /**
+     * Rodada 12.1 (v2): o que cada descoberta da região é. {@code type}: o tipo de lugar ("casa", "torre", "arvore": a
+     * chave em {@code descobertas_e.json}); {@code y}: a altura do ponto acima da origem do modelo (o pote na laje, o mirante
+     * em cima da muralha); {@code yawDeg}: o rumo do objeto do achado. A {@link Feature} de mesmo id dá a posição. A v1 não
+     * tem nenhuma.
+     */
+    public record DiscoverySpot(String id, String type, float y, float yawDeg) { }
+    public final List<DiscoverySpot> discoverySpots = new ArrayList<>();
+
     public final List<Prop> props = new ArrayList<>();
     public final List<Npc> npcs = new ArrayList<>();
     public final List<Spawn> spawns = new ArrayList<>();

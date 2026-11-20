@@ -128,7 +128,7 @@ public final class ProceduralScene {
             Collision col = Collision.build(terrain, Collision.profiles(assets), scene.handPlaced, scene.bodies, scene);
             Reachability.Report rep = Reachability.check(L, scene, col, terrain);
             long t2 = System.nanoTime();
-            if (version >= RegionGenerator.V2 && L.poi("ruin") == null)    // a v2 sempre tem o lugar a explorar
+            if (version >= RegionGenerator.V2 && L.buildings.stream().noneMatch(b -> b.role().equals("ruina")))   // a v2 sempre tem o lugar a explorar (casa ou torre)
                 rep = new Reachability.Report(List.of("sem lugar para a ruína"), rep.cells(), rep.walkable(), rep.reachable(), rep.arenaFree(),
                         rep.targets(), rep.nanos());
             if (rep.problems().isEmpty()) {

@@ -19,8 +19,11 @@ import java.util.TreeMap;
 public final class RegionProfile {
     public static final String FORMAT = "valumo.regiao.perfil";
 
-    /** Ponto no espaço do modelo (u): entrada (com rumo, graus), interação ou spawn (com tipo). */
-    public record Point(String id, float x, float z, float yawDeg, String kind) { }
+    /**
+     * Ponto no espaço do modelo (u): entrada (com rumo, graus), interação (com a altura {@code y} acima da origem do modelo,
+     * rodada 12.1: o mirante em cima da muralha, o pote na laje) ou spawn (com tipo).
+     */
+    public record Point(String id, float x, float z, float yawDeg, String kind, float y) { }
 
     /**
      * Um asset: pegada {@code [x0, z0] – [x1, z1]} no espaço do modelo (+z = frente), altura, área livre (frente, lados,
@@ -80,8 +83,8 @@ public final class RegionProfile {
             assets.put(e.getKey(), new Asset(e.getKey(), a.get("categoria").getAsString(), a.get("frequencia").getAsString(),
                     p.get(0).getAsFloat(), p.get(1).getAsFloat(), p.get(2).getAsFloat(), p.get(3).getAsFloat(), a.get("altura").getAsFloat(),
                     f(l, "frente_u"), f(l, "lados_u"), f(l, "fundos_u"), f(l, "raio_u"),
-                    points(a.getAsJsonArray("entradas"), true), points(a.getAsJsonArray("interacao"), false),
-                    points(a.getAsJsonArray("spawns"), false)));
+                    points(a.getAsJsonArray("entradas"), 0), points(a.getAsJsonArray("interacao"), 1),
+                    points(a.getAsJsonArray("spawns"), 2)));
         }
         Map<String, SetDef> sets = new TreeMap<>();
         for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("conjuntos").entrySet()) {
@@ -105,12 +108,14 @@ public final class RegionProfile {
 
     static float f(JsonObject o, String k) { return o != null && o.has(k) ? o.get(k).getAsFloat() : 0f; }
 
-    static List<Point> points(JsonArray a, boolean yaw) {
+    /** {@code kind}: 0 = entradas [id, x, z, rumo]; 1 = interação [id, x, z, (y)]; 2 = spawns [id, x, z, tipo]. */
+    static List<Point> points(JsonArray a, int kind) {
         List<Point> out = new ArrayList<>();
         for (JsonElement e : a) {
             JsonArray p = e.getAsJsonArray();
             out.add(new Point(p.get(0).getAsString(), p.get(1).getAsFloat(), p.get(2).getAsFloat(),
-                    yaw ? p.get(3).getAsFloat() : 0f, !yaw && p.size() > 3 ? p.get(3).getAsString() : null));
+                    kind == 0 ? p.get(3).getAsFloat() : 0f, kind == 2 && p.size() > 3 ? p.get(3).getAsString() : null,
+                    kind == 1 && p.size() > 3 ? p.get(3).getAsFloat() : 0f));
         }
         return List.copyOf(out);
     }

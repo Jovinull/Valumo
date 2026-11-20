@@ -206,14 +206,33 @@ final class RegionV2 {
 
     // ------------------------------------------------------------------ a ruína
 
+    /** Rodada 12.1 — um tipo de ruína: o asset, o tipo do POI, o rótulo dos ids, o ponto da descoberta e o tipo dela. */
+    record RuinKind(String asset, String poiType, String label, String discoveryPoint, String discoveryType) { }
+
+    /** A casa tomada pela mata (o pote na lareira) e a torre caída (o mirante em cima da muralha baixa). */
+    static final RuinKind HOUSE = new RuinKind("ruin_house", "ruin", "ruina", "lareira", "casa"),
+            TOWER = new RuinKind("ruin_tower", "ruin_tower", "torre", "mirante", "torre");
+    /** Chance da torre (a casa é a mais comum): a escolha é da semente, a mesma em todas as tentativas, como o estilo. */
+    static final float TOWER_CHANCE = 0.4f;
+
     /**
-     * A ruína de casa num lugar ao lado da trilha (5–8 u do eixo, no meio do caminho entre o assentamento e o posto), num
-     * patamar, virada para a trilha, com uma trilha secundária da principal até o arco. Sem lugar que sirva em 60 tentativas
-     * determinísticas, a região fica sem ruína (o {@code ProceduralScene} recusa a tentativa: a v2 sempre tem a ruína).
+     * A ruína da região: casa ou torre (sorteio da semente). Se a sorteada não couber em lugar nenhum desta tentativa, a outra
+     * (determinístico). Sem lugar para nenhuma, a região fica sem ruína (o {@code ProceduralScene} recusa a tentativa).
      */
     static void ruin(RegionLayout L, RegionProfile P, String a, List<Box> taken) {
-        RegionProfile.Asset R = P.asset("ruin_house");
-        Rng rr = Rng.of(L.seed, "v2", L.regionId, "ruina", a);
+        boolean tower = P.has(TOWER.asset()) && Rng.of(L.seed, "v2", L.regionId, "ruina-tipo").chance(TOWER_CHANCE);
+        RuinKind first = tower ? TOWER : HOUSE, second = tower ? HOUSE : TOWER;
+        if (!ruin(L, P, a, taken, first) && P.has(second.asset())) ruin(L, P, a, taken, second);
+    }
+
+    /**
+     * A ruína num lugar ao lado da trilha (5–8 u do eixo, no meio do caminho entre o assentamento e o posto), num patamar,
+     * virada para a trilha, com uma trilha secundária da principal até a entrada. Devolve se coube (até 140 tentativas
+     * determinísticas, com o RNG do tipo: a casa usa o mesmo rótulo de antes).
+     */
+    static boolean ruin(RegionLayout L, RegionProfile P, String a, List<Box> taken, RuinKind kind) {
+        RegionProfile.Asset R = P.asset(kind.asset());
+        Rng rr = Rng.of(L.seed, "v2", L.regionId, kind == HOUSE ? "ruina" : "ruina-" + kind.label(), a);
         float padR = R.reach() + 0.9f;
         for (int k = 0; k < 140; k++) {
             float x = rr.range(-HALF + 3.0f, HALF - 3.0f), z = rr.range(-HALF + 3.0f, HALF - 3.0f);
@@ -229,15 +248,15 @@ final class RegionV2 {
             }
             if (i < 0) continue;
             float[] p = L.path.get(i);
-            float rot = deg(p[0] - x, p[1] - z) + rr.range(-20f, 20f);       // o arco (frente) virado para a trilha
+            float rot = deg(p[0] - x, p[1] - z) + rr.range(-20f, 20f);       // a entrada (frente) virada para a trilha
             Box b = box(x, z, rot, R.x0() - 0.6f, R.z0() - 0.6f, R.x1() + 0.6f, R.z1() + 1.2f);
             ProceduralField probe = new ProceduralField(L);
             float h = Math.clamp(probe.natural(x, z), L.plateauH - 0.8f, L.plateauH + 0.9f);
             L.pads.add(new float[]{x, z, padR, h});
-            L.props.add(new RegionLayout.Prop("ruin_house", x, z, rot));
-            L.buildings.add(new RegionLayout.Building("ruin_house", null, x, z, rot, "ruina"));
+            L.props.add(new RegionLayout.Prop(kind.asset(), x, z, rot));
+            L.buildings.add(new RegionLayout.Building(kind.asset(), null, x, z, rot, "ruina"));
             taken.add(b);
-            // trilha secundária: do ponto da trilha principal até a frente do arco
+            // trilha secundária: do ponto da trilha principal até a frente da entrada
             RegionProfile.Point arch = R.entrances().getFirst();
             float[] door = world(x, z, rot, arch.x(), arch.z() + 0.9f);
             float mx = (p[0] + door[0]) / 2 + rr.range(-0.8f, 0.8f), mz = (p[1] + door[1]) / 2 + rr.range(-0.8f, 0.8f);
@@ -245,14 +264,15 @@ final class RegionV2 {
             sampleCurve(new float[][]{{p[0], p[1]}, {mx, mz}, {door[0], door[1]}}, 0.5f, pts);
             float hp = L.plateauH + (L.clearingH - L.plateauH) * ProceduralField.smooth(0f, 1f, (float) i / (L.path.size() - 1));
             L.branches.add(new RegionLayout.Branch(List.copyOf(pts), hp, h, true));
-            String poi = "poi." + L.regionId + ".ruina.0";
-            // a descoberta: no ponto da lareira (o que se examina lá dentro), id derivado do POI — nunca de coordenada
-            String desc = "desc." + L.regionId + ".ruina.0";
-            RegionProfile.Point hearth = R.interactions().stream().filter(e -> e.id().equals("lareira")).findFirst().orElse(R.interactions().getFirst());
-            float[] hp2 = world(x, z, rot, hearth.x(), hearth.z());
+            String poi = "poi." + L.regionId + "." + kind.label() + ".0";
+            // a descoberta: no ponto do modelo (a lareira, o mirante), id derivado do POI — nunca de coordenada
+            String desc = "desc." + L.regionId + "." + kind.label() + ".0";
+            RegionProfile.Point dp = R.interactions().stream().filter(e -> e.id().equals(kind.discoveryPoint())).findFirst().orElse(R.interactions().getFirst());
+            float[] hp2 = world(x, z, rot, dp.x(), dp.z());
             L.features.add(new RegionLayout.Feature(desc, "descoberta", hp2[0], hp2[1], rot));
+            L.discoverySpots.add(new RegionLayout.DiscoverySpot(desc, kind.discoveryType(), dp.y(), rot));
             L.checkpoints.add(new RegionLayout.Checkpoint("descoberta:" + desc, hp2[0], hp2[1], 1.0f));
-            L.pois.add(new RegionLayout.PointOfInterest(poi, "ruin", L.regionId, x, z, padR, "inexplorada", List.of(desc), List.of()));
+            L.pois.add(new RegionLayout.PointOfInterest(poi, kind.poiType(), L.regionId, x, z, padR, "inexplorada", List.of(desc), List.of()));
             for (RegionProfile.Point e : R.entrances()) {
                 float[] w = world(x, z, rot, e.x(), e.z());
                 L.checkpoints.add(new RegionLayout.Checkpoint("entrada:" + poi + ":" + e.id(), w[0], w[1], 0.6f));
@@ -261,8 +281,9 @@ final class RegionV2 {
                 float[] w = world(x, z, rot, e.x(), e.z());
                 L.checkpoints.add(new RegionLayout.Checkpoint("interacao:" + poi + ":" + e.id(), w[0], w[1], 1.0f));
             }
-            return;
+            return true;
         }
+        return false;
     }
 
     // ------------------------------------------------------------------ assentamento
@@ -598,6 +619,13 @@ final class RegionV2 {
                 if (hi - lo > 0.45f) continue;
                 L.props.add(new RegionLayout.Prop("tree_gnarled", x, z, rot));
                 taken.add(new float[]{x, z, 2.0f});
+                // rodada 12.1 (P77): o marco natural — a descoberta só existe quando a árvore existe (rara, ~40%)
+                String desc = "desc." + L.regionId + ".arvore.0";
+                L.features.add(new RegionLayout.Feature(desc, "descoberta", x, z, rot));
+                L.discoverySpots.add(new RegionLayout.DiscoverySpot(desc, "arvore", 0f, rot));
+                L.checkpoints.add(new RegionLayout.Checkpoint("descoberta:" + desc, x, z, 1.3f));
+                L.pois.add(new RegionLayout.PointOfInterest("poi." + L.regionId + ".arvore.0", "landmark", L.regionId, x, z, 1.0f, "intacta",
+                        List.of(desc), List.of()));
                 break;
             }
         }
