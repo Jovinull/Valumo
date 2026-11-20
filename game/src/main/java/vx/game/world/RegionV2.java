@@ -215,20 +215,39 @@ final class RegionV2 {
     /** Rodada 12.1 — um tipo de ruína: o asset, o tipo do POI, o rótulo dos ids, o ponto da descoberta e o tipo dela. */
     record RuinKind(String asset, String poiType, String label, String discoveryPoint, String discoveryType) { }
 
-    /** A casa tomada pela mata (o pote na lareira) e a torre caída (o mirante em cima da muralha baixa). */
+    /**
+     * A casa tomada pela mata (o pote na lareira), a torre caída (o mirante em cima da muralha baixa) e, na rodada 12.2 (PR
+     * #8), a abóbada soterrada (os barris do fundo) e o sítio abandonado (a pedra do marco).
+     */
     static final RuinKind HOUSE = new RuinKind("ruin_house", "ruin", "ruina", "lareira", "casa"),
-            TOWER = new RuinKind("ruin_tower", "ruin_tower", "torre", "mirante", "torre");
-    /** Chance da torre (a casa é a mais comum): a escolha é da semente, a mesma em todas as tentativas, como o estilo. */
-    static final float TOWER_CHANCE = 0.4f;
+            TOWER = new RuinKind("ruin_tower", "ruin_tower", "torre", "mirante", "torre"),
+            VAULT = new RuinKind("ruin_vault", "ruin_vault", "abobada", "barris", "abobada"),
+            FARMSTEAD = new RuinKind("ruin_farmstead", "ruin_farmstead", "sitio", "pedra_do_marco", "sitio");
+    /** Rodada 12.2 — a abóbada encosta o morro dela num declive: o terreno natural sobe pelo menos isto (u) da frente aos fundos. */
+    static final float VAULT_RISE = 0.3f;
+    /** Rodada 12.2 — o sítio quer chão aberto: entre os pontos da pegada, o terreno natural varia no máximo isto (u). */
+    static final float FARM_FLAT = 0.6f;
 
     /**
-     * A ruína da região: casa ou torre (sorteio da semente). Se a sorteada não couber em lugar nenhum desta tentativa, a outra
-     * (determinístico). Sem lugar para nenhuma, a região fica sem ruína (o {@code ProceduralScene} recusa a tentativa).
+     * Rodada 12.2 — a ruína da região, entre os quatro tipos: a ORDEM em que se tenta vem de um sorteio com peso (rótulo
+     * "ruina-tipos", o mesmo em todas as tentativas, como o estilo) e cada tipo só entra onde o lugar faz sentido (a abóbada
+     * num declive, o sítio em chão aberto: {@link #ruin(RegionLayout, RegionProfile, String, List, RuinKind)}). Pesos: a
+     * casa 4 (a base, sempre aparece), a torre 3, a abóbada 3 com morro na região e 1 sem, o sítio 3 na região rural (aberta)
+     * e 1 na de caminho. O que não couber cede a vez ao seguinte; sem lugar para nenhum, a tentativa é recusada.
      */
     static void ruin(RegionLayout L, RegionProfile P, String a, List<Box> taken) {
-        boolean tower = P.has(TOWER.asset()) && Rng.of(L.seed, "v2", L.regionId, "ruina-tipo").chance(TOWER_CHANCE);
-        RuinKind first = tower ? TOWER : HOUSE, second = tower ? HOUSE : TOWER;
-        if (!ruin(L, P, a, taken, first) && P.has(second.asset())) ruin(L, P, a, taken, second);
+        List<RuinKind> kinds = new ArrayList<>(List.of(HOUSE, TOWER, VAULT, FARMSTEAD));
+        List<Integer> weights = new ArrayList<>(List.of(4, 3, L.hill != null ? 3 : 1, L.style.equals(RURAL) ? 3 : 1));
+        Rng r = Rng.of(L.seed, "v2", L.regionId, "ruina-tipos");
+        while (!kinds.isEmpty()) {
+            int total = 0;
+            for (int w : weights) total += w;
+            int pick = r.below(total), i = 0;
+            while (pick >= weights.get(i)) pick -= weights.get(i++);
+            RuinKind k = kinds.remove(i);
+            weights.remove(i);
+            if (P.has(k.asset()) && ruin(L, P, a, taken, k)) return;
+        }
     }
 
     /**
@@ -257,6 +276,21 @@ final class RegionV2 {
             float rot = deg(p[0] - x, p[1] - z) + rr.range(-20f, 20f);       // a entrada (frente) virada para a trilha
             Box b = box(x, z, rot, R.x0() - 0.6f, R.z0() - 0.6f, R.x1() + 0.6f, R.z1() + 1.2f);
             ProceduralField probe = new ProceduralField(L);
+            if (kind == VAULT) {                                            // o morro dela encosta num declive que sobe para os fundos
+                float[] fr = world(x, z, rot, 0f, R.z1()), bk = world(x, z, rot, 0f, R.z0());
+                if (probe.natural(bk[0], bk[1]) - probe.natural(fr[0], fr[1]) < VAULT_RISE) continue;
+            }
+            if (kind == FARMSTEAD) {                                        // chão aberto: pouco desnível em toda a pegada
+                float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
+                for (int u = 0; u <= 2; u++)
+                    for (int v = 0; v <= 2; v++) {
+                        float[] q = world(x, z, rot, R.x0() + (R.x1() - R.x0()) * u / 2f, R.z0() + (R.z1() - R.z0()) * v / 2f);
+                        float hh = probe.natural(q[0], q[1]);
+                        lo = Math.min(lo, hh);
+                        hi = Math.max(hi, hh);
+                    }
+                if (hi - lo > FARM_FLAT) continue;
+            }
             float h = Math.clamp(probe.natural(x, z), L.plateauH - 0.8f, L.plateauH + 0.9f);
             L.pads.add(new float[]{x, z, padR, h});
             L.props.add(new RegionLayout.Prop(kind.asset(), x, z, rot));
