@@ -114,3 +114,17 @@ A semente agora também é digitada no jogo:
 
 O gerador não mudou (`RegionGenerator.VERSION` = 1); só a grade de relevo de uma tentativa recusada passou a sair do
 cache (`Terrain.release`), sem mudar o resultado de nenhuma semente. Detalhes: [catálogo de mundos](catalogo-de-mundos.md).
+
+## 8. Biblioteca de conteúdo e versões do gerador (integração dos lotes 1 e 2)
+
+- **Biblioteca, não distribuição:** os 35 modelos do laboratório (lotes 1 e 2), as 6 variantes publicadas e os 5
+  conjuntos de ofício entraram **só como biblioteca**: `props.json`, `conteudo_catalogo.json` e as vitrines. O gerador
+  usa listas fixas de nomes e não lê o `props.json`, então nenhuma semente mudou.
+- **Referência da v1:** a região inteira de 8 sementes (1024, 2048, 4096, 77, 1, 555, 9001, 31337) está fixada em
+  `game/src/test/resources/regioes-v1.txt`.
+  - Ela foi capturada na `main` publicada antes da integração.
+  - `RegionGoldenTest` confere a referência e falha se `VERSION` mudar.
+  - Mudou um hash = um mundo v1 mudou. **Não se atualiza a referência para passar.**
+- **Distribuir a biblioteca exige uma versão nova do gerador.** Os mundos v1 precisam continuar abrindo:
+  [ADR 0029](../decisions/0029-versoes-do-gerador.md) (proposta). A colisão dos assets com interior:
+  [colisao-composta.md](colisao-composta.md).

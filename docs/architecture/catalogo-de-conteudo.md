@@ -138,5 +138,10 @@ assets do lote 1 somam (duas medidas da MESMA malha, com definições diferentes
 - números de `tools/conteudo/MeshCost.java`, no relatório técnico do pacote de revisão
   (`output/visual-review/world-content-lab/`, fora do git).
 
-Integre por subconjunto (o que a região usa), ou mude o `Assets.props` para malhar sob demanda. A segunda opção é do
-renderer central e fica fora desta frente.
+**Resolvido na integração:** o `Assets.props` passou a malhar sob demanda
+([ADR 0030](../decisions/0030-catalogo-de-props-sob-demanda.md)).
+
+- **Registro:** a biblioteca registrada não custa memória enquanto nenhuma cena a usa.
+- **Menu:** fica com menos memória de vértices que a `main` antes da biblioteca (106,1 × 112,7 MB), porque nem os props
+  aprovados que a cena não usa são carregados.
+- **Vitrines e `bench_conteudo_*`:** pagam o que mostram.

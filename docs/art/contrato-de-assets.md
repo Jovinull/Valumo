@@ -130,6 +130,17 @@ Entrada voxel: `{"file": "x.vox", "voxelSize": 0.125, "origin": [x, y, z], "size
 Entrada de cuboides (C): `{"voxelSize": 0.03125, "sizeVoxels": [w, h, d], "cuboids": [...]}`, com um
 único `atlas.png` no mesmo diretório.
 
+**Biblioteca de conteúdo (lotes 1 e 2):**
+
+- **Registro:** o `props.json` da E também registra os modelos do laboratório (`tools/conteudo_e.py`) e as variantes
+  publicadas (`<id>__<param>-<valor>`), 81 entradas no total.
+- **Ficha de cada um:** fica em `conteudo_catalogo.json` (`valumo.conteudo/1`,
+  [catálogo](../architecture/catalogo-de-conteudo.md)).
+- **Registrar não é carregar:** o jogo só lê e malha o prop que uma cena pede pelo nome
+  ([ADR 0030](../decisions/0030-catalogo-de-props-sob-demanda.md)).
+- **Uso no jogo:** prop da biblioteca não entra em cena de jogo nem no gerador sem a aprovação de integração.
+  [Guia](../processo/como-integrar-conteudo-ao-mundo.md).
+
 ## 4. Formato `.vox` e materiais
 
 - MagicaVoxel `.vox` versão 150, um modelo por arquivo, com chunk `RGBA` obrigatório.

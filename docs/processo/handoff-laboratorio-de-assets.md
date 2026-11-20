@@ -63,12 +63,22 @@ Para cada asset novo, o laboratório entrega a ficha:
 
 ## 5. Saves e ids
 
-- **Mudou o resultado de uma semente** (asset novo no sorteio, peso novo): suba `RegionGenerator.VERSION`.
-  - Os saves v2 antigos daquela semente passam a ser recusados com o motivo (vínculos conferidos). Os mundos do catálogo
-    com outra versão do gerador são recusados ao entrar, com a explicação. É o comportamento certo: não reposicionar
-    missão em silêncio.
-  - Planeje a troca com o proprietário: os mundos atuais deixam de abrir. Se isso não for aceitável, os assets novos
-    entram só em sementes/regiões novas, com outro rótulo de RNG.
+> **Integração dos lotes 1 e 2:**
+>
+> - Os lotes entraram como **biblioteca**, sem distribuição.
+> - O estado de cada asset (artística × integração × distribuição) está no catálogo.
+> - O caminho do modelo até o gerador está no [guia](como-integrar-conteudo-ao-mundo.md).
+> - A v1 está fixada por `RegionGoldenTest`.
+> - A distribuição espera as versões do gerador ([ADR 0029](../decisions/0029-versoes-do-gerador.md), proposta) e,
+>   para os assets com interior, a [colisão composta](../architecture/colisao-composta.md).
+
+- **Mudou o resultado de uma semente** (asset novo no sorteio, peso novo): é uma versão NOVA do gerador. Hoje isso
+  significa subir `RegionGenerator.VERSION`, e com isso:
+  - os saves v2 antigos daquela semente passam a ser recusados com o motivo (vínculos conferidos);
+  - os mundos do catálogo com outra versão do gerador são recusados ao entrar, com a explicação. É o comportamento
+    certo: não reposicionar missão em silêncio.
+  - **Não faça isso antes da ADR 0029.** Com ela, a v1 continua existindo para os mundos v1 e só os mundos novos nascem
+    na versão nova.
 - **Ids de POI e de spawn:** estáveis e derivados do rótulo, nunca da ordem de inserção. Asset novo **não** muda os ids
   dos existentes.
 - **Prévias:** mudou a região → a chave da prévia muda junto (versão do gerador); `PREVIEW_VERSION` só sobe se o

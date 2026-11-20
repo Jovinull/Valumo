@@ -90,6 +90,20 @@ Os valores exatos estão em `StyleProfile`; a tabela descreve o código no fecha
 - **Terreno** é uma malha única por estilo, gerada na carga a partir do relevo analítico.
 - Não há LOD, oclusão, nem streaming: fora do escopo de uma cena fechada de 48 × 48 u.
 
+### Props sob demanda (integração dos lotes de conteúdo)
+
+O `Assets.props(estilo)` devolve o catálogo inteiro do `props.json`, mas a malha de cada prop só é construída e enviada à
+GPU quando uma cena o pede pelo nome. A biblioteca de conteúdo (81 entradas) não custa memória enquanto nenhuma cena a
+usa.
+
+| Momento | Antes da biblioteca (41 props, tudo carregado) | Biblioteca sem carga sob demanda | Biblioteca sob demanda |
+|---|---|---|---|
+| No menu | 112,7 MB | 147,3 MB | 106,1 MB |
+| Depois do criador | 192,4 MB | 261,5 MB | 172,9 MB |
+
+Números do roteiro `tools/menu/14-memoria.txt`. Decisão:
+[ADR 0030](../decisions/0030-catalogo-de-props-sob-demanda.md).
+
 ## Malha: fusão conforme (rodada 08.1)
 
 `VoxelMesher.buildDataMerged` funde faces iguais (ADR 0007) e, desde a 08.1, gera **malha conforme** (ADR 0014):
