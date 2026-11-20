@@ -64,6 +64,27 @@ PROFILES = {
              "caça nas costas e botas altas com punho de pele", beard="trim"),
 }
 
+# Metadados de posicionamento para a integração (vão ao rig.json em meta.conteudo). Pontos no espaço do modelo da
+# construção da biblioteca (u); nada aqui é sistema de jogo.
+PLACEMENT = {
+    "brasia": dict(construcao="workshop_forge", conjunto="ferreiro", ponto="ferreira",
+                   ponto_rodada_12_u=[1.94, 0.44],
+                   restricoes=["no galpão da oficina, nunca na vaga antiga da main (0,125 u da bigorna, P73)",
+                               "de frente para a rua; a forja fica atrás dela, à direita"],
+                   acessorios=["coque preso por tira de couro (parte hat)", "avental de couro com alças cruzadas",
+                               "luvas de couro", "mangas arregaçadas", "martelo no bolso do avental"]),
+    "quelmo": dict(construcao="market_stall", conjunto="comerciante", ponto="feirante",
+                   restricoes=["atrás do balcão, sob o toldo; as mercadorias da barraca escondem quase todo o corpo da "
+                               "câmera de jogo: vaga ao lado do balcão ou mercadorias mais baixas no meio"],
+                   acessorios=["boina caída para a esquerda com pena (parte hat)", "casaco aberto", "faixa diagonal",
+                               "avental curto", "bolsa de moedas no cinto"]),
+    "arvel": dict(construcao="cabin_hunter", conjunto="cacador", ponto="cacador",
+                  restricoes=["na porta da cabana, fora do varal de couro", "longe de água (botas e corda)"],
+                  acessorios=["gorro de pele com abas (parte hat)", "gola de pele", "capinha nas costas",
+                              "corda a tiracolo", "bolsa de caça nas costas", "botas altas com punho de pele"]),
+}
+ANIMATIONS = ["idle", "walk", "run", "emote (aceno, idêntico ao npc_vila)", "oficio (clipe ATTACK)"]
+
 LEATHER, LEATHER_D, LEATHER_L = P("#8a5a3c"), P("#6a4230"), P("#a9744c")
 IRON = C("#5d4a5a", "metal")
 IRON_L = C("#8d8494", "metal")
@@ -348,7 +369,9 @@ def build_one(key, out):
                        legH=round(T.HIP * scale), torsoH=round((T.NECK - T.HIP) * scale),
                        legFraction=round(T.HIP * scale / body_top, 3), faces=faces, metersNarrative=s["meters"],
                        worldUnits=round(top * VS, 3), escala=round(scale, 4), role=s["role"], note=s["note"],
-                       weaponProfile=s["profile"], conteudo=True)
+                       weaponProfile=s["profile"],
+                       conteudo=dict(origem="laboratório de conteúdo, estudo de NPCs de ofício e ruínas (pós-rodada 12)",
+                                     aprovacao="candidato", animacoes=ANIMATIONS, **PLACEMENT[key]))
     scaled.meta["hands"] = {side: [round(q * scale, 2) for q in c] for side, c in rig.meta["hands"].items()}
     for vol in scaled.meta.get("volumes", []):
         vol["a"] = [round(q * scale, 2) for q in vol["a"]]
@@ -362,6 +385,7 @@ def build_one(key, out):
 
 LINEUPS = {                                                       # conjuntos do modo LINHA (set=<nome>) para revisão
     "npcs-mundo": ["characters/e/adventurer"] + [f"characters/npc/{k}" for k in PROFILES],
+    "npcs-mundo-so": [f"characters/npc/{k}" for k in PROFILES],      # só os novos: todos têm o gesto "oficio"
     "npcs-mundo-elenco": ["characters/e/adventurer", "characters/npc/brasia", "characters/npc/bramor",
                           "characters/npc/quelmo", "characters/npc/kelyra", "characters/npc/indira",
                           "characters/npc/arvel", "characters/npc/teodor", "characters/npc/ondina"],
