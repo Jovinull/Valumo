@@ -1,5 +1,5 @@
 {
-  "_doc": "Rodada 11 — moradores que o mundo procedural pode pôr num assentamento (escrito à mão). id = pasta do rig. papeis: o que o NPC pode pedir ou comentar (modelos de missão escolhem o doador por papel). artigo: 'a'/'o' para a gramática das falas ('à Kelyra', 'ao Bramor'). requer: fatos do mundo sem os quais o NPC não mora ali ('lago'). falas: as de sempre, sem fatos fixos; {rumo_posto} = rumo do posto visto do assentamento ('sul', 'nordeste'…). falasSemLago: variante para regiões sem lago. Contrato: docs/architecture/contrato-instancias-de-missao.md.",
+  "_doc": "Rodada 11 — moradores que o mundo procedural pode pôr num assentamento (escrito à mão). id = pasta do rig. papeis: o que o NPC pode pedir ou comentar (modelos de missão escolhem o doador por papel). artigo: 'a'/'o' para a gramática das falas ('à Kelyra', 'ao Bramor'). requer: fatos do mundo sem os quais o NPC não mora ali ('lago'). falas: as de sempre, sem fatos fixos; {rumo_posto} = rumo do posto visto do assentamento ('sul', 'nordeste'…). falasSemLago: variante para regiões sem lago. oficio (rodada 12.1, opcional): o ofício de um CONJUNTO que o morador exerce (o mesmo nome técnico do catálogo de conteúdo: ferreiro, herbalista, comerciante, cacador, guardiao_de_trilhas); o gerador v2 o põe no spawn do conjunto daquele ofício (pelo perfil congelado, nunca pelo nome). Contrato: docs/architecture/contrato-instancias-de-missao.md e docs/architecture/moradores-dos-oficios.md.",
   "formato": "valumo.habitantes",
   "versao": 1,
   "habitantes": {
@@ -14,7 +14,7 @@
     },
     "bramor": {
       "rig": "characters/npc/bramor", "nome": "Bramor", "titulo": "Guardião de trilhas", "artigo": "o",
-      "papeis": ["guardiao", "trilhas", "criaturas"],
+      "papeis": ["guardiao", "trilhas", "criaturas"], "oficio": "guardiao_de_trilhas",
       "falas": [
         {"texto": "Calma, não precisa olhar tão para cima. Sou Bramor, guardo as trilhas que saem daqui.", "expressao": "joy"},
         {"texto": "Se for pela mata, siga as pedras marcadas. Quem sai da trilha costuma voltar com o pé molhado e a história errada."},
