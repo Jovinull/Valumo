@@ -21,6 +21,8 @@ estado
 missao
 look -500 0 2.0
 wait 1.5
+look 500 0 1.0
+wait 0.3
 ir-lugar ruina-dentro andando
 ir-lugar ruina andando
 ir-lugar ruina-lado andando
