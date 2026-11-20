@@ -334,10 +334,12 @@ def ruin_house(semente=1, telhado_caido=True):
         for x in (-16, -10, -5):                                   # caibros partidos apoiados no muro
             L.line6(v, (x, 6, z0 + 14), (x, 15, z0 + 1), TIMBER)
         _rubble(v, [(-12, z0 + 19, 3)], seed=s + 3)                # telhas soltas ao pé da placa
-    # árvore jovem crescendo dentro (canto da frente-esquerda) e arbustos nas bases
-    EB.trunk_b(v, 9, 1.6, 0.9, y0=3, roots=3, seed=125 + s)
+    # árvore jovem crescendo dentro e arbustos nas bases. Rodada 12.1 (P82): tronco mais alto e copa mais acima (a copa
+    # começava a 1,375 u: logo acima da cabeça, ela segurava a câmera atrás de quem examinava a lareira e o herói ficava
+    # translúcido; agora começa a ~2,2 u, acima da linha da câmera de quem está no piso), a mesma árvore jovem
+    EB.trunk_b(v, 14, 1.6, 0.9, y0=3, roots=3, seed=125 + s)
     crown = Vox()
-    sblob(crown, 0, 15, 0, 4.6, 3.6, 4.4, L.LEAF, p=2.2)
+    sblob(crown, 0, 21, 0, 4.6, 3.6, 4.4, L.LEAF, p=2.2)
     import env_e as EE
     EE.canopy_paint(crown, L.LEAF, 126 + s)
     for k in [k for k in v.v if k in crown.v]:
