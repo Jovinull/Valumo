@@ -221,7 +221,7 @@ class DiscoveryTest {
     }
 
     @Test
-    void saveSemOCampoAbreIgualEDescobertaDesconhecidaERecusada(@TempDir Path d) throws Exception {
+    void saveSemOCampoAbreIgualEDescobertaDesconhecidaEDeOutraRegiao(@TempDir Path d) throws Exception {
         GameLogic g = proc2(S_TREE, d.resolve("a"));
         g.action("comecar");
         assertTrue(g.save(false), g.saveError);
@@ -230,15 +230,20 @@ class DiscoveryTest {
         assertFalse(txt.contains("descobertas"), "sem descoberta, o campo nem existe (o save fica como era)");
         GameLogic r = proc2(S_TREE, d.resolve("a"));
         assertNull(r.continueBlocker(), r.continueBlocker());
-        // um save com descoberta que esta região não tem: recusado com o motivo (corrupção de verdade), original guardado
+        // rodada 12.2: um save ÍNTEGRO com uma descoberta que esta região não tem (a v2 ainda em testes mudou a região da
+        // semente) não é corrompido: recusado com a frase da versão de testes, SEM .invalido, o arquivo byte a byte igual
         JsonObject o = JsonParser.parseString(txt).getAsJsonObject();
         com.google.gson.JsonArray a = new com.google.gson.JsonArray();
         a.add("desc.r0.outra.9");
         o.getAsJsonObject("progresso").add("descobertas", a);
         Files.writeString(f, SaveGame.text(o));
+        byte[] before = Files.readAllBytes(f);
         GameLogic bad = proc2(S_TREE, d.resolve("a"));
-        assertTrue(bad.continueBlocker().contains("descoberta desconhecida"), bad.continueBlocker());
-        assertTrue(Files.exists(f.resolveSibling(SaveGame.FILE + ".invalido")));
+        assertTrue(bad.saved.incompatible(), "íntegro, de outra região");
+        assertTrue(bad.continueBlocker().startsWith("Esta aventura é de uma versão de testes"), bad.continueBlocker());
+        assertFalse(bad.continueBlocker().contains("desc."), "sem id técnico na tela: " + bad.continueBlocker());
+        assertFalse(Files.exists(f.resolveSibling(SaveGame.FILE + ".invalido")), "não é corrompido: nada de .invalido");
+        assertArrayEquals(before, Files.readAllBytes(f), "o arquivo ficou como estava");
         assertEquals(RegionGenerator.V2, SaveGame.peekGenerator(f));
     }
 }
