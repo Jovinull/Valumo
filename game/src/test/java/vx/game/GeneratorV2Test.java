@@ -216,6 +216,59 @@ class GeneratorV2Test {
         }
     }
 
+    /**
+     * Rodada 12.1 (P76) — o morador do ofício: vem do perfil pelo OFÍCIO do conjunto (nunca pelo nome), fica no spawn da
+     * âncora sem encostar em sólido nenhum, dá para falar com ele na colisão real, não fica na frente de entrada nem de ponto
+     * de interação, um por spawn; e tirar os moradores de ofício do perfil não move construção, POI nem inimigo.
+     */
+    @Test
+    void oMoradorDoOficioFicaNoConjuntoSemBloquearNada() throws Exception {
+        RegionProfile P = profile();
+        int workers = 0;
+        for (long s = 1; s <= 40; s++) {
+            ProceduralScene ps = v2(s);
+            RegionLayout L = ps.layout;
+            SceneDef sc = ps.scene();
+            Collision c = Collision.build(vx.viewer.Terrain.of(ps.field), Collision.profiles(A), sc.handPlaced, sc.bodies, sc);
+            java.util.Set<String> spawns = new java.util.HashSet<>();
+            for (RegionLayout.Worker w : L.workers) {
+                workers++;
+                RegionProfile.SetDef sd = P.set(w.set());
+                assertEquals(sd.trade(), w.trade());
+                assertTrue(P.workers(sd.trade()).contains(w.npc()), "s" + s + ": " + w.npc() + " exerce " + w.trade() + " pelo perfil");
+                assertTrue(spawns.add(w.set() + "#" + w.spawn()), "um morador por spawn");
+                RegionLayout.Npc n = L.npcs.stream().filter(x -> x.id().equals(w.npc())).findFirst().orElseThrow();
+                assertEquals(1, L.npcs.stream().filter(x -> x.id().equals(w.npc())).count(), "um conjunto por morador");
+                float y = c.ground.height(n.x(), n.z());
+                for (Collision.Shape sh : c.shapes)
+                    if (sh.body && !sh.person && sh.y1 > y + Player.STEP && sh.y0 < y + 1.3f)
+                        assertNull(sh.push(n.x(), n.z(), 0.3f), "s" + s + ": " + w.npc() + " encosta em " + sh.name);
+                assertTrue(ps.reach.targets().get("falar:" + w.npc()), "s" + s + ": dá para falar com " + w.npc());
+                for (RegionLayout.Checkpoint cp : L.checkpoints) {
+                    if (cp.name().startsWith("entrada:"))
+                        assertTrue(Math.hypot(cp.x() - n.x(), cp.z() - n.z()) >= 0.6f, "s" + s + ": " + w.npc() + " na frente de " + cp.name());
+                    if (cp.name().startsWith("interacao:"))
+                        assertTrue(Math.hypot(cp.x() - n.x(), cp.z() - n.z()) >= 0.56f, "s" + s + ": " + w.npc() + " em cima de " + cp.name());
+                }
+            }
+            // o guardião de trilhas só existe como morador de ofício no conjunto dele
+            boolean guard = L.buildings.stream().anyMatch(b -> "conjunto.guardiao".equals(b.set()));
+            assertEquals(guard, L.workers.stream().anyMatch(w -> w.trade().equals("guardiao_de_trilhas")), "s" + s);
+        }
+        assertTrue(workers >= 8, "moradores de ofício postos nas sementes 1–40: " + workers);
+        // sem moradores de ofício no perfil: construções, POIs e inimigos iguais (o RNG dos ofícios é próprio)
+        JsonObject raw = JsonParser.parseString(Files.readString(A.resolve("scenes/regiao_v2_e.json"))).getAsJsonObject();
+        raw.remove("oficios");
+        RegionProfile none = RegionProfile.parse(raw);
+        for (long s : SEEDS) {
+            RegionLayout with = RegionGenerator.compose(s, 0, RegionGenerator.V2, P, false), without = RegionGenerator.compose(s, 0, RegionGenerator.V2, none, false);
+            assertEquals(with.buildings, without.buildings, "s" + s);
+            assertEquals(with.pois, without.pois, "s" + s);
+            assertEquals(with.spawns, without.spawns, "s" + s);
+            assertTrue(without.workers.isEmpty());
+        }
+    }
+
     @Test
     void oPerfilCongeladoAindaBateComOCatalogo() throws Exception {
         RegionProfile P = profile();
