@@ -115,6 +115,9 @@ Regras que os novos confirmaram:
 | Terracota | `#c8643c` | potes, pote-respiro da cabana, balcão | a da faixa da exploradora (já na paleta de personagens) |
 | Couro esticado | `#9a6238` / `#6e4130` | varal do caçador | o couro dos personagens |
 | Telhado mostarda / teal | `#eeaa3a` / `#3f8a8c` | variação de telhado | "telhado sempre saturado (coral, teal ou mostarda)" do estilo arquitetônico |
+| Relva fosca | `#86b04a` (fosco) | morro da `ruin_vault` | a cor da grama da E, mas FOSCA: o topo do morro passa de 1,7 u e folhagem ali deslizaria com o vento (§8) |
+| Terra exposta | `#9a7458` / `#76563f` | corte do morro e bordas do rasgo da `ruin_vault` | terra quente, da família da madeira; só onde o morro foi cortado |
+| Tábua velha | `#9b8a78` / `#73665a` | empena da `ruin_farmstead`, porteira | tábua de celeiro acinzentada pelo tempo; separa "ruína de madeira" da madeira nova `#a8713f` |
 
 ## 5. Pontos de interesse — a ruína é da mesma cultura
 
@@ -321,3 +324,47 @@ A correção (mãos-francesas acima da cabeça, tina do lado de fora, bigorna ju
 1 fica estável para revisão, e a correção pode ser levada a ele.
 
 **Resultado final:** Vila A 33/33 e Vila B 21/21 alvos alcançáveis.
+
+## 12. Estudo pós-rodada 12 — NPCs de ofício e ruínas novas (candidatos)
+
+Pedido do proprietário depois da rodada 12: moradores para os ofícios vazios (P76) e ruínas novas para a `ruin_house`
+não se repetir em toda região v2. Tudo nasce **candidato** (`lote: 3` = não avaliado). Pacote de evidências:
+`output/visual-review/world-content-lab/estudo-npcs-e-ruinas/` (`tools/conteudo/pacote_estudo.sh`).
+
+### NPCs (tools/npcs_mundo_e.py)
+
+Mesmo construtor, esqueleto e rosto dos NPCs da vila, mesma altura narrativa dos de ofício (0,75 u/m). Índira
+(herbalista) e Bramor (guardião) já existem e não são recriados.
+
+| NPC | Ofício | Altura | O que separa a silhueta | Gesto de ofício (`oficio`) |
+|---|---|---|---|---|
+| Brásia | ferreira | 1,72 m = 1,30 u | coque alto preso por tira de couro; avental de couro com alças cruzadas nas costas; luvas grandes; martelo no bolso | bate o punho na palma e põe as mãos na cintura |
+| Quelmo | feirante | 1,62 m = 1,225 u | boina larga caída para a esquerda com pena; casaco aberto; faixa que dá a volta no ombro; bolsa de moedas | ajeita a mercadoria e oferece com a mão aberta |
+| Arvel | caçador | 1,84 m = 1,375 u | gorro de pele com abas; gola de pele; corda a tiracolo; bolsa de caça nas costas; botas altas | puxa a corda, confere a bolsa e aponta o horizonte |
+
+Lições:
+- **Chapéu e coque são casca colada à cabeça** (`shell`: camadas de 6 vizinhos crescendo do cabelo), nunca um
+  elipsoide solto. O primeiro gorro e a primeira boina flutuavam com uma faixa de ar (`MundoNpcTest.hatSitsOnTheHeadWithoutAGap`).
+- **Acessório fica fora do caminho dos membros:** o braço pendurado ocupa x de 5 a 9 e a coxa gira abaixo do quadril.
+  Avental e martelo na frente, dentro de |x| ≤ 4; bolsa do caçador nas costas, ACIMA do quadril. Medido voxel a voxel nos
+  clipes reais (`NpcClipProbe`): braço × tronco ≤ 1 voxel; os outros grupos ≤ o pior NPC aprovado.
+- **A testa fica fora do alcance do braço de NPC** (~11,5 voxels): enxugar a testa e proteger os olhos foram descartados
+  pelo validador (faltavam 5,7 voxels). Gesto de ofício se faz à frente do peito, na cintura ou apontando.
+- **Mão que sai do repouso em linha reta corta a quina do tronco:** uma pose de passagem leva a mão primeiro para a frente.
+- **Sombra de pele avermelhada fecha "barba" no queixo** quando emenda na costeleta: sombra mais leve (`P(..., ks=0.6)`) e
+  costeleta curta, sem pintar à mão.
+
+### Ruínas (tools/conteudo_ruinas.py; `conteudo_poi.py` e `ruin_tower` intocados)
+
+| Asset | Planta e silhueta | Material | Entrada e espaço caminhável | Pontos |
+|---|---|---|---|---|
+| `ruin_vault` (abóbada soterrada) | morro baixo e comprido com uma boca em arco; o fundo enterrado, rasgo de luz no teto | pedra em aduelas claras, relva fosca, terra no corte | boca de 1,75 u; interior coberto de 1,75 × 3,1 u, piso 0,25 u | tábua entalhada no nicho (examinar), barris (procurar), rasgo de luz (observar), criatura no fundo |
+| `ruin_farmstead` (sítio abandonado) | empena alta e fina contra o céu (4,25 u), portão em arco e óculo vazado; rastro baixo das fundações; curral redondo | tábua velha sobre pedra, enxaimel, pedra seca | portão de 1,25 u através da empena; curral de 2,75 u por dentro com porteira de 1,25 u | pedra de marco (examinar), cocho (procurar), criatura no curral |
+
+**Regra de jogabilidade (lição da ruína de casa no gerador v2):** a laje de 0,375 u da `ruin_house` fica acima do degrau de
+0,30 u e os topos de parede em 0,5–1,25 u parecem escada. Nas ruínas novas:
+- piso e soleira com topo ≤ 0,25 u;
+- entulho com 1 voxel sobre o piso;
+- peça baixa com topo plano e uma altura só (barril 0,75 u, cocho 0,5 u, mureta do curral 0,75 u);
+- parede alta passa de 1,25 u;
+- nenhum degrau falso entre 0,30 u e 0,8 u.
