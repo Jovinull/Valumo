@@ -52,7 +52,11 @@ def _rubble(v, spots, seed=0):
        terreno=["grama", "colina", "rocha"], apoio={"tipo": "patamar", "margem_u": 0.8}, inclinacao_max_u=0.6,
        area_livre={"frente_u": 2.5, "raio_u": 3.0},
        colisao={"tipo": "nenhum", "formas": "anel", "_nota": "anel de paredes com porta: precisa de formas compostas "
-                "(ver 'formas_u'); com uma forma só o interior ficaria bloqueado"},
+                "(ver 'formas_u'); com uma forma só o interior ficaria bloqueado",
+                # rodada 12.3 (P85): o vão (~2,6 u) e a muralha alta (até 4,4 u) prendem a câmera de terceira pessoa na nuca;
+                # com o herói dentro deste raio (do arco ao centro), a câmera atravessa as paredes DESTA torre e o desenho
+                # as recorta entre a câmera e o herói. O corpo continua batendo nelas (só a câmera e o desenho mudam)
+                "recorte": {"centro_u": [0.062, 0.062], "raio_u": 2.0}},
        restricoes=["porta virada para a trilha ou para a clareira", "≥ 6 u de outras construções"],
        variacoes={"semente": [1, 2, 3], "hera": [True, False]})
 def ruin_tower(semente=1, hera=True, escada="recuada", porta=8):

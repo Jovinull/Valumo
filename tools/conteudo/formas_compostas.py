@@ -210,7 +210,11 @@ def composite(name, rec, man):
         coarse[g] = (min(lo, a), max(hi, b))
     for (x0, z0, x1, z1, lo, hi) in merge(coarse, k * vs):
         shapes.append({"tipo": "caixa", "min": [r4(x0), r4(z0)], "max": [r4(x1), r4(z1)], "altura": [r4(lo), r4(hi)], "corpo": False})
-    return {"tipo": "composta", "_fonte": "medido dos voxels por tools/conteudo/formas_compostas.py (revisado)", "formas": shapes}
+    out = {"tipo": "composta", "_fonte": "medido dos voxels por tools/conteudo/formas_compostas.py (revisado)"}
+    if rec["colisao"].get("recorte"):                                  # rodada 12.3: zona de recorte (interior estreito e aberto)
+        out["recorte"] = rec["colisao"]["recorte"]
+    out["formas"] = shapes
+    return out
 
 
 def simple(rec):
