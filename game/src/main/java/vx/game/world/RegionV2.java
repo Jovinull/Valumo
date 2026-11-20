@@ -220,9 +220,14 @@ final class RegionV2 {
             if (Math.hypot(x - L.sx, z - L.sz) < L.plateauR + 1.0f + padR) continue;              // fora do plano do assentamento
             if (Math.hypot(x - L.px, z - L.pz) < L.clearingR + padR + 1.2f) continue;
             if (minPathDist(L, x, z) < padR + 1.4f || minPathDist(L, x, z) > padR + 7.0f) continue;   // perto da trilha, fora dela
-            int i = 0;                                                     // o ponto da trilha principal mais perto: dali sai a dela
-            for (int j = 1; j < L.path.size(); j++)
-                if (Math.hypot(L.path.get(j)[0] - x, L.path.get(j)[1] - z) < Math.hypot(L.path.get(i)[0] - x, L.path.get(i)[1] - z)) i = j;
+            // o ponto da trilha principal mais perto, ANTES da arena do posto (quem vai à ruína não passa pelos fungos)
+            int i = -1;
+            for (int j = 0; j < L.path.size(); j++) {
+                float[] q = L.path.get(j);
+                if (Math.hypot(q[0] - L.px, q[1] - L.pz) < L.clearingR + 3.5f) continue;
+                if (i < 0 || Math.hypot(q[0] - x, q[1] - z) < Math.hypot(L.path.get(i)[0] - x, L.path.get(i)[1] - z)) i = j;
+            }
+            if (i < 0) continue;
             float[] p = L.path.get(i);
             float rot = deg(p[0] - x, p[1] - z) + rr.range(-20f, 20f);       // o arco (frente) virado para a trilha
             Box b = box(x, z, rot, R.x0() - 0.6f, R.z0() - 0.6f, R.x1() + 0.6f, R.z1() + 1.2f);
