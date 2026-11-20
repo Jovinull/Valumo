@@ -6,6 +6,7 @@
 # Uso: tools/review121.sh [vistas|antes|comparacoes|laje|demo|demo-v1|saves|desempenho|testes|validadores|zip|tudo]
 #   BASE        = clone compilado da rodada 12 (padrão output/tmp/base-r12), para "antes", "laje" e "desempenho"
 #   RAIZ_ANTIGA = clone compilado da main publicada (4cbde86), para "saves" e "demo-v1"
+#   PARTE=regioes  = "desempenho" só das regiões (vila fixa e menu já medidos na mesma sessão)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export JAVA_HOME="${JAVA_HOME:-$HOME/.sdkman/candidates/java/current}"
@@ -115,20 +116,21 @@ case "$what" in desempenho|tudo)
   # os DOIS binários (rodada 12 × 12.1), intercalados, 3 vezes, mesma sessão: vila fixa, região v1 1024, v2 1024 (rural),
   # v2 7 (caminho média) e v2 31337 (caminho pequena), com a GPU por passo; e o roteiro de memória do menu
   D="$R/desempenho"; mkdir -p "$D"
-  run() {  # run RAIZ ROTULO ROTEIRO SAIDA_DESEMPENHO [opções]
+  run() {  # run RAIZ ROTULO ROTEIRO [opções]
     local raiz=$1 rot=$2 rt=$3 out; out="$(realpath -m output/tmp/r121p)"; rm -rf "$out"
-    (cd "$raiz" && JAVA_OPTS="-Dvx.som=mudo -Dvx.gpu=true -Dvx.menu=nao -Dvx.savegame=- -Dvx.prefs=- ${5:-}" $G --roteiro "$rt" "$out" 60) > "$D/$rot.log" 2>&1 || echo "FALHOU $rot"
+    (cd "$raiz" && JAVA_OPTS="-Dvx.som=mudo -Dvx.gpu=true -Dvx.menu=nao -Dvx.savegame=- -Dvx.prefs=- ${4:-}" $G --roteiro "$rt" "$out" 60) > "$D/$rot.log" 2>&1 || echo "FALHOU $rot"
     cp "$out/desempenho.txt" "$D/$rot.txt" 2>/dev/null || true
   }
   for r in 1 2 3; do
     for lado in r12 r121; do
       raiz=.; [ "$lado" = r12 ] && raiz="$BASE"
-      run "$raiz" "$lado-vila-fixa-$r" "$PWD/tools/jogo/desempenho.txt"
+      [ "${PARTE:-tudo}" = regioes ] || run "$raiz" "$lado-vila-fixa-$r" "$PWD/tools/jogo/desempenho.txt"
       run "$raiz" "$lado-v1-s1024-$r" "$PWD/tools/mundo/desempenho.txt" "-Dvx.mundo=procedural -Dvx.gerador=1 -Dvx.semente=1024"
       for s in 1024 7 31337; do run "$raiz" "$lado-v2-s$s-$r" "$PWD/tools/mundo/desempenho.txt" "-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=$s"; done
     done
   done
   for r in 1 2 3; do
+    [ "${PARTE:-tudo}" = regioes ] && break                        # PARTE=regioes: só as regiões (vila e menu já medidos)
     for lado in r12 r121; do
       raiz=.; [ "$lado" = r12 ] && raiz="$BASE"
       iso=$(isolado)
