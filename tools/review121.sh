@@ -69,10 +69,11 @@ case "$what" in laje|tudo)
   # rodada 12.1 (degraus de pedra, piso na laje). Quadros do passo pela soleira
   mkdir -p "$R/laje"
   printf 'size 1280 720\nclick comecar\nwait 1.0\nir-lugar ruina\nwait 0.8\nrecord on\nir-lugar ruina-dentro andando\nwait 0.6\nestado\nrecord off\n' > output/tmp/r121-laje.txt
+  rt="$(realpath output/tmp/r121-laje.txt)"
   for lado in antes depois; do
     raiz=.; [ "$lado" = antes ] && raiz="$BASE"
     d="$(realpath -m output/tmp/r121-laje-$lado)"; rm -rf "$d"
-    (cd "$raiz" && JAVA_OPTS="-Dvx.som=mudo -Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=77 -Dvx.savegame=- -Dvx.prefs=-" $G --roteiro "$PWD/output/tmp/r121-laje.txt" "$d" 30) > "$R/laje/$lado.log" 2>&1 || true
+    (cd "$raiz" && JAVA_OPTS="-Dvx.som=mudo -Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=77 -Dvx.savegame=- -Dvx.prefs=-" $G --roteiro "$rt" "$d" 30) > "$R/laje/$lado.log" 2>&1 || true
     prancha "$R/laje/laje-$lado.png" 6 320 $(ls "$d"/quadros/q_*.png | awk 'NR%5==1' | head -24)
   done
 esac
