@@ -1,0 +1,416 @@
+{
+ "name": "npc_ferreira",
+ "description": "NPC ferreira (Brásia, laboratório de conteúdo): o perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': bate o punho na palma duas vezes à frente do peito e põe as mãos na cintura, peito aberto (enxugar a testa foi descartado: a testa fica fora do alcance do braço de NPC, ~11,5 voxels). Posições em voxels do esqueleto NPC (ombro ±5,8 / 26,5). O clipe ATTACK toca o gesto de ofício (\"attack\": \"oficio\"), como o \"attack\" de cada perfil; o jogo não usa ATTACK em NPC.",
+ "rightItem": null,
+ "leftItem": null,
+ "tipLength": 0,
+ "attack": "oficio",
+ "defaults": {
+  "rElbow": [
+   -1,
+   -0.6,
+   -0.6
+  ],
+  "lElbow": [
+   1,
+   -0.6,
+   -0.6
+  ]
+ },
+ "carry": {
+  "idle": "rest",
+  "walk": "rest",
+  "run": "rest",
+  "free": "r",
+  "swingWalk": 1.2,
+  "swingRun": 1.9
+ },
+ "poses": {
+  "rest": {
+   "r": [
+    -7.2,
+    15.2,
+    1.6
+   ],
+   "rDir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "rEdge": [
+    1,
+    0,
+    0
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ],
+   "lMode": "free",
+   "l": [
+    7.0,
+    16.0,
+    1.8
+   ],
+   "lElbow": [
+    0.6,
+    -0.3,
+    -1
+   ]
+  },
+  "wave_up": {
+   "base": "rest",
+   "r": [
+    -11.4,
+    34.6,
+    2.2
+   ],
+   "rElbow": [
+    -1,
+    -0.5,
+    0.1
+   ],
+   "head": [
+    -4,
+    -8,
+    5
+   ],
+   "torso": [
+    0,
+    -5,
+    2
+   ]
+  },
+  "wave_a": {
+   "base": "wave_up",
+   "r": [
+    -12.6,
+    34.4,
+    1.6
+   ]
+  },
+  "wave_b": {
+   "base": "wave_up",
+   "r": [
+    -10.2,
+    35.4,
+    2.6
+   ],
+   "head": [
+    -5,
+    -10,
+    7
+   ]
+  },
+  "punho": {
+   "base": "rest",
+   "r": [
+    -2.6,
+    22.0,
+    7.6
+   ],
+   "rElbow": [
+    -1,
+    -0.7,
+    -0.2
+   ],
+   "lMode": "ik",
+   "l": [
+    2.2,
+    21.2,
+    7.6
+   ],
+   "lElbow": [
+    1,
+    -0.7,
+    -0.2
+   ],
+   "head": [
+    8,
+    -4,
+    0
+   ],
+   "torso": [
+    3,
+    -4,
+    0
+   ]
+  },
+  "punho_ergue": {
+   "base": "punho",
+   "r": [
+    -2.8,
+    24.2,
+    8.0
+   ]
+  },
+  "punho_bate": {
+   "base": "punho",
+   "r": [
+    -1.4,
+    21.6,
+    7.8
+   ],
+   "head": [
+    10,
+    -2,
+    0
+   ]
+  },
+  "cintura": {
+   "base": "rest",
+   "r": [
+    -7.4,
+    15.6,
+    -0.2
+   ],
+   "rElbow": [
+    -1,
+    0.1,
+    -0.4
+   ],
+   "lMode": "ik",
+   "l": [
+    7.0,
+    15.6,
+    -0.2
+   ],
+   "lElbow": [
+    1,
+    0.1,
+    -0.4
+   ],
+   "head": [
+    -5,
+    0,
+    0
+   ],
+   "torso": [
+    -3,
+    0,
+    0
+   ]
+  },
+  "cintura_b": {
+   "base": "cintura",
+   "head": [
+    -3,
+    -6,
+    3
+   ],
+   "torso": [
+    -3,
+    -4,
+    0
+   ]
+  },
+  "abre": {
+   "base": "rest",
+   "r": [
+    -9.0,
+    20.0,
+    4.6
+   ],
+   "rElbow": [
+    -1,
+    -0.3,
+    -0.3
+   ],
+   "lMode": "ik",
+   "l": [
+    8.8,
+    20.0,
+    4.6
+   ],
+   "lElbow": [
+    1,
+    -0.3,
+    -0.3
+   ],
+   "head": [
+    2,
+    0,
+    0
+   ],
+   "torso": [
+    0,
+    0,
+    0
+   ]
+  },
+  "frente": {
+   "base": "rest",
+   "r": [
+    -7.0,
+    18.8,
+    6.6
+   ],
+   "rElbow": [
+    -1,
+    -0.6,
+    -0.4
+   ],
+   "lMode": "ik",
+   "l": [
+    6.8,
+    18.8,
+    6.6
+   ],
+   "lElbow": [
+    1,
+    -0.6,
+    -0.4
+   ],
+   "head": [
+    4,
+    -2,
+    0
+   ],
+   "torso": [
+    1,
+    -2,
+    0
+   ]
+  }
+ },
+ "moves": {
+  "emote": {
+   "label": "Acena",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.4,
+     "pose": "wave_up"
+    },
+    {
+     "t": 0.62,
+     "pose": "wave_a"
+    },
+    {
+     "t": 0.86,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.1,
+     "pose": "wave_a"
+    },
+    {
+     "t": 1.34,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.6,
+     "pose": "wave_up",
+     "stop": true
+    },
+    {
+     "t": 2.05,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.4
+    ],
+    "exec": [
+     0.4,
+     1.34
+    ],
+    "follow": [
+     1.34,
+     1.6
+    ],
+    "recover": [
+     1.6,
+     2.05
+    ]
+   }
+  },
+  "oficio": {
+   "label": "Bate o punho na palma e põe as mãos na cintura",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.2,
+     "pose": "frente"
+    },
+    {
+     "t": 0.35,
+     "pose": "punho"
+    },
+    {
+     "t": 0.55,
+     "pose": "punho_ergue"
+    },
+    {
+     "t": 0.72,
+     "pose": "punho_bate"
+    },
+    {
+     "t": 0.92,
+     "pose": "punho_ergue"
+    },
+    {
+     "t": 1.09,
+     "pose": "punho_bate"
+    },
+    {
+     "t": 1.35,
+     "pose": "punho_bate",
+     "stop": true
+    },
+    {
+     "t": 1.58,
+     "pose": "abre"
+    },
+    {
+     "t": 1.8,
+     "pose": "cintura"
+    },
+    {
+     "t": 2.25,
+     "pose": "cintura_b"
+    },
+    {
+     "t": 2.6,
+     "pose": "cintura_b",
+     "stop": true
+    },
+    {
+     "t": 3.05,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.35
+    ],
+    "exec": [
+     0.35,
+     1.8
+    ],
+    "follow": [
+     1.8,
+     2.6
+    ],
+    "recover": [
+     2.6,
+     3.05
+    ]
+   }
+  }
+ }
+}

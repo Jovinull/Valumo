@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Laboratório de conteúdo — prova de determinismo: gera env_e + conteudo_e em DUAS pastas, em dois processos
-separados, e compara byte a byte cada .vox e .json do laboratório (props.json, catálogo, rigs de estudo, conjuntos).
+"""Laboratório de conteúdo — prova de determinismo: gera env_e + conteudo_e + npcs_mundo_e em DUAS pastas, em dois
+processos separados, e compara byte a byte cada .vox e .json do laboratório (props.json, catálogo, rigs de estudo,
+conjuntos, NPCs de ofício do mundo).
 
     .venv/bin/python tools/conteudo/determinismo.py PASTA_TEMP
 """
@@ -14,8 +15,8 @@ TOOLS = os.path.dirname(HERE)
 
 
 def gen(out):
-    code = (f"import sys; sys.path.insert(0, {TOOLS!r}); import env_e, conteudo_e; "
-            f"env_e.build({out!r}); conteudo_e.build({out!r})")
+    code = (f"import sys; sys.path.insert(0, {TOOLS!r}); import env_e, conteudo_e, npcs_mundo_e; "
+            f"env_e.build({out!r}); conteudo_e.build({out!r}); npcs_mundo_e.build({out!r})")
     subprocess.run([sys.executable, "-c", code], check=True, stdout=subprocess.DEVNULL)
 
 
@@ -36,7 +37,8 @@ def main():
     da, db = digest(a), digest(b)
     diff = sorted(k for k in set(da) | set(db) if da.get(k) != db.get(k))
     lab = [k for k in da if "conteudo" in k or k.endswith("props.json")]
-    print(f"arquivos: {len(da)} (do laboratório ou manifesto: {len(lab)}); diferentes: {len(diff)}")
+    npcs = [k for k in da if k.startswith(os.path.join("characters", "npc"))]
+    print(f"arquivos: {len(da)} (do laboratório ou manifesto: {len(lab)}; NPCs: {len(npcs)}); diferentes: {len(diff)}")
     for k in diff[:20]:
         print("  DIFERENTE:", k)
     sys.exit(1 if diff else 0)

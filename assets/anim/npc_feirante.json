@@ -1,0 +1,346 @@
+{
+ "name": "npc_feirante",
+ "description": "NPC feirante (Quelmo, laboratório de conteúdo): perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': ajeita a mercadoria à frente da cintura (à esquerda, à direita) e oferece com a mão direita aberta, voltado ao freguês. Posições em voxels do esqueleto NPC. O clipe ATTACK toca o gesto de ofício (\"attack\": \"oficio\"), como o \"attack\" de cada perfil; o jogo não usa ATTACK em NPC.",
+ "rightItem": null,
+ "leftItem": null,
+ "tipLength": 0,
+ "attack": "oficio",
+ "defaults": {
+  "rElbow": [
+   -1,
+   -0.6,
+   -0.6
+  ],
+  "lElbow": [
+   1,
+   -0.6,
+   -0.6
+  ]
+ },
+ "carry": {
+  "idle": "rest",
+  "walk": "rest",
+  "run": "rest",
+  "free": "r",
+  "swingWalk": 1.2,
+  "swingRun": 1.9
+ },
+ "poses": {
+  "rest": {
+   "r": [
+    -7.2,
+    15.2,
+    1.6
+   ],
+   "rDir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "rEdge": [
+    1,
+    0,
+    0
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ],
+   "lMode": "free",
+   "l": [
+    7.0,
+    16.0,
+    1.8
+   ],
+   "lElbow": [
+    0.6,
+    -0.3,
+    -1
+   ]
+  },
+  "wave_up": {
+   "base": "rest",
+   "r": [
+    -11.4,
+    34.6,
+    2.2
+   ],
+   "rElbow": [
+    -1,
+    -0.5,
+    0.1
+   ],
+   "head": [
+    -4,
+    -8,
+    5
+   ],
+   "torso": [
+    0,
+    -5,
+    2
+   ]
+  },
+  "wave_a": {
+   "base": "wave_up",
+   "r": [
+    -12.6,
+    34.4,
+    1.6
+   ]
+  },
+  "wave_b": {
+   "base": "wave_up",
+   "r": [
+    -10.2,
+    35.4,
+    2.6
+   ],
+   "head": [
+    -5,
+    -10,
+    7
+   ]
+  },
+  "arruma": {
+   "base": "rest",
+   "r": [
+    -3.6,
+    18.6,
+    8.2
+   ],
+   "rElbow": [
+    -1,
+    -0.5,
+    -0.4
+   ],
+   "lMode": "ik",
+   "l": [
+    3.4,
+    18.6,
+    8.2
+   ],
+   "lElbow": [
+    1,
+    -0.5,
+    -0.4
+   ],
+   "head": [
+    14,
+    0,
+    0
+   ],
+   "torso": [
+    6,
+    0,
+    0
+   ]
+  },
+  "arruma_e": {
+   "base": "arruma",
+   "r": [
+    -0.8,
+    18.8,
+    8.8
+   ],
+   "l": [
+    5.6,
+    18.4,
+    7.6
+   ],
+   "head": [
+    14,
+    8,
+    0
+   ],
+   "torso": [
+    6,
+    6,
+    0
+   ]
+  },
+  "arruma_d": {
+   "base": "arruma",
+   "r": [
+    -5.8,
+    18.4,
+    7.6
+   ],
+   "l": [
+    0.6,
+    18.8,
+    8.8
+   ],
+   "head": [
+    14,
+    -8,
+    0
+   ],
+   "torso": [
+    6,
+    -6,
+    0
+   ]
+  },
+  "oferece": {
+   "base": "rest",
+   "r": [
+    -10.6,
+    22.4,
+    7.0
+   ],
+   "rElbow": [
+    -1,
+    -0.7,
+    0.1
+   ],
+   "head": [
+    -3,
+    -12,
+    5
+   ],
+   "torso": [
+    -2,
+    -10,
+    0
+   ]
+  },
+  "oferece_b": {
+   "base": "oferece",
+   "r": [
+    -11.2,
+    23.2,
+    6.4
+   ],
+   "head": [
+    -4,
+    -14,
+    6
+   ]
+  }
+ },
+ "moves": {
+  "emote": {
+   "label": "Acena",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.4,
+     "pose": "wave_up"
+    },
+    {
+     "t": 0.62,
+     "pose": "wave_a"
+    },
+    {
+     "t": 0.86,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.1,
+     "pose": "wave_a"
+    },
+    {
+     "t": 1.34,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.6,
+     "pose": "wave_up",
+     "stop": true
+    },
+    {
+     "t": 2.05,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.4
+    ],
+    "exec": [
+     0.4,
+     1.34
+    ],
+    "follow": [
+     1.34,
+     1.6
+    ],
+    "recover": [
+     1.6,
+     2.05
+    ]
+   }
+  },
+  "oficio": {
+   "label": "Ajeita a mercadoria e oferece",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.4,
+     "pose": "arruma"
+    },
+    {
+     "t": 0.8,
+     "pose": "arruma_e"
+    },
+    {
+     "t": 1.2,
+     "pose": "arruma_d"
+    },
+    {
+     "t": 1.5,
+     "pose": "arruma",
+     "stop": true
+    },
+    {
+     "t": 1.95,
+     "pose": "oferece"
+    },
+    {
+     "t": 2.25,
+     "pose": "oferece_b"
+    },
+    {
+     "t": 2.55,
+     "pose": "oferece_b",
+     "stop": true
+    },
+    {
+     "t": 3.05,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.4
+    ],
+    "exec": [
+     0.4,
+     2.25
+    ],
+    "follow": [
+     2.25,
+     2.55
+    ],
+    "recover": [
+     2.55,
+     3.05
+    ]
+   }
+  }
+ }
+}

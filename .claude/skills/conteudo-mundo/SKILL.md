@@ -66,6 +66,35 @@ Contrato: `docs/architecture/catalogo-de-conteudo.md`. A gramática de base cont
 - A **caminhabilidade** (`walkability`: grade de 0,25 u, raio 0,3, degrau 0,30, água, perfis e formas compostas) tem de
   dar 100% dos alvos alcançáveis. Inalcançável é defeito do asset ou da composição, nunca da conferência.
 
+## Ruínas e lugares com interior (estudo pós-rodada 12)
+
+- **Sem degrau falso:** piso e soleira com topo ≤ 0,25 u (abaixo do degrau de 0,30 u: o pé não afunda); entulho com 1
+  voxel sobre o piso; peça baixa com topo plano e uma altura só (≤ 0,8 u, pisável); parede alta ≥ 1,25 u. A laje de
+  0,375 u e os topos de parede em degraus da `ruin_house` são o contraexemplo.
+- **Vão com folga:** corpo do herói = 0,6 u de diâmetro; boca, portão e porteira com ≥ 1,0 u; curral ou sala com
+  pelo menos 2,5 u por dentro (o curral de 1,9 u deixava o cocho inalcançável).
+- **Composição centrada:** a origem do prop é o centro da pegada (até 0,9 u): desloque a composição inteira, pontos
+  juntos (`conteudo_ruinas._shift`).
+- **Vitrine:** `tools/conteudo/vitrine_estudo.py` (cenas novas + caminhabilidade). Defeito de asset APROVADO já
+  conhecido vai para `PRE_EXISTENTES` com o motivo: relatado, nunca escondido, e não reprova o estudo.
+- **Teto:** interior coberto declara `colisao.camera: "teto_coberto"`; o catálogo mede `cobertura_u` (onde a câmera
+  precisa de forma só de câmera).
+- **Variações:** pontos invariantes (exato); pegada e colisão são as REAIS de cada variação; o gerador reserva
+  `pegada_reservada_u` (união exata). Nunca esconda a diferença com tolerância.
+
+## Vaga de NPC morador (provado com o Quelmo na barraca)
+
+- **Lugar:** a vaga fica no espaço LOCAL da construção (`pontos.vagas`: `pos_u`, `rumo`, `papel`), nunca em coordenada do
+  mundo. Spawn antigo fica por compatibilidade, com `substitui` na vaga nova.
+- **Medida** (`tools/conteudo/vaga_feirante.py`) em 0°, 90°, 180°, 270° e um ângulo torto:
+  - folga até o sólido ≥ raio do corpo (0,3 u);
+  - nada sobre a cabeça;
+  - herói a 1,0 u na frente, em chão livre e alcançável, com linha livre até o NPC;
+  - entradas da construção e do conjunto alcançáveis com o NPC no lugar;
+  - pixels visíveis na câmera de jogo.
+- **Uma construção por cena:** com vizinhas, a câmera de jogo entra no telhado da outra e a medida mente. A
+  visibilidade é a diferença entre a mesma cena com e sem SÓ aquele NPC.
+
 ## Validar
 
 - `./gradlew :viewer:test --tests vx.viewer.ConteudoMundoTest` (e a suíte inteira antes de entregar). Os 10 testes:
