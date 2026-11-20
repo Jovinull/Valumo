@@ -313,6 +313,10 @@ def ruin_house(semente=1, telhado_caido=True):
             ch.set(x, y, -6, shadow(STONE_D, 1.4) if y < 7 else STONE_L)
     v.merge(ch)
     EB.stones(v, seed=124 + s)
+    # rodada 12.1 (P75): degraus quebrados no arco e na brecha. A laje tem o topo a 0,375 u; antes não havia degrau e a
+    # colisão "mentia" (piso pisável a 0,30 u): quem chegava andando afundava 0,075 u na pedra
+    L.stone_steps(v, Face("z", z1 + 1, 1), dx0 - 1, dx1 + 1, top=2, seed=130 + s, broken=True)
+    L.stone_steps(v, Face("x", x1 + 1, 1), -6, 2, top=2, seed=131 + s, broken=True)
     # pedaço do telhado caído em rampa (da parede de trás até o piso)
     if telhado_caido:
         roof = Vox()

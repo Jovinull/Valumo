@@ -91,6 +91,29 @@ def foundation(v, x0, z0, x1, z1, top=2, depth=-6, seed=0):
     v.merge(stone_block(x0, depth, z0, x1, top, z1, seed=seed, soft=False))
 
 
+def stone_steps(v, f, a0, a1, top=2, seed=0, broken=False):
+    """Rodada 12.1 (P75): degraus de pedra para subir do chão (y = 0) até uma laje cuja última fileira de voxels é y = `top`,
+    num lado aberto. `f`: a Face da BORDA da laje (o plano da última fileira); a0..a1: a faixa ao longo dela (inclusive).
+    Um degrau por camada abaixo da laje (top − 1, …, 0), cada um com 2 voxels de fundo e 1 voxel mais estreito de cada
+    lado, como a escada de pedra da casa; fundação até y = −3 (absorve desnível do relevo sem mostrar o vão). Cada degrau
+    sobe 1 voxel (0,125 u), menos que o degrau que se sobe a pé (0,30 u): a colisão com o topo EXATO da laje é alcançável.
+    `broken` (ruína): pontas irregulares, pedra mais escura e musgo, sem nunca fechar os 6 voxels do meio."""
+    mid = (a0 + a1) / 2.0
+    for i, y in enumerate(range(top - 1, -1, -1)):
+        lo, hi = a0 + i, a1 - i
+        for d in (1 + 2 * i, 2 + 2 * i):
+            for a in range(lo, hi + 1):
+                if broken and abs(a + 0.5 - mid) > 3 and hash3(a, d, i, seed) < 0.3 + 0.15 * i:
+                    continue                                       # pedra que falta nas pontas
+                for yy in range(-3, y + 1):
+                    if yy == y:
+                        k = hash3(a, yy, d, seed + 1)
+                        col = (MOSS_FIX if broken and k < 0.18 else STONE_D if broken and k < 0.45 else STONE_L if not broken else STONE)
+                    else:
+                        col = STONE
+                    v.set(*f.at(a, yy, d), col)
+
+
 class Face:
     """Plano de uma parede: axis 'z' = parede z = c (a corre em x); axis 'x' = parede x = c (a corre em z).
     out = +1/−1: sentido para fora. at(a, y, d) dá o voxel no plano deslocado d para fora."""

@@ -298,6 +298,9 @@ def workshop_forge(telhado="coral", placa=True):
     for (px, pz) in ((5, Z1 - 1), (X1 - 1, Z1 - 1), (X1 - 1, Z0)):
         v.box(px, 3, pz, px + 1, 15, pz + 1, TIMBER)
         v.box(px - 1, 2, pz - 1 if pz > 0 else pz, px + 2, 2, pz + 1 if pz < 0 else pz + 2, STONE_L)
+    # rodada 12.1 (P75): degraus de pedra no lado aberto do galpão (a laje tem o topo a 0,375 u; antes não havia degrau e a
+    # colisão "mentia" com um piso pisável a 0,30 u)
+    L.stone_steps(v, Face("z", Z1 + 1, 1), 6, 14, top=2, seed=53)
     v.box(rx1 + 1, 15, Z1 - 1, X1, 15, Z1, TIMBER)              # frechal da frente aberta
     v.box(X1 - 1, 15, Z0, X1, 15, Z1, TIMBER)
     for z in (Z1 - 1, Z1):                                       # mãos-francesas CURTAS, acima da cabeça (y ≥ 13 =
