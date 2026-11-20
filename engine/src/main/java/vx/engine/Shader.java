@@ -19,10 +19,16 @@ public final class Shader implements AutoCloseable {
     private final String name;
     private final Map<String, Integer> locations = new HashMap<>();
 
-    public Shader(String vertResource, String fragResource) {
-        name = vertResource + "+" + fragResource;
-        int vs = compile(GL_VERTEX_SHADER, vertResource);
-        int fs = compile(GL_FRAGMENT_SHADER, fragResource);
+    public Shader(String vertResource, String fragResource) { this(vertResource, fragResource, new String[0]); }
+
+    /**
+     * Rodada 12.3 — o mesmo par com {@code #define}s no FRAGMENTO, logo depois do {@code #version} (uma variante do mesmo
+     * arquivo: o código sob {@code #ifdef} só existe nela, e quem não precisa dele não paga por ele).
+     */
+    public Shader(String vertResource, String fragResource, String... fragDefines) {
+        name = vertResource + "+" + fragResource + (fragDefines.length > 0 ? "+" + String.join("+", fragDefines) : "");
+        int vs = compile(GL_VERTEX_SHADER, vertResource, new String[0]);
+        int fs = compile(GL_FRAGMENT_SHADER, fragResource, fragDefines);
         id = glCreateProgram();
         glAttachShader(id, vs);
         glAttachShader(id, fs);
@@ -33,13 +39,21 @@ public final class Shader implements AutoCloseable {
         glDeleteShader(fs);
     }
 
-    private static int compile(int type, String resource) {
+    private static int compile(int type, String resource, String[] defines) {
         String src;
         try (InputStream in = Shader.class.getResourceAsStream("/shaders/" + resource)) {
             if (in == null) throw new IllegalStateException("shader não encontrado: " + resource);
             src = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new IllegalStateException(e);
+        }
+        if (defines.length > 0) {
+            int v = src.indexOf("#version");
+            if (v < 0) throw new IllegalStateException("shader sem #version para receber #define: " + resource);
+            int eol = src.indexOf('\n', v);
+            StringBuilder d = new StringBuilder();
+            for (String def : defines) d.append("#define ").append(def).append('\n');
+            src = src.substring(0, eol + 1) + d + src.substring(eol + 1);
         }
         int s = glCreateShader(type);
         glShaderSource(s, src);
