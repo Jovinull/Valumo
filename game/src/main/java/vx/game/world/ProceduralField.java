@@ -50,6 +50,19 @@ public final class ProceduralField implements TerrainField {
         return h;
     }
 
+    /**
+     * Rodada 12.1 (v2) — dentro do patamar do assentamento, dos patamares das ruínas e da clareira do posto o relevo é plano
+     * por projeto: a grade o quantiza sem a ondulação de ruído. Sem isso o chão debaixo de uma construção podia sair um
+     * degrau (0,125 u) acima do centro dela, e a primeira fiada de pedra ficava no plano da grama em volta: o chão da torre
+     * de vigia e do quadro de avisos piscava (teste físico, semente 1024). A v1 nunca: o relevo dela não muda.
+     */
+    @Override public boolean flat(float x, float z) {
+        if (L.version < RegionGenerator.V2) return false;
+        if (Math.hypot(x - L.sx, z - L.sz) <= L.plateauR + 0.8f || Math.hypot(x - L.px, z - L.pz) <= L.clearingR + 0.2f) return true;
+        for (float[] p : L.pads) if (Math.hypot(x - p[0], z - p[1]) <= p[2] + 0.2f) return true;
+        return false;
+    }
+
     public float height(float x, float z, boolean carvePath) {
         float h = natural(x, z);
         float ds = (float) Math.hypot(x - L.sx, z - L.sz);
