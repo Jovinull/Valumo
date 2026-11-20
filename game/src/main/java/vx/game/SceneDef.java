@@ -25,9 +25,9 @@ import java.util.Map;
 public final class SceneDef {
     public record Line(String text, String expression) { }
 
-    /** {@code height}: altura do personagem no mundo (u), lida do rig.json — a câmera de conversa enquadra por ela. */
     /**
-     * NPC com quem se fala. Rodada 12.2 (moradores de ofício, opcionais no JSON): {@code y} = altura do ponto acima do chão
+     * NPC com quem se fala. {@code height}: altura do personagem no mundo (u), lida do rig.json — a câmera de conversa
+     * enquadra por ela. Rodada 12.2 (moradores de ofício, opcionais no JSON): {@code y} = altura do ponto acima do chão
      * (a laje da oficina: ele fica de pé no chão de colisão, não afundado nela); {@code gesture} = de tempos em tempos toca
      * o gesto de ofício do perfil de animação dele (só desenho); {@code trade} = o ofício do conjunto em que ele trabalha
      * (null = morador comum): o ponto dele é AUTORADO no catálogo (spawn ou vaga), conferido à parte.
