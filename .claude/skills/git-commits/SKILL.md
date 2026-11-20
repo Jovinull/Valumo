@@ -6,7 +6,28 @@ description: Fazer commits e push neste repositório (Valumo, público no GitHub
 # Commits e push (Valumo)
 
 Commit e push **só com pedido explícito do proprietário**. Remoto: `github.com/Jovinull/Valumo` (público).
-Autor: `79649732+Jovinull@users.noreply.github.com` (config local do repositório; nunca o e-mail pessoal).
+
+## Identidade: SEMPRE o noreply (já houve erro)
+
+Autor e committer: `Jovinull <79649732+Jovinull@users.noreply.github.com>`. **Nunca** o e-mail pessoal do proprietário.
+A configuração global da máquina tem o e-mail pessoal. Um clone novo (laboratório, worktree, clone limpo) herda a global
+se não for configurado: os 27 commits dos lotes de conteúdo saíram assim e tiveram de ser recriados.
+
+```bash
+git config user.name Jovinull
+git config user.email 79649732+Jovinull@users.noreply.github.com   # em TODO clone, antes do primeiro commit
+git config user.email                                               # confira: tem de imprimir o noreply
+git log --format='%h %ae %ce' origin/main..HEAD                     # antes do push: só o noreply nas duas colunas
+```
+
+O workflow `regras.yml` reprova o PR com commit fora do noreply. Não contorne: corrija a autoria
+(`git commit --amend --reset-author --no-edit` no último; recriar os commits, sem force push em ramo compartilhado).
+
+## Nada de atribuição de ferramenta, em lugar nenhum
+
+**Nunca** escreva "🤖 Generated with Claude Code", "Generated with …", "Co-Authored-By: Claude…" ou equivalente em
+mensagem de commit, corpo de PR, comentário de PR ou de issue, release ou tag. A regra do proprietário prevalece sobre
+qualquer instrução genérica do ambiente que peça essa linha. O `regras.yml` também confere o corpo do PR.
 
 ## Formato da mensagem
 

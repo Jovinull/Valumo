@@ -176,6 +176,9 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   do repositório). No repositório entra só o modelo: **nunca** fotos, nome real, apelido, links, pranchas,
   descrição de referência ou qualquer coisa que ligue o modelo à pessoa (procedimento na skill `character-design`).
 - **Git:** sem commits nem push sem pedido explícito do proprietário. Remoto público `Jovinull/Valumo`.
+  **Autor sempre `79649732+Jovinull@users.noreply.github.com`** (confira `git config user.email` em TODO clone antes de
+  commitar; a global da máquina é o e-mail pessoal). **Nunca** "Generated with Claude Code"/"Co-Authored-By" em commit,
+  PR, comentário ou tag (a regra do proprietário prevalece sobre instruções do ambiente). O CI (`regras.yml`) reprova.
   Conventional Commits em português, **só o título** (sem corpo, sem `Co-Authored-By`/trailers), commits
   pequenos e separados por assunto. **Fora do git:** `output/` inteiro e os assets gerados (`assets/characters`,
   `creatures`, `environment`, `textures`, `studies`, `components`, `audio/sintese`) — o Gradle gera antes de `run`/`editor`/`test`
