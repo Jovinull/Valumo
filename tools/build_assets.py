@@ -33,6 +33,8 @@ MODULES = ["chars_a", "creatures_a", "env_a",
            "npcs_oficios_e",
            # laboratório: NPCs de ofício do mundo procedural (Brásia, Quelmo, Arvel), mesma altura narrativa
            "npcs_mundo_e",
+           # NPC Acapela (criaturinha de rabo de lagarto, cabeça franjada), sobre o esqueleto da vila
+           "npc_acapela_e",
            # rodada 06.1: prova técnica de personalização modular (lê assets de chars_e)
            "custom_e",
            # rodada 07: componentes de personalização em tempo de execução (lê assets de chars_e)
