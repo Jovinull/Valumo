@@ -21,7 +21,12 @@ recompensa ([relatório](docs/validation/relatorio-rodada-12.md)). **Rodada 12.1
 ainda NÃO publicada, à espera do teste físico): torre arruinada liberada, piso exato com degraus, salto que sobe nas coisas
 (todo sólido segura), patamares planos (o piso que piscava), vilas de caminho pequenas e médias, moradores pelo ofício
 ([contrato para o artista](docs/architecture/moradores-dos-oficios.md)) e [descobertas por tipo de
-lugar](docs/architecture/descobertas.md) ([relatório](docs/validation/relatorio-rodada-12-1.md)). O checkpoint anterior é
+lugar](docs/architecture/descobertas.md) ([relatório](docs/validation/relatorio-rodada-12-1.md)). **Rodada 12.2** (mesmo
+ramo local, a v2 ainda NÃO publicada, à espera do teste físico): a parte aprovada do PR #8 integrada por merge local até
+`f92e6a2` (Brásia, Quelmo, Arvel; abóbada soterrada e sítio abandonado; o Acapela ficou fora,
+[registro](docs/validation/integracao-pr8.md)), os cinco ofícios com morador (a Índira herbalista), quatro ruínas no
+gerador v2 escolhidas pelo terreno e save íntegro de região mudada recusado SEM `.invalido`
+([relatório](docs/validation/relatorio-rodada-12-2.md)). O checkpoint anterior é
 `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
@@ -51,6 +56,7 @@ tools/review111.sh [capturas|resolucoes|video|desempenho|transicoes|testes|valid
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.gerador=1|2 -Dvx.semente=1024   # rodada 12: região v1 (congelada) ou v2 (padrão dos mundos novos)
 tools/review12.sh [vistas|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # rodada 12: v2, v1 × v2, demo, saves antigos (RAIZ_ANTIGA=...)
 tools/review121.sh [vistas|antes|comparacoes|laje|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # 12.1: BASE=clone da rodada 12, RAIZ_ANTIGA=main publicada
+tools/review122.sh [vistas|antes|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # 12.2: BASE=clone da 12.1 (output/tmp/base-r121), PARTE=regioes
 python3 tools/conteudo/formas_compostas.py          # formas compostas medidas dos voxels (12.1: topos exatos, alcance do salto) → colisao_e.json (revise o diff)
 ./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024   # rodada 11: região gerada pela semente (save em output/saves-procedural/s1024/)
@@ -150,7 +156,9 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **Contagem:** o estado é derivado; evento só no passo lógico; o que contou nunca volta (`Combat.retired`); a
     recompensa sai uma vez.
   - **Jogo salvo** `valumo.save` v1: escrita atômica, leitor que recusa com o motivo e guarda `.invalido`, sem
-    migração falsa. Salvamento automático só nos marcos e no primeiro passo seguro.
+    migração falsa. Salvamento automático só nos marcos e no primeiro passo seguro. Rodada 12.2: save ÍNTEGRO de uma
+    região que mudou (versão de testes) ou de jogo mais novo é `SaveGame.Incompatible`: recusado SEM `.invalido` e sem
+    tocar no arquivo; só JSON/formato quebrado vai para `.invalido` (`SaveCompatTest`, `save.md` §Rodada 12.2).
   - **QA nunca toca nos saves do proprietário:** `-Dvx.savegame=PASTA_TEMP`; os testes recebem `vx.savegame=-`.
 - **Mundo procedural** (rodada 11, ADRs 0025–0026, skill `mundo-procedural`):
   - **Relevo:** é dado (`TerrainField`). `World.LEGACY` é o de antes, sem nenhuma conta nova (referências 22/22).
@@ -168,8 +176,15 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   - **v2** (`RegionV2`): lê o perfil CONGELADO `assets/scenes/regiao_v2_e.json` (nunca o catálogo gerado); conjuntos
     postos inteiros; restritos só em conjuntos; a ruína com patamar, trilha e descoberta. Rodada 12.1: ruína de casa OU
     torre (`RuinKind`), vila de caminho pequena ou média (`"porte"`), morador pelo OFÍCIO do conjunto (`oficios` no
-    perfil; nunca `if nome ==`), patamares planos por projeto (`TerrainField.flat`, só v2).
+    perfil; nunca `if nome ==`), patamares planos por projeto (`TerrainField.flat`, só v2). Rodada 12.2: QUATRO ruínas
+    (casa, torre, abóbada no declive, sítio em chão aberto; ordem sorteada com peso, `"ruina-tipos"`), uma por região;
+    o ponto do trabalhador vem do perfil (`conjuntos.*.trabalhador`: vaga recomendada ou spawn); `RESIDENTS` (que a v1
+    usa) nunca muda — morador só de ofício entra pelo perfil.
+  - **Publicação** (12.2): `RegionGenerator.published(v)` diz quais versões estão congeladas (hoje só a v1). O que congela
+    com a v2 está em `mundo-procedural.md` §11.
   - **Save v2:** guarda o mundo e os vínculos, e recusa diferença. O v1 fica intacto.
+- **PR #8 (12.2):** a parte aprovada entrou por merge local de `f92e6a2`; o Acapela (candidato) ficou no ramo do artista,
+  fora de `build_assets.py` e do mundo. Nunca traga trabalho não aprovado junto ([registro](docs/validation/integracao-pr8.md)).
 - **Biblioteca de conteúdo** (lotes 1 e 2, ADR 0030, skill `conteudo-mundo`,
   [guia](docs/processo/como-integrar-conteudo-ao-mundo.md)):
   - **Registro × carga:** registrar no `props.json` não é carregar. O `Assets.props` malha só o que a cena pede; nunca
@@ -247,5 +262,6 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Biblioteca de conteúdo (lotes 1 e 2) | `tools/conteudo_lib.py`, `conteudo_construcoes.py`, `conteudo_vegetacao.py`, `conteudo_poi.py`, `conteudo_props.py`, `conteudo_assentamento.py`, `conteudo_conjuntos.py`, `conteudo_e.py` → `props.json` + `conteudo_catalogo.json` (gerados); QA `tools/conteudo/`; vitrines `assets/scenes/vitrine_conteudo_*`, `bench_conteudo_*`; `viewer`: `Assets.PropSet` (sob demanda); `ConteudoMundoTest`, `AssetsLazyTest`, `RegionGoldenTest`; `docs/architecture/catalogo-de-conteudo.md`, `colisao-composta.md`, `docs/art/conteudo-mundo.md`; skill `conteudo-mundo` |
 | Gerador v2 e descobertas (12) | `vx.game.world`: `RegionGenerator` (`V1`/`V2`/`LATEST`, `compose(…, versão, perfil, …)`), `RegionV2`, `RegionProfile`, `RegionLayout` (`version`, `key()`, `pads`, `branches`, `buildings`, `checkpoints`), `ProceduralField` (patamares e trilhas da v2); `vx.game`: `Collision.addComposite`, `Reachability` (checkpoints), `ProceduralScene.create(…, versão)`, `SaveGame.peekGenerator`, `WorldStore.World.supported()`, `QuestSystem.discover`, `SceneDef.Discovery`, `GameLogic.useDiscovery`; dados `regiao_v2_e.json`, `descobertas_e.json`, `colisao_e.json` (compostos); `tools/conteudo/formas_compostas.py`, `perfil_regiao_v2.py`; roteiros `tools/mundo/04-vistas-v2.txt`, `05-demo-v2.txt`, `06-demo-v1-antigo.txt`; `GeneratorVersionTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `DiscoveryTest`, `RegionGoldenTest`; `docs/processo/como-evoluir-o-gerador.md` |
 | Acabamento da v2 (12.1) | `vx.game`: `Collision` (`supports`, `standAt`, índice espacial), `GameLogic` (`discoveryFloor`, `knownPlaces`, chegar), `Game` (`drawDiscoveryObjects`, "Lugares"); `vx.game.world`: `RegionV2` (`RuinKind`, porte, moradores), `RegionLayout` (`DiscoverySpot`, `Worker`, `size`), `ProceduralField.flat`; `viewer`: `TerrainField.flat`, `Terrain`; `tools/conteudo_poi.py` (torre, ruína), `conteudo_lib.stone_steps`/`LEAF_FIX`, `conteudo_props.pote_achado`; dados `descobertas_e.json` v2, `habitantes_e.json → oficio`, `regiao_v2_e.json → oficios`; `CollisionIndexTest`, `DiscoveryTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `MobilityTest`; roteiros `tools/mundo/07-demo-v2-torre.txt`, `08-demo-v2-casa.txt`; `tools/review121.sh`; `docs/architecture/descobertas.md`, `moradores-dos-oficios.md` |
+| Integração artística e saves (12.2) | PR #8: `tools/npcs_mundo_e.py` (Brásia, Quelmo, Arvel), `tools/conteudo_ruinas.py` (abóbada, sítio), `assets/anim/npc_*.json`; `vx.game`: `SaveGame.Incompatible`, `QuestSystem.UnknownReference`, `Reachability` (ponto autorado), `Collision.build` (corpo no ponto elevado), `GameLogic.npcMotion`/`npcFloor` (gesto de ofício); `vx.game.world`: `RegionGenerator.published`, `RegionV2` (4 `RuinKind`, `VAULT_RISE`, `FARM_FLAT`), `RegionProfile.Spot`; dados `habitantes_e.json` (5 ofícios), `descobertas_e.json` (abóbada, sítio), `regiao_v2_e.json → trabalhador`; `SaveCompatTest`, `MundoNpcTest`; roteiros `tools/mundo/09`–`12`; `tools/review122.sh`; `docs/validation/integracao-pr8.md` |
 | Combate | `vx.game`: `Combat`, `Hero`, `ActionLayer`, `Enemy`, `CombatDef`, `CameraFraming`; números `assets/scenes/combate_e.json`; inimigo `creatures_e.fungo_cardo` + `Animator` "brawler"; janelas de interrupção em `assets/anim/sword.json`; `CombatTest`, `CombatAnimationTest`; roteiros `tools/combate/`; `docs/architecture/combate.md`; skill `combat` |
 | Interface (criador) | `viewer/.../Creator*.java`, `AsyncComposer.java`; `engine/.../UiBatch.java`, `PixelFont.java`, `FontAtlas.java`, `Window.InputEvent`; cena `assets/scenes/criador_e.json`; roteiros `tools/criador/`; `docs/architecture/criador-de-personagens.md`; skill `game-ui` |

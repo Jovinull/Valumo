@@ -80,6 +80,16 @@ A **Rodada 12.1** (mesmo ramo, em avaliação; a v2 continua sem publicar) fez o
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12-1.md).
 
+A **Rodada 12.2** (mesmo ramo, em avaliação; a v2 continua sem publicar) integrou a arte aprovada e fechou a v2:
+
+- **Moradores nos ofícios:** a Brásia na forja, o Quelmo ao lado da barraca, o Arvel na cabana do caçador, a Índira
+  herbalista e o Bramor no posto de vigia, cada um com o seu gesto.
+- **Quatro ruínas:** a casa, a torre, a abóbada soterrada (no declive, com teto e um rasgo de luz) e o sítio abandonado
+  (empena, curral e cocho), cada uma com a sua descoberta.
+- **Saves seguros:** um mundo de uma versão de testes que mudou deixa a aventura guardada, sem marcá-la como corrompida.
+
+Detalhes no [relatório](docs/validation/relatorio-rodada-12-2.md).
+
 ## Requisitos
 
 - Linux x86-64 com OpenGL ≥ 3.3 (testado em Mesa 26.2 / Intel Iris Xe).

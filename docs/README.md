@@ -44,6 +44,8 @@
 | [validation/relatorio-integracao-conteudo.md](validation/relatorio-integracao-conteudo.md) | relatório da integração dos lotes 1 e 2: auditoria dos PRs #3 e #5, autoria, sementes, carga sob demanda, desempenho, saves |
 | [validation/relatorio-rodada-12.md](validation/relatorio-rodada-12.md) | relatório da rodada 12: versões do gerador, colisão composta, gerador v2, primeira descoberta, saves antigos, desempenho |
 | [validation/relatorio-rodada-12-1.md](validation/relatorio-rodada-12-1.md) | relatório da rodada 12.1: torre, piso exato, salto, patamares planos, vilas pequenas e médias, moradores pelo ofício, descobertas por tipo, saves, desempenho, decisões |
+| [validation/relatorio-rodada-12-2.md](validation/relatorio-rodada-12-2.md) | relatório da rodada 12.2: saves de versão de testes, integração do PR #8, moradores dos ofícios, quatro ruínas, câmera da torre, desempenho, as 22 respostas |
+| [validation/integracao-pr8.md](validation/integracao-pr8.md) | como o PR #8 entrou (merge local até f92e6a2), o que ficou fora (Acapela) e os ajustes da integração |
 | [architecture/descobertas.md](architecture/descobertas.md) | descobertas por tipo de lugar (12.1): achado visível × lugar, os três tipos, textos com fatos, regras e testes |
 | [architecture/moradores-dos-oficios.md](architecture/moradores-dos-oficios.md) | moradores dos ofícios (12.1): conjunto → ofício → spawn → morador, auditoria dos NPCs e o contrato para o agente artista |
 | [processo/como-evoluir-o-gerador.md](processo/como-evoluir-o-gerador.md) | guia: versão nova do gerador, congelar perfil, preservar mundos antigos, estrutura e conjunto na região, metadados, colisão composta, entrada de construção, POI, descoberta, persistência, comparação de sementes |
