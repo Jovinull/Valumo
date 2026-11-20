@@ -39,11 +39,14 @@ class ProceduralWorldTest {
     static ProceduralScene scene(long seed) { return ProceduralScene.create(A, seed, RegionGenerator.V1); }
 
     /** Tudo que a semente decide, como texto (ordem fixa): para comparar duas gerações. */
-    static String fingerprint(ProceduralScene ps) {
+    static String fingerprint(ProceduralScene ps) { return fingerprint(ps, ps.combatDoc); }
+
+    /** A impressão digital com outro documento de combate no lugar do da cena (a referência: ver {@link RegionGoldenTest}). */
+    static String fingerprint(ProceduralScene ps, com.google.gson.JsonObject combatDoc) {
         StringBuilder sb = new StringBuilder();
         RegionLayout L = ps.layout;
         sb.append(L.attempt).append(L.arrangement).append(L.forest).append(java.util.Arrays.toString(L.pond)).append(java.util.Arrays.toString(L.hill));
-        sb.append(ps.worldDoc).append(ps.sceneDoc).append(ps.combatDoc);
+        sb.append(ps.worldDoc).append(ps.sceneDoc).append(combatDoc);
         sb.append(ps.binding);
         for (RegionLayout.PointOfInterest p : L.pois) sb.append(p);
         for (int i = -20; i <= 20; i += 4)

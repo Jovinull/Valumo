@@ -1,5 +1,7 @@
 package vx.game;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import vx.game.world.RegionGenerator;
 
@@ -21,6 +23,15 @@ import static org.junit.jupiter.api.Assertions.*;
  * colina, documentos de mundo/cena/combate (props, moradores, encontros), vínculo e id da missão, POIs e uma grade do
  * relevo. Os mundos salvos dependem disso: se este teste falhar, uma mudança alterou mundos existentes. Nunca atualize o
  * arquivo para fazer o teste passar; uma composição nova é OUTRA versão do gerador (ver ADR 0029).
+ *
+ * <p>Rodada 12.1 — o documento de combate da região é uma CÓPIA do {@code combate_e.json} inteiro com a arena e o encontro
+ * gerados por cima; a impressão digital cobria então os números globais de combate e movimento (sensação, salto,
+ * esquiva…), e ajustar o salto "mudava" as regiões v1 sem que nada do gerador mudasse (conferido: o mesmo binário, com o
+ * {@code combate_e.json} de antes, bate as 8 sementes das duas versões). Agora a impressão digital usa os números globais
+ * COMO ESTAVAM na referência ({@code combate-da-referencia.json}, o {@code combate_e.json} da rodada 12 byte a byte) com
+ * as partes GERADAS da região reaplicadas na mesma ordem (centro, raio e recomeço da arena; os encontros): mudar o
+ * gerador continua mudando o hash; ajustar o combate não. Com os números de antes o documento é idêntico ao antigo, por
+ * isso nenhuma linha das referências mudou.
  */
 class RegionGoldenTest {
     static final long[] SEEDS = {1024, 2048, 4096, 77, 1, 555, 9001, 31337};
@@ -40,7 +51,7 @@ class RegionGoldenTest {
         for (long s : SEEDS) {
             ProceduralScene ps = version == RegionGenerator.V1 ? ProceduralWorldTest.scene(s) : ProceduralScene.create(ProceduralWorldTest.A, s, version);
             if (ps.version() != version) throw new AssertionError("versão errada");
-            String fp = ProceduralWorldTest.fingerprint(ps) + "|quest=" + (ps.quest == null ? "-" : ps.quest.id());
+            String fp = ProceduralWorldTest.fingerprint(ps, referenceCombat(ps.combatDoc)) + "|quest=" + (ps.quest == null ? "-" : ps.quest.id());
             if (version >= RegionGenerator.V2) {
                 StringBuilder b = new StringBuilder("|estilo=").append(ps.layout.style);
                 for (var bd : ps.layout.buildings) b.append('|').append(bd);
@@ -52,6 +63,35 @@ class RegionGoldenTest {
                     + " arranjo=" + ps.layout.arrangement + " props=" + ps.layout.props.size() + " pois=" + ps.layout.pois.size());
         }
         return out;
+    }
+
+    /** O {@code combate_e.json} da referência com as partes geradas desta região (as mesmas operações do ProceduralScene). */
+    static JsonObject referenceCombat(JsonObject generated) throws Exception {
+        JsonObject c = JsonParser.parseString(Files.readString(Path.of("game/src/test/resources/combate-da-referencia.json"))).getAsJsonObject();
+        JsonObject arena = c.getAsJsonObject("arena"), g = generated.getAsJsonObject("arena");
+        arena.add("centro", g.get("centro").deepCopy());
+        arena.add("raio", g.get("raio").deepCopy());
+        arena.add("recomeco", g.get("recomeco").deepCopy());
+        c.add("encontros", generated.get("encontros").deepCopy());
+        return c;
+    }
+
+    /** As partes do documento de combate da região que NÃO vêm do gerador são cópia do combate_e.json (base da regra acima). */
+    @Test
+    void oDocumentoDeCombateDaRegiaoSoDifereDaBaseNasPartesGeradas() throws Exception {
+        JsonObject base = JsonParser.parseString(Files.readString(ProceduralWorldTest.A.resolve("scenes/combate_e.json"))).getAsJsonObject();
+        for (int v : new int[]{RegionGenerator.V1, RegionGenerator.V2}) {
+            ProceduralScene ps = v == RegionGenerator.V1 ? ProceduralWorldTest.scene(1024) : ProceduralScene.create(ProceduralWorldTest.A, 1024, v);
+            JsonObject doc = ps.combatDoc.deepCopy();
+            JsonObject arena = doc.getAsJsonObject("arena"), b = base.getAsJsonObject("arena");
+            for (String k : new String[]{"centro", "raio", "recomeco"}) { arena.remove(k); }
+            JsonObject b2 = base.deepCopy();
+            for (String k : new String[]{"centro", "raio", "recomeco"}) b2.getAsJsonObject("arena").remove(k);
+            doc.remove("encontros");
+            b2.remove("encontros");
+            assertEquals(b2, doc, "v" + v + ": fora da arena e dos encontros, o documento de combate é o combate_e.json");
+            assertNotNull(b);
+        }
     }
 
     static void check(Path golden, int version) throws Exception {
