@@ -18,7 +18,8 @@ import os
 import conteudo_lib as L
 from voxlib import write_vox
 
-MODULES = ("conteudo_construcoes", "conteudo_vegetacao", "conteudo_poi", "conteudo_assentamento", "conteudo_props")
+MODULES = ("conteudo_construcoes", "conteudo_vegetacao", "conteudo_poi", "conteudo_assentamento", "conteudo_props",
+           "conteudo_ruinas")
 CONTRACT = "valumo.conteudo"
 VERSION = 1
 HERO = "characters/e/adventurer"
