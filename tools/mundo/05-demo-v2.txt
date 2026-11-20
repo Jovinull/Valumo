@@ -33,16 +33,17 @@ esperar-menu 60
 wait 1.5
 regiao
 missao
+# a oficina do ferreiro (conjunto de ofício) da semente 31337: a porta e o lado do galpão (forja, bigorna, bancada)
 ir-lugar construcao 2 andando
-wait 1.5
-ir-lugar construcao 1 andando
-wait 1.5
+wait 1.0
+ir-lugar construcao 3 andando
+wait 2.0
 seguir-ramo ida correndo
 wait 0.8
 ir-lugar ruina-dentro andando
 wait 1.0
 ir-lugar descoberta andando
-wait 0.6
+wait 1.5
 key E
 wait 3.5
 missao
