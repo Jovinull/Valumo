@@ -91,7 +91,7 @@ if has vitrines; then
   mkdir -p "$dest/testes"
   $PY tools/conteudo/vitrine_estudo.py > "$dest/testes/caminhabilidade-vitrines.txt"
   $PY tools/conteudo/cenas.py "$dest/capturas/vitrines" vitrine_estudo_ruinas vitrine_estudo_npcs >/dev/null
-  # tomadas que o catálogo não deriva: interior da abóbada, o portão do sítio por dentro e a barraca (voxel 1/16)
+  # tomadas que o catálogo não deriva: interior da abóbada
   read -r vx vz fx fz fr < <($PY - <<'EOF'
 import json, math
 d = json.load(open("assets/scenes/vitrine_estudo_ruinas.json"))
@@ -107,11 +107,7 @@ EOF
     tools/snap.sh "$P,hx=$(echo "$vx + 0.35" | bc),hz=$(echo "$vz + 0.4" | bc),hyaw=200,yaw=-15,pitch=6,dist=1.7,lift=0.75,out=$i/abobada-interior-$luz.png" \
       "$P,hx=$vx,hz=$(echo "$vz - 0.9" | bc),hyaw=0,yaw=180,pitch=4,dist=1.5,lift=0.8,out=$i/abobada-de-dentro-para-fora-$luz.png" >/dev/null
   done
-  P="mode=scene,style=e,nohud=1,layout=vitrine_estudo_npcs,size=1920x1080"
-  b="$dest/capturas/vitrines/vitrine_estudo_npcs/barraca"; mkdir -p "$b"
-  tools/snap.sh "$P,hx=0.5,hz=-1.8,hyaw=180,yaw=0,pitch=17,dist=4.6,lift=0.9,out=$b/quelmo-camera-de-jogo.png" \
-    "$P,hx=2.4,hz=-2.4,hyaw=230,yaw=35,pitch=20,dist=3.0,lift=0.9,out=$b/quelmo-3-4-alto.png" \
-    "$P,preset=tarde,hx=0.5,hz=-1.8,hyaw=180,yaw=25,pitch=12,dist=3.4,lift=0.7,out=$b/quelmo-tarde.png" >/dev/null
+  # a barraca com o Quelmo: na parte "fechamento" (vaga lateral × antiga, tools/conteudo/vaga_feirante.py)
 fi
 
 if has videos-ruinas; then
