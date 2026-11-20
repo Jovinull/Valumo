@@ -43,6 +43,11 @@ Um prop com perfil `"tipo": "composta"` em `assets/scenes/colisao_e.json` tem v�
   sustentava, e caía DENTRO dele.
 - **Com o salto da 12.1:** o salto alcança topos até 1,30 u (`MobilityTest`), então o caso deixou de ser raro.
 
+**O apoio do herói** (`Collision.support`, só o `Player` usa): o chão pelo centro (`floor`, como sempre: é assim que se
+sobe degrau) ou um topo na altura dos pés ou abaixo que o corpo ainda toca. Quem sai andando de uma borda só cai quando o
+corpo já saiu dela, e quem desce de um salto rente a uma borda pousa nela. Descendo ao lado de um sólido cujo topo ficou
+acima dos pés, o sólido é parede no mesmo passo (`Player.step`). A conferência de alcance continua com `floor`.
+
 **A colocação** (`Collision.standAt`) põe o herói (início, continuar o jogo, recomeço) na superfície **livre mais baixa**
 entre o relevo e os topos ao alcance do salto, mais um degrau:
 
@@ -94,7 +99,7 @@ Coluna a coluna de voxels (sem folhagem), as corridas contínuas (vão de até 2
   os degraus 3 e 4 da escada interna, logo atrás da boca da porta.
 - **A correção:** escada recuada mais arco alargado, com o arco ainda velho e quebrado (comparação no pacote 12.1).
 
-## 4. Os testes (`CompositeCollisionTest`, 9)
+## 4. Os testes (`CompositeCollisionTest`, 10)
 
 Cada composto, sozinho num chão plano, deslocado e girado 0°, 90°, 180°, 270° e 37°:
 
@@ -102,13 +107,15 @@ Cada composto, sozinho num chão plano, deslocado e girado 0°, 90°, 180°, 270
 2. **Entradas e interior:** entradas alcançáveis, interação a até 1 u, área segura, conversa com o NPC do spawn.
 3. **Câmera:** paredes cortam o raio; peça baixa não; telhado, toldo e a copa da ruína seguram quem está dentro.
 4. **Piso exato (P75):** por dentro o chão é o topo da laje (0,375); por CADA entrada, a pé e sem pular, com a física real
-   do herói, sobe-se pelos degraus e fica-se de pé na laje.
+   do herói seguindo o caminho que a busca na grade acha, sobe-se pelos degraus e chega-se ao meio, de pé na laje.
 5. **Escala e translação.**
 6. **P74:** a torre, com folga (corpo +0,12 u) e o salto para a muralha do mirante.
 7. **P73:** os 7 passos na oficina.
 8. **P82:** a câmera do jogador dentro da ruína em 3 posições × 8 rumos. Rodada 12: colada em 9 de 24 (todos ao lado da
    árvore); 12.1: 0 de 24.
 9. **Liberação:** composto liberado ⇔ percorrido aqui (`ENTERABLE`).
+10. **Nunca dentro:** para cada sólido com o topo ao alcance do salto (377 nos compostos liberados, em 2 rumos), quem pula
+    para cima dele nunca fica mais de 2 mm dentro de um corpo, e termina de pé num apoio de verdade.
 
 **Testes que dependem disto:**
 
