@@ -54,6 +54,8 @@ public final class RegionLayout {
 
     /** Estilo do assentamento da v2: "caminho" (vila de caminho, compacta, com praça) ou "rural" (sítios espaçados). */
     public String style;
+    /** Rodada 12.1 (v2, P81): o porte da vila de caminho ("pequena" ou "media"); a rural não tem ("—"). */
+    public String size = "";
 
     /** Patamar plano (x, z, raio, altura) de um lugar fora do assentamento (a ruína). */
     public final List<float[]> pads = new ArrayList<>();

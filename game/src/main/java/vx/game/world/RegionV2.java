@@ -31,9 +31,11 @@ import static vx.game.world.RegionGenerator.sampleCurve;
 final class RegionV2 {
     private RegionV2() { }
 
-    static final String CAMINHO = "caminho", RURAL = "rural";
-    /** Raio da praça (u) e folga entre a praça e a fachada, por estilo. */
-    static final float PLAZA_C = 3.1f, PLAZA_R = 3.4f;
+    static final String CAMINHO = "caminho", RURAL = "rural", PEQUENA = "pequena", MEDIA = "media";
+    /** Raio da praça (u), por estilo (e porte, na de caminho). */
+    static final float PLAZA_C = 3.1f, PLAZA_R = 3.4f, PLAZA_CM = 3.4f;
+    /** Rodada 12.1 (P81): chance de a vila de caminho ser média (a decisão de design: metade pequena, metade média). */
+    static final float MEDIUM_CHANCE = 0.5f;
 
     static RegionLayout compose(long seed, int attempt, RegionProfile P, boolean vegetation) {
         if (P == null) throw new IllegalArgumentException("a v2 precisa do perfil (assets/scenes/regiao_v2_e.json)");
@@ -50,14 +52,18 @@ final class RegionV2 {
         L.rimW = tr.range(0.0f, 4.0f);
         // ---------------------------------------------------------- estilo (fica o mesmo em todas as tentativas: é a identidade)
         L.style = Rng.of(seed, "v2", region, "estilo").chance(0.55f) ? CAMINHO : RURAL;
-        L.plateauR = L.style.equals(CAMINHO) ? 10.4f : 11.2f;
+        // rodada 12.1 (P81): a vila de caminho tem PORTE — pequena (a da rodada 12: estalagem + 2–3) ou média (patamar maior,
+        // praça um pouco maior, 4–5 construções desejadas, piso de 3). Sorteio da semente, como o estilo (identidade do lugar)
+        L.size = !L.style.equals(CAMINHO) ? "" : Rng.of(seed, "v2", region, "porte").chance(MEDIUM_CHANCE) ? MEDIA : PEQUENA;
+        L.plateauR = L.style.equals(CAMINHO) ? (L.size.equals(MEDIA) ? 11.8f : 10.4f) : 11.2f;
         L.clearingR = 3.6f;
         // ---------------------------------------------------------- lugares: assentamento perto de uma borda, posto do outro lado
         Rng pr = Rng.of(seed, "v2", region, "lugares", a);
         float ang = pr.range(0f, (float) (Math.PI * 2)), rad = pr.range(4.5f, 7.0f);
+        if (L.size.equals(MEDIA)) rad = 3.8f + (rad - 4.5f) * 0.88f;         // a vila média um pouco mais perto do centro: o patamar cabe
         L.sx = (float) Math.cos(ang) * rad;
         L.sz = (float) Math.sin(ang) * rad;
-        float base = ang + (float) Math.PI + pr.range(-0.9f, 0.9f), dist = L.plateauR + pr.range(5.0f, 7.0f);
+        float base = ang + (float) Math.PI + pr.range(-0.9f, 0.9f), dist = L.plateauR + pr.range(5.0f, 7.0f) - (L.size.equals(MEDIA) ? 0.8f : 0f);
         boolean placed = false;
         for (int k = 0; k < 14 && !placed; k++) {
             float t = base + (k % 2 == 0 ? 1 : -1) * (k / 2) * 0.3f;
@@ -297,6 +303,14 @@ final class RegionV2 {
             new Candidate("conjunto.herbalista", 2, false, false),
             new Candidate("shed_storage", 2, false, false),
             new Candidate("conjunto.guardiao", 3, true, true));
+    /** Rodada 12.1 (P81): a vila de caminho média tem também o caçador (na borda) — mais ofícios, não mais do mesmo. */
+    static final List<Candidate> POOL_CAMINHO_MEDIA = List.of(
+            new Candidate("conjunto.comerciante", 5, false, false),
+            new Candidate("conjunto.ferreiro", 4, false, false),
+            new Candidate("conjunto.herbalista", 3, false, false),
+            new Candidate("shed_storage", 2, false, false),
+            new Candidate("conjunto.cacador", 2, false, true),
+            new Candidate("conjunto.guardiao", 3, true, true));
     static final List<Candidate> POOL_RURAL = List.of(
             new Candidate("lavoura", 5, false, false),
             new Candidate("conjunto.cacador", 4, false, true),
@@ -326,8 +340,8 @@ final class RegionV2 {
 
     static void settlement(RegionLayout L, RegionProfile P, String a, List<Box> taken) {
         Rng sr = Rng.of(L.seed, "v2", L.regionId, "assentamento", a);
-        boolean caminho = L.style.equals(CAMINHO);
-        float R = L.plateauR, plaza = caminho ? PLAZA_C : PLAZA_R;
+        boolean caminho = L.style.equals(CAMINHO), medium = L.size.equals(MEDIA);
+        float R = L.plateauR, plaza = caminho ? (medium ? PLAZA_CM : PLAZA_C) : PLAZA_R;
         float exit = deg(L.fx, L.fz), side = sr.chance(0.5f) ? 1 : -1;
         // reservado: a praça e o corredor da saída da trilha
         List<Box> reserved = new ArrayList<>();
@@ -367,8 +381,8 @@ final class RegionV2 {
         }
         // ---- construções e conjuntos em volta da praça, virados para ela: posição sorteada (ângulo a partir da saída, folga
         // entre a praça e a fachada), conferida PEÇA A PEÇA (a pegada da âncora e a de cada item, giradas juntas)
-        List<Candidate> pool = new ArrayList<>(caminho ? POOL_CAMINHO : POOL_RURAL), missed = new ArrayList<>();
-        int want = 3 + sr.below(2);                                        // 3 ou 4 além da estalagem
+        List<Candidate> pool = new ArrayList<>(caminho ? (medium ? POOL_CAMINHO_MEDIA : POOL_CAMINHO) : POOL_RURAL), missed = new ArrayList<>();
+        int want = 3 + sr.below(2) + (medium ? 1 : 0);                     // 3 ou 4 além da estalagem; 4 ou 5 na vila média
         int built = 0;
         while (built < want && !pool.isEmpty()) {
             Candidate c = pick(pool, sr, true);
@@ -376,8 +390,8 @@ final class RegionV2 {
             if (fit(L, P, sr, c, caminho, plaza, taken, reserved, 40, 0f)) built++;
             else missed.add(c);
         }
-        // vila rala demais (menos de duas além da estalagem): uma segunda passada nos que não couberam, com mais folga
-        for (int k = 0; k < missed.size() && built < 2; k++)
+        // vila rala demais (menos de duas além da estalagem; três na média): uma segunda passada nos que não couberam, com mais folga
+        for (int k = 0; k < missed.size() && built < (medium ? 3 : 2); k++)
             if (fit(L, P, sr, missed.get(k), caminho, plaza, taken, reserved, 60, 0.8f)) built++;
         // ---- a saída da trilha: placa e duas lanternas (a "porta" do assentamento, como na v1)
         for (Object[] it : new Object[][]{{"signpost", 1.5f, R - 0.9f, -20f}, {"lantern_post", -1.7f, R - 2.0f, 0f}, {"lantern_post", 1.7f, R - 2.4f, 0f}}) {
@@ -466,7 +480,8 @@ final class RegionV2 {
         for (int t = 0; t < tries; t++) {
             float rel = c.edgeOnly() ? sr.range(30f, 115f) : sr.range(34f, 168f);   // a torre: de olho na saída da trilha
             float ang = exit + rel * (sr.chance(0.5f) ? 1 : -1);
-            float gap = (caminho ? sr.range(0.9f, 2.4f) : sr.range(1.4f, 2.8f)) + (c.outer() ? 0.8f : 0f) + extra;
+            // a vila média tem o anel mais largo (até 3,2 u da praça à fachada): cabem mais conjuntos sem a praça crescer
+            float gap = (caminho ? sr.range(0.9f, L.size.equals(MEDIA) ? 3.2f : 2.4f) : sr.range(1.4f, 2.8f)) + (c.outer() ? 0.8f : 0f) + extra;
             List<float[]> pieces = pieces(P, c.id());                        // {x0, z0, x1, z1, lx, lz, yaw} no referencial da vaga
             float d = plaza + gap + frontOf(P, c.id());                      // a FACHADA a {@code gap} da borda da praça
             float px = L.sx + (float) Math.sin(Math.toRadians(ang)) * d, pz = L.sz + (float) Math.cos(Math.toRadians(ang)) * d;
