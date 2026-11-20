@@ -123,20 +123,39 @@ class GeneratorV2Test {
      */
     @Test
     void aRuinaEOLugarAExplorarComIdEstavel() {
-        int houses = 0, towers = 0;
-        for (long s = 1; s <= 30; s++) {
+        // rodada 12.2: quatro tipos, um por região, escolhidos com propósito (a casa a mais comum; a abóbada só num declive,
+        // o sítio só em chão aberto; nenhuma região com duas ruínas)
+        java.util.Map<String, Integer> n = new java.util.TreeMap<>();
+        for (long s = 1; s <= 60; s++) {
             RegionLayout L = v2(s).layout;
+            assertEquals(1, L.buildings.stream().filter(x -> x.role().equals("ruina")).count(), "s" + s + ": uma ruína só");
             RegionLayout.Building b = L.buildings.stream().filter(x -> x.role().equals("ruina")).findFirst().orElseThrow();
-            if (b.asset().equals("ruin_house")) houses++; else towers++;
+            n.merge(b.asset(), 1, Integer::sum);
+            if (b.asset().equals("ruin_vault")) {                            // o morro dela encosta num declive (terreno natural)
+                var f = v2(s).field;
+                float[] fr = vx.game.world.RegionV2Access.world(b.x(), b.z(), b.rotDeg(), 0f, 1.75f);
+                float[] bk = vx.game.world.RegionV2Access.world(b.x(), b.z(), b.rotDeg(), 0f, -3.375f);
+                float rise = vx.game.world.RegionV2Access.natural(f, bk[0], bk[1]) - vx.game.world.RegionV2Access.natural(f, fr[0], fr[1]);
+                assertTrue(rise >= vx.game.world.RegionV2Access.vaultRise() - 1e-4f, "s" + s + ": abóbada fora de declive (" + rise + ")");
+            }
         }
-        assertTrue(houses > towers && towers >= 5, "casa a mais comum, torre presente: " + houses + " casas, " + towers + " torres");
+        int house = n.getOrDefault("ruin_house", 0);
+        for (String k : List.of("ruin_tower", "ruin_vault", "ruin_farmstead")) assertTrue(house > n.getOrDefault(k, 0), "a casa é a mais comum: " + n);
+        assertTrue(n.getOrDefault("ruin_tower", 0) >= 5 && n.getOrDefault("ruin_vault", 0) >= 1 && n.getOrDefault("ruin_farmstead", 0) >= 1,
+                "os quatro tipos aparecem em 60 sementes: " + n);
         for (long s : SEEDS) {
             RegionLayout L = v2(s).layout;
             assertEquals(1, L.buildings.stream().filter(b -> b.role().equals("ruina")).count(), "s" + s + ": a v2 sempre tem uma ruína");
-            boolean tower = L.buildings.stream().anyMatch(b -> b.role().equals("ruina") && b.asset().equals("ruin_tower"));
-            RegionLayout.PointOfInterest r = L.poi(tower ? "ruin_tower" : "ruin");
+            String asset = L.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElseThrow().asset();
+            String[] kind = switch (asset) {                                // tipo do POI e rótulo do id, por ruína
+                case "ruin_tower" -> new String[]{"ruin_tower", "torre"};
+                case "ruin_vault" -> new String[]{"ruin_vault", "abobada"};
+                case "ruin_farmstead" -> new String[]{"ruin_farmstead", "sitio"};
+                default -> new String[]{"ruin", "ruina"};
+            };
+            RegionLayout.PointOfInterest r = L.poi(kind[0]);
             assertNotNull(r, "s" + s);
-            assertEquals(tower ? "poi.r0.torre.0" : "poi.r0.ruina.0", r.id(), "id derivado de rótulo, nunca de coordenada");
+            assertEquals("poi.r0." + kind[1] + ".0", r.id(), "id derivado de rótulo, nunca de coordenada");
             assertTrue(L.branches.stream().anyMatch(RegionLayout.Branch::carve), "s" + s + ": a trilha até a ruína");
             assertTrue(v2(s).reach.targets().keySet().stream().anyMatch(k -> k.startsWith("entrada:" + r.id())), "a entrada é conferida");
             assertTrue(v2(s).reach.targets().values().stream().allMatch(Boolean::booleanValue), "s" + s + ": tudo alcançável");

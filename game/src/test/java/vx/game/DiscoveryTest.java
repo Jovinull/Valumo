@@ -29,9 +29,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_E;
  */
 class DiscoveryTest {
     static final Path A = ProceduralWorldTest.A;
-    static final String HOUSE = "desc.r0.ruina.0", TOWER = "desc.r0.torre.0", TREE = "desc.r0.arvore.0";
-    /** Sementes de cada caso (conferidas no primeiro teste): casa, torre, torre + árvore. */
-    static final long S_HOUSE = 77, S_TOWER = 2048, S_TREE = 4096;
+    static final String HOUSE = "desc.r0.ruina.0", TOWER = "desc.r0.torre.0", TREE = "desc.r0.arvore.0",
+            VAULT = "desc.r0.abobada.0", FARM = "desc.r0.sitio.0";
+    /**
+     * Sementes de cada caso (conferidas no primeiro teste): casa, torre, torre + árvore, abóbada, sítio. Rodada 12.2: as
+     * quatro ruínas mudaram a ruína das sementes antigas (77 era casa, 2048 torre, 4096 árvore): a v2 ainda não é publicada.
+     */
+    static final long S_HOUSE = 3, S_TOWER = 2, S_TREE = 1, S_VAULT = 44, S_FARM = 19;
 
     static GameLogic proc2(long seed, Path saveDir) {
         ProceduralScene ps = GeneratorV2Test.v2(seed);
@@ -45,6 +49,10 @@ class DiscoveryTest {
 
     static SceneDef.Discovery of(GameLogic g, String id) {
         return g.scene.discoveries.stream().filter(d -> d.id().equals(id)).findFirst().orElseThrow();
+    }
+
+    static String ruinOf(long seed) {
+        return GeneratorV2Test.v2(seed).layout.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElseThrow().asset();
     }
 
     /** Põe o herói a 0,9 u da descoberta, do lado da ruína, olhando para ela (a lareira, a árvore). */
@@ -61,8 +69,11 @@ class DiscoveryTest {
 
     @Test
     void cadaRuinaTemADescobertaDoSeuTipoEAArvoreSoQuandoExiste() {
-        int houses = 0, towers = 0, trees = 0;
-        for (long s : GeneratorV2Test.SEEDS) {
+        int houses = 0, towers = 0, trees = 0, vaults = 0, farms = 0;
+        java.util.List<Long> seeds = new java.util.ArrayList<>();
+        for (long s : GeneratorV2Test.SEEDS) seeds.add(s);
+        seeds.addAll(List.of(S_HOUSE, S_TOWER, S_TREE, S_VAULT, S_FARM));
+        for (long s : seeds) {
             ProceduralScene ps = GeneratorV2Test.v2(s);
             RegionLayout L = ps.layout;
             SceneDef sc = ps.scene();
@@ -77,13 +88,26 @@ class DiscoveryTest {
                 assertEquals(5, d.coins(), "a comum");
                 assertFalse(d.arrive());
                 assertEquals("pote_achado", d.modelFull(), "as moedas vêm de algo que se vê");
-            } else {
+            } else if (ruin.equals("ruin_tower")) {
                 towers++;
-                assertEquals("ruin_tower", ruin);
                 assertEquals(TOWER, d.id());
                 assertEquals("torre", d.type());
                 assertEquals(8, d.coins(), "a do mirante (pede o salto)");
                 assertTrue(d.arrive(), "o mirante é de chegar");
+            } else if (ruin.equals("ruin_vault")) {                       // rodada 12.2: o pote entre os barris do fundo
+                vaults++;
+                assertEquals(VAULT, d.id());
+                assertEquals("abobada", d.type());
+                assertEquals(5, d.coins());
+                assertFalse(d.arrive());
+                assertEquals("pote_achado", d.modelFull(), "as moedas vêm de algo que se vê");
+            } else {                                                        // rodada 12.2: a pedra do marco (só o registro)
+                farms++;
+                assertEquals("ruin_farmstead", ruin);
+                assertEquals(FARM, d.id());
+                assertEquals("sitio", d.type());
+                assertEquals(0, d.coins(), "nem todo lugar tem tesouro");
+                assertNull(d.modelFull());
             }
             RegionLayout.PointOfInterest poi = L.pois.stream().filter(p -> p.features().contains(d.id())).findFirst().orElseThrow();
             assertTrue(Math.hypot(d.x() - poi.x(), d.z() - poi.z()) < poi.radius(), "dentro do lugar");
@@ -96,9 +120,13 @@ class DiscoveryTest {
                 assertTrue(ps.reach.targets().get("descoberta:" + TREE), "s" + s + ": a árvore alcançável");
             }
         }
-        assertTrue(houses >= 1 && towers >= 1 && trees >= 1, "as sementes de revisão cobrem os três: " + houses + "/" + towers + "/" + trees);
-        assertEquals("ruin_house", GeneratorV2Test.v2(S_HOUSE).layout.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElseThrow().asset());
-        assertEquals("ruin_tower", GeneratorV2Test.v2(S_TOWER).layout.buildings.stream().filter(b -> b.role().equals("ruina")).findFirst().orElseThrow().asset());
+        assertTrue(houses >= 1 && towers >= 1 && trees >= 1 && vaults >= 1 && farms >= 1,
+                "as sementes cobrem os cinco: " + houses + "/" + towers + "/" + vaults + "/" + farms + "/" + trees);
+        assertEquals("ruin_house", ruinOf(S_HOUSE));
+        assertEquals("ruin_tower", ruinOf(S_TOWER));
+        assertEquals("ruin_tower", ruinOf(S_TREE));
+        assertEquals("ruin_vault", ruinOf(S_VAULT));
+        assertEquals("ruin_farmstead", ruinOf(S_FARM));
         assertTrue(GeneratorV2Test.v2(S_TREE).layout.props.stream().anyMatch(p -> p.name().equals("tree_gnarled")));
         assertTrue(ProceduralWorldTest.scene(1024).scene().discoveries.isEmpty(), "a v1 não tem descoberta (nada muda nela)");
     }
@@ -122,6 +150,45 @@ class DiscoveryTest {
         // o pote fica no chão de verdade (a laje), não no meio voxel do catálogo
         SceneDef.Discovery h = of(g, HOUSE);
         assertEquals(g.collision.ground.height(h.x(), h.z()) + 0.375f, g.discoveryFloor(h), 0.13f, "o pote na laje da casa");
+    }
+
+    /**
+     * Rodada 12.2 — a abóbada soterrada: o pote entre os barris do fundo paga 5 moedas uma vez, fica vazio e a placa passa a
+     * "Olhar o pote vazio"; o sítio abandonado: a pedra do marco é só o registro (0 moedas). Cada um é um lugar novo no diário.
+     */
+    @Test
+    void aAbobadaEOSitioSaoLugaresProprios(@TempDir Path d) {
+        GameLogic g = proc2(S_VAULT, d.resolve("a"));
+        g.action("comecar");
+        approach(g, VAULT);
+        assertNotNull(g.discoveryCandidate, "a placa aparece entre os barris");
+        assertEquals("Pegar o pote entre os barris", g.discoveryCandidate.verb());
+        int before = g.quests.coins();
+        AdventureTest.press(g, GLFW_KEY_E);
+        assertTrue(g.quests.discovered(VAULT));
+        assertEquals(before + 5, g.quests.coins());
+        assertTrue(g.toast.startsWith("Lugar novo: Abóbada soterrada · +5 moedas"), g.toast);
+        for (int i = 0; i < 60; i++) { AdventureTest.press(g, GLFW_KEY_E); AdventureTest.frames(g, 1); }
+        assertEquals(before + 5, g.quests.coins(), "a recompensa não repete");
+        assertEquals("Olhar o pote vazio", of(g, VAULT).verbSeen());
+        assertTrue(g.save(false), g.saveError);
+        GameLogic r = proc2(S_VAULT, d.resolve("a"));
+        r.action("continuar-jogo");
+        assertEquals(before + 5, r.quests.coins(), "salvar e reabrir não devolve o pote cheio");
+        assertTrue(r.quests.discovered(VAULT));
+        assertFalse(r.useDiscovery(of(r, VAULT)), "reaberto: nada pago de novo");
+
+        GameLogic f = proc2(S_FARM, d.resolve("b"));
+        f.action("comecar");
+        approach(f, FARM);
+        assertNotNull(f.discoveryCandidate);
+        assertEquals("Examinar a pedra do marco", f.discoveryCandidate.verb());
+        int c0 = f.quests.coins();
+        AdventureTest.press(f, GLFW_KEY_E);
+        assertTrue(f.quests.discovered(FARM));
+        assertEquals(c0, f.quests.coins(), "sem moedas");
+        assertEquals("Lugar novo: Sítio abandonado", f.toast);
+        assertEquals(List.of("Sítio abandonado"), f.knownPlaces().keySet().stream().map(SceneDef.Discovery::name).toList());
     }
 
     @Test
