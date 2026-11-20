@@ -1,0 +1,430 @@
+{
+ "name": "npc_cacador",
+ "description": "NPC caçador (Arvel, laboratório de conteúdo): perfil compartilhado dos NPCs (mãos livres, aceno 'emote' idêntico ao npc_vila) e um gesto de ofício 'oficio': puxa a corda a tiracolo no peito, confere a bolsa nas costas olhando por cima do ombro e, meio agachado, aponta o horizonte (proteger os olhos foi descartado: a testa fica fora do alcance do braço de NPC, ~11,5 voxels). Posições em voxels do esqueleto NPC.",
+ "rightItem": null,
+ "leftItem": null,
+ "tipLength": 0,
+ "attack": "emote",
+ "defaults": {
+  "rElbow": [
+   -1,
+   -0.6,
+   -0.6
+  ],
+  "lElbow": [
+   1,
+   -0.6,
+   -0.6
+  ]
+ },
+ "carry": {
+  "idle": "rest",
+  "walk": "rest",
+  "run": "rest",
+  "free": "r",
+  "swingWalk": 1.2,
+  "swingRun": 1.9
+ },
+ "poses": {
+  "rest": {
+   "r": [
+    -7.2,
+    15.2,
+    1.6
+   ],
+   "rDir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "rEdge": [
+    1,
+    0,
+    0
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ],
+   "lMode": "free",
+   "l": [
+    7.0,
+    16.0,
+    1.8
+   ],
+   "lElbow": [
+    0.6,
+    -0.3,
+    -1
+   ]
+  },
+  "wave_up": {
+   "base": "rest",
+   "r": [
+    -11.4,
+    34.6,
+    2.2
+   ],
+   "rElbow": [
+    -1,
+    -0.5,
+    0.1
+   ],
+   "head": [
+    -4,
+    -8,
+    5
+   ],
+   "torso": [
+    0,
+    -5,
+    2
+   ]
+  },
+  "wave_a": {
+   "base": "wave_up",
+   "r": [
+    -12.6,
+    34.4,
+    1.6
+   ]
+  },
+  "wave_b": {
+   "base": "wave_up",
+   "r": [
+    -10.2,
+    35.4,
+    2.6
+   ],
+   "head": [
+    -5,
+    -10,
+    7
+   ]
+  },
+  "corda": {
+   "base": "rest",
+   "r": [
+    -2.2,
+    23.4,
+    8.6
+   ],
+   "rElbow": [
+    -1,
+    -0.4,
+    0.5
+   ],
+   "head": [
+    12,
+    -6,
+    0
+   ],
+   "torso": [
+    3,
+    0,
+    0
+   ]
+  },
+  "corda_puxa": {
+   "base": "corda",
+   "r": [
+    -1.8,
+    21.8,
+    8.8
+   ]
+  },
+  "bolsa": {
+   "base": "rest",
+   "lMode": "ik",
+   "l": [
+    6.4,
+    18.8,
+    -4.8
+   ],
+   "lElbow": [
+    1,
+    -0.2,
+    -0.8
+   ],
+   "head": [
+    6,
+    30,
+    0
+   ],
+   "torso": [
+    0,
+    8,
+    0
+   ],
+   "r": [
+    -6.6,
+    16.6,
+    2.4
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ]
+  },
+  "aponta": {
+   "base": "rest",
+   "r": [
+    -8.2,
+    30.6,
+    9.2
+   ],
+   "rElbow": [
+    -1,
+    -0.5,
+    -0.1
+   ],
+   "head": [
+    -2,
+    -16,
+    0
+   ],
+   "torso": [
+    3,
+    -10,
+    0
+   ],
+   "hip": 0.97
+  },
+  "aponta_b": {
+   "base": "aponta",
+   "r": [
+    -9.4,
+    31.0,
+    8.6
+   ],
+   "head": [
+    -3,
+    -22,
+    0
+   ],
+   "torso": [
+    3,
+    -14,
+    0
+   ]
+  },
+  "frente": {
+   "base": "rest",
+   "r": [
+    -6.6,
+    19.8,
+    6.8
+   ],
+   "rElbow": [
+    -1,
+    -0.6,
+    -0.3
+   ],
+   "head": [
+    6,
+    -4,
+    0
+   ],
+   "torso": [
+    1,
+    0,
+    0
+   ]
+  },
+  "solta": {
+   "base": "rest",
+   "r": [
+    -7.2,
+    19.6,
+    6.0
+   ],
+   "rElbow": [
+    -1,
+    -0.6,
+    -0.3
+   ],
+   "head": [
+    6,
+    8,
+    0
+   ],
+   "torso": [
+    0,
+    4,
+    0
+   ]
+  },
+  "larga": {
+   "base": "rest",
+   "lMode": "ik",
+   "l": [
+    7.8,
+    17.2,
+    0.8
+   ],
+   "lElbow": [
+    1,
+    -0.4,
+    -0.4
+   ],
+   "head": [
+    2,
+    6,
+    0
+   ],
+   "torso": [
+    0,
+    2,
+    0
+   ],
+   "r": [
+    -6.6,
+    16.6,
+    2.4
+   ],
+   "rElbow": [
+    -0.6,
+    -0.3,
+    -1
+   ]
+  }
+ },
+ "moves": {
+  "emote": {
+   "label": "Acena",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.4,
+     "pose": "wave_up"
+    },
+    {
+     "t": 0.62,
+     "pose": "wave_a"
+    },
+    {
+     "t": 0.86,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.1,
+     "pose": "wave_a"
+    },
+    {
+     "t": 1.34,
+     "pose": "wave_b"
+    },
+    {
+     "t": 1.6,
+     "pose": "wave_up",
+     "stop": true
+    },
+    {
+     "t": 2.05,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.4
+    ],
+    "exec": [
+     0.4,
+     1.34
+    ],
+    "follow": [
+     1.34,
+     1.6
+    ],
+    "recover": [
+     1.6,
+     2.05
+    ]
+   }
+  },
+  "oficio": {
+   "label": "Confere o equipamento e aponta o horizonte",
+   "keys": [
+    {
+     "t": 0.0,
+     "pose": "rest",
+     "stop": true
+    },
+    {
+     "t": 0.2,
+     "pose": "frente"
+    },
+    {
+     "t": 0.42,
+     "pose": "corda"
+    },
+    {
+     "t": 0.62,
+     "pose": "corda_puxa"
+    },
+    {
+     "t": 0.85,
+     "pose": "corda",
+     "stop": true
+    },
+    {
+     "t": 1.05,
+     "pose": "solta"
+    },
+    {
+     "t": 1.45,
+     "pose": "bolsa"
+    },
+    {
+     "t": 1.85,
+     "pose": "bolsa",
+     "stop": true
+    },
+    {
+     "t": 2.1,
+     "pose": "larga"
+    },
+    {
+     "t": 2.5,
+     "pose": "aponta"
+    },
+    {
+     "t": 3.15,
+     "pose": "aponta_b",
+     "stop": true
+    },
+    {
+     "t": 3.7,
+     "pose": "rest",
+     "stop": true
+    }
+   ],
+   "phases": {
+    "prep": [
+     0,
+     0.42
+    ],
+    "exec": [
+     0.42,
+     2.5
+    ],
+    "follow": [
+     2.5,
+     3.15
+    ],
+    "recover": [
+     3.15,
+     3.7
+    ]
+   }
+  }
+ }
+}
