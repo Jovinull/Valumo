@@ -1,5 +1,5 @@
 {
- "_doc": "Rodada 12 / 12.1 — descobertas de exploração, por TIPO de lugar (escrito à mão). O gerador v2 põe a da ruína da região (casa ou torre) e, quando a árvore retorcida existe, a dela. ACHADO: o objeto daquele lugar (o pote nas cinzas da lareira, o jarro no parapeito) — dá as moedas UMA vez, e o objeto passa de cheio para vazio (as moedas vêm de algo que se vê). LUGAR: na primeira vez que se acha um tipo de lugar nesta aventura (personagem × mundo), ele entra no diário ('Lugares'); num mundo com muitos lugares do mesmo tipo, os seguintes são só achados. modo: 'usar' (E, placa com o verbo) ou 'chegar' (estar de pé no ponto: o mirante, em cima da muralha baixa da torre, que se sobe com um salto). Textos: só o que o lugar mostra; {rumo_vila}, {rumo_posto}, {lago} e {ruina} vêm dos fatos da região (ProceduralScene.discovery). Moedas: a comum 5; a do mirante 8 (pede o salto); a árvore só o registro (nem todo lugar tem tesouro). verboVisto (opcional): a placa depois do achado (padrão: o verbo).",
+ "_doc": "Rodada 12 / 12.1 — descobertas de exploração, por TIPO de lugar (escrito à mão). O gerador v2 põe a da ruína da região (casa ou torre) e, quando a árvore retorcida existe, a dela. ACHADO: o objeto daquele lugar (o pote nas cinzas da lareira, o jarro no parapeito) — dá as moedas UMA vez, e o objeto passa de cheio para vazio (as moedas vêm de algo que se vê). LUGAR: na primeira vez que se acha um tipo de lugar nesta aventura (personagem × mundo), ele entra no diário ('Lugares'); num mundo com muitos lugares do mesmo tipo, os seguintes são só achados. modo: 'usar' (E, placa com o verbo) ou 'chegar' (estar de pé no ponto: o mirante, em cima da muralha baixa da torre, que se sobe com um salto). Textos: só o que o lugar mostra; {rumo_vila}, {rumo_posto}, {lago} e {ruina} vêm dos fatos da região (ProceduralScene.discovery). Moedas: a comum 5; a do mirante 8 (pede o salto); a árvore só o registro (nem todo lugar tem tesouro). verboVisto (opcional): a placa depois do achado (padrão: o verbo). Rodada 12.2: a abóbada soterrada (o pote entre os barris, 5 moedas) e o sítio abandonado (a pedra do marco, sem moedas), do PR #8; quatro tipos de ruína, um por região, cada um um lugar diferente no diário.",
  "formato": "valumo.descobertas",
  "versao": 2,
  "tipos": {
@@ -27,6 +27,29 @@
    "texto": "Da muralha caída se vê a vila a {rumo_vila} e o posto da trilha a {rumo_posto}.{lago} No parapeito, um jarro esquecido com moedas.",
    "jaVisto": "Da muralha, o mesmo vale: a vila a {rumo_vila}, o posto a {rumo_posto}.",
    "diario": "Torres de vigia que caíram. A muralha baixa ainda serve de mirante."
+  },
+  "abobada": {
+   "lugar": "Abóbada soterrada",
+   "categoria": "abrigo soterrado",
+   "modo": "usar",
+   "verbo": "Pegar o pote entre os barris",
+   "verboVisto": "Olhar o pote vazio",
+   "achado": "Pote de barro",
+   "objeto": {"cheio": "pote_achado", "vazio": "pote_achado__estado-vazio"},
+   "moedas": 5,
+   "texto": "Entre os barris do fundo, um pote de barro com moedas. A luz do rasgo no teto cai bem em cima dele.",
+   "jaVisto": "Os barris continuam no fundo da abóbada, e o pote, vazio.",
+   "diario": "Abóbadas que o morro engoliu. O rasgo no teto é a única janela que sobrou."
+  },
+  "sitio": {
+   "lugar": "Sítio abandonado",
+   "categoria": "vestígio de lavoura",
+   "modo": "usar",
+   "verbo": "Examinar a pedra do marco",
+   "moedas": 0,
+   "texto": "A pedra do marco ainda aponta os limites do sítio. Daqui se vê a vila a {rumo_vila}; o curral ficou para o mato.",
+   "jaVisto": "A pedra do marco continua no lugar, marcando terra que ninguém mais lavra.",
+   "diario": "Sítios que perderam os donos. A empena do celeiro é a última coisa a cair."
   },
   "arvore": {
    "lugar": "Árvore retorcida",
