@@ -228,7 +228,10 @@ class DodgeJumpPolishTest {
         float[] minAfter = {99f};
         boolean[] landed = {false};
         int[] land0 = {p.landings};
-        CombatTest.run(g, 1.0f, (t, c) -> {
+        // a janela vem do salto (rodada 12.1: 0,61 s no ar; antes 0,42): pula em 0,45 s e ainda corre 0,4 s depois do pouso
+        CombatDef d = g.combat.def;
+        float air = (float) (Math.sqrt(2 * d.jumpHeight / d.gravityUp) + Math.sqrt(2 * d.jumpHeight / d.gravityDown));
+        CombatTest.run(g, 0.45f + air + 0.4f, (t, c) -> {
             Hero.Intent i = new Hero.Intent().set(0f, p.run, true, false, false, 0f);
             i.run = true;
             i.jump = Math.abs(t - 0.45f) < H * 0.5f;
