@@ -595,9 +595,16 @@ def market_stall(toldo="coral", produtos="feira"):
     for (x, y) in ((-1, 20), (0, 21), (1, 21), (2, 20), (0, 19), (1, 19)):
         v.set(x, y, Z1 + 5, CORAL)
     shade(v)
+    # Vaga do feirante ao LADO do balcão (fechamento do estudo de NPCs, 2026-11-20): atrás do balcão as mercadorias
+    # escondem o NPC da câmera de jogo (só boina e olhos). Ao lado da ponta direita (+x), fora da aba do toldo, virado
+    # 35° para o balcão e o freguês; medida em 0/90/180/270/37° por tools/conteudo/vaga_feirante.py. O spawn antigo
+    # fica (compatibilidade); quem efetiva a vaga é o Claude principal, ao integrar o conjunto no gerador v2.
     return v, {"entradas": [("balcao", (0, 0, Z1 + 16), 0)],
                "interacao": [("comprar", (0, 0, Z1 + 13), "comerciar")],
-               "spawns": [("feirante", (0, 0, -4), "npc")]}
+               "spawns": [("feirante", (0, 0, -4), "npc")],
+               "vagas": [("feirante_lateral", (25, 0, 4), -35, "feirante",
+                          {"npc": "characters/npc/quelmo", "substitui": "feirante", "recomendada": True,
+                           "efetivacao": "Claude principal, ao integrar o conjunto do comerciante no gerador v2"})]}
 
 
 @asset("notice_board", nome="Quadro de avisos de vila", categoria="estrutura", sub="comunidade", lote=2,
