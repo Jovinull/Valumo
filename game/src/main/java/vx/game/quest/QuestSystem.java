@@ -285,10 +285,21 @@ public final class QuestSystem {
     }
 
     /** Dado inválido no save: o motivo vai na mensagem. */
-    public static final class InvalidState extends RuntimeException {
+    public static class InvalidState extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         public InvalidState(String msg) { super(msg); }
+    }
+
+    /**
+     * Rodada 12.2 — o save cita uma missão, um objeto ou uma descoberta que a cena não tem: o dado está íntegro, a CENA é que
+     * é outra. Numa região gerada ({@link vx.game.SaveGame}) isso é incompatibilidade com a região de agora, não arquivo
+     * corrompido; na vila fixa continua sendo dado inválido.
+     */
+    public static final class UnknownReference extends InvalidState {
+        private static final long serialVersionUID = 1L;
+
+        public UnknownReference(String msg) { super(msg); }
     }
 
     /**
@@ -310,7 +321,7 @@ public final class QuestSystem {
         JsonObject qs = obj(o, "missoes");
         for (String id : qs.keySet()) {
             QuestProgress p = quests.get(id);
-            if (p == null) throw new InvalidState("missão desconhecida: " + id);
+            if (p == null) throw new UnknownReference("missão desconhecida: " + id);
             JsonObject q = obj(qs, id);
             p.accepted = bool(q, "aceita");
             p.declined = bool(q, "recusada");
@@ -323,10 +334,14 @@ public final class QuestSystem {
             p.completedAt = time(q, "concluidaEm");
             String st = q.has("estado") && q.get("estado").isJsonPrimitive() ? q.get("estado").getAsString() : null;
             if (st == null) throw new InvalidState(id + ": estado ausente");
+            for (String t : p.defeated)                                     // rodada 12.2: alvo que a missão daqui não tem
+                if (!p.def.allTargets().contains(t)) throw new UnknownReference(id + ": inimigo que a missão não tem: " + t);
             String r = p.check();
             if (r != null) throw new InvalidState(id + ": " + r);
             if (!st.equals(p.state().key())) throw new InvalidState(id + ": estado gravado \"" + st + "\" não bate com o progresso (" + p.state().key() + ")");
         }
+        for (String x : objectsOn) if (!knownObjects.contains(x)) throw new UnknownReference("objeto desconhecido: " + x);
+        for (String x : discovered) if (!knownObjects.contains(x)) throw new UnknownReference("descoberta desconhecida: " + x);
         String r = check(knownObjects);
         if (r != null) throw new InvalidState(r);
     }
