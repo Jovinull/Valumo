@@ -548,8 +548,7 @@ def scarecrow(chapeu="palha"):
        area_livre={"frente_u": 1.5, "lados_u": 0.4, "fundos_u": 0.6},
        colisao={"tipo": "caixa", "escala": 0.8, "formas": "medidas",
                 "_nota": "o feirante fica ATRÁS do balcão, sob o toldo: com a caixa única ele estaria dentro do sólido"},
-       integracao="depende_colisao_composta",
-       dependencias=["formas compostas no Collision: o feirante fica atrás do balcão, sob o toldo"],
+       # rodada 12: liberada — colisão composta no jogo; o feirante fica atrás do balcão, sob o toldo (CompositeCollisionTest)
        restricoes=["frente (balcão) virada para a praça ou o caminho"],
        relacoes=[("perto_de", "fountain_square", [3.0, 6.0]), ("perto_de", "crate_stack", [0.3, 2.5]),
                  ("acompanha", "house_tall", [2.0, 6.0])],

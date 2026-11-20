@@ -256,8 +256,9 @@ def _logpile(v, x0, x1, z0, z1, y0, rows):
                     v.set(x + 2, y, z, WOOD_D)
 
 
-@asset("workshop_forge", integracao="depende_colisao_composta",
-       dependencias=["formas compostas no Collision (interior caminhável): sem elas o interior fica dentro do sólido"], nome="Oficina com forja", categoria="construcao", sub="oficio", lote=1,
+# rodada 12: liberada — a colisão composta existe no jogo (Collision "composta", colisao_e.json) e o CompositeCollisionTest
+# entra, chega à forja, à bigorna e à bancada e fala com a ferreira em 5 rumos (P73 resolvido)
+@asset("workshop_forge", nome="Oficina com forja", categoria="construcao", sub="oficio", lote=1,
        voxel=BIG, frequencia="incomum", wind=True,
        tags=["vila", "oficio", "ferreiro", "artesao", "fogo", "aberto"],
        funcao="oficina de ferreiro/artesão: forja acesa, bigorna, bancada; lugar de NPC de ofício e de missões de "
@@ -380,7 +381,11 @@ def workshop_forge(telhado="coral", placa=True):
         "entradas": [("porta", (-7, 0, Z1 + 8), 0), ("galpao", (10, 0, Z1 + 4), 0)],
         "interacao": [("forja", (10, 3, 1), "usar"), ("bigorna", (7, 3, 2), "usar"),
                       ("bancada", (5, 3, 4), "examinar")],
-        "spawns": [("ferreira", (6, 3, 2), "npc")],
+        # rodada 12 (P73): a ferreira fica no lado DIREITO do galpão, entre a forja e as peças baixas da direita; antes
+        # (6, 3, 2) ela ocupava o ponto da bigorna (a 0,125 u) e o da bancada (0,28 u), e o herói não alcançava nenhum
+        # dos dois com ela no lugar. Folgas medidas na colisão composta: 0,32 u da peça mais perto, 0,67 u do ponto da
+        # forja, 1,0 u da bigorna, 1,27 u da bancada (corpo 0,3 + herói 0,26 = 0,56).
+        "spawns": [("ferreira", (15, 3, 3), "npc")],
         "area_segura": [(-1, -2, 16, 8)],
     }
     return out, pts

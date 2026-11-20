@@ -39,8 +39,11 @@ def _rubble(v, spots, seed=0):
 
 # ============================================================================= torre arruinada
 
-@asset("ruin_tower", integracao="depende_colisao_composta",
-       dependencias=["formas compostas no Collision (interior caminhável): sem elas o interior fica dentro do sólido"], nome="Torre arruinada", categoria="poi", sub="ruina", lote=1,
+# rodada 12: com a colisão composta medida voxel a voxel, a porta em arco deixa só ~0,5 u livres abaixo da cabeça do herói
+# (as pedras do arco descem a 1,0–1,1 u nos lados); o corpo dele tem 0,52 u: o interior é inalcançável em qualquer rumo
+# (CompositeCollisionTest). Fica fora da distribuição até a porta ser alargada (decisão de arte, P74).
+@asset("ruin_tower", integracao="aguardando_refinamento",
+       dependencias=["porta em arco estreita: ~0,5 u livres sob o arco, o herói (0,52 u) não entra (P74, decisão de arte)"], nome="Torre arruinada", categoria="poi", sub="ruina", lote=1,
        voxel=BIG, frequencia="rara", wind=True,
        tags=["ruina", "exploracao", "abrigo", "orientacao", "encontro", "colina", "isolada"],
        funcao="exploração e orientação: visível de longe; interior caminhável serve de abrigo, covil de inimigos "
@@ -237,8 +240,9 @@ def stone_circle(semente=1, pedra_caida=True):
 
 # ============================================================================= ruína de casa coberta de vegetação
 
-@asset("ruin_house", integracao="depende_colisao_composta",
-       dependencias=["formas compostas no Collision (interior caminhável): sem elas o interior fica dentro do sólido"], nome="Ruína de casa tomada pela mata", categoria="poi", sub="ruina", lote=1,
+# rodada 12: liberada — colisão composta no jogo; o CompositeCollisionTest entra pelo arco e pela brecha e chega à lareira e à
+# frente dos escombros em 5 rumos
+@asset("ruin_house", nome="Ruína de casa tomada pela mata", categoria="poi", sub="ruina", lote=1,
        voxel=BIG, frequencia="incomum", wind=True,
        tags=["ruina", "narrativa", "descoberta", "recompensa", "mata", "beira_de_trilha"],
        funcao="narrativa ambiental e recompensa: restos de uma casa da mesma cultura da vila (alguém morou aqui); "
@@ -353,7 +357,10 @@ def ruin_house(semente=1, telhado_caido=True):
     charlib_e.prune_specks(v, label="ruin_house")
     pts = {
         "entradas": [("arco", (-8, 0, z1 + 4), 0), ("brecha", (x1 + 4, 0, -2), 90)],
-        "interacao": [("lareira", (12, 3, -3), "examinar"), ("escombros", (-10, 3, -6), "procurar")],
+        # rodada 12: "escombros" marca a FRENTE do monte (o pedaço de telhado caído é sólido do chão até 1,1 u — ninguém
+        # fica embaixo nem passa por cima); em (-10, 3, -6) o ponto ficava 1,3 u para dentro do monte, sem lugar de pé a
+        # menos de 1 u (colisão composta)
+        "interacao": [("lareira", (12, 3, -3), "examinar"), ("escombros", (-10, 3, 2), "procurar")],
         "spawns": [("escombros", (2, 3, -2), "criatura")],
         "area_segura": [(-14, -10, 8, 9)],
     }
