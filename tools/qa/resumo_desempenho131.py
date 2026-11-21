@@ -126,9 +126,12 @@ for nm in ("carga-antes.txt", "carga-depois.txt"):
 if carga:
     print("**Carga da máquina** (a medida divide a GPU com o que estiver aberto; os tempos absolutos variam entre execuções):\n")
     print(carga)
-print("Vila fixa = `tools/jogo/desempenho.txt` (3 vezes por binário); região v2 s7 = `tools/itens/desempenho-fechado.txt` (a")
+print("Vila fixa = `tools/jogo/desempenho.txt` (3 a 6 vezes por binário); região v2 s7 = `tools/itens/desempenho-fechado.txt` (a")
 print("mochila FECHADA, ida e volta pela trilha correndo; 5 vezes por binário); GPU por passo com `-Dvx.gpu=true`. A coluna")
-print("\"melhor\" é a menor mediana entre as repetições (a de menos interferência). Rodada 13 = clone do commit `26806fa`.\n")
+print("\"melhor\" é a menor mediana entre as repetições (a de menos interferência). Rodada 13 = clone do commit `26806fa`.")
+print("Com outro programa disputando a GPU, a mediana de cada execução oscila muito (a mesma vila fixa da rodada 13 deu de 9 a")
+print("49 ms); compare pela coluna \"melhor\", pelo que é determinista (draws, triângulos, malhas, lógica) e pelas medidas em")
+print("PARES abaixo.\n")
 print("| Cenário | binário | quadro mediana (ms) | melhor | p95 | lógica mediana | GPU cena (melhor) | draws | triângulos | malhas (MB) | coletas |")
 print("|---|---|---|---|---|---|---|---|---|---|---|")
 for name, key in [("vila fixa", "vila-fixa"), ("região v2 s7 (mochila fechada)", "v2-s7")]:

@@ -100,7 +100,8 @@ case "$what" in desempenho|tudo)
   S7="-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=7"
   rm -f "$D"/*.txt "$D"/*.log
   uptime > "$D/carga-antes.txt"; ps -eo pcpu,comm --sort=-pcpu | head -8 >> "$D/carga-antes.txt"
-  # 13 × 13.1 com a mochila FECHADA: processos alternados (a máquina pode estar em uso: o resumo dá a mediana e a melhor)
+  # 13 × 13.1 com a mochila FECHADA: processos alternados (a máquina pode estar em uso: o resumo dá a mediana e a melhor).
+  # Com a máquina muito disputada, repetições extras da vila (-4, -5, …) gravadas na mesma pasta entram no resumo.
   for r in 1 2 3 4 5; do
     for lado in r13 r131; do
       raiz=.; bin=$G; [ "$lado" = r13 ] && { raiz="$BASE13"; bin=$G13; }
