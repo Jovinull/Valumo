@@ -651,7 +651,7 @@ public final class Game implements AutoCloseable {
 
     private void drawSelect(int w, int h) {
         boolean fresh = !logic.started && logic.quests != null;           // rodada 10: Jogo novo / Continuar
-        if (procedural != null) title("Valumo", "Mundo procedural (experimental) · semente " + Long.toUnsignedString(procedural.seed)
+        if (procedural != null) title("Valumo", "Mundo procedural · semente " + Long.toUnsignedString(procedural.seed)
                 + " · " + (procedural.quest != null ? procedural.quest.name() : "sem missão nesta região"));
         else title("Valumo", fresh ? "As Luzes do Posto — escolha a aparência e comece, ou continue o jogo salvo"
                 : "Escolha a aparência e entre na vila");
