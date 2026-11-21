@@ -315,3 +315,19 @@ e sem tocar no arquivo ([save](save.md) §Rodada 12.2).
 
 A partir daí, mudar qualquer um deles muda regiões, e isso é uma versão nova (ADR 0029). `RegionGenerator.published`
 passa a incluir a v2.
+
+## 12. Rodada 12.3 — fechamento da v2 (a v2 ainda não publicada)
+
+- **A v1 não mudou:** 300 sementes iguais; `regioes-v1.txt` e `RegionGenerator.RESIDENTS` intocados.
+- **A geometria não mudou:** a câmera da torre (P85) foi resolvida sem mexer na torre
+  ([recorte da câmera](recorte-da-camera.md)). O perfil de colisão dela ganhou a zona `recorte`, que não entra na
+  composição da região: nenhuma semente mudou por ele.
+- **A Índira mudou de vaga** (`herbalista_varal`, [moradores](moradores-dos-oficios.md) §Rodada 12.3):
+  - o perfil congelado mudou só no `trabalhador` do conjunto da herbalista;
+  - 88 de 200 regiões mudam o ponto dela; 3 de 200 mudam também a decoração miúda;
+  - construções, POIs, inimigos, missões e tentativas ficam iguais;
+  - `regioes-v2.txt` foi refeito (8 sementes: só a 2048 mudou).
+- **Sementes 1–200:** sem recusa (172 na 1ª tentativa, 23 na 2ª, 4 na 3ª, 1 na 4ª), iguais em dois processos. As ruínas
+  são as mesmas da 12.2: casa 94, torre 71, sítio 21, abóbada 14 (a torre não ficou mais rara).
+- **O que congela com a v2:** a lista do §11, mais a zona `recorte` da torre em `colisao_e.json` (ela muda a câmera do
+  jogador, não a região, mas faz parte da experiência aprovada daquela torre).

@@ -58,7 +58,7 @@ Sem ninguém para o ofício, o spawn fica vazio: o conjunto se lê pelos objetos
 | `ferreiro` | Brásia (PR #8) | no galpão da oficina, o ponto P73 (laje, 0,44 u) | punho na palma | 60 |
 | `comerciante` | Quelmo (PR #8) | vaga `feirante_lateral` da barraca, rumo −35° | arruma e oferece a mercadoria | 49 |
 | `cacador` | Arvel (PR #8) | porta da cabana, fora do varal | confere o equipamento | 69 |
-| `herbalista` | Índira (vila fixa; papel decidido pelo proprietário) | vaga `herbalista_lado`, 0,64 u da porta | — (acena) | 88 |
+| `herbalista` | Índira (vila fixa; papel decidido pelo proprietário) | vaga `herbalista_varal` (rodada 12.3), junto ao varal de ervas, 2,45 u da porta, virada 20° para a rua | — (acena) | 88 |
 | `guardiao_de_trilhas` | Bramor | posto da torre de vigia | — (acena) | 73 |
 
 - **Cobertura:** 190 de 200 regiões têm pelo menos um morador de ofício; cada conjunto posto tem o seu.
@@ -100,3 +100,24 @@ O desenvolvedor, ao integrar:
 
 **Depois de a v2 ser publicada, um morador novo no perfil muda regiões, então vira versão nova do gerador** (ADR 0029).
 Por isso, a decisão de quais personagens entram no perfil congelado vem **antes** da publicação.
+
+## Rodada 12.3 — a vaga da herbalista
+
+- **O defeito:** na vaga `herbalista_lado` (12.2, ao lado da porta), a placa do ofício do conjunto fica 0,8 u à frente
+  da Índira, com a tabuleta na altura da cabeça. Vista da rua e de lado ela some, e na conversa a placa entra na frente
+  da câmera. As capturas são do roteiro `tools/mundo/18-indira.txt`, semente 28.
+- **Comparadas** (referencial da âncora, conjunto em 0°, 37°, 90°, 180° e 270°):
+
+  | Vaga | Folga do corpo | Porta | Fala | Nas capturas |
+  |---|---|---|---|---|
+  | `herbalista_lado` (0,69; 2,56; rumo 0) | 0,60 u | 0,71 u, passa com folga | alcançável | atrás da placa: some da rua e de lado |
+  | **`herbalista_varal`** (2,31; 1,56; rumo 20) | 0,48 u | 2,45 u | alcançável | inteira da rua, dos dois lados e na conversa |
+  | canteiro (−1,5; 2,6; rumo −15) | 0,24 u | 1,52 u | alcançável | atrás da cerca; espaço do gesto 0,5 u |
+
+- **Ressalva:** a conta por raios (`rayClear`) dava 5/5 de visibilidade para as três; a caixa de colisão da placa não
+  representa a tabuleta pendurada, e quem decidiu foram as capturas.
+- **A escolhida:** a do varal (`tools/conteudo_construcoes.py`, recomendada). A do lado fica registrada, não
+  recomendada.
+- **O efeito no gerador:** a v2 muda só no ponto da herbalista (88 de 200 regiões). Em 3 de 200 (52, 54, 138) muda
+  também a decoração miúda em volta (flores, capim, samambaia), porque o espalhamento evita o lugar dela. Construções,
+  POIs, inimigos e missões ficam iguais; `regioes-v2.txt` foi refeito (só a 2048 mudou entre as 8).
