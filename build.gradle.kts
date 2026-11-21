@@ -52,7 +52,7 @@ subprojects {
 // fim, o python3 do PATH. Assim o resultado não depende de a .venv estar "ativada" no terminal de quem chama.
 // (As entradas são tools/*.py: build_assets.py só importa módulos do primeiro nível — auditoria de engenharia,
 // output/qa/engineering-audit/. Se um módulo de subpasta entrar na geração, declare-o aqui.)
-val generatedAssets = listOf("characters", "creatures", "environment", "textures", "studies", "components", "audio/sintese")
+val generatedAssets = listOf("characters", "creatures", "environment", "textures", "studies", "components", "audio/sintese", "items")
 val assetsPython: String = (findProperty("vx.python") as String?)
     ?: System.getenv("VX_PYTHON")
     ?: listOf(".venv/bin/python3", ".venv/Scripts/python.exe").map { file(it) }.firstOrNull { it.isFile }?.path
