@@ -18,14 +18,17 @@ import java.util.regex.Pattern;
 /**
  * Rodada 13 — o catálogo oficial de itens ({@code assets/scenes/itens_e.json}, escrito à mão). Lido UMA vez ao montar a
  * cena e conferido inteiro: formato e versão, ids únicos ({@code item.[a-z0-9_]+}), nome e descrição curtos, categoria
- * declarada, pilha entre 1 e {@link #MAX_STACK}, ícone que existe ({@link ItemIcons}), efeito que o código conhece
+ * declarada, pilha entre 1 e {@link #MAX_STACK}, modelo voxel com nome válido (e, ao ler dos assets, gerado em
+ * {@code assets/items/e/itens.json} — rodada 13.1), efeito que o código conhece
  * ({@link ItemEffects}) com número dentro do limite. Qualquer erro recusa o catálogo inteiro com o motivo — nunca um item
  * pela metade. A ordem do arquivo é a ordem de exibição.
  */
 public final class ItemCatalog {
     public static final String FORMAT = "valumo.itens";
     public static final int VERSION = 1, MAX_STACK = 99, MAX_ITEMS = 500;
-    static final Pattern ID = Pattern.compile("item\\.[a-z0-9_]{1,40}");
+    static final Pattern ID = Pattern.compile("item\\.[a-z0-9_]{1,40}"), MODEL = Pattern.compile("[a-z0-9_]{1,24}");
+    /** Rodada 13.1: o manifesto dos modelos dos itens (gerado por {@code tools/itens_e.py}). */
+    public static final String MODELS = "items/e/itens.json";
     static final long MAX_BYTES = 256 * 1024;
 
     private final Map<String, ItemDefinition> items;
@@ -50,7 +53,13 @@ public final class ItemCatalog {
         Path f = assets.resolve("scenes/itens_e.json");
         try {
             if (Files.size(f) > MAX_BYTES) throw new Invalid("itens_e.json grande demais");
-            return parse(Files.readString(f));
+            ItemCatalog c = parse(Files.readString(f));
+            Path m = assets.resolve(MODELS);                                  // rodada 13.1: todo modelo foi gerado
+            if (!Files.exists(m)) throw new Invalid("modelos dos itens ausentes (" + MODELS + "): gere os assets");
+            JsonObject made = JsonParser.parseString(Files.readString(m)).getAsJsonObject();
+            for (ItemDefinition d : c.all())
+                if (!made.has(d.model())) throw new Invalid(d.id() + ": modelo não gerado: " + d.model());
+            return c;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -86,9 +95,9 @@ public final class ItemCatalog {
             String id = str(i, "id");
             if (id == null || !ID.matcher(id).matches()) throw new Invalid("id de item inválido: " + id);
             if (items.containsKey(id)) throw new Invalid("id repetido: " + id);
-            String name = text(i, "nome", 32, id), desc = text(i, "descricao", 200, id), cat = str(i, "categoria"), icon = str(i, "icone");
+            String name = text(i, "nome", 32, id), desc = text(i, "descricao", 200, id), cat = str(i, "categoria"), model = str(i, "modelo");
             if (cat == null || !cats.containsKey(cat)) throw new Invalid(id + ": categoria desconhecida: " + cat);
-            if (icon == null || ItemIcons.map(icon) == null) throw new Invalid(id + ": ícone desconhecido: " + icon);
+            if (model == null || !MODEL.matcher(model).matches()) throw new Invalid(id + ": modelo inválido: " + model);
             int stack = integer(i, "pilha", 1, MAX_STACK, id);
             ItemUse use = null;
             if (i.has("uso")) {
@@ -100,7 +109,7 @@ public final class ItemCatalog {
                 if (!ItemEffects.validAmount(effect, amount)) throw new Invalid(id + ": número do efeito fora do limite: " + amount);
                 use = new ItemUse(effect, amount, text(u, "rotulo", 16, id));
             }
-            items.put(id, new ItemDefinition(id, name, desc, cat, stack, icon, use));
+            items.put(id, new ItemDefinition(id, name, desc, cat, stack, model, use));
         }
         if (items.isEmpty()) throw new Invalid("catálogo sem itens");
         return new ItemCatalog(items, cats);
