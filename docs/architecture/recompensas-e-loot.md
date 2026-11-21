@@ -24,7 +24,8 @@ já existem:
 | árvore retorcida | 3 ervas da trilha | ervas entre as raízes |
 | torre caída (mirante) | nada | é um lugar para ver, não um depósito |
 
-**As moedas publicadas não mudam:** descoberta 5, mirante 8, missão da Kelyra 30. Itens não têm preço, e nada se vende.
+**As moedas publicadas não mudam** (`descobertas_e.json`): casa e abóbada 5, mirante da torre 8, sítio e árvore 0; a missão
+da Kelyra 30. Itens não têm preço, e nada se vende.
 
 **Onde há fontes:**
 
