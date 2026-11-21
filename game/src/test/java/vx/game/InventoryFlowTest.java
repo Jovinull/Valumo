@@ -239,6 +239,28 @@ class InventoryFlowTest {
     }
 
     @Test
+    void depoisDaLutaACataplasmaCura(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        talkToIndira(g);
+        float sx = g.player.x, sz = g.player.z;
+        Enemy e = g.combat.enemies.getFirst();
+        g.player.place(e.homeX() + 0.8f, e.homeZ(), 0f, g.collision);
+        for (int i = 0; i < 240 && !g.combat.engaged(); i++) frames(g, 1);
+        assertTrue(g.combat.engaged(), "a luta começou");
+        g.combat.hero.hp = 2;
+        g.player.place(sx, sz, 0f, g.collision);                        // longe da coleira: o fungo desiste e volta
+        for (int i = 0; i < 2400 && g.combat.engaged(); i++) frames(g, 1);
+        assertFalse(g.combat.engaged(), "a luta acabou");
+        int hp = g.combat.hero.hp;
+        assertTrue(hp > 0 && hp < 6, "o herói saiu ferido: " + hp);
+        g.action("inventario");
+        g.action("espaco:1");
+        g.action("usar-item");
+        assertEquals(Math.min(6, hp + 2), g.combat.hero.hp, "depois da luta: cura um coração");
+        assertEquals(1, g.items.inventory.count("item.cataplasma"));
+    }
+
+    @Test
     void recomecarOConfrontoNaoMexeNaMochila(@TempDir Path d) {
         GameLogic g = proc(S_INDIRA, d);
         talkToIndira(g);
