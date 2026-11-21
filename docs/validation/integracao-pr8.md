@@ -131,3 +131,27 @@ projeto, incorporado à biblioteca, sem profissão inventada e sem distribuiçã
 Participação futura sugerida no relatório da 12.3.
 
 **O PR #8:** com este merge, todos os commits do PR estão no ramo. Ele pode ser fechado quando este ramo entrar na `main`.
+
+## Publicação da v2 — fechamento do PR #8
+
+**Conferido antes da publicação** (ponta do artista `103d50c`):
+
+- **Commits:** os **34 commits** do PR #8 são ancestrais do ramo do PR #9, com os SHAs originais. Entraram pelos dois
+  merges: `b7e0347` (até `f92e6a2`, 25 commits) e `d2a7134` (o Acapela, 9 commits).
+- **Arquivos:** dos **41** que o PR #8 toca, 34 estão idênticos no PR #9. Os outros 7 receberam commits de integração
+  depois do merge, todos registrados:
+
+  | Arquivo | Por quê |
+  |---|---|
+  | `tools/conteudo_ruinas.py` | a abóbada e o sítio liberados com formas compostas (12.2) |
+  | `tools/conteudo_props.py`, `tools/conteudo_lib.py` | o pote do achado, os degraus de pedra, a copa fosca, as vagas (12.1–12.2) |
+  | `viewer/src/test/java/vx/viewer/ConteudoMundoTest.java` | a regra do perfil composto junto com a do artista (conflito resolvido no merge) |
+  | `docs/architecture/catalogo-de-conteudo.md`, `.claude/skills/conteudo-mundo/SKILL.md`, `docs/art/conteudo/acapela/README.md` | documentação do gerador v2, da publicação e da entrada do Acapela |
+
+- **O Acapela:** está na biblioteca (`tools/npc_acapela_e.py`, `assets/anim/npc_acapela.json`, `AcapelaTest`), sem
+  profissão e fora da distribuição procedural.
+
+**Encerramento:**
+
+- o PR #8 é fechado com um comentário que aponta o PR #9, **sem um segundo merge**;
+- o ramo `estudo/npcs-e-ruinas` do artista não é alterado nem apagado.
