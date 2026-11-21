@@ -30,10 +30,21 @@ public final class RegionGenerator {
     /**
      * Rodada 12.2 — a versão está PUBLICADA (congelada: o resultado de uma semente nunca mais muda)? Uma versão ainda em
      * testes pode mudar a região de uma semente antes da publicação; um save de um mundo dela que não bate mais com a região
-     * de agora é "de uma versão de testes" ({@link vx.game.SaveGame.Incompatible}), não arquivo corrompido. Ao publicar a
-     * v2: ela entra aqui (e a partir daí qualquer mudança de resultado é uma versão nova, ADR 0029).
+     * de agora é "de uma versão de testes" ({@link vx.game.SaveGame.Incompatible}), não arquivo corrompido.
+     * <p>
+     * Fechamento da v2 (tag {@code procedural-world-v0.6}): a v2 foi aprovada no teste físico e PUBLICADA. As duas estão
+     * congeladas; qualquer mudança no resultado de uma semente é uma versão nova (v3, ADR 0029), nunca uma mudança aqui.
      */
-    public static boolean published(int v) { return v == V1; }
+    public static boolean published(int v) { return v == V1 || v == V2; }
+
+    /**
+     * Fechamento da v2 — a versão teve builds de TESTES antes de ser publicada: a v2, nas rodadas 12 a 12.3 (os mundos
+     * experimentais do proprietário, como o "RUINAS", nasceram nelas). Depois da publicação a região de uma semente não
+     * muda mais; então um save ÍNTEGRO de um mundo dela que não bate com a região de agora vem desse período, e a recusa diz
+     * isso ("de uma versão de testes", {@link vx.game.SaveGame.Incompatible}), nunca "arquivo corrompido". A v1 não teve:
+     * um save dela que não bate "não corresponde a este mundo".
+     */
+    public static boolean hadTestBuilds(int v) { return v == V2; }
     /** Metade do lado da região jogável (u): tudo cabe em ±17, a floresta fecha até a borda do mundo (±24). */
     static final float HALF = 16.5f;
 

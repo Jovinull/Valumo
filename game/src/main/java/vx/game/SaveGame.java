@@ -273,9 +273,14 @@ public final class SaveGame {
         }
     }
 
-    /** A recusa de um save íntegro de outra região: "de uma versão de testes" quando a versão do mundo ainda não foi publicada. */
+    /**
+     * A recusa de um save íntegro de outra região: "de uma versão de testes" quando a versão do mundo ainda não foi publicada
+     * ou teve builds de testes antes da publicação (a v2: os mundos experimentais das rodadas 12 a 12.3); senão "não
+     * corresponde a este mundo".
+     */
     static Incompatible otherRegion(ProceduralScene ps, String detail) {
-        return vx.game.world.RegionGenerator.published(ps.version())
+        int v = ps.version();
+        return vx.game.world.RegionGenerator.published(v) && !vx.game.world.RegionGenerator.hadTestBuilds(v)
                 ? new Incompatible("Esta aventura não corresponde a este mundo. Ela continua guardada como estava", detail)
                 : new Incompatible("Esta aventura é de uma versão de testes deste mundo, que mudou antes do lançamento. Ela continua guardada como estava; crie outro mundo para jogar", detail);
     }
