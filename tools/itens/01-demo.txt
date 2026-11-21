@@ -53,6 +53,8 @@ wait 2.5
 mochila
 key I
 wait 0.5
+ir-lugar oficio indira andando
+wait 0.3
 ir-lugar descoberta andando
 wait 0.5
 key E
