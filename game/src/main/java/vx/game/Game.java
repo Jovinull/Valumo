@@ -917,12 +917,6 @@ public final class Game implements AutoCloseable {
         kit.rect(x + w - c, y + h - c, t, t, col);
     }
 
-    /**
-     * Rodada 13.1 — a mochila SOBRE o jogo correndo, na metade direita (o herói fica livre no meio): painel translúcido, abas
-     * por categoria, a grade sem limite que rola (só as linhas visíveis são desenhadas), cada item pelo modelo voxel sobre
-     * um disco de sombra, e a faixa de detalhe com o modelo grande girando, nome, categoria, quantidade, descrição e o uso.
-     * Só desenho: passar o mouse, clicar, a aba e o uso são ações da lógica.
-     */
     /** Um texto ou um item adiado (a mochila desenha em camadas: ver {@link #drawBag}). */
     private record BagText(float x, float y, String t, int px, boolean bold, int col) { }
 
@@ -954,6 +948,13 @@ public final class Game implements AutoCloseable {
         for (BagText t : bagTexts) if (!t.bold()) kit.text(t.x(), t.y(), t.t(), t.px(), false, t.col());
     }
 
+    /**
+     * Rodada 13.1 — a mochila SOBRE o jogo correndo, na metade direita (o herói fica livre no meio): painel translúcido, abas
+     * por categoria, a grade sem limite que rola (só as linhas visíveis são desenhadas), cada item pelo modelo voxel sobre
+     * um disco de sombra, e a faixa de detalhe com o modelo grande girando, nome, categoria, quantidade, descrição e o uso.
+     * Os textos e os itens saem adiados ({@link #btext}, {@link #bsprite}). Só desenho: passar o mouse, clicar, a aba e o uso
+     * são ações da lógica.
+     */
     private void drawBagLayers(int w, int h) {
         var inv = logic.items.inventory;
         List<Integer> view = logic.bagView();
