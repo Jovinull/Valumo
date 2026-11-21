@@ -202,14 +202,18 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
   - **Medido:** a mesma partida salva pela v0.6 e pela rodada 13 (vila e região s7) dá arquivos do mesmo tamanho, que só
     diferem no id aleatório da aventura (`round-13/registros/save-igual-ao-da-v06.txt`).
 - **Formato:** a versão não mudou; continuam v1 (vila) e v2 (procedural).
-- **O que se grava:** só os espaços ocupados (espaço, id, quantidade) e os ids das fontes; nunca o nome da tela nem dado
+- **O que se grava:** as pilhas em ordem (posição, id, quantidade) e os ids das fontes; nunca o nome da tela nem dado
   derivado.
+- **Rodada 13.1 (sem limite de espaços, [ADR 0032](../decisions/0032-mochila-viva.md)):** os campos e o formato são os
+  mesmos; `espaco` passa a ser a posição da pilha na lista (0 a 4095, o teto técnico do leitor). Um save da rodada 13
+  (espaços 0–23, com buracos) abre compactado, na mesma ordem, e é gravado compactado (`InventoryTest`,
+  `tools/itens/04-r13-cria.txt` + `05-r13-aberto.txt`).
 
 **Leitura** (`SaveGame.readItems`):
 
 | Caso | Exemplo | Resultado | `.invalido` |
 |---|---|---|---|
-| estrutura ou número inválido | quantidade 0, acima da pilha ou fracionária; espaço fora de 0–23 ou repetido; fonte repetida | recusado, "Jogo salvo inválido: …" | sim |
+| estrutura ou número inválido | quantidade 0, acima da pilha ou fracionária; espaço fora de 0–4095 ou repetido; mais de 4096 pilhas; fonte repetida | recusado, "Jogo salvo inválido: …" | sim |
 | item que este jogo não conhece | `item.espada_de_cristal` | recusado, "Esta aventura tem itens de uma versão mais nova do jogo…" | **não** |
 | presente que a tabela não tem | `presente:quelmo` | igual ao item desconhecido (jogo mais novo) | **não** |
 | achado de uma descoberta que a região não tem | `achado:desc.r9.ruina.0` | região v2: outra região ("versão de testes…"); vila fixa: inválido | não / sim |

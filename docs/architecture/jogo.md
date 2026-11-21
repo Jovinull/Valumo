@@ -482,8 +482,17 @@ e [0028](../decisions/0028-personagens-mundos-e-aventuras.md).
 
 ## 18. Rodada 13 — mochila, itens e recompensas
 
-- **Estado `INVENTORY`:** como o diário, a lógica para. Abre com I (ou pela pausa) e fecha com I, Esc ou Fechar. O
-  clique seleciona e nunca ataca; usar é uma ação da lógica.
+- **A mochila** (rodada 13.1, [ADR 0032](../decisions/0032-mochila-viva.md)): uma camada sobre a exploração
+  (`GameLogic.bagOpen`), com o jogo correndo.
+  - **Abrir e fechar:** abre com I ou pela pausa e fecha com I ou Esc.
+  - **Mouse:** é dela. O cursor fica solto, a câmera não gira, o seletor segue o mouse e o clique usa o item; nunca ataca
+    nem levanta o escudo.
+  - **Teclado:** continua no herói (WASD, Shift, Espaço, Alt, E, Q e Tab); as setas e o Enter são da grade.
+  - **O que a fecha:** a conversa, o diário, a pausa e a derrota.
+  - **Usar:** é uma ação da lógica.
+  - **Sem limite de espaços.**
+
+  Na rodada 13 era um estado (`INVENTORY`) que parava a lógica, com 24 espaços.
 - **Fontes:** o presente da Índira ao terminar a conversa e o achado de cada descoberta (por tipo de lugar), uma vez por
   aventura, tudo ou nada.
 - **Uso:** a cataplasma cura 2 de vida fora da luta engajada.

@@ -40,7 +40,8 @@ da Kelyra 30. Itens não têm preço, e nada se vende.
   marca sem entregar; nunca entrega sem marcar.
 - **Repetir não entrega de novo:** apertar E várias vezes, conversar de novo, recomeçar o confronto (R) ou carregar o save
   não entregam outra vez (`InventoryFlowTest`).
-- **Mochila cheia:** nada entra e a fonte continua disponível; o cartão diz "Mochila cheia" e o que fazer.
+- **Mochila cheia:** desde a rodada 13.1 a mochila não tem limite de espaços; "cheia" só existe no teto técnico
+  (`Inventory.MAX_STACKS`). Lá, nada entra e a fonte continua disponível; o cartão diz "Mochila cheia" e o que fazer.
 - **Saves de antes da rodada 13:**
   - **Regra explícita:** uma descoberta feita antes NÃO entrega nada ao carregar. O achado fica no lugar: quando o
     jogador volta e usa o lugar, recolhe uma vez.
