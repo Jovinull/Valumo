@@ -1,6 +1,7 @@
 # 0032 — A mochila viva: sobre o jogo correndo, sem limite de espaços, itens pelos modelos voxel
 
-**Status:** aceita e implementada na rodada 13.1 (pedido do proprietário depois do teste da rodada 13). Substitui três
+**Status:** aceita, implementada na rodada 13.1 (pedido do proprietário depois do teste da rodada 13), aprovada pelo
+proprietário e publicada na tag `inventory-foundation-v0.7`. Substitui três
 pontos da [ADR 0031](0031-itens-e-recompensas.md): a mochila de 24 espaços, a tela que pausa a lógica e os ícones de
 pixel. O resto da 0031 continua: itens são dados, efeitos são código, fontes como camada sobre os mundos congelados, uma
 vez por aventura, tudo ou nada, campos opcionais no save.

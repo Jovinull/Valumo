@@ -1,6 +1,6 @@
 # 0031 — Itens e recompensas: uma camada de jogo sobre os mundos, no mesmo save
 
-**Status:** aceita e implementada na rodada 13. A mochila de 24 espaços, a tela que pausa a lógica e os ícones de pixel
+**Status:** aceita, implementada na rodada 13 e publicada na tag `inventory-foundation-v0.7`. A mochila de 24 espaços, a tela que pausa a lógica e os ícones de pixel
 foram substituídos na rodada 13.1 pela [ADR 0032](0032-mochila-viva.md); o resto continua valendo.
 
 ## Contexto
