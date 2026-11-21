@@ -101,8 +101,7 @@ case "$what" in comparacoes|tudo)
       [ -f "$a" ] && [ -f "$b" ] && args+=("$a" "$b"); done
     prancha "$C/torre-$s-antes-depois.png" 2 760 "${args[@]}"
   done
-  cp build/medidas/torre-camera.txt "$C/torre-camera-medidas.txt" 2>/dev/null || true
-  cp build/medidas/abobada-camera.txt "$C/abobada-camera-medidas.txt" 2>/dev/null || true
+  cp build/medidas/torre-camera.txt build/medidas/abobada-camera.txt "$C/" 2>/dev/null || true   # de TowerCameraTest
 esac
 
 case "$what" in desempenho|tudo)
