@@ -115,10 +115,10 @@ case "$what" in validadores|tudo)
   V=viewer/build/install/viewer/bin/viewer
   { for c in "--check" "--check interrupcao-fina" "--check golpe-andando" "--check esquiva" "--check-cabelos"; do echo "$c: $($V $c 2>&1 | tail -1)"; done
     echo "--occlusion: $($V --occlusion 2>&1 | tail -1) (sai com 1 pela exceção conhecida do arco)"
-    tools/review7.sh gate 2>&1 | grep -E "pares|gate"
-    python3 tools/check_links.py 2>&1 | tail -1
-    .venv/bin/python tools/audio/audio_qa.py --catalogo assets/audio/sons.json 2>&1 | grep arquivos | tail -1
-    rm -rf output/tmp/r13-ref; tools/reference.sh output/tmp/r13-ref > /dev/null 2>&1
+    tools/review7.sh gate 2>&1 | grep -E "pares|gate" || true
+    python3 tools/check_links.py 2>&1 | tail -1 || true
+    .venv/bin/python tools/audio/audio_qa.py --catalogo assets/audio/sons.json 2>&1 | grep arquivos | tail -1 || true
+    rm -rf output/tmp/r13-ref; tools/reference.sh output/tmp/r13-ref > /dev/null 2>&1 || true
     echo "referências: $(ls output/tmp/r13-ref/*.png 2>/dev/null | wc -l) capturas; $(.venv/bin/python tools/repro_compare.py imgs docs/art/reference output/tmp/r13-ref 2>&1 | tail -1)"; } > "$R/validadores.txt"
   cat "$R/validadores.txt"
 esac
