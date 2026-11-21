@@ -1,4 +1,7 @@
-# Acapela — rodada 2 (candidato, aguardando avaliação do proprietário)
+# Acapela — rodada 2
+
+**Status (rodada 12.3):** incorporado à biblioteca de personagens, sem distribuição procedural (nenhum ofício definido).
+Avaliação e integração: [integração do PR #8](../../../validation/integracao-pr8.md) §Rodada 12.3.
 
 Capturas do renderer real, reduzidas para o PR. **Não são referências canônicas.** As originais, a silhueta, o fim de
 tarde e os vídeos (aceno, andar, correr, giro) ficam no pacote local `output/visual-review/acapela/rodada-02/`, fora do

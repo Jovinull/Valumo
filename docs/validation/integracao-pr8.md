@@ -98,3 +98,36 @@ candidato". Os 25 commits estarão no histórico com os SHAs de origem.
 
 Quatro arquivos aparecem nas duas listas (a skill `character-design`, `build_assets.py`, `determinismo.py` e
 `NpcClipProbe.java`): entram na versão de antes do Acapela, e as linhas dele ficam de fora.
+
+## Rodada 12.3 — o Acapela entrou na biblioteca
+
+**Decisão do proprietário** (adendo da 12.3): o Acapela não estava rejeitado; ele seria avaliado e, no nível do
+projeto, incorporado à biblioteca, sem profissão inventada e sem distribuição nas vilas.
+
+**Avaliação:**
+
+- **Contrato:** `AcapelaTest` 11/11 e `MundoNpcTest` 13/13, num clone isolado com o ramo do artista.
+- **Capturas do renderer real:** seis rumos, o rabo parado, andando e correndo (de 3/4 e de trás), o aceno de perto, a
+  alegria e a tomada na câmera de jogo ao lado do elenco.
+- **O que se viu:**
+  - silhueta própria; 2,14 cabeças, 1,125 u (a altura da Kelyra);
+  - 4.224 faces (Kelyra 4.852, Pluma 4.248);
+  - o rabo nasce no corpo, descansa no chão parado, balança andando e sobe correndo, sem atravessar as pernas nas
+    tomadas;
+  - o aceno passa à frente das franjas.
+- **Defeito concreto:** nenhum achado, então nada foi mudado (a identidade é a da rodada 2 do artista).
+- **Varredura:** sem referência externa, autor noreply, mensagens só com título.
+
+**Como entrou:** merge LOCAL do ramo `estudo/npcs-e-ruinas` (ponta `103d50c`) em `feature/world-generation-v2`, no commit
+`d2a7134` ("chore: incorpora o Acapela do PR #8 à biblioteca de personagens").
+
+- **Os commits:** os 9 do artista depois de `f92e6a2` (de `218f504` a `103d50c`) entram com os SHAs originais; nada foi
+  reescrito.
+- **O que traz:** o gerador, o perfil de animação, o contrato, a sonda do rabo, a prova de determinismo, as evidências
+  e a seção da skill `character-design`. Os quatro arquivos compartilhados recebem as linhas dele.
+
+**Papel:** os documentos do artista não definem profissão (o `meta.role` é `morador`, genérico). Ele fica na biblioteca
+(`assets/characters/npc/acapela`, gerado), fora de `habitantes_e.json` e do perfil da v2: nenhuma região muda.
+Participação futura sugerida no relatório da 12.3.
+
+**O PR #8:** com este merge, todos os commits do PR estão no ramo. Ele pode ser fechado quando este ramo entrar na `main`.
