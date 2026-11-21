@@ -1,7 +1,8 @@
 # Rodada 13 — demonstração principal pelo MENU (dados temporários, tools/review13.sh): abrir o jogo, escolher o
 # personagem, criar o mundo (semente 7: Índira, ruína de casa e árvore retorcida), receber o presente da Índira, lutar no
-# posto (o herói se fere de verdade), aplicar a cataplasma na mochila, achar o caderno na casa e as ervas na árvore, salvar,
-# voltar ao menu, continuar, abrir a mochila de novo e voltar à Índira e à casa (nada duplica).
+# posto (o herói se fere de verdade), aplicar a cataplasma na mochila, achar o caderno na casa e as ervas na árvore, salvar
+# pela pausa (Salvar jogo), voltar ao menu (com tudo salvo, a confirmação só oferece "Voltar ao menu"), continuar, abrir a
+# mochila de novo e voltar à Índira e à casa (nada duplica).
 size 1920 1080
 esperar-menu 20
 record on
@@ -74,9 +75,11 @@ key ESC
 wait 0.6
 key ESC
 wait 1.0
+click salvar
+wait 1.5
 click menu-principal
-wait 1.2
-click menu-salvar
+wait 1.5
+click menu-sem-salvar
 esperar-menu 60
 wait 1.5
 click jogar
