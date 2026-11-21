@@ -10,6 +10,9 @@ sobre a `main` `4cbde86`.
 **Pacote:** `output/visual-review/round-12-2/` (LEIA-ME, roteiro de teste físico, ZIP sem os vídeos), reproduzível com
 `tools/review122.sh`.
 
+> **Depois (rodada 12.3):** o P85 (§5) foi resolvido por recorte contextual, a Índira passou para a vaga do varal (a placa
+> do ofício a tapava) e o Acapela entrou na biblioteca. Ver o [relatório da 12.3](relatorio-rodada-12-3.md).
+
 ## 1. Saves: o mundo RUINAS
 
 **Diagnóstico** (`SaveGame.read/parse`, `QuestSystem.fromJson`):
@@ -118,6 +121,8 @@ sobre a `main` `4cbde86`.
   descoberta e recompensa são coisas separadas ([descobertas](../architecture/descobertas.md) §2).
 
 ## 5. A câmera dentro da torre (P85)
+
+> Resolvido na rodada 12.3 ([recorte da câmera](../architecture/recorte-da-camera.md)); abaixo, o estado da 12.2.
 
 **Medido andando**, com a física e a câmera reais (porta → centro → escada → porta → fora): a câmera fica colada (< 1,2 u)
 em **52% do tempo**, em trechos de até 1,43 s (85% dentro do vão).
