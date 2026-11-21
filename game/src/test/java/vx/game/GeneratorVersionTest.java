@@ -22,6 +22,31 @@ import static org.junit.jupiter.api.Assertions.*;
 class GeneratorVersionTest {
     static final Path A = ProceduralWorldTest.A;
 
+    /**
+     * Fechamento da v2 — as duas versões são oficiais: suportadas e PUBLICADAS (congeladas), cada uma com a referência das 8
+     * sementes; a versão dos mundos novos é a v2; nenhuma versão desconhecida é suportada nem publicada. Mudar o resultado
+     * de uma semente a partir daqui é a v3 (ADR 0029).
+     */
+    @Test
+    void asVersoes1E2SaoPublicadasESuportadas() throws Exception {
+        for (int v : new int[]{RegionGenerator.V1, RegionGenerator.V2}) {
+            assertTrue(RegionGenerator.supports(v), "v" + v + " suportada");
+            assertTrue(RegionGenerator.published(v), "v" + v + " publicada (congelada)");
+            Path ref = Path.of("game/src/test/resources/regioes-v" + v + ".txt");
+            assertTrue(Files.exists(ref), "a referência da v" + v + " existe: " + ref);
+            long seeds;
+            try (Stream<String> lines = Files.lines(ref)) { seeds = lines.filter(l -> !l.isBlank() && !l.startsWith("#")).count(); }
+            assertEquals(RegionGoldenTest.SEEDS.length, seeds, "a referência da v" + v + " cobre as 8 sementes");
+        }
+        assertEquals(RegionGenerator.V2, RegionGenerator.LATEST, "os mundos novos nascem na v2");
+        for (int v : new int[]{0, 3, 4, -1}) {
+            assertFalse(RegionGenerator.supports(v), "v" + v + " não é suportada");
+            assertFalse(RegionGenerator.published(v), "v" + v + " não é publicada");
+        }
+        assertFalse(RegionGenerator.hadTestBuilds(RegionGenerator.V1));
+        assertTrue(RegionGenerator.hadTestBuilds(RegionGenerator.V2));
+    }
+
     @Test
     void aV1ContinuaV1EmTudoQueGrava() {
         ProceduralScene ps = ProceduralWorldTest.scene(1024);

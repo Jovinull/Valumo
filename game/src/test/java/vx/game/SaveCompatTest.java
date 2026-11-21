@@ -104,7 +104,10 @@ class SaveCompatTest {
 
     @Test
     void mundoDeVersaoDeTestesQueMudouNaoECorrompido(@TempDir Path d) throws Exception {
-        assertFalse(RegionGenerator.published(RegionGenerator.V2), "a v2 ainda não foi publicada (rodada 12.2)");
+        // fechamento da v2: ela foi publicada, mas os mundos das versões de testes (rodadas 12 a 12.3, o "RUINAS") continuam
+        // recebendo a mesma explicação: depois da publicação a região de uma semente v2 não muda mais
+        assertTrue(RegionGenerator.published(RegionGenerator.V2), "a v2 foi publicada");
+        assertTrue(RegionGenerator.hadTestBuilds(RegionGenerator.V2), "a v2 teve builds de testes antes da publicação");
         record Case(String name, Consumer<JsonObject> edit) { }
         Case[] cases = {
                 new Case("descoberta", o -> {
@@ -139,6 +142,7 @@ class SaveCompatTest {
         // a v1 procedural é publicada: um save dela que não bate com a região é "não corresponde", nunca "versão de testes"
         ProceduralScene ps = ProceduralWorldTest.scene(1024);
         assertTrue(RegionGenerator.published(ps.version()));
+        assertFalse(RegionGenerator.hadTestBuilds(ps.version()), "a v1 não teve builds de testes que mudassem regiões");
         SaveGame.Incompatible e = SaveGame.otherRegion(ps, "teste");
         assertTrue(e.getMessage().startsWith("Esta aventura não corresponde a este mundo"), e.getMessage());
         assertEquals("teste", e.detail);
