@@ -3237,11 +3237,11 @@ public final class Game implements AutoCloseable {
                     cb.encounter, ne, cb.alive(), cb.enemyNanos / n / 1e6 / Math.max(1, ne), logic.camTicks == 0 ? 0 : logic.camNanos / (double) logic.camTicks / 1e6,
                     logic.targeting.locked() ? "travada" : "livre", fxFrames == 0 ? 0 : fxNanos / (double) fxFrames / 1e6, fxMax / 1e6, fxPeak,
                     fxFrames == 0 ? 0 : meshNanos / (double) fxFrames / 1e6));
-            long[] g1 = gcStats();
-            sb.append(String.format("coletas de lixo durante a medição: %d (%d ms no total)%n", g1[0] - gc0[0], g1[1] - gc0[1]));
-            Runtime rt = Runtime.getRuntime();
-            sb.append(String.format("memória Java em uso %.0f MB (heap %.0f MB)%n", (rt.totalMemory() - rt.freeMemory()) / 1048576.0, rt.totalMemory() / 1048576.0));
         }
+        long[] g1 = gcStats();                                              // rodada 13: sempre (a mochila aberta não tem passo de combate)
+        sb.append(String.format("coletas de lixo durante a medição: %d (%d ms no total)%n", g1[0] - gc0[0], g1[1] - gc0[1]));
+        Runtime rt = Runtime.getRuntime();
+        sb.append(String.format("memória Java em uso %.0f MB (heap %.0f MB)%n", (rt.totalMemory() - rt.freeMemory()) / 1048576.0, rt.totalMemory() / 1048576.0));
         Files.writeString(f, sb.toString());
         System.out.print(sb);
     }
