@@ -104,6 +104,7 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 | Poste de lanterna tapando a escolha / a rota | prop na linha de visão do enquadramento fixo | conferir capturas da escolha e das rotas ao mexer na cena |
 | (09.1) Cabeça tomando a tela junto ao carvalho na luta | a busca de desvio avaliava a vista SEM os ajustes somados depois (giro e inclinação de combate) | avaliar cada candidato como a vista FINAL vai ficar |
 | (09.1) Comparação antes/depois enganosa nas capturas | `posicionar` não zera a distância suavizada: a captura herdava a câmera encostada da anterior | `camera-recompor` na montagem, ou esperar assentar; e comparar no MESMO instante lógico nos dois binários |
+| (12.2) Câmera colada na nuca dentro da torre caída (P85) | um braço de 4,6 u não cabe num vão de 2,6 u; encurtar ou subir a câmera só troca um problema por outro | (12.3) recorte contextual: a câmera ignora só aquela construção (`Collision.cameraSkip`, zona `"recorte"` no perfil) e o desenho a recorta num cone até o herói (`CameraCutaway`, [recorte da câmera](../../../docs/architecture/recorte-da-camera.md)); medir com `TowerCameraTest`, nunca por captura parada |
 
 ## Rodada 09 — combate e passo fixo
 
@@ -266,3 +267,23 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   (vão mais largo ou parede que esmaece).
 - **Roteiros:** `ir-lugar oficio <morador> [andando]`, `ir-lugar ponto <id-da-interação> [andando]`. Entre moradores,
   passe pela praça (o andador vai em linha reta e prende em parede); converse com esperas de 1,4 s entre os E.
+
+## Rodada 12.3 — câmera em interior estreito (recorte contextual)
+
+- **Quando usar:** construção composta com interior estreito (a torre caída).
+- **A abóbada (coberta) não ganhou, ainda:** no ensaio das abóbadas reais o recorte zera a câmera colada. Mas o topo do
+  morro, alcançável por trás, fica dentro da zona e pede um limite de altura dos pés que o contrato ainda não tem (P97).
+- **A zona é por origem:** o desenho acha a construção pela origem do modelo (`Cutaway.ox/oz`), nunca pela distância ao
+  centro da zona (que pode ser deslocado).
+- **Como ligar:** `"recorte": {"centro_u": [x, z], "raio_u": r}` em `colisao` no catálogo
+  (`tools/conteudo_poi.py`), regenerar `colisao_e.json` com `formas_compostas.py`, e a lista de `soATorreCaidaTemRecorte`.
+- **Regras:**
+  - só a câmera e o desenho mudam (o corpo nunca);
+  - quem chega de fora nunca ganha recorte;
+  - a câmera só atravessa com o recorte aberto (`OPEN`);
+  - saída limitada (`EXIT`, `EXIT_T`);
+  - fora da zona, a câmera é idêntica passo a passo (teste).
+- **Medir:** `TowerCameraTest` (12 cenários × 5 rumos, 12.2 × recorte). Visibilidade é do herói e do interior DENTRO do
+  quadro e contando o que o shader recorta; câmera colada sozinha não diz se o jogador vê.
+- **Moradores:** a vaga do morador se escolhe por captura, não só por raio. A placa do ofício tapava a Índira e a conta
+  por `rayClear` dizia 5/5 (a caixa de colisão da placa não é a tabuleta). Roteiro `tools/mundo/18-indira.txt`.

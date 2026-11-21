@@ -123,3 +123,20 @@ em vez de 5 × 5), contorno ~0,7 ms. Antes de otimizar outra coisa, meça com `-
 - **Mudou o mesher?** As referências canônicas mudam nas bordas. Siga o procedimento da skill `visual-qa`
   (preservar, comparar, inspecionar, justificar). Nunca atualize em massa para "ficar verde".
 
+## Rodada 12.3 — recorte contextual (`uCut`, `scene.frag`)
+
+- **O que marca:** `Renderer.Draw.cut` (peso 0–1) marca só os desenhos de uma construção (`World.cutaway`: nome do prop +
+  posição); `Frame.cutTarget` / `cutRadius` dão o alvo (peito do herói) e o raio.
+- **O que o shader faz:** descarta o fragmento ANTES do alvo (até 0,3 u da frente dele) dentro de um **cone com vértice
+  na câmera** (`k = d / (R · uCut · t)`), com miolo `k < 0,75` e borda pontilhada Bayer 4×4.
+  - **Cone, não cilindro:** na tela o cone é um disco de tamanho constante. O cilindro abria um buraco enorme no que
+    estava perto da câmera.
+- **O que não muda:**
+  - **Sombra:** é outro passo; a construção continua fazendo sombra inteira.
+  - **Pré-passo de profundidade:** pula os desenhos recortados.
+  - **Os outros desenhos:** não pagam nada. O recorte só existe na variante `VX_CUT` (`new Shader(vert, frag, "VX_CUT")`,
+    `Renderer.sceneCut`); com um `if` uniforme no shader de todos, a vila pagava +0,17 ms de GPU no passo de cena.
+- **Regra geral:** recurso de shader que vale para poucos desenhos vai numa variante por `#define`, nunca num `if` no
+  shader de todos. Meça o passo de cena antes e depois, intercalado.
+- **Revisar:** em vídeo, não em captura parada (a borda pontilhada com o contorno forma um anel fino: P96). Custo
+  medido com os dois binários intercalados (`tools/review123.sh desempenho`, roteiro `tools/mundo/desempenho-torre.txt`).

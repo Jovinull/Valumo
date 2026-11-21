@@ -286,3 +286,30 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
   - curral sem passagem;
   - herói preso entre dois moradores (roteiro).
 - **Dados do proprietário:** os mundos e personagens dele só em CÓPIA; registre os hashes antes e depois.
+
+## Rodada 12.3 — fechamento da v2 (`tools/review123.sh`)
+
+- **Antes:** o binário da 12.2 num clone (`BASE=output/tmp/base-r122`, `7261f3e`), o MESMO roteiro, lado a lado
+  (`lado`). São a torre a 163° (semente 2) e a 41° (semente 83) e a Índira (semente 28).
+- **Vídeos (12):**
+  1. torre antes × depois;
+  2. entrada e vão da porta;
+  3. subir e descer;
+  4. mirante;
+  5. torre a 41°;
+  6. câmera livre;
+  7. combate junto ao carvalho e à pedra;
+  8. abóbada por dentro;
+  9. Índira antes × depois;
+  10. pote cheio × vazio;
+  11. salto e corrida;
+  12. menu e continuar.
+- **O que olhar:**
+  - herói tapado pela parede (o recorte abriu tarde?);
+  - buraco no que está ATRÁS do herói;
+  - anel pontilhado parado;
+  - câmera que pula ao sair da torre;
+  - morador atrás de placa ou cerca (a conta por raios não pega tabuleta);
+  - moedas do pote que viram mancha;
+  - pote dentro da lareira ou dos barris.
+- **Dados do proprietário:** os mundos e personagens dele só em CÓPIA (hashes antes e depois no pacote).
