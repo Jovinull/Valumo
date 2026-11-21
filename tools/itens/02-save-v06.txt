@@ -1,0 +1,56 @@
+# Rodada 13 — um save feito pelo checkpoint v0.6 (procedural-world-v0.6) aberto por este jogo: a aventura da Vila do Posto
+# (o jogo salvo de antes, adotado como "Aventureiro") e o mundo "Torre Caida" (semente 2, v2) criados e salvos pelo binário
+# da v0.6 (tools/menu/15-voltar-e-continuar.txt). Abre, a mochila está VAZIA (nada inventado), e o progresso (missão,
+# moedas, descobertas, posição) continua. Dados temporários (tools/review13.sh).
+size 1920 1080
+esperar-menu 20
+record on
+wait 1.5
+click jogar
+esperar-menu 20
+wait 1.0
+click escolher-personagem
+esperar-menu 60
+wait 1.0
+menu-mundo Torre_Caida
+wait 1.0
+click entrar
+esperar-menu 60
+wait 2.0
+mochila
+key I
+wait 2.5
+key ESC
+wait 0.5
+key J
+wait 2.5
+key ESC
+wait 0.5
+key ESC
+wait 1.0
+click menu-principal
+wait 1.0
+click menu-sem-salvar
+esperar-menu 60
+wait 1.0
+click jogar
+esperar-menu 20
+wait 1.0
+click escolher-personagem
+esperar-menu 60
+wait 1.0
+menu-mundo vila
+wait 1.0
+click entrar
+esperar-menu 60
+wait 2.0
+mochila
+key I
+wait 2.5
+key ESC
+wait 0.5
+key J
+wait 2.5
+key ESC
+wait 0.8
+record off

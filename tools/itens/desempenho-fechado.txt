@@ -1,0 +1,11 @@
+# Rodada 13 — o custo da mochila FECHADA: o mesmo roteiro de tools/mundo/desempenho.txt (ida e volta pela trilha correndo,
+# giro de câmera) numa região v2 com a Índira (semente 7). Roda nos dois binários (v0.6 × rodada 13) intercalados.
+size 1920 1080
+click comecar
+wait 1.0
+aquecer 7
+perf on
+seguir-trilha ida correndo
+look 900 0 3.0
+seguir-trilha volta correndo
+perf off desempenho.txt
