@@ -96,8 +96,12 @@ Se ficou abaixo da vila aprovada, diga e registre o que precisa melhorar.
 
 ## Rodada 12.1 — acabamento da v2 (`mundo-procedural.md` §10)
 
-- **A v2 só muda enquanto não for publicada.** Mudou o resultado: refaça `regioes-v2.txt` uma vez, no fim, com o motivo
-  no commit. A v1: 300 sementes iguais ao binário anterior e `regioes-v1.txt` intocado.
+- **A v2 está PUBLICADA e congelada** (tag `procedural-world-v0.6`), como a v1.
+  - **O que é a v3:** mudar o resultado de qualquer semente (peso, rótulo, asset, forma, ponto, vaga, texto de
+    descoberta), com classe nova, rótulos novos, `regioes-v3.txt` e o escritor da referência. Guia:
+    `docs/processo/como-evoluir-o-gerador.md`.
+  - **Nunca refaça** `regioes-v1.txt` nem `regioes-v2.txt`.
+  - **O que a v2 congela:** `mundo-procedural.md` §13.
 - **A impressão digital inclui os textos** da cena (as descobertas com os fatos). Mudar um texto de
   `descobertas_e.json` muda a referência da v2.
 - **Variedade sem trocar tudo:** POIs compatíveis sorteados com rótulo próprio (`"ruina-tipo"`: casa ou torre). Porte da
@@ -122,8 +126,15 @@ Se ficou abaixo da vila aprovada, diga e registre o que precisa melhorar.
   da v1 e NUNCA muda: morador só de ofício entra pelo perfil.
 - **Campo novo na cena:** só para o que a v1 não tem (`y`, `gesto`, `oficio` dos moradores de ofício). Senão a cena da v1
   muda e a referência dela quebra.
-- **Saves:** mudar a região de uma versão não publicada deixa os saves antigos recusados como "versão de testes", sem
-  `.invalido` (`SaveGame.Incompatible`). Confira com CÓPIA dos dados do proprietário, nunca com os originais.
-- **Ao publicar:** `RegionGenerator.published` passa a incluir a versão; a lista do que congela está no §11.
+- **Saves:** o save que não bate com a região é recusado sem `.invalido` (`SaveGame.Incompatible`). Confira com CÓPIA
+  dos dados do proprietário, nunca com os originais.
+  - **Versão não publicada, ou com versões de testes** (`RegionGenerator.hadTestBuilds`, a v2): "de uma versão de
+    testes".
+  - **A v1:** "não corresponde a este mundo".
+- **Ao publicar uma versão nova:**
+  1. ponha a versão em `RegionGenerator.published`;
+  2. faça `hadTestBuilds` dizer se ela teve builds de testes;
+  3. liste o que ela congela (como o §13 da v2);
+  4. atualize `GeneratorVersionTest.asVersoes1E2SaoPublicadasESuportadas`.
 - **Defeito já visto (não repita):** a conferência compara alturas do MUNDO; ponto relativo ao chão precisa somar o relevo
   (o primeiro filtro da Brásia na laje ignorava o patamar).

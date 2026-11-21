@@ -142,3 +142,12 @@ O caminho completo está no guia `docs/processo/como-integrar-conteudo-ao-mundo.
 - **Variação** com `formas_iguais: false` NÃO herda a colisão da base. Hoje nenhuma variação das ruínas novas é publicada.
 - **Candidato no mesmo PR** (o Acapela): fica fora do `build_assets.py` e do mundo até ser aprovado
   (`docs/validation/integracao-pr8.md`).
+
+## Publicação da v2 (tag `procedural-world-v0.6`)
+
+- **Asset que a v2 planta** (citado em `assets/scenes/regiao_v2_e.json`):
+  - **Pode mudar:** cor e desenho DENTRO da mesma caixa e das mesmas formas.
+  - **Só com a v3:** tamanho, pegada, entradas, pontos, spawns, vagas e formas compostas (`contrato-de-assets.md` §13).
+- **Asset novo, ou um liberado que passa a ser distribuído,** entra no gerador só pela v3. Na biblioteca e nas vitrines
+  ele entra sempre: o Acapela está na biblioteca sem distribuição.
+- **Depois de mexer num modelo da v2:** confira `RegionGoldenTest` e as 200 sementes antes de chamar de "só visual".
