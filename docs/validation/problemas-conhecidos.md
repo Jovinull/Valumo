@@ -1,4 +1,4 @@
-# Problemas conhecidos — estado atual (publicação da v2, tag `procedural-world-v0.6`)
+# Problemas conhecidos — estado atual (rodada 13 em avaliação; publicado: `procedural-world-v0.6`)
 
 Fonte única do que falta ou não funciona. Severidade: **grave** (bloqueia aprovação de asset ou
 expansão), **média** (visível na câmera de jogo), **baixa** (só de perto / cosmético). Rastreabilidade
@@ -221,6 +221,18 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | **P97** — a abóbada soterrada (coberta, enterrada no declive) fica com a câmera de sempre: colada em 57% dos quadros lá dentro, trechos de até 2,3 s; o herói fica legível em 95,6% e o pote é visto em 99,5% das vezes em que se olha para ele. O recorte não foi aplicado: no ensaio das abóbadas reais ele zera a câmera colada, mas o topo do morro (alcançável pelo declive de trás) fica dentro da zona e pede um limite de altura que ainda não existe | baixa (o interior é curto: entrar, abrir o pote, sair) | `TowerCameraTest.aAbobadaPorDentroComACameraDeSempre`; vídeo 08; ensaio nas abóbadas reais em [recorte da câmera](../architecture/recorte-da-camera.md) §5 (colada 63–77% → 0%) | aceito no checkpoint `procedural-world-v0.6` (sem reclamação no teste físico); se um dia for pedido: o mesmo recorte, com um limite de altura da zona (o topo do morro), numa rodada curta |
 | **P98** — o Acapela está na biblioteca sem papel no mundo (os documentos não definem ofício) | — (escopo) | `integracao-pr8.md` §Rodada 12.3 | decisão do proprietário (sugestões no relatório da 12.3) |
 | ~~**P99**~~ → **fechado na publicação da v2:** teste físico completo aprovado pelo proprietário, sem pedido de correção | — | relatório da publicação | — |
+
+## Abertos depois da rodada 13 (mochila, itens e recompensas; em avaliação)
+
+| Problema | Severidade | Evidência | Próximo passo |
+|---|---|---|---|
+| **P100** — a vila fixa e as regiões v1 não têm fonte de item: não têm descobertas nem a Índira (ela só mora nas regiões v2 com o conjunto da herbalista, 88 de 200). A mochila abre vazia lá | média (quem joga só a Vila do Posto não vê item) | `recompensas-e-loot.md` | Rodada 14: drop de fungo pela identidade estável do inimigo, que vale em todos os mundos sem mudar a geração |
+| **P101** — a vida do herói não vai para o save: ao continuar, volta cheia; R depois de um desfecho também a enche. A cataplasma vale entre lutas (vencer ferido; sair da coleira no meio de um grupo), não depois de carregar | baixa (comportamento de antes, agora visível) | `jogo.md` §18 | decidir se a vida passa a ser salva (campo opcional) |
+| **P102** — os ícones dos itens são a primeira versão em pixel (14 × 14), no idioma do coração e do escudo do HUD; a arte final é do agente artista | baixa | `round-13/capturas/`; [contrato](../art/contrato-icones-de-itens.md) | decisão do proprietário: encomendar o lote |
+| **P103** — um save com itens aberto num binário anterior (v0.6) perde os itens se for salvo lá (ele ignora campos que não conhece). As fontes coletadas somem junto, então o presente e os achados podem ser recolhidos de novo (perda recuperável, sem duplicação). Voltar de versão não é caminho suportado | baixa | ADR 0031; `round-13/registros/voltar-para-a-v06.txt` (medido) | — (registrado) |
+| **P104** — materiais (ervas, madeira, fragmento) ainda não têm uso: esperam o crafting e a ferraria futuros | — (escopo) | `itens.md` | rodadas futuras |
+| **P106** — anterior à rodada 13 (igual na v0.6): em 720p, o texto longo de uma descoberta corta com "…" no aviso do alto (o sítio da semente 23: "…o curral ficou para…") | baixa | `round-13/capturas/fontes/s23-sitio.png` × a mesma tomada na v0.6 | quebrar o aviso em duas linhas ou encurtar o texto (o texto da v2 está congelado: só a quebra) |
+| **P105** — teste físico da rodada 13 pendente (mochila com mouse e teclado, presente, achados, cura, salvar e continuar) | média até o teste | `round-13/roteiro-de-teste-fisico.md` | teste físico |
 
 ## Limitações aceitas (comportamento conhecido, não é defeito)
 
