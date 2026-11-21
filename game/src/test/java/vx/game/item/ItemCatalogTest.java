@@ -31,9 +31,7 @@ class ItemCatalogTest {
             assertTrue(ids.add(d.id()), "id único: " + d.id());
             assertTrue(d.id().startsWith("item."));
             assertTrue(d.stack() >= 1 && d.stack() <= ItemCatalog.MAX_STACK);
-            assertNotNull(ItemIcons.map(d.icon()), "ícone existe: " + d.icon());
-            for (String row : ItemIcons.map(d.icon())) assertEquals(ItemIcons.SIZE, row.length(), d.icon());
-            assertEquals(ItemIcons.SIZE, ItemIcons.map(d.icon()).length, d.icon());
+            assertTrue(Files.exists(A.resolve("items/e/" + d.model() + ".vox")), "modelo gerado: " + d.model());
             cats.add(d.category());
         }
         assertEquals(Set.of("material", "achado", "consumivel", "curiosidade"), cats, "as quatro categorias da rodada");
@@ -45,11 +43,33 @@ class ItemCatalogTest {
         assertFalse(c.get("item.ervas_trilha").usable(), "material não se usa");
     }
 
+    /**
+     * Rodada 13.1 — os modelos voxel dos itens (tools/itens_e.py): objeto de mão em voxel 1/40 u, até 0,4 u, custo pequeno, e
+     * silhuetas que não se confundem (a caixa de cada par difere em proporção ou em ocupação).
+     */
     @Test
-    void osIconesSoUsamCoresDaPaleta() {
-        for (String n : ItemIcons.names())
-            for (String row : ItemIcons.map(n))
-                for (char ch : row.toCharArray()) assertTrue(ch == '.' || ItemIcons.PALETTE.containsKey(ch), n + ": cor '" + ch + "'");
+    void osModelosDosItensSaoObjetosDeMaoPequenosEDistintos() throws Exception {
+        JsonObject m = JsonParser.parseString(Files.readString(A.resolve(ItemCatalog.MODELS))).getAsJsonObject();
+        ItemCatalog c = ItemCatalog.load(A);
+        Set<String> used = new HashSet<>();
+        for (ItemDefinition d : c.all()) used.add(d.model());
+        assertEquals(used, m.keySet(), "um modelo por item do catálogo, nenhum sobrando");
+        java.util.List<double[]> shapes = new java.util.ArrayList<>();
+        for (String n : m.keySet()) {
+            JsonObject e = m.getAsJsonObject(n);
+            assertEquals(1 / 40.0, e.get("voxelSize").getAsDouble(), 1e-9, n + ": voxel do herói (objeto de mão)");
+            var sz = e.getAsJsonArray("sizeVoxels");
+            int x = sz.get(0).getAsInt(), y = sz.get(1).getAsInt(), z = sz.get(2).getAsInt();
+            assertTrue(Math.max(x, Math.max(y, z)) / 40.0 <= 0.4 + 1e-9, n + ": até 0,4 u");
+            assertEquals(0, e.getAsJsonArray("origin").get(1).getAsInt(), n + ": apoiado no chão");
+            assertTrue(e.get("faces").getAsInt() <= 1500, n + ": custo de objeto pequeno");
+            shapes.add(new double[]{(double) y / x, e.get("voxels").getAsDouble() / (x * y * z)});
+        }
+        for (int i = 0; i < shapes.size(); i++)
+            for (int j = i + 1; j < shapes.size(); j++) {
+                double[] a = shapes.get(i), b = shapes.get(j);
+                assertTrue(Math.abs(a[0] - b[0]) > 0.12 || Math.abs(a[1] - b[1]) > 0.12, "silhuetas parecidas demais: " + i + " × " + j);
+            }
     }
 
     /** Uma alteração no catálogo oficial que tem de ser recusada, com o motivo. */
@@ -72,7 +92,8 @@ class ItemCatalogTest {
         refused("pilha zero", o -> item(o, 0).addProperty("pilha", 0));
         refused("pilha grande", o -> item(o, 0).addProperty("pilha", 500));
         refused("pilha fracionária", o -> item(o, 0).addProperty("pilha", 2.5));
-        refused("ícone desconhecido", o -> item(o, 0).addProperty("icone", "nao_existe"));
+        refused("modelo com nome inválido", o -> item(o, 0).addProperty("modelo", "../fora"));
+        refused("sem modelo", o -> item(o, 0).remove("modelo"));
         refused("efeito desconhecido", o -> item(o, 1).getAsJsonObject("uso").addProperty("efeito", "explodir"));
         refused("efeito fora do limite", o -> item(o, 1).getAsJsonObject("uso").addProperty("vida", 500));
         refused("nome ausente", o -> item(o, 0).remove("nome"));
@@ -103,7 +124,7 @@ class ItemCatalogTest {
         assertNotNull(LootTable.parse(ok, c).find("casa"));
         assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace("item.ervas_trilha", "item.espada_lendaria"), c));
         assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace(",2]]", ",0]]"), c));
-        assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace(",2]]", ",99]]"), c), "acima da pilha");
+        assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace(",2]]", ",100]]"), c), "acima da pilha");
         assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace(",2]]", ",\"duas\"]]"), c));
         assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace("\"versao\":1", "\"versao\":2"), c));
         assertThrows(ItemCatalog.Invalid.class, () -> LootTable.parse(ok.replace("\"aviso\":\"x\"", "\"aviso\":\"\""), c));

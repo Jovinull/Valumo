@@ -19,9 +19,11 @@ import static vx.game.AdventureTest.frames;
 import static vx.game.AdventureTest.press;
 
 /**
- * Rodada 13 — a mochila no jogo de verdade (GameLogic, sem GL): abrir e fechar sem mexer no corpo nem atacar; o presente
- * da Índira e os achados das descobertas, uma vez cada, tudo ou nada, mochila cheia guardando a fonte; a cataplasma na vida
- * do herói; salvar, continuar e salvar de novo; saves antigos sem os campos novos; recusas certas; aventuras isoladas.
+ * Rodada 13 — a mochila no jogo de verdade (GameLogic, sem GL): o presente da Índira e os achados das descobertas, uma vez
+ * cada, tudo ou nada; a cataplasma na vida do herói; salvar, continuar e salvar de novo; saves antigos sem os campos novos;
+ * recusas certas; aventuras isoladas. Rodada 13.1: a mochila SOBRE o jogo correndo (anda, o tempo passa, o fungo ataca, o
+ * salvamento automático acontece), o seletor pelo mouse, clique que usa, abas, setas × WASD, o que a fecha, sem limite de
+ * espaços (o "cheia" só no teto técnico).
  */
 class InventoryFlowTest {
     static final long S_INDIRA = 7, S_FARM = 23;                         // 7: Índira, casa e árvore; 23: sítio e árvore
@@ -47,82 +49,232 @@ class InventoryFlowTest {
         assertEquals(GameLogic.State.EXPLORE, g.state);
     }
 
+    /** Mochila com teto pequeno (o único "cheia" que existe é o teto técnico). */
+    static void limit(GameLogic g, int stacks) { g.items = ItemProgress.of(Inventory.limited(stacks)); }
+
     static void fill(GameLogic g, int slots) {
         var reg = g.itemRules.catalog().get("item.registro_viagem");
         for (int i = 0; i < slots; i++) assertTrue(g.items.inventory.add(reg, 1));
     }
 
-    // ------------------------------------------------------------------ a tela
+    // ------------------------------------------------------------------ a tela (rodada 13.1: sobre o jogo correndo)
+
+    static vx.engine.Window.InputEvent ev(vx.engine.Window.InputEvent.Kind k, float x, int code) {
+        return new vx.engine.Window.InputEvent(k, x, 0, 0, 0, code);
+    }
 
     @Test
-    void aMochilaAbreEFechaSemAndarAtacarNemDeixarTeclaPresa(@TempDir Path d) {
+    void aMochilaAbreSobreOJogoQueContinuaCorrendo(@TempDir Path d) {
         GameLogic g = AdventureTest.started(d);
         frames(g, 5);
         press(g, GLFW_KEY_I);
-        assertEquals(GameLogic.State.INVENTORY, g.state, "I abre");
-        float x0 = g.player.x, z0 = g.player.z;
+        assertTrue(g.bagOpen, "I abre");
+        assertEquals(GameLogic.State.EXPLORE, g.state, "a mochila não é outra tela: o jogo continua em exploração");
+        float x0 = g.player.x, z0 = g.player.z, yaw0 = g.cam.yaw;
+        double t0 = g.playTime;
         Input in = AdventureTest.IN;
-        in.feed(List.of(new vx.engine.Window.InputEvent(vx.engine.Window.InputEvent.Kind.KEY, 0, 0, 0, 0, GLFW_KEY_W)));
-        for (int i = 0; i < 60; i++) { in.feed(List.of()); in.leftPressed = 1; g.update(1 / 60f, in); }
-        assertEquals(x0, g.player.x, 1e-4f, "a lógica para: o corpo não anda");
-        assertEquals(z0, g.player.z, 1e-4f);
-        assertEquals(GameLogic.State.INVENTORY, g.state);
+        in.feed(List.of(ev(vx.engine.Window.InputEvent.Kind.KEY, 0, GLFW_KEY_W), ev(vx.engine.Window.InputEvent.Kind.MOVE, 100, 0)));
+        g.update(1 / 60f, in);
+        for (int i = 0; i < 60; i++) {                                     // W segurado, o mouse andando e o botão esquerdo
+            in.feed(List.of(ev(vx.engine.Window.InputEvent.Kind.MOVE, 100 + 9 * i, 0)));
+            in.leftPressed = 1;
+            g.update(1 / 60f, in);
+        }
+        assertTrue(Math.hypot(g.player.x - x0, g.player.z - z0) > 0.5, "o herói anda com a mochila aberta");
+        assertTrue(g.playTime - t0 > 0.9, "o tempo do jogo corre");
+        assertEquals(yaw0, g.cam.yaw, 1e-4f, "o mouse é da mochila: a câmera não gira");
         assertNull(g.combat.hero.attack, "clique na mochila não vira golpe");
-        in.feed(List.of(new vx.engine.Window.InputEvent(vx.engine.Window.InputEvent.Kind.KEY_UP, 0, 0, 0, 0, GLFW_KEY_W)));
+        in.feed(List.of(ev(vx.engine.Window.InputEvent.Kind.KEY_UP, 0, GLFW_KEY_W)));
         in.leftPressed = 0;
+        g.update(1 / 60f, in);
         press(g, GLFW_KEY_ESCAPE);
-        assertEquals(GameLogic.State.EXPLORE, g.state, "Esc fecha (não abre a pausa)");
+        assertFalse(g.bagOpen, "Esc fecha a mochila");
+        assertEquals(GameLogic.State.EXPLORE, g.state, "e não abre a pausa");
+        float x1 = g.player.x;
         frames(g, 30);
         assertNull(g.combat.hero.attack, "fechar não dispara golpe");
-        assertEquals(x0, g.player.x, 1e-3f, "W solto: nada preso");
+        assertEquals(x1, g.player.x, 0.05f, "W solto: nada preso");
         press(g, GLFW_KEY_I);
-        assertEquals(GameLogic.State.INVENTORY, g.state);
+        assertTrue(g.bagOpen);
         press(g, GLFW_KEY_I);
-        assertEquals(GameLogic.State.EXPLORE, g.state, "I fecha também");
-        // a seleção anda pela grade e volta pelo outro lado
+        assertFalse(g.bagOpen, "I fecha também");
+        press(g, GLFW_KEY_ESCAPE);
+        assertEquals(GameLogic.State.PAUSE, g.state, "com a mochila fechada, Esc pausa como sempre");
+    }
+
+    @Test
+    void comAMochilaAbertaODefenderEDoMouseEOPuloEDoTeclado(@TempDir Path d) {
+        GameLogic g = AdventureTest.started(d);
+        frames(g, 5);
         g.action("inventario");
-        g.invSelected = 0;
+        Input in = AdventureTest.IN;
+        in.feed(List.of(new vx.engine.Window.InputEvent(vx.engine.Window.InputEvent.Kind.DOWN, 0, 0, 1, 0, 0)));
+        for (int i = 0; i < 40; i++) { g.update(1 / 60f, in); in.feed(List.of()); in.rightDown = true; }
+        assertFalse(g.combat.hero.guardUp(), "o botão direito é da mochila: o escudo não sobe");
+        in.rightDown = false;
+        float y0 = g.player.y;
+        press(g, GLFW_KEY_SPACE);
+        boolean up = false;
+        for (int i = 0; i < 20; i++) { frames(g, 1); up |= g.player.y > y0 + 0.05f; }
+        assertTrue(up, "Espaço pula com a mochila aberta (não usa item)");
+        assertTrue(g.bagOpen);
+    }
+
+    @Test
+    void asSetasAndamPelaGradeOWasdAndaComOHeroiEEnterUsa(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        talkToIndira(g);
+        fill(g, 9);                                                        // 2 pilhas do presente + 9 cadernos = 11
+        press(g, GLFW_KEY_I);
+        assertTrue(g.bagOpen);
+        assertEquals(0, g.invSelected, "abre na primeira pilha");
         press(g, GLFW_KEY_RIGHT);
         assertEquals(1, g.invSelected);
         press(g, GLFW_KEY_DOWN);
         assertEquals(1 + GameLogic.INV_COLS, g.invSelected);
-        press(g, GLFW_KEY_LEFT);
+        press(g, GLFW_KEY_DOWN);
+        assertEquals(10, g.invSelected, "abaixo do fim: a última pilha (sem dar a volta)");
         press(g, GLFW_KEY_UP);
+        press(g, GLFW_KEY_UP);
+        press(g, GLFW_KEY_LEFT);
         assertEquals(0, g.invSelected);
         press(g, GLFW_KEY_LEFT);
-        assertEquals(Inventory.SLOTS - 1, g.invSelected);
-        g.action("espaco:5");
-        assertEquals(5, g.invSelected, "clique num espaço seleciona");
-        press(g, GLFW_KEY_E);
-        assertEquals(GameLogic.State.INVENTORY, g.state, "usar um espaço vazio não fecha nada nem quebra");
-    }
-
-    @Test
-    void oTecladoAndaComWasdEUsaComEnterOuEspaco(@TempDir Path d) {
-        GameLogic g = proc(S_INDIRA, d);
-        talkToIndira(g);
+        assertEquals(0, g.invSelected, "no começo, fica");
         float x0 = g.player.x, z0 = g.player.z;
-        press(g, GLFW_KEY_I);
-        assertEquals(GameLogic.State.INVENTORY, g.state);
-        g.invSelected = 0;
-        press(g, GLFW_KEY_D);
-        assertEquals(1, g.invSelected);
-        press(g, GLFW_KEY_S);
-        assertEquals(1 + GameLogic.INV_COLS, g.invSelected);
-        press(g, GLFW_KEY_A);
-        assertEquals(GameLogic.INV_COLS, g.invSelected);
-        press(g, GLFW_KEY_W);
-        assertEquals(0, g.invSelected);
-        assertEquals(GameLogic.State.INVENTORY, g.state, "WASD na mochila não fecha nada");
-        assertEquals(x0, g.player.x, 1e-4f, "nem anda");
-        assertEquals(z0, g.player.z, 1e-4f, "nem anda");
-        press(g, GLFW_KEY_D);                                               // a cataplasma (espaço 1)
+        for (int k : new int[]{GLFW_KEY_RIGHT, GLFW_KEY_LEFT}) press(g, k);
+        assertEquals(x0, g.player.x, 1e-3f, "as setas não andam com o herói");
+        assertEquals(z0, g.player.z, 1e-3f);
+        Input in = AdventureTest.IN;
+        in.feed(List.of(ev(vx.engine.Window.InputEvent.Kind.KEY, 0, GLFW_KEY_D)));
+        for (int i = 0; i < 30; i++) { g.update(1 / 60f, in); in.feed(List.of()); }
+        in.feed(List.of(ev(vx.engine.Window.InputEvent.Kind.KEY_UP, 0, GLFW_KEY_D)));
+        g.update(1 / 60f, in);
+        assertTrue(Math.hypot(g.player.x - x0, g.player.z - z0) > 0.2, "WASD anda com o herói");
+        assertEquals(0, g.invSelected, "e não mexe na seleção");
+        press(g, GLFW_KEY_RIGHT);                                           // a cataplasma
         g.combat.hero.hp = 2;
         press(g, GLFW_KEY_ENTER);
         assertEquals(4, g.combat.hero.hp, "Enter usa");
-        press(g, GLFW_KEY_SPACE);
-        assertEquals(6, g.combat.hero.hp, "Espaço usa");
+        assertTrue(g.bagOpen, "e a mochila continua aberta");
+    }
+
+    @Test
+    void oSeletorSegueOMouseEClicarUsaOQueSeUsa(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        talkToIndira(g);
+        g.action("inventario");
+        g.action("pairar:1");
+        assertEquals(1, g.invSelected, "passar o mouse seleciona");
+        g.action("pairar:0");
+        assertEquals(0, g.invSelected);
+        g.action("pairar:57");
+        assertEquals(0, g.invSelected, "pilha que não existe: nada");
+        g.combat.hero.hp = 2;
+        g.action("clique:0");
+        assertEquals(2, g.items.inventory.count("item.ervas_trilha"), "clicar no material só seleciona");
+        assertEquals(2, g.combat.hero.hp);
+        g.action("clique:1");
+        assertEquals(4, g.combat.hero.hp, "clicar na cataplasma aplica");
+        assertEquals(1, g.items.inventory.count("item.cataplasma"));
+        g.action("usar:1");
+        assertEquals(6, g.combat.hero.hp, "o clique direito também");
         assertEquals(0, g.items.inventory.count("item.cataplasma"));
+        assertEquals(0, g.invSelected, "a pilha que acabou sai; a seleção fica na vizinha");
+        g.action("usar:0");
+        assertEquals(2, g.items.inventory.count("item.ervas_trilha"), "material não se usa");
+        g.action("fechar-inventario");
+        g.combat.hero.hp = 2;
+        g.action("pairar:0");
+        g.action("clique:0");
+        g.action("usar:0");
+        assertEquals(2, g.combat.hero.hp, "mochila fechada: nada");
+    }
+
+    @Test
+    void asAbasFiltramPorCategoria(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        talkToIndira(g);
+        g.useDiscovery(DiscoveryTest.approach(g, "desc.r0.ruina.0"));     // + o caderno
+        g.action("inventario");
+        assertEquals(List.of("", "material", "achado", "consumivel", "curiosidade"), g.bagTabs(), "Tudo e as categorias do catálogo");
+        assertEquals(List.of(0, 1, 2), g.bagView());
+        g.action("aba:consumivel");
+        assertEquals(List.of(1), g.bagView());
+        assertEquals(1, g.invSelected, "a seleção vai para a aba");
+        g.action("pairar:0");
+        assertEquals(1, g.invSelected, "pilha de outra aba: não seleciona");
+        g.action("aba:achado");
+        assertTrue(g.bagView().isEmpty());
+        assertEquals(-1, g.invSelected, "aba vazia: nada selecionado");
+        g.action("usar-item");
+        assertEquals(1, g.items.inventory.count("item.registro_viagem"), "e usar não faz nada");
+        g.action("aba:lendario");
+        assertEquals("achado", g.bagTab, "aba que não existe: nada");
+        g.action("aba:");
+        assertEquals(3, g.bagView().size());
+    }
+
+    @Test
+    void conversaDiarioPausaEDerrotaFechamAMochila(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        GameLogic.Npc n = AdventureTest.npc(g, "indira");
+        float a = (float) Math.toRadians(n.def.yawDeg());
+        float x = n.def.x() + (float) Math.sin(a) * 1.1f, z = n.def.z() + (float) Math.cos(a) * 1.1f;
+        g.player.place(x, z, (float) Math.atan2(n.def.x() - x, n.def.z() - z), g.collision);
+        g.player.snapshot();
+        frames(g, 1);
+        press(g, GLFW_KEY_I);
+        assertTrue(g.bagOpen);
+        press(g, GLFW_KEY_E);
+        assertEquals(GameLogic.State.DIALOG, g.state, "E conversa com a mochila aberta");
+        assertFalse(g.bagOpen, "e a conversa fecha a mochila");
+        for (int i = 0; i < 40 && g.state == GameLogic.State.DIALOG; i++) g.action("continuar-fala");
+        g.action("inventario");
+        press(g, GLFW_KEY_J);
+        assertEquals(GameLogic.State.JOURNAL, g.state);
+        assertFalse(g.bagOpen, "o diário fecha a mochila");
+        g.action("fechar-diario");
+        g.action("inventario");
+        g.action("pausar");
+        assertEquals(GameLogic.State.PAUSE, g.state);
+        assertFalse(g.bagOpen, "a pausa fecha a mochila");
+        g.action("inventario-pausa");
+        assertEquals(GameLogic.State.EXPLORE, g.state, "o Inventário da pausa volta ao jogo correndo");
+        assertTrue(g.bagOpen, "com a mochila aberta");
+        g.combat.outcome = Combat.Outcome.DEFEAT;
+        frames(g, 2);
+        assertFalse(g.bagOpen, "a derrota fecha a mochila");
+        g.action("inventario");
+        assertFalse(g.bagOpen, "e ela não abre caído");
+    }
+
+    @Test
+    void naLutaComAMochilaAbertaOFungoContinuaENaoSeAplica(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        talkToIndira(g);
+        Enemy e = g.combat.enemies.getFirst();
+        g.player.place(e.homeX() + 0.8f, e.homeZ(), 0f, g.collision);
+        for (int i = 0; i < 240 && !g.combat.engaged(); i++) frames(g, 1);
+        assertTrue(g.combat.engaged(), "a luta começou");
+        g.action("inventario");
+        int hp = g.combat.hero.hp;
+        for (int i = 0; i < 600 && g.combat.hero.hp == hp; i++) frames(g, 1);
+        assertTrue(g.combat.hero.hp < hp, "o fungo continua atacando com a mochila aberta (o jogo não para)");
+        g.combat.hero.hp = 2;
+        g.action("clique:1");
+        assertEquals(2, g.combat.hero.hp, "engajado: não cura");
+        assertEquals(2, g.items.inventory.count("item.cataplasma"), "e não gasta");
+    }
+
+    @Test
+    void oSalvamentoAutomaticoAconteceComAMochilaAberta(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        g.action("inventario");
+        talkToIndira(g);                                                    // o presente marca o salvamento automático
+        g.action("inventario");
+        frames(g, 5);
+        assertFalse(g.unsaved(), "o primeiro passo seguro salva, mesmo com a mochila aberta");
+        assertTrue(Files.exists(d.resolve(SaveGame.FILE)));
     }
 
     @Test
@@ -151,6 +303,7 @@ class InventoryFlowTest {
         g.action("pausar");
         g.action("inventario");
         assertEquals(GameLogic.State.PAUSE, g.state, "na pausa, não");
+        assertFalse(g.bagOpen);
     }
 
     // ------------------------------------------------------------------ as fontes
@@ -169,9 +322,19 @@ class InventoryFlowTest {
     }
 
     @Test
-    void mochilaCheiaNaoEntregaNadaEAIndiraEsperaVocêVoltar(@TempDir Path d) {
+    void semLimiteOPresenteEntraMesmoComMilItens(@TempDir Path d) {
         GameLogic g = proc(S_INDIRA, d);
-        fill(g, Inventory.SLOTS);
+        fill(g, 1000);
+        talkToIndira(g);
+        assertEquals(2, g.items.inventory.count("item.cataplasma"), "a mochila não enche");
+        assertEquals(1002, g.items.inventory.used());
+    }
+
+    @Test
+    void noTetoTecnicoNaoEntregaNadaEAIndiraEsperaVocêVoltar(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        limit(g, 24);
+        fill(g, 24);
         talkToIndira(g);
         assertEquals(0, g.items.inventory.count("item.cataplasma"), "nada pela metade");
         assertFalse(g.items.collected(LootTable.giftSource("indira")), "a fonte continua disponível");
@@ -197,7 +360,8 @@ class InventoryFlowTest {
         assertEquals(1, g.items.inventory.count("item.registro_viagem"), "E de novo não duplica");
         // árvore com a mochila cheia: a descoberta acontece, o achado fica
         GameLogic h = proc(S_INDIRA, d.resolve("b"));
-        fill(h, Inventory.SLOTS);
+        limit(h, 24);
+        fill(h, 24);
         SceneDef.Discovery tree = DiscoveryTest.of(h, "desc.r0.arvore.0");
         h.player.place(tree.x() + 0.9f, tree.z(), (float) Math.atan2(-0.9f, 0f), h.collision);
         assertTrue(h.useDiscovery(tree), "a descoberta não depende da mochila");
