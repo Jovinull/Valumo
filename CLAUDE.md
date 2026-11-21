@@ -21,14 +21,15 @@ quatro ruínas, [descobertas por tipo de lugar](docs/architecture/descobertas.md
 [recorte contextual](docs/architecture/recorte-da-camera.md) e o Acapela na biblioteca, sem papel nas vilas (relatórios
 [12](docs/validation/relatorio-rodada-12.md), [12.1](docs/validation/relatorio-rodada-12-1.md),
 [12.2](docs/validation/relatorio-rodada-12-2.md), [12.3](docs/validation/relatorio-rodada-12-3.md)). Limitações de câmera
-aceitas no checkpoint: P95–P97. **Rodada 13 — Inventário, itens e recompensas** (ramo LOCAL `feature/inventory-and-loot`,
-à espera da revisão e do teste físico; sem push, sem PR, sem tag): 5 itens por dados, o presente da Índira e os achados
-das descobertas como camada sobre os mundos congelados, a cataplasma, campos opcionais no save
-([relatório](docs/validation/relatorio-rodada-13.md), [ADR 0031](docs/decisions/0031-itens-e-recompensas.md)). O
-proprietário aprovou as fontes, a cura e o save e reprovou a mochila; a **Rodada 13.1 — mochila viva** (mesmo ramo) a
-refez: painel translúcido SOBRE o jogo correndo, sem limite de espaços, seletor pelo mouse, itens pelos modelos voxel
-([relatório](docs/validation/relatorio-rodada-13-1.md), [ADR 0032](docs/decisions/0032-mochila-viva.md)). Candidato
-a checkpoint: `inventory-foundation-v0.7` (não criado). Os checkpoints anteriores continuam: `worlds-and-menus-v0.5`,
+aceitas no checkpoint: P95–P97. **Rodadas 13 e 13.1 — fundação do inventário** APROVADAS pelo proprietário e
+**publicadas** na tag `inventory-foundation-v0.7` ([relatório da publicação](docs/validation/relatorio-publicacao-inventario-v07.md)):
+5 itens por dados em 4 categorias, o presente da Índira e os achados das descobertas como camada sobre os mundos
+congelados, a cataplasma, campos opcionais no save ([relatório 13](docs/validation/relatorio-rodada-13.md),
+[ADR 0031](docs/decisions/0031-itens-e-recompensas.md)); a mochila viva da 13.1: painel translúcido SOBRE o jogo
+correndo, sem limite de espaços, seletor pelo mouse, itens pelos modelos voxel
+([relatório 13.1](docs/validation/relatorio-rodada-13-1.md), [ADR 0032](docs/decisions/0032-mochila-viva.md)).
+Limitações aceitas no checkpoint: P100–P104, P106, P108–P110. A Rodada 14 só começa com o planejamento do proprietário.
+Os checkpoints anteriores continuam: `procedural-world-v0.6`, `worlds-and-menus-v0.5`,
 `adventure-foundation-v0.4` e `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 

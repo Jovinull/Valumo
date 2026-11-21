@@ -104,7 +104,8 @@ A **Rodada 12.3** fechou a v2:
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12-3.md).
 
-A **Rodada 13 — Inventário, itens e recompensas** (ramo `feature/inventory-and-loot`, em avaliação, não publicada) dá ao
+As **Rodadas 13 e 13.1 — fundação do inventário** (aprovadas e publicadas na tag `inventory-foundation-v0.7`,
+[relatório da publicação](docs/validation/relatorio-publicacao-inventario-v07.md)) dão ao
 Valumo a primeira progressão de RPG:
 
 - **A mochila** (refeita na 13.1, depois do teste do proprietário):
