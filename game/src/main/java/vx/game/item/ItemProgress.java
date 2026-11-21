@@ -31,6 +31,9 @@ public final class ItemProgress {
 
     private ItemProgress(Inventory inventory) { this.inventory = inventory; }
 
+    /** Progresso vazio sobre uma mochila dada (rodada 13.1: os testes do teto técnico usam {@link Inventory#limited}). */
+    public static ItemProgress of(Inventory inventory) { return new ItemProgress(inventory); }
+
     public enum Outcome { GRANTED, ALREADY, FULL }
 
     /** Dado de item inválido no save (estrutura, número, fonte repetida): o motivo vai na mensagem. */

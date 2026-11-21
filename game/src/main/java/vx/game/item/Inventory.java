@@ -4,21 +4,27 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
- * Rodada 13 — a mochila: {@link #SLOTS} espaços, cada um vazio ou com uma {@link ItemStack}.
+ * Rodada 13 — a mochila; rodada 13.1 — SEM limite de espaços: uma lista de pilhas ({@link ItemStack}) na ordem de chegada.
  * <ul>
  *   <li><b>Transacional:</b> {@link #add(List)} entrega TUDO o que foi pedido ou NADA (confere antes numa cópia); nunca
  *   metade marcada como coletada.</li>
- *   <li><b>Determinística:</b> primeiro completa as pilhas do mesmo item, na ordem dos espaços; o resto vai para os
- *   espaços vazios, em ordem, cada um até a pilha máxima. A mesma sequência de coletas dá sempre a mesma mochila.</li>
+ *   <li><b>Determinística:</b> primeiro completa as pilhas do mesmo item, na ordem; o resto vira pilhas novas no fim, cada
+ *   uma até a pilha máxima do item. A mesma sequência de coletas dá sempre a mesma mochila.</li>
+ *   <li><b>Compacta:</b> a pilha que esvazia sai da lista (não fica buraco).</li>
+ *   <li><b>Teto técnico</b> ({@link #MAX_STACKS}): só para o leitor de save nunca alocar sem limite; o jogo normal não chega
+ *   perto. Acima dele a entrega é recusada como antes ("mochila cheia").</li>
  *   <li><b>Sem número inválido:</b> quantidade ≤ 0, maior que o pedido possível ou acima da pilha é recusada.</li>
  * </ul>
  */
 public final class Inventory {
-    public static final int SLOTS = 24, MAX_GRANT = 9999;
-    private final ItemStack[] slots = new ItemStack[SLOTS];
+    public static final int MAX_STACKS = 4096, MAX_GRANT = 9999;
+    private final int limit;
+    private final ArrayList<ItemStack> stacks = new ArrayList<>();
 
     /** Um pedido de entrega: o item e quantas unidades. */
     public record Grant(ItemDefinition item, int count) {
@@ -28,59 +34,70 @@ public final class Inventory {
         }
     }
 
-    public int size() { return SLOTS; }
+    public Inventory() { this(MAX_STACKS); }
 
-    public ItemStack slot(int i) { return i >= 0 && i < SLOTS ? slots[i] : null; }
+    private Inventory(int limit) { this.limit = limit; }
 
-    public int used() {
-        int n = 0;
-        for (ItemStack s : slots) if (s != null) n++;
-        return n;
+    /** Mochila com um teto pequeno (testes do caminho "mochila cheia", que no jogo só existe no teto técnico). */
+    public static Inventory limited(int stacks) {
+        if (stacks < 1 || stacks > MAX_STACKS) throw new IllegalArgumentException("teto inválido: " + stacks);
+        return new Inventory(stacks);
     }
 
-    public boolean isEmpty() { return used() == 0; }
+    /** Quantas pilhas há (a mochila não tem espaços fixos). */
+    public int size() { return stacks.size(); }
 
-    /** Quantas unidades do item {@code id} há em todos os espaços. */
+    /** O teto técnico desta mochila. */
+    public int limit() { return limit; }
+
+    public ItemStack slot(int i) { return i >= 0 && i < stacks.size() ? stacks.get(i) : null; }
+
+    public int used() { return stacks.size(); }
+
+    public boolean isEmpty() { return stacks.isEmpty(); }
+
+    /** Quantas unidades do item {@code id} há em todas as pilhas. */
     public int count(String id) {
         int n = 0;
-        for (ItemStack s : slots) if (s != null && s.item().id().equals(id)) n += s.count();
+        for (ItemStack s : stacks) if (s.item().id().equals(id)) n += s.count();
         return n;
     }
 
     /** Tudo cabe? Não muda nada. */
-    public boolean fits(List<Grant> grants) { return place(slots.clone(), grants); }
+    public boolean fits(List<Grant> grants) { return place(new ArrayList<>(stacks), grants, limit); }
 
     /** Entrega tudo ou nada. Devolve se entregou. */
     public boolean add(List<Grant> grants) {
-        ItemStack[] copy = slots.clone();
-        if (!place(copy, grants)) return false;
-        System.arraycopy(copy, 0, slots, 0, SLOTS);
+        ArrayList<ItemStack> copy = new ArrayList<>(stacks);
+        if (!place(copy, grants, limit)) return false;
+        stacks.clear();
+        stacks.addAll(copy);
         return true;
     }
 
     public boolean add(ItemDefinition item, int count) { return add(List.of(new Grant(item, count))); }
 
-    /** Tira {@code n} unidades do espaço {@code i} (o espaço esvazia quando chega a 0). Devolve se tirou. */
+    /** Tira {@code n} unidades da pilha {@code i} (a pilha sai da lista quando chega a 0). Devolve se tirou. */
     public boolean remove(int i, int n) {
         ItemStack s = slot(i);
         if (s == null || n < 1 || n > s.count()) return false;
-        slots[i] = s.count() == n ? null : new ItemStack(s.item(), s.count() - n);
+        if (s.count() == n) stacks.remove(i);
+        else stacks.set(i, new ItemStack(s.item(), s.count() - n));
         return true;
     }
 
-    private static boolean place(ItemStack[] a, List<Grant> grants) {
+    private static boolean place(List<ItemStack> a, List<Grant> grants, int limit) {
         for (Grant g : grants) {
             int left = g.count();
-            for (int i = 0; i < SLOTS && left > 0; i++) {                   // completa as pilhas do mesmo item
-                ItemStack s = a[i];
-                if (s == null || !s.item().id().equals(g.item().id())) continue;
+            for (int i = 0; i < a.size() && left > 0; i++) {              // completa as pilhas do mesmo item
+                ItemStack s = a.get(i);
+                if (!s.item().id().equals(g.item().id())) continue;
                 int put = Math.min(left, g.item().stack() - s.count());
-                if (put > 0) { a[i] = new ItemStack(s.item(), s.count() + put); left -= put; }
+                if (put > 0) { a.set(i, new ItemStack(s.item(), s.count() + put)); left -= put; }
             }
-            for (int i = 0; i < SLOTS && left > 0; i++) {                   // o resto, nos espaços vazios
-                if (a[i] != null) continue;
+            while (left > 0 && a.size() < limit) {                        // o resto, em pilhas novas no fim
                 int put = Math.min(left, g.item().stack());
-                a[i] = new ItemStack(g.item(), put);
+                a.add(new ItemStack(g.item(), put));
                 left -= put;
             }
             if (left > 0) return false;
@@ -90,39 +107,41 @@ public final class Inventory {
 
     // ------------------------------------------------------------------ save
 
-    /** Só os espaços ocupados: {@code [{"espaco": 0, "item": "item.ervas_trilha", "qtd": 3}, …]}. */
+    /** Pilhas em ordem: {@code [{"espaco": 0, "item": "item.ervas_trilha", "qtd": 3}, …]} ("espaco" = a posição na lista). */
     public JsonArray toJson() {
         JsonArray a = new JsonArray();
-        for (int i = 0; i < SLOTS; i++) {
-            if (slots[i] == null) continue;
+        for (int i = 0; i < stacks.size(); i++) {
             JsonObject o = new JsonObject();
             o.addProperty("espaco", i);
-            o.addProperty("item", slots[i].item().id());
-            o.addProperty("qtd", slots[i].count());
+            o.addProperty("item", stacks.get(i).item().id());
+            o.addProperty("qtd", stacks.get(i).count());
             a.add(o);
         }
         return a;
     }
 
     /**
-     * Lê o que {@link #toJson} escreveu. Estrutura ou número inválido = {@link ItemProgress.Invalid}; id que o catálogo não
-     * tem = {@link ItemProgress.UnknownItem} (o arquivo está íntegro: é de um jogo com mais itens).
+     * Lê o que {@link #toJson} escreveu — e o da rodada 13 (24 espaços, com buracos): as pilhas entram na ordem de "espaco" e
+     * a lista se compacta. Estrutura ou número inválido = {@link ItemProgress.Invalid}; id que o catálogo não tem =
+     * {@link ItemProgress.UnknownItem} (o arquivo está íntegro: é de um jogo com mais itens).
      */
     public static Inventory fromJson(JsonArray a, ItemCatalog cat) {
-        if (a.size() > SLOTS) throw new ItemProgress.Invalid("espaços demais na mochila");
-        Inventory inv = new Inventory();
+        if (a.size() > MAX_STACKS) throw new ItemProgress.Invalid("pilhas demais na mochila");
+        TreeMap<Integer, ItemStack> byPos = new TreeMap<>();
         for (JsonElement e : a) {
             if (!e.isJsonObject()) throw new ItemProgress.Invalid("espaço da mochila que não é objeto");
             JsonObject o = e.getAsJsonObject();
-            int i = ItemProgress.integer(o, "espaco", 0, SLOTS - 1);
+            int i = ItemProgress.integer(o, "espaco", 0, MAX_STACKS - 1);
             String id = ItemProgress.string(o, "item");
             if (!ItemCatalog.ID.matcher(id).matches()) throw new ItemProgress.Invalid("id de item inválido: " + id);
             ItemDefinition d = cat.get(id);
             if (d == null) throw new ItemProgress.UnknownItem("item desconhecido: " + id);
             int n = ItemProgress.integer(o, "qtd", 1, d.stack());
-            if (inv.slots[i] != null) throw new ItemProgress.Invalid("espaço repetido: " + i);
-            inv.slots[i] = new ItemStack(d, n);
+            if (byPos.containsKey(i)) throw new ItemProgress.Invalid("espaço repetido: " + i);
+            byPos.put(i, new ItemStack(d, n));
         }
+        Inventory inv = new Inventory();
+        inv.stacks.addAll(byPos.values());
         return inv;
     }
 }
