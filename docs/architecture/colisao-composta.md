@@ -27,6 +27,9 @@ Um prop com perfil `"tipo": "composta"` em `assets/scenes/colisao_e.json` tem v�
 - **Altura:** `altura [a, b]` é a faixa vertical acima da origem do modelo. Na 12.1 ela é **exata**: o topo de uma
   forma é o topo dos voxels que ela cobre.
 - **Bandeiras:** `corpo` (padrão sim), `camera` (padrão = a do perfil), `pisavel` (padrão não).
+- **Recorte** (rodada 12.3, só a torre caída): `"recorte": {"centro_u": [x, z], "raio_u": r}` no perfil. Com o herói
+  dentro dessa zona, as consultas da CÂMERA ignoram as formas desta construção e o desenho a recorta entre a câmera e o
+  herói; o corpo não muda ([recorte da câmera](recorte-da-camera.md)).
 - **Um contrato só:** o mesmo serve ao movimento, à câmera, à conferência de alcance, aos pontos de interação, à
   colocação do herói e aos testes.
 

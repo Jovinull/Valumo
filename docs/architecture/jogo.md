@@ -173,6 +173,9 @@ Para acrescentar um prop novo à colisão, dê a ele uma linha em `colisao_e.jso
 - **Enquadramento de conversa:** alvo entre os dois, de lado e um pouco atrás do herói, do lado em que a câmera
   já estava; transição suave.
 - **Na luta (rodada 09, refeita na 09.1):** ajuste de combate por cima desta câmera. Ver [combate.md §9](combate.md).
+- **Dentro da torre caída (rodada 12.3, P85):** a câmera ignora só as formas daquela torre e o desenho a recorta num
+  cone entre a câmera e o herói (`CameraCutaway`). Fora da zona da torre, esta câmera é idêntica passo a passo. Ver
+  [recorte da câmera](recorte-da-camera.md).
 
 ## 6. Cena jogável
 
