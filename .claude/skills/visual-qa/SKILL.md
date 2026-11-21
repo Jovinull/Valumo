@@ -313,3 +313,20 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
   - moedas do pote que viram mancha;
   - pote dentro da lareira ou dos barris.
 - **Dados do proprietário:** os mundos e personagens dele só em CÓPIA (hashes antes e depois no pacote).
+
+## Rodada 13 — mochila (`tools/review13.sh`)
+
+- **Vídeos:**
+  1. do começo ao continuar: menu → mundo da semente 7 → presente → achados → luta real → cura → salvar → menu →
+     continuar → nada duplica;
+  2. um save da v0.6 aberto por este jogo: mochila vazia, progresso preservado.
+- **Capturas:**
+  - as quatro resoluções: item, cura disponível e bloqueada, peça única, vazio, cheia com pilhas de 20;
+  - diário e pausa juntos;
+  - pausa v0.6 × 13 em 720p e 1080p.
+- **O que olhar:**
+  - texto cortado ou "?" no lugar de um glifo;
+  - escala dos botões da pausa;
+  - ícone que vira mancha a 2×;
+  - cartão do item sobre o aviso do canto;
+  - cursor e clique que atacam.

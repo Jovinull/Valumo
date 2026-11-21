@@ -202,3 +202,15 @@ foi reproduzido fica como "não confirmado", com a condição que faltou. Atuali
   - O escritor recusa a v1 e recusa sobrescrever.
 - **Custo da v2:** formas de colisão e tempo da conferência de alcance por semente (classe de medida no relatório da
   rodada 12).
+
+## Rodada 13 — sistema novo sobre mundos congelados
+
+- **Antes de entregar:** confira que nada congelado mudou desde a tag:
+  `git diff --quiet procedural-world-v0.6 -- game/src/test/resources/regioes-v*.txt game/src/main/java/vx/game/world assets/scenes/regiao_v2_e.json assets/scenes/descobertas_e.json assets/scenes/habitantes_e.json assets/scenes/colisao_e.json`.
+- **Sementes:** v1 (300) e v2 (200) iguais às da publicação.
+- **Save com campo novo opcional:**
+  1. vazio não escreve nada (o save sai byte a byte o de antes);
+  2. o leitor separa inválido (`.invalido`) de "jogo mais novo" (sem `.invalido`);
+  3. a matriz `saves_antigos.sh` roda com o binário anterior.
+- **Desempenho com a interface fechada:** compare o binário anterior intercalado (`tools/review13.sh desempenho`); a
+  interface aberta é medida à parte.

@@ -83,3 +83,12 @@ Mais: o mesmo resultado a 30 e a 144 quadros/s (entradas no começo de quadros d
 `QuestSystem.UnknownReference` (missão, objeto, descoberta ou inimigo que a cena não tem) separa "a CENA é outra" de "o
 dado está quebrado". Numa região gerada vira `SaveGame.Incompatible` (sem `.invalido`); na vila fixa continua inválido.
 Missão nova nunca reaproveita o id de outra.
+
+## Rodada 13 — recompensas de item fora da missão
+
+- **O presente de um morador** (`recompensas_e.json → presentes`) sai ao terminar a conversa e NÃO usa as falas nem os
+  contextos da missão: as falas dos moradores da v2 estão congeladas.
+- **Não é missão:** nada de missão inteira para dar duas ervas.
+- **Moedas da missão:** continuam as publicadas (Kelyra 30); itens não substituem nem duplicam a recompensa.
+- **Fonte de item ligada a missão** (drop de inimigo da trilha): use a identidade estável do spawn e a regra de
+  `Combat.retired`. Nunca entregue de novo ao recomeçar.

@@ -287,3 +287,22 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
   quadro e contando o que o shader recorta; câmera colada sozinha não diz se o jogador vê.
 - **Moradores:** a vaga do morador se escolhe por captura, não só por raio. A placa do ofício tapava a Índira e a conta
   por `rayClear` dizia 5/5 (a caixa de colisão da placa não é a tabuleta). Roteiro `tools/mundo/18-indira.txt`.
+
+## Rodada 13 — mochila, itens e recompensas
+
+- **Estado `INVENTORY`:** como o diário (a lógica para).
+  - **Entrada:** abre de EXPLORE (I) ou da pausa (botão).
+  - **Sem efeito colateral:** o clique seleciona e nunca ataca; ao fechar, nada fica preso.
+  - **Teste:** `InventoryFlowTest`.
+- **Itens:** são dados (`itens_e.json`); efeitos, código (`ItemEffects`).
+- **Fontes:** só reagem a eventos estáveis (`GameLogic.endDialog` → presente; `useDiscovery` → achado do tipo do lugar) e
+  NUNCA mudam a geração.
+- **Entregar:** `ItemProgress.grant`, tudo ou nada, uma vez por fonte; mochila cheia = a fonte espera.
+- **Usar:** `GameLogic.useSelected` (ação da lógica).
+  - **Cura:** só fora da luta engajada, com o herói ferido.
+  - **Sem efeito:** o item não é gasto, e a tela mostra o motivo antes (`ItemEffects.blocker`).
+- **Progresso a salvar:** mochila e fontes entram no retrato do `unsaved`; receber item marca o salvamento automático.
+- **Roteiro:**
+  - `mochila`: imprime a mochila, as fontes e a vida;
+  - `mochila-dar ID N`: montagem técnica, só para capturas de borda;
+  - `lutar N`: luta de verdade, com o herói se ferindo.

@@ -121,3 +121,14 @@ gerador, nome de arquivo). Espera = indicador sem texto (`MenuView.waiting`).
 | Pico de 80 ms ao trocar cor | 4 miniaturas renderizadas no mesmo quadro | uma por quadro |
 | Câmera atravessando o cenário | órbita da câmera | girar o personagem; câmera no ângulo composto da cena |
 | Teste de rolagem que nunca rolava | `if (conteúdo > painel)` em caso que cabia | exigir a pré-condição com assert |
+
+## Rodada 13 — a mochila (`Game.drawInventory`)
+
+- **Mesma família do diário e da pausa:** `kit.panel` de madeira e pergaminho, título 40, texto 20, botões do `button()`,
+  P1 só no espaço selecionado.
+- **Ícones de item:** são mapas de pixel (`ItemIcons`) desenhados com `kit.rect`, com sombra suave; nada de textura nova.
+- **Glifos:** a fonte de pixel NÃO tem "×" (sai "?"); use "+2"/"x2". Confira texto novo numa captura.
+- **Botão novo num grupo** (`groupPx`): o grupo inteiro usa a menor escala que serve a todos.
+  - **Defeito já visto:** a pausa com três botões por linha encolheu TODOS os rótulos em 720p.
+  - **Regra:** acrescente linha, nunca estreite o grupo, e compare com o binário anterior em 720p.
+- **Resoluções oficiais:** 1280×720, 1920×1080, 1680×1050, 2560×1080 (`tools/itens/03-resolucoes.txt`).
