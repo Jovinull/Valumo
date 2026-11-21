@@ -12,26 +12,17 @@ vila ao fundo, personagens, mundos criados pela interface, aventura = personagem
 **publicadas** na tag `worlds-and-menus-v0.5` ([fechamento](docs/validation/relatorio-fechamento-rodadas-11.md);
 relatórios [11](docs/validation/relatorio-rodada-11.md) e [11.1](docs/validation/relatorio-rodada-11-1.md)). **Lotes 1 e
 2 de conteúdo** (PRs #3 e #5) integrados como **biblioteca**: 35 modelos, 6 variantes e 5 conjuntos no catálogo e nas
-vitrines ([relatório](docs/validation/relatorio-integracao-conteudo.md)). **Rodada 12 — "Mundos com Identidade"**
-(ramo LOCAL `feature/world-generation-v2`, à espera da avaliação do proprietário: sem push, sem PR): versões do gerador
-convivendo ([ADR 0029](docs/decisions/0029-versoes-do-gerador.md), implementada; a v1 congelada, a v2 padrão dos mundos
-novos), [colisão composta](docs/architecture/colisao-composta.md) (oficina, ruína de casa e barraca liberadas), gerador
-v2 com a biblioteca (vilas de caminho e rurais, conjuntos inteiros, ruína a explorar) e a primeira descoberta com
-recompensa ([relatório](docs/validation/relatorio-rodada-12.md)). **Rodada 12.1** (mesmo ramo local, acabamento da v2
-ainda NÃO publicada, à espera do teste físico): torre arruinada liberada, piso exato com degraus, salto que sobe nas coisas
-(todo sólido segura), patamares planos (o piso que piscava), vilas de caminho pequenas e médias, moradores pelo ofício
-([contrato para o artista](docs/architecture/moradores-dos-oficios.md)) e [descobertas por tipo de
-lugar](docs/architecture/descobertas.md) ([relatório](docs/validation/relatorio-rodada-12-1.md)). **Rodada 12.2** (mesmo
-ramo local, a v2 ainda NÃO publicada, à espera do teste físico): a parte aprovada do PR #8 integrada por merge local até
-`f92e6a2` (Brásia, Quelmo, Arvel; abóbada soterrada e sítio abandonado; o Acapela ficou fora,
-[registro](docs/validation/integracao-pr8.md)), os cinco ofícios com morador (a Índira herbalista), quatro ruínas no
-gerador v2 escolhidas pelo terreno e save íntegro de região mudada recusado SEM `.invalido`
-([relatório](docs/validation/relatorio-rodada-12-2.md)). **Rodada 12.3** (fechamento da v2; o ramo publicado para revisão
-num PR, sem merge na `main` nem tag; a v2 congela depois do teste físico): a câmera da torre (P85) resolvida por
-[recorte contextual](docs/architecture/recorte-da-camera.md) (colada 40,6% → 2,1%, sem mudar a torre nem a câmera do resto),
-a Índira na vaga do varal (a placa a tapava), o pote validado e o Acapela do PR #8 incorporado à biblioteca, sem papel nas
-vilas ([relatório](docs/validation/relatorio-rodada-12-3.md)). O checkpoint anterior é
-`engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
+vitrines ([relatório](docs/validation/relatorio-integracao-conteudo.md)). **Rodadas 12 a 12.3 — "Mundos com
+Identidade"** APROVADAS pelo proprietário no teste físico completo e **publicadas** na tag `procedural-world-v0.6` ([relatório da publicação](docs/validation/relatorio-publicacao-v2.md)): o gerador **v2
+publicado e congelado** como a v1 ([ADR 0029](docs/decisions/0029-versoes-do-gerador.md); o que ele congela em
+[mundo procedural](docs/architecture/mundo-procedural.md) §13; mudar o resultado de uma semente agora é a **v3**),
+[colisão composta](docs/architecture/colisao-composta.md), vilas de caminho e rurais com os cinco ofícios com morador,
+quatro ruínas, [descobertas por tipo de lugar](docs/architecture/descobertas.md), a câmera da torre por
+[recorte contextual](docs/architecture/recorte-da-camera.md) e o Acapela na biblioteca, sem papel nas vilas (relatórios
+[12](docs/validation/relatorio-rodada-12.md), [12.1](docs/validation/relatorio-rodada-12-1.md),
+[12.2](docs/validation/relatorio-rodada-12-2.md), [12.3](docs/validation/relatorio-rodada-12-3.md)). Limitações de câmera
+aceitas no checkpoint: P95–P97. Os checkpoints anteriores continuam: `worlds-and-menus-v0.5`,
+`adventure-foundation-v0.4` e `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
 
 ## Leia antes de mexer
@@ -61,7 +52,7 @@ tools/review111.sh [capturas|resolucoes|video|desempenho|transicoes|testes|valid
 tools/review12.sh [vistas|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # rodada 12: v2, v1 × v2, demo, saves antigos (RAIZ_ANTIGA=...)
 tools/review121.sh [vistas|antes|comparacoes|laje|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # 12.1: BASE=clone da rodada 12, RAIZ_ANTIGA=main publicada
 tools/review122.sh [vistas|antes|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # 12.2: BASE=clone da 12.1 (output/tmp/base-r121), PARTE=regioes
-tools/review123.sh [videos|comparacoes|desempenho|testes|validadores|zip]   # 12.3: BASE=clone da 12.2 (output/tmp/base-r122); torre antes × depois, Índira, pote
+tools/review123.sh [videos|menu|comparacoes|desempenho|testes|validadores|zip]   # 12.3: BASE=clone da 12.2 (output/tmp/base-r122); torre antes × depois, Índira, pote
 python3 tools/conteudo/formas_compostas.py          # formas compostas medidas dos voxels (12.1: topos exatos, alcance do salto) → colisao_e.json (revise o diff)
 ./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024   # rodada 11: região gerada pela semente (save em output/saves-procedural/s1024/)
@@ -185,8 +176,10 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
     (casa, torre, abóbada no declive, sítio em chão aberto; ordem sorteada com peso, `"ruina-tipos"`), uma por região;
     o ponto do trabalhador vem do perfil (`conjuntos.*.trabalhador`: vaga recomendada ou spawn); `RESIDENTS` (que a v1
     usa) nunca muda — morador só de ofício entra pelo perfil.
-  - **Publicação** (12.2): `RegionGenerator.published(v)` diz quais versões estão congeladas (hoje só a v1). O que congela
-    com a v2 está em `mundo-procedural.md` §11.
+  - **Publicação:** `RegionGenerator.published(v)` = v1 e v2 (tag `procedural-world-v0.6`); as duas estão congeladas e
+    as referências delas nunca são refeitas. Do que a v2 depende: `mundo-procedural.md` §13. Mundos v2 das versões de
+    testes (rodadas 12–12.3, o "RUINAS") não migram: save que não bate é "de uma versão de testes"
+    (`RegionGenerator.hadTestBuilds`), sem `.invalido`. Próxima mudança de composição = **v3**.
   - **Save v2:** guarda o mundo e os vínculos, e recusa diferença. O v1 fica intacto.
 - **PR #8:** a parte aprovada entrou por merge local de `f92e6a2` (12.2); o Acapela entrou na 12.3 (merge `d2a7134`, os
   commits do artista preservados), na biblioteca e SEM papel nas vilas (`habitantes_e.json` e perfil da v2 intocados).

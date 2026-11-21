@@ -44,8 +44,7 @@ resoluções, referências canônicas refeitas e integração contínua. A **Rod
 ([relatório](docs/validation/relatorio-rodada-10.md)), aprovada pelo proprietário após teste físico (checkpoint
 `adventure-foundation-v0.4`). A **Rodada 11** começou o mundo procedural: uma região gerada por semente, com
 assentamento, trilha, posto, encontro e a mesma aventura vinculada ao lugar gerado
-([relatório](docs/validation/relatorio-rodada-11.md); experimental, em revisão: `./gradlew jogo -Dvx.mundo=procedural
--Dvx.semente=1024`). A **Rodada 11.1** deu ao jogo uma porta de entrada: menu principal com a vila ao fundo, personagens
+([relatório](docs/validation/relatorio-rodada-11.md); `./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024`). A **Rodada 11.1** deu ao jogo uma porta de entrada: menu principal com a vila ao fundo, personagens
 salvos, mundos criados pela interface (nome e semente, com prévia real) e a aventura de cada personagem em cada mundo
 ([relatório](docs/validation/relatorio-rodada-11-1.md); [fechamento](docs/validation/relatorio-fechamento-rodadas-11.md)).
 Depois, os **lotes 1 e 2 do laboratório de conteúdo** entraram como **biblioteca**:
@@ -58,7 +57,12 @@ Depois, os **lotes 1 e 2 do laboratório de conteúdo** entraram como **bibliote
 O jogo só carrega o que a cena usa ([relatório](docs/validation/relatorio-integracao-conteudo.md),
 [guia](docs/processo/como-integrar-conteudo-ao-mundo.md)).
 
-A **Rodada 12 — "Mundos com Identidade"** (em avaliação, ramo local) pôs essa biblioteca nos mundos gerados:
+As **Rodadas 12 a 12.3 — "Mundos com Identidade"** foram aprovadas pelo proprietário no teste físico completo e
+**publicadas** na tag `procedural-world-v0.6` ([relatório da publicação](docs/validation/relatorio-publicacao-v2.md)).
+O gerador **v2 está publicado e congelado**, como a v1: cada mundo usa para sempre a versão com que nasceu, e uma mudança
+no resultado de uma semente será a v3.
+
+A **Rodada 12** pôs a biblioteca de conteúdo nos mundos gerados:
 
 - **Versões do gerador convivendo:** um mundo criado antes continua idêntico, para sempre, e os novos nascem na v2.
 - **A v2:** vilas de caminho (praça com chafariz, comércio, oficina) e rurais (sítios, horta, paiol, caçador), com os
@@ -68,7 +72,7 @@ A **Rodada 12 — "Mundos com Identidade"** (em avaliação, ramo local) pôs es
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12.md) e no [guia](docs/processo/como-evoluir-o-gerador.md).
 
-A **Rodada 12.1** (mesmo ramo, em avaliação; a v2 continua sem publicar) fez o acabamento da v2:
+A **Rodada 12.1** fez o acabamento da v2:
 
 - **Ruínas:** a casa ou a torre caída (agora dá para entrar nela) e, às vezes, a árvore retorcida ao lado.
 - **Salto:** mais alto e com mais controle no ar; dá para subir em pedras, tocos, caixotes e muros baixos.
@@ -80,7 +84,7 @@ A **Rodada 12.1** (mesmo ramo, em avaliação; a v2 continua sem publicar) fez o
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12-1.md).
 
-A **Rodada 12.2** (mesmo ramo, em avaliação; a v2 continua sem publicar) integrou a arte aprovada e fechou a v2:
+A **Rodada 12.2** integrou a arte aprovada:
 
 - **Moradores nos ofícios:** a Brásia na forja, o Quelmo ao lado da barraca, o Arvel na cabana do caçador, a Índira
   herbalista e o Bramor no posto de vigia, cada um com o seu gesto.
@@ -90,8 +94,7 @@ A **Rodada 12.2** (mesmo ramo, em avaliação; a v2 continua sem publicar) integ
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12-2.md).
 
-A **Rodada 12.3** (mesmo ramo, publicado para revisão num pull request; a v2 continua sem congelar até o teste físico)
-fechou a v2:
+A **Rodada 12.3** fechou a v2:
 
 - **A câmera dentro da torre caída:** ela fica com o braço inteiro, e a torre se recorta só entre a câmera e o herói. A
   câmera colada caiu de 40,6% para 2,1% dos quadros, sem mudar a torre nem a câmera do resto do jogo
@@ -287,6 +290,9 @@ Comece por [docs/README.md](docs/README.md).
 
 ## Limitações conhecidas
 
+- Câmera, aceitas na publicação da v2 (sem reclamação no teste físico): ao sair da torre caída de costas, a câmera encosta
+  na parede no fim da saída (P95); o recorte tem um anel pontilhado fino, visível parado (P96); dentro da abóbada a câmera
+  fica curta, sob o teto (P97).
 - Protótipo: uma vila pequena, seis conversas curtas, uma missão e um confronto (espada e escudo contra os fungos da
   trilha; na pausa, um fungo, três ou um protótipo de chefe com dois menores). Sem inventário, loja, experiência,
   classes nem progressão; um save só.
