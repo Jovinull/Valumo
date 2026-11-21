@@ -161,3 +161,12 @@ consulta percorria a lista inteira.
 4. **Conferir:** ponha o id em `CompositeCollisionTest.ENTERABLE` e rode o teste. Se não entrar, o defeito é do asset
    (porta, piso, ponto), nunca da conferência.
 5. **Liberar:** só então, com o comentário do porquê. Gere `tools/conteudo/planta_colisao.py` para a revisão.
+
+## Publicação da v2 (tag `procedural-world-v0.6`)
+
+- **As formas compostas dos assets que a v2 planta fazem parte dela.** Elas decidem a conferência de alcance e a
+  tentativa aceita, então não mudam mais.
+- **Uma medição nova** (outra resolução, outra regra em `formas_compostas.py`) que mude as formas de um asset liberado
+  na v2 só entra com a v3, ou depois de provar que as 200 sementes e `regioes-v2.txt` não mudam.
+- **A zona `recorte`** (só a torre caída) é da câmera e do desenho, não da geração. Também foi aprovada no teste físico
+  como está.

@@ -290,3 +290,17 @@ Origem: só síntese (nenhuma amostra de terceiros, nenhum gerador por IA); a pr
   `rosto.*.variantesOlhos.<id>.exprs`), slot `pes` (`botas.originais` nativo; `botas.viajante` com
   `porCorpo.<preset>.partes` = `shin_l`/`shin_r` no espaço do modelo, mesmo pivô do corpo), `"experimental": true`
   nos estudos e `"aprovado": "rodada NN"` depois da aprovação do proprietário (crespo, coque e botas: rodada 09.4). Um cabelo pode ter partes por corpo: `porCorpo.<preset>.partes` substitui `partes` naquele corpo (`cabelo.rabo`: rabo centrado fora da exploradora). Aparência `valumo.aparencia` v2 (`aparencia.olhos`, `equipamento_visual.pes`).
+
+## 13. Assets plantados pelo gerador v2 (publicação, tag `procedural-world-v0.6`)
+
+- **Quais:** os modelos que o perfil congelado `assets/scenes/regiao_v2_e.json` cita (construções, conjuntos, ruínas,
+  props liberados).
+- **Por que congelam:** a caixa (`props.json`), as formas de colisão e os pontos do catálogo entram na geração.
+- **Pode mudar sem a v3:**
+  - a cor e o desenho DENTRO da mesma caixa e das mesmas formas;
+  - a animação de um morador.
+- **Só com a v3:**
+  - tamanho, pegada, entradas, pontos de interação, spawns e vagas de trabalhador;
+  - um asset novo no perfil.
+- **Como conferir:** `RegionGoldenTest` (as 8 sementes) e as 200 sementes do `tools/review*.sh`; nunca refazer
+  `regioes-v2.txt` para passar.

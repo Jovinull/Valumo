@@ -102,3 +102,12 @@ lago a sul. No parapeito, um jarro esquecido com moedas."
 - **Troca de ruína num mundo já salvo:** se a região de uma semente muda de ruína antes da publicação da v2, a descoberta
   salva da ruína antiga não existe mais. O save é recusado como "de uma versão de testes", sem `.invalido` e sem tocar no
   arquivo ([save](save.md)). Nunca se inventa a equivalência (a lareira não vira o mirante).
+
+## Publicação da v2 (tag `procedural-world-v0.6`)
+
+- **Congelado:** os quatro tipos de ruína, a árvore e os textos e moedas de `descobertas_e.json`. Eles entram na cena
+  gerada, e `regioes-v2.txt` os inclui.
+- **Texto novo ou moedas diferentes num tipo existente** mudam a cena de mundos já criados, então são a v3.
+- **Uma descoberta de um tipo NOVO** também é a v3 (o gerador precisa pôr o lugar).
+- **O que vale para sempre:** o pote vazio, as moedas uma vez e o "Lugar novo" na primeira vez de um tipo. Vêm do save
+  (`progresso.descobertas`), que não muda de formato.

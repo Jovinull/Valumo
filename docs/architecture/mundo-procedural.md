@@ -331,3 +331,52 @@ passa a incluir a v2.
   são as mesmas da 12.2: casa 94, torre 71, sítio 21, abóbada 14 (a torre não ficou mais rara).
 - **O que congela com a v2:** a lista do §11, mais a zona `recorte` da torre em `colisao_e.json` (ela muda a câmera do
   jogador, não a região, mas faz parte da experiência aprovada daquela torre).
+
+## 13. Publicação da v2 (tag `procedural-world-v0.6`)
+
+**Aprovação:** o proprietário aprovou o teste físico completo; a v2 está **publicada e congelada**, como a v1
+(`RegionGenerator.published` = v1 e v2; [ADR 0029](../decisions/0029-versoes-do-gerador.md) §Publicação da v2).
+
+**Conferido na publicação:**
+
+| Conferência | Resultado |
+|---|---|
+| v1, sementes 1–300 | iguais à base |
+| v2, sementes 1–200 | iguais em dois processos e às da rodada 12.3 (com os moradores); sem recusa |
+| tentativas da v2 | 172 / 23 / 4 / 1 |
+| ruínas | casa 94, torre 71, sítio 21, abóbada 14 |
+| moradores | Índira 88, Bramor 73, Arvel 69, Brásia 60, Quelmo 49 |
+| `regioes-v1.txt`, `regioes-v2.txt` | intocados |
+
+**Do que a v2 depende para continuar reproduzível.** Mudar qualquer item abaixo muda o resultado de alguma semente e exige
+a v3 (classe nova, rótulos novos, referência nova):
+
+1. **Código:** `RegionV2`, `RegionProfile`, `RegionLayout`, `ProceduralField` (patamares e trilhas da v2), `Rng`, e as
+   peças compartilhadas que ela chama (`RegionGenerator.compose`, `sampleCurve`, `composePost`, `Reachability`,
+   `Collision` nas consultas do corpo, `ProceduralScene`).
+2. **O perfil congelado** `assets/scenes/regiao_v2_e.json`, escrito por `tools/conteudo/perfil_regiao_v2.py` a partir
+   do catálogo:
+   - pegadas, alturas, entradas, pontos de interação, spawns, área livre;
+   - conjuntos e pontos dos trabalhadores;
+   - `oficios` e `ruina-tipos`.
+3. **Colisão:** os perfis de `assets/scenes/colisao_e.json` dos assets que a v2 planta (as formas compostas entram na
+   conferência de alcance, que decide a tentativa aceita).
+4. **Os modelos que ela planta:** a caixa de cada modelo (`props.json`, gerada de `tools/`) entra nas formas simples.
+   - **O que é seguro:** mudar o desenho sem mudar a caixa nem as formas.
+   - **O que não é:** mudar o tamanho, que exige conferir as 200 sementes e as referências; se alguma mudar, é a v3.
+5. **Dados de cena:** `descobertas_e.json` (textos e moedas entram na cena), `habitantes_e.json` (falas, papéis,
+   ofícios), `modelos_missao_e.json` e o `combate_e.json` gerado da arena e dos encontros.
+6. **Referências:** `game/src/test/resources/regioes-v2.txt` (nunca refeita para passar).
+
+**O que NÃO é dependência da geração:** a zona `recorte` da torre (só a câmera e o desenho) e o Acapela (biblioteca, fora
+do perfil e de `habitantes_e.json`).
+
+**Conteúdo da v2 publicada:**
+
+- vilas de caminho (pequena e média) e rurais com conjuntos inteiros;
+- os cinco ofícios com morador: Brásia, Quelmo, Arvel, Índira, Bramor;
+- quatro ruínas: casa, torre caída, abóbada soterrada, sítio abandonado, com a árvore retorcida rara;
+- uma descoberta por ruína (pote, mirante, pedra do marco), com moedas uma vez e o diário "Lugares";
+- a missão de região, o posto e os fungos.
+
+**Limitações aceitas no checkpoint:** P95, P96 e P97 (câmera), em `problemas-conhecidos.md`.

@@ -5,6 +5,10 @@ Guia da rodada 12, revisto na 12.1. Os contratos estão em [ADR 0029](../decisio
 [descobertas](../architecture/descobertas.md) e [moradores dos ofícios](../architecture/moradores-dos-oficios.md).
 Os assets da biblioteca seguem o [guia de conteúdo](como-integrar-conteudo-ao-mundo.md).
 
+> **Desde a publicação da v2** (tag `procedural-world-v0.6`), a v1 e a v2 estão congeladas. Qualquer mudança no resultado
+> de uma semente (peso, rótulo, asset, forma, ponto, texto de descoberta) é a **v3**, pelo procedimento abaixo. A lista
+> do que a v2 congela está em [mundo procedural](../architecture/mundo-procedural.md) §13.
+
 ## 1. Acrescentar uma versão nova do gerador
 
 1. **Classe nova:** escreva-a (como `RegionV2`), sem tocar no caminho das versões anteriores. Reaproveite as peças sem

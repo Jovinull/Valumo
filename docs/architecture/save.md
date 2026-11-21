@@ -157,7 +157,7 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
 - **Onde:**
   - `SaveGame.Incompatible` (casos 3 e 5; o detalhe técnico vai para o log, nunca para a tela);
   - `QuestSystem.UnknownReference` (referência que a cena não tem);
-  - `RegionGenerator.published(versão)`: hoje só a v1. Ao publicar a v2, ela entra ali.
+  - `RegionGenerator.published(versão)`: v1 e v2 (a v2 entrou na publicação, §Publicação da v2).
 - **Versão publicada que não bate** (a v1 procedural): a mesma recusa sem `.invalido`, com "não corresponde a este
   mundo". Na **vila fixa**, referência desconhecida continua dado inválido, porque não há geração que possa ter mudado.
 - **Nada é sobrescrito:** com o save existente, "Entrar" sempre tenta CONTINUAR. A aventura recusada não começa de novo
@@ -168,3 +168,19 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
   em todas as recusas; "Entrar" de novo não grava nada); `ProceduralWorldTest` (vínculos diferentes); `DiscoveryTest`.
 - **O que já existe nos dados do proprietário:** o `aventura.json.invalido` que o binário da 12.1 criou ao lado da aventura
   do mundo "RUINAS" continua lá. É uma cópia; o original nunca mudou. Removê-lo é decisão do proprietário.
+
+## Publicação da v2 — as duas versões congeladas
+
+- **As versões:** `RegionGenerator.published` passa a valer para a v1 e a v2.
+- **Saves v2 feitos durante as rodadas 12 a 12.3:** abrem, se a região da semente for a mesma de agora.
+  - **Prova:** a matriz `tools/qa/saves_antigos.sh` com o binário da 12.3 como antigo (regiões v2) e o da publicação
+    como novo: 8 de 8 iguais, 0 `.invalido`.
+- **A frase do caso 5:**
+  - **Mundos v2 das versões de testes** (o "RUINAS"): quem não bate continua recebendo a mesma frase,
+    "Esta aventura é de uma versão de testes deste mundo…", por `RegionGenerator.hadTestBuilds(2)`.
+  - **A v1:** continua "não corresponde a este mundo".
+  - **Teste:** `SaveCompatTest`.
+- **Os mundos experimentais do proprietário** ("RUINAS", "31337"):
+  - não foram migrados nem abertos pela publicação;
+  - os arquivos foram conferidos por sha256 antes e depois;
+  - a cópia `.invalido` histórica continua lá.
