@@ -18,6 +18,8 @@ public final class UiBatch implements AutoCloseable {
     private int n;
     private int texture;
     private int screenW, screenH;
+    /** Descargas (chamadas de desenho) no quadro em curso e no anterior (QA: troca de textura descarrega o lote). */
+    public int draws, lastDraws;
     /** VAO/VBO persistentes (o conteúdo é reenviado a cada descarga; nada é criado por quadro). */
     private final int vao = glGenVertexArrays(), vbo = glGenBuffers();
 
@@ -39,6 +41,8 @@ public final class UiBatch implements AutoCloseable {
     }
 
     public void begin(int w, int h) {
+        lastDraws = draws;
+        draws = 0;
         screenW = w;
         screenH = h;
         n = 0;
@@ -94,6 +98,7 @@ public final class UiBatch implements AutoCloseable {
             glBufferSubData(GL_ARRAY_BUFFER, 0, fb);
         }
         glDrawArrays(GL_TRIANGLES, 0, n / 8);
+        draws++;
         glBindVertexArray(0);
         glDisable(GL_BLEND);
         n = 0;
