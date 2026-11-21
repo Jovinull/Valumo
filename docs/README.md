@@ -13,7 +13,7 @@
 | [art/contrato-de-qualidade.md](art/contrato-de-qualidade.md) | critérios de aceite por categoria (obrigatório / flexível / boa prática / preferência) |
 | [art/reference/](art/reference/README.md) | **imagens canônicas** (capturas reais) e galeria de reprovados |
 | [art/contrato-de-assets.md](art/contrato-de-assets.md) | contrato técnico: nomes, eixos, escalas, formatos, rig, meta |
-| [art/contrato-icones-de-itens.md](art/contrato-icones-de-itens.md) | pedido ao agente artista (13): ícones e pequenos modelos dos itens, identidade, paleta, formato, testes de legibilidade |
+| [art/contrato-icones-de-itens.md](art/contrato-icones-de-itens.md) | pedido ao agente artista (13, refeito na 13.1): os modelos voxel dos itens (1/40 u, até 0,4 u), identidade, paleta, formato, testes de legibilidade |
 | [art/especificacao-de-personagem.md](art/especificacao-de-personagem.md), [art/sistema-de-proporcoes.md](art/sistema-de-proporcoes.md) | construção de personagem |
 | [art/guia-de-animacao.md](art/guia-de-animacao.md) | locomoção, coreografia de armas, perfis `assets/anim`, IK, limites |
 | [art/paleta-e-materiais.md](art/paleta-e-materiais.md), [art/regras-de-vegetacao.md](art/regras-de-vegetacao.md), [art/estilo-arquitetonico.md](art/estilo-arquitetonico.md), [art/presets-graficos.md](art/presets-graficos.md), [art/assinatura-visual.md](art/assinatura-visual.md) | guias por tema |
@@ -41,8 +41,8 @@
 | [processo/handoff-laboratorio-de-assets.md](processo/handoff-laboratorio-de-assets.md) | handoff: como os assets do laboratório entram no catálogo e no gerador (colisão, alcance, sementes, ids, desempenho, revisão de PR) |
 | [art/conteudo-mundo.md](art/conteudo-mundo.md), [architecture/catalogo-de-conteudo.md](architecture/catalogo-de-conteudo.md) | **biblioteca de conteúdo (lotes 1 e 2):** guia de arte do laboratório e o catálogo `valumo.conteudo/1` (medidas, pontos, colisão, estados, variantes, conjuntos); evidências em [art/conteudo/](art/conteudo/lote-1/README.md) |
 | [processo/como-integrar-conteudo-ao-mundo.md](processo/como-integrar-conteudo-ao-mundo.md) | guia: criar e registrar asset, variante, restrições, conjunto, vitrine, validação, colisão depois, liberar para o gerador sem quebrar save |
-| [architecture/inventario.md](architecture/inventario.md) | inventário (13): a mochila de 24 espaços, tudo ou nada, a tela (I, pausa), o estado que pausa a lógica, testes |
-| [architecture/itens.md](architecture/itens.md) | itens (13): o catálogo `itens_e.json`, os 5 itens, efeitos do código, como criar item, categoria, ícone |
+| [architecture/inventario.md](architecture/inventario.md) | inventário (13 e 13.1): a mochila sem limite sobre o jogo correndo, tudo ou nada, a tela (I, pausa, mouse, abas, rolagem), os itens em 3D (`ItemRenders`), testes |
+| [architecture/itens.md](architecture/itens.md) | itens (13 e 13.1): o catálogo `itens_e.json`, os 5 itens e os modelos voxel, efeitos do código, como criar item, categoria, modelo |
 | [architecture/recompensas-e-loot.md](architecture/recompensas-e-loot.md) | recompensas (13): presente e achados como camada sobre os mundos congelados, uma vez por aventura, saves antigos, determinismo |
 | [architecture/recorte-da-camera.md](architecture/recorte-da-camera.md) | recorte contextual da câmera (12.3, P85): a câmera ignora só a torre em que o herói está e o desenho a recorta num cone; contrato, medida 12.2 × 12.3, custo, limites |
 | [architecture/colisao-composta.md](architecture/colisao-composta.md) | colisão composta (rodada 12, refeita na 12.1): contrato `formas` em espaço do modelo, topos exatos, regra de suporte, índice espacial, degraus, liberados, testes, custo |
