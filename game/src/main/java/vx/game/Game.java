@@ -2329,6 +2329,11 @@ public final class Game implements AutoCloseable {
                     System.out.println("enquadramento" + (t.length > 1 ? " " + t[1] : "") + ": " + CameraFraming.measure(logic.cam, pl.x, pl.visualY, pl.z,
                             e.x, e.y, e.z, logic.collision));
                 }
+                case "mochila-dar" -> {                                   // montagem técnica (capturas de borda): item quantidade
+                    var it = logic.itemRules.catalog().get(t[1]);
+                    boolean ok = it != null && logic.items.inventory.add(it, Integer.parseInt(t[2]));
+                    System.out.println("mochila-dar " + t[1] + " " + t[2] + ": " + (ok ? "entrou" : "não coube"));
+                }
                 case "mochila" -> System.out.println("mochila: " + logic.items.inventory.toJson() + " fontes " + logic.items.collectedSources()
                         + (logic.combat != null ? " vida " + logic.combat.hero.hp + "/" + logic.combat.def.heroHp : "") + " estado " + logic.state);   // rodada 13
                 case "estado" -> {
