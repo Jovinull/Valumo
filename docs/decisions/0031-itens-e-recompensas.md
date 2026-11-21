@@ -52,5 +52,7 @@ restrições valem desde a publicação da v2 (`procedural-world-v0.6`):
 - **Para crescer:** itens e fontes novos entram por dados. Um efeito novo é um caso em `ItemEffects`, com teste.
 - **Um limite aceito:** um save com itens aberto num binário anterior (v0.6) perde os itens se for salvo lá (o binário
   antigo ignora os campos que não conhece). Voltar de versão não é caminho suportado; fica registrado.
+  - **Medido:** as fontes coletadas somem junto com os itens. De volta à rodada 13, o presente e os achados podem ser
+    recolhidos de novo, então há perda recuperável e nenhuma duplicação.
 - **Contratos:** [itens](../architecture/itens.md), [inventário](../architecture/inventario.md),
   [recompensas e loot](../architecture/recompensas-e-loot.md), [save](../architecture/save.md) §Rodada 13.

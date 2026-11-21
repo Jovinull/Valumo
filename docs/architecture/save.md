@@ -217,5 +217,6 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
 - **Salvamento automático:** receber um item marca o salvamento automático no primeiro passo seguro, como os marcos.
 - **Alterações não salvas:** usar um item conta (`GameLogic.unsaved`).
 - **Voltar de versão:** um save com itens aberto pelo binário da v0.6 abre sem os itens (ele ignora campos que não
-  conhece); salvar lá os perde. Não é caminho suportado ([ADR 0031](../decisions/0031-itens-e-recompensas.md)).
+  conhece); salvar lá os perde. As fontes coletadas somem junto, então de volta à rodada 13 o presente e os achados podem
+  ser recolhidos de novo, sem duplicação. Não é caminho suportado ([ADR 0031](../decisions/0031-itens-e-recompensas.md)).
 - **Testes:** `InventoryFlowTest`, `InventoryTest`, `SaveCompatTest` e a matriz `tools/qa/saves_antigos.sh`.
