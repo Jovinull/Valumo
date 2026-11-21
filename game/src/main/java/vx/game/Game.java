@@ -846,16 +846,22 @@ public final class Game implements AutoCloseable {
     void itemIcon(String name, float x, float y, float k) {
         String[] m = vx.game.item.ItemIcons.map(name);
         if (m == null) return;
+        // um retângulo por faixa de pixels vizinhos na linha (a mesma área de um por pixel, com bem menos retângulos)
         for (int r = 0; r < m.length; r++)
-            for (int c = 0; c < m[r].length(); c++) {
-                char ch = m[r].charAt(c);
-                if (ch == '.') continue;
-                kit.rect(x + c * k + k * 0.5f, y + r * k + k * 0.6f, k, k, 0x2a1a1240);        // sombra suave
+            for (int c = 0; c < m[r].length(); ) {
+                if (m[r].charAt(c) == '.') { c++; continue; }
+                int e = c;
+                while (e < m[r].length() && m[r].charAt(e) != '.') e++;
+                kit.rect(x + c * k + k * 0.5f, y + r * k + k * 0.6f, (e - c) * k, k, 0x2a1a1240);   // sombra suave
+                c = e;
             }
         for (int r = 0; r < m.length; r++)
-            for (int c = 0; c < m[r].length(); c++) {
+            for (int c = 0; c < m[r].length(); ) {
                 char ch = m[r].charAt(c);
-                if (ch != '.') kit.rect(x + c * k, y + r * k, k, k, vx.game.item.ItemIcons.PALETTE.get(ch));
+                int e = c;
+                while (e < m[r].length() && m[r].charAt(e) == ch) e++;
+                if (ch != '.') kit.rect(x + c * k, y + r * k, (e - c) * k, k, vx.game.item.ItemIcons.PALETTE.get(ch));
+                c = e;
             }
     }
 
