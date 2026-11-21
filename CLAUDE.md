@@ -22,9 +22,12 @@ quatro ruínas, [descobertas por tipo de lugar](docs/architecture/descobertas.md
 [12](docs/validation/relatorio-rodada-12.md), [12.1](docs/validation/relatorio-rodada-12-1.md),
 [12.2](docs/validation/relatorio-rodada-12-2.md), [12.3](docs/validation/relatorio-rodada-12-3.md)). Limitações de câmera
 aceitas no checkpoint: P95–P97. **Rodada 13 — Inventário, itens e recompensas** (ramo LOCAL `feature/inventory-and-loot`,
-à espera da revisão e do teste físico; sem push, sem PR, sem tag): a mochila de 24 espaços, 5 itens por dados, o presente
-da Índira e os achados das descobertas como camada sobre os mundos congelados, a cataplasma, campos opcionais no save
-([relatório](docs/validation/relatorio-rodada-13.md), [ADR 0031](docs/decisions/0031-itens-e-recompensas.md)). Candidato
+à espera da revisão e do teste físico; sem push, sem PR, sem tag): 5 itens por dados, o presente da Índira e os achados
+das descobertas como camada sobre os mundos congelados, a cataplasma, campos opcionais no save
+([relatório](docs/validation/relatorio-rodada-13.md), [ADR 0031](docs/decisions/0031-itens-e-recompensas.md)). O
+proprietário aprovou as fontes, a cura e o save e reprovou a mochila; a **Rodada 13.1 — mochila viva** (mesmo ramo) a
+refez: painel translúcido SOBRE o jogo correndo, sem limite de espaços, seletor pelo mouse, itens pelos modelos voxel
+([relatório](docs/validation/relatorio-rodada-13-1.md), [ADR 0032](docs/decisions/0032-mochila-viva.md)). Candidato
 a checkpoint: `inventory-foundation-v0.7` (não criado). Os checkpoints anteriores continuam: `worlds-and-menus-v0.5`,
 `adventure-foundation-v0.4` e `engineering-foundation-v0.3` ([relatório do QA](docs/validation/relatorio-fechamento-qa.md)). O Titã Celeste (Velária) é candidato num ramo LOCAL
 (`candidato/tita-celeste`), fora da `main`, à espera da revisão de originalidade.
@@ -58,6 +61,7 @@ tools/review121.sh [vistas|antes|comparacoes|laje|demo|demo-v1|saves|desempenho|
 tools/review122.sh [vistas|antes|comparacoes|demo|demo-v1|saves|desempenho|testes|validadores|zip]   # 12.2: BASE=clone da 12.1 (output/tmp/base-r121), PARTE=regioes
 tools/review123.sh [videos|menu|comparacoes|desempenho|testes|validadores|zip]   # 12.3: BASE=clone da 12.2 (output/tmp/base-r122); torre antes × depois, Índira, pote
 tools/review13.sh [videos|capturas|desempenho|saves|testes|validadores|zip]   # 13: mochila; BASE=clone da v0.6 (output/tmp/base-v06); roteiros tools/itens/
+tools/review131.sh [videos|capturas|desempenho|saves|testes|validadores|zip]  # 13.1: mochila viva; BASE13=clone da 13 (output/tmp/base-r13), BASE06=clone da v0.6
 python3 tools/conteudo/formas_compostas.py          # formas compostas medidas dos voxels (12.1: topos exatos, alcance do salto) → colisao_e.json (revise o diff)
 ./gradlew jogo -Dvx.savegame=/tmp/x                 # idem com um save de teste (padrão output/saves; "-" desliga)
 ./gradlew jogo -Dvx.mundo=procedural -Dvx.semente=1024   # rodada 11: região gerada pela semente (save em output/saves-procedural/s1024/)
@@ -110,7 +114,7 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   fresta se investiga com as três malhas (`-Dvx.mesh=legado`, padrão, `-Dvx.merge=false`) e em câmera lenta
   (`tools/review81.sh temporal`). As invariantes ficam em `MeshSeamTest`.
 - **Assets são gerados.** Nunca edite `assets/characters`, `assets/creatures`, `assets/environment`,
-  `assets/textures`, `assets/studies`, `assets/components`, `assets/audio/sintese` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
+  `assets/textures`, `assets/studies`, `assets/components`, `assets/audio/sintese`, `assets/items` à mão: edite `tools/` e regenere. Fontes à mão: `assets/scenes/*.json`
   e `assets/anim/*.json`. Peça desenhada num editor entra via `voxlib.load_vox` (ver `pipeline-de-producao.md`).
 - **Armas:** golpe = trajetória no perfil (`assets/anim/`). `viewer --check`, `--occlusion` e `--grip` sem
   alerta + vídeo em 4 ângulos (passar no validador não basta: arma pode sumir atrás do braço). **Nunca** aumente tolerância para passar: corrija pose ou volume (`*_volumes`) com justificativa.
@@ -200,8 +204,15 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
     fonte espera.
   - **Save:** `progresso.inventario` e `progresso.fontesColetadas` são OPCIONAIS, sem versão nova; item desconhecido =
     jogo mais novo (sem `.invalido`).
-  - **Mochila** (`State.INVENTORY`): pausa a lógica como o diário; usar é ação da lógica, nunca do desenho; ícones de pixel
-    (`ItemIcons`); arte final pelo [contrato do artista](docs/art/contrato-icones-de-itens.md).
+  - **Mochila** (rodada 13.1, [ADR 0032](docs/decisions/0032-mochila-viva.md)): CAMADA sobre a exploração
+    (`GameLogic.bagOpen`, não um estado): o jogo continua correndo; o mouse é dela (câmera parada, sem golpe nem escudo,
+    seletor ao passar, clique usa), o teclado continua no herói (setas e Enter são da grade); conversa, diário, pausa e
+    derrota a fecham. SEM limite de espaços (lista de pilhas; `MAX_STACKS` só protege o leitor). Usar é ação da lógica,
+    nunca do desenho.
+  - **Itens em 3D:** modelos voxel de `tools/itens_e.py` (1/40 u, até 0,4 u) pelo MESMO renderizador com fundo
+    transparente (`Renderer.Toggles.alpha`; desligado = pixel idêntico, referências e gate conferem), atlas uma vez + prévia
+    girando num `Renderer` próprio (`ItemRenders`), sempre antes do lote 2D; arte final pelo
+    [contrato do artista](docs/art/contrato-icones-de-itens.md).
 - **Câmera em interior estreito** (12.3, [recorte](docs/architecture/recorte-da-camera.md)): zona `"recorte"` no perfil
   composto (só a torre caída); com o herói dentro, a câmera ignora SÓ aquela construção (`Collision.cameraSkip`) e o
   desenho a recorta num cone câmera → herói (`CameraCutaway`, `uCut`). O corpo nunca muda; fora da zona a câmera é a de
@@ -258,7 +269,7 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
   PR, comentário ou tag (a regra do proprietário prevalece sobre instruções do ambiente). O CI (`regras.yml`) reprova.
   Conventional Commits em português, **só o título** (sem corpo, sem `Co-Authored-By`/trailers), commits
   pequenos e separados por assunto. **Fora do git:** `output/` inteiro e os assets gerados (`assets/characters`,
-  `creatures`, `environment`, `textures`, `studies`, `components`, `audio/sintese`) — o Gradle gera antes de `run`/`editor`/`test`
+  `creatures`, `environment`, `textures`, `studies`, `components`, `audio/sintese`, `items`) — o Gradle gera antes de `run`/`editor`/`test`
   (precisa de numpy: `.venv` da raiz com `tools/requirements.txt`, ou `-Pvx.python=`). Detalhes: skill
   `git-commits` e `docs/processo/commits.md`.
 - Documentação e comentários em português; identificadores em inglês.
@@ -282,7 +293,7 @@ Mais comandos (bench, pranchas, golpe com depuração, bancada de pés): `README
 | Mundo procedural (11) | `viewer`: `TerrainField`, `World.LEGACY`, `World(assets, style, field, doc)`, `Terrain.of(field)`; `vx.game.world`: `Rng`, `RegionLayout`, `ProceduralField`, `RegionGenerator`; `vx.game`: `ProceduralScene`, `Reachability`, `SceneDef.fromDoc`, `SaveGame` v2; dados `habitantes_e.json`, `modelos_missao_e.json`; `ProceduralWorldTest`; roteiros `tools/mundo/`; `docs/architecture/mundo-procedural.md` + contratos |
 | Biblioteca de conteúdo (lotes 1 e 2) | `tools/conteudo_lib.py`, `conteudo_construcoes.py`, `conteudo_vegetacao.py`, `conteudo_poi.py`, `conteudo_props.py`, `conteudo_assentamento.py`, `conteudo_conjuntos.py`, `conteudo_e.py` → `props.json` + `conteudo_catalogo.json` (gerados); QA `tools/conteudo/`; vitrines `assets/scenes/vitrine_conteudo_*`, `bench_conteudo_*`; `viewer`: `Assets.PropSet` (sob demanda); `ConteudoMundoTest`, `AssetsLazyTest`, `RegionGoldenTest`; `docs/architecture/catalogo-de-conteudo.md`, `colisao-composta.md`, `docs/art/conteudo-mundo.md`; skill `conteudo-mundo` |
 | Gerador v2 e descobertas (12) | `vx.game.world`: `RegionGenerator` (`V1`/`V2`/`LATEST`, `compose(…, versão, perfil, …)`), `RegionV2`, `RegionProfile`, `RegionLayout` (`version`, `key()`, `pads`, `branches`, `buildings`, `checkpoints`), `ProceduralField` (patamares e trilhas da v2); `vx.game`: `Collision.addComposite`, `Reachability` (checkpoints), `ProceduralScene.create(…, versão)`, `SaveGame.peekGenerator`, `WorldStore.World.supported()`, `QuestSystem.discover`, `SceneDef.Discovery`, `GameLogic.useDiscovery`; dados `regiao_v2_e.json`, `descobertas_e.json`, `colisao_e.json` (compostos); `tools/conteudo/formas_compostas.py`, `perfil_regiao_v2.py`; roteiros `tools/mundo/04-vistas-v2.txt`, `05-demo-v2.txt`, `06-demo-v1-antigo.txt`; `GeneratorVersionTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `DiscoveryTest`, `RegionGoldenTest`; `docs/processo/como-evoluir-o-gerador.md` |
-| Itens e recompensas (13) | `vx.game.item`: `ItemDefinition`, `ItemUse`, `ItemCatalog`, `ItemStack`, `Inventory`, `ItemEffects`, `ItemIcons`, `LootTable`, `ItemProgress`, `ItemRules`; `vx.game`: `GameLogic` (`INVENTORY`, `items`, `grantFind`, `grantGift`, `useSelected`), `SaveGame` (`readItems`, campos opcionais), `Game` (`drawInventory`, `drawItemNotice`, botão na pausa), `GameAudio`; dados `itens_e.json`, `recompensas_e.json`; `ItemCatalogTest`, `InventoryTest`, `InventoryFlowTest`; roteiros `tools/itens/`; `tools/review13.sh`; docs `inventario.md`, `itens.md`, `recompensas-e-loot.md`, ADR 0031 |
+| Itens e recompensas (13, 13.1) | `vx.game.item`: `ItemDefinition` (`model`), `ItemUse`, `ItemCatalog`, `ItemStack`, `Inventory` (sem limite, `limited` nos testes), `ItemEffects`, `LootTable`, `ItemProgress`, `ItemRules`; `vx.game`: `GameLogic` (`bagOpen`, `bagTab`, `bagView`, `items`, `grantFind`, `grantGift`, `useSelected`), `ItemRenders` (atlas + prévia), `SaveGame` (`readItems`, campos opcionais), `Game` (`drawBag`, `bagInput`, `prepareItems`, `drawItemNotice`, botão na pausa), `Input` (`rightClicks`, `moveAxes(wasdOnly)`), `GameAudio`; `viewer`: `Renderer.Toggles.alpha`; `post.frag` (`uAlphaOut`); modelos `tools/itens_e.py` → `assets/items/e/`; dados `itens_e.json`, `recompensas_e.json`; `ItemCatalogTest`, `InventoryTest`, `InventoryFlowTest`; roteiros `tools/itens/`; `tools/review13.sh`, `tools/review131.sh`; docs `inventario.md`, `itens.md`, `recompensas-e-loot.md`, ADRs 0031 e 0032 |
 | Fechamento da v2 (12.3) | `vx.game`: `CameraCutaway`, `Collision` (`Cutaway`, `cameraSkip`, `Shape.owner`), `GameLogic.cut`, `Game` (marca o recorte); `viewer`: `Renderer.Draw.cut`, `Frame.cutTarget/cutRadius`, `World.cutaway`; `scene.frag` (`cutAway`); dados `colisao_e.json → ruin_tower.recorte`, `regiao_v2_e.json → conjunto.herbalista.trabalhador`; `tools/conteudo_construcoes.py` (`herbalista_varal`); Acapela `tools/npc_acapela_e.py`, `assets/anim/npc_acapela.json`, `AcapelaTest`; `TowerCameraTest`; roteiros `tools/mundo/13`–`19`, `desempenho-torre.txt`; `tools/review123.sh`; `docs/architecture/recorte-da-camera.md` |
 | Acabamento da v2 (12.1) | `vx.game`: `Collision` (`supports`, `standAt`, índice espacial), `GameLogic` (`discoveryFloor`, `knownPlaces`, chegar), `Game` (`drawDiscoveryObjects`, "Lugares"); `vx.game.world`: `RegionV2` (`RuinKind`, porte, moradores), `RegionLayout` (`DiscoverySpot`, `Worker`, `size`), `ProceduralField.flat`; `viewer`: `TerrainField.flat`, `Terrain`; `tools/conteudo_poi.py` (torre, ruína), `conteudo_lib.stone_steps`/`LEAF_FIX`, `conteudo_props.pote_achado`; dados `descobertas_e.json` v2, `habitantes_e.json → oficio`, `regiao_v2_e.json → oficios`; `CollisionIndexTest`, `DiscoveryTest`, `GeneratorV2Test`, `CompositeCollisionTest`, `MobilityTest`; roteiros `tools/mundo/07-demo-v2-torre.txt`, `08-demo-v2-casa.txt`; `tools/review121.sh`; `docs/architecture/descobertas.md`, `moradores-dos-oficios.md` |
 | Integração artística e saves (12.2) | PR #8: `tools/npcs_mundo_e.py` (Brásia, Quelmo, Arvel), `tools/conteudo_ruinas.py` (abóbada, sítio), `assets/anim/npc_*.json`; `vx.game`: `SaveGame.Incompatible`, `QuestSystem.UnknownReference`, `Reachability` (ponto autorado), `Collision.build` (corpo no ponto elevado), `GameLogic.npcMotion`/`npcFloor` (gesto de ofício); `vx.game.world`: `RegionGenerator.published`, `RegionV2` (4 `RuinKind`, `VAULT_RISE`, `FARM_FLAT`), `RegionProfile.Spot`; dados `habitantes_e.json` (5 ofícios), `descobertas_e.json` (abóbada, sítio), `regiao_v2_e.json → trabalhador`; `SaveCompatTest`, `MundoNpcTest`; roteiros `tools/mundo/09`–`12`; `tools/review122.sh`; `docs/validation/integracao-pr8.md` |
