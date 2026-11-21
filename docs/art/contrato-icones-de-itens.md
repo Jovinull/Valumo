@@ -47,7 +47,8 @@ do coração e do escudo do HUD. **Não são arte final aprovada.** O proprietá
 
 ## Testes de legibilidade (o que a revisão confere)
 
-- **Silhueta:** em preto, a 3× (o espaço da grade em 720p), os cinco se distinguem.
+- **Silhueta:** em preto, a 3× (o espaço da grade em 720p), os cinco se distinguem. Na primeira versão, a cataplasma e a
+  pedra são o par mais parecido (duas formas redondas; só a folha separa): a arte final deve afastá-las.
 - **Fundos:** lê no pergaminho claro e no escuro.
 - **Tamanho pequeno:** a 2× (o cartão em 720p) ainda se sabe o que é.
 - **Testes:** `ItemCatalogTest.osIconesSoUsamCoresDaPaleta` e o tamanho 14 × 14 continuam passando.
