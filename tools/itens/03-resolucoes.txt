@@ -1,0 +1,105 @@
+# Rodada 13 — a mochila nas resoluções oficiais (720p, 1080p, 16:10, ultrawide): item selecionado, cura disponível e
+# bloqueada, peça única, espaço vazio, mochila cheia, pilhas de 20; e o diário e a pausa na mesma resolução, para
+# comparar. Começa na região (-Dvx.mundo=procedural -Dvx.gerador=2 -Dvx.semente=7). "mochila-dar" é montagem técnica
+# (só em roteiro) para os casos de borda; o presente e os achados vêm do jogo.
+size 1920 1080
+click comecar
+wait 1.0
+ir-lugar oficio indira andando
+wait 0.6
+key E
+wait 1.3
+key E
+wait 1.2
+key E
+wait 1.2
+key E
+wait 1.0
+ir-lugar descoberta andando
+wait 0.5
+key E
+wait 0.8
+ir-lugar arvore andando
+wait 0.5
+key E
+wait 7.0
+vida-heroi 3
+key I
+wait 0.4
+click espaco:1
+wait 0.3
+shot r1080-cataplasma-ferido
+click espaco:2
+wait 0.3
+shot r1080-registro
+click espaco:5
+wait 0.3
+shot r1080-vazio
+size 1280 720
+wait 0.3
+click espaco:1
+wait 0.3
+shot r720-cataplasma-ferido
+click espaco:0
+wait 0.3
+shot r720-ervas
+size 1680 1050
+wait 0.3
+shot r1610-ervas
+size 2560 1080
+wait 0.3
+shot r2560-ervas
+size 1920 1080
+wait 0.3
+key ESC
+wait 0.3
+vida-heroi 6
+mochila-dar item.madeira_velha 20
+mochila-dar item.fragmento_pedra 10
+mochila-dar item.ervas_trilha 15
+mochila-dar item.madeira_velha 20
+mochila-dar item.madeira_velha 20
+mochila-dar item.madeira_velha 20
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila
+key I
+wait 0.4
+click espaco:1
+wait 0.3
+shot r1080-cheia-cataplasma-inteiro
+click espaco:3
+wait 0.3
+shot r1080-cheia-madeira-20
+size 1280 720
+wait 0.3
+shot r720-cheia
+size 1920 1080
+wait 0.3
+key ESC
+wait 0.3
+key J
+wait 0.5
+shot r1080-diario
+key ESC
+wait 0.3
+key ESC
+wait 0.5
+shot r1080-pausa
+key ESC
+wait 0.3
+mochila
