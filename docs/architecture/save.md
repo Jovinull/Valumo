@@ -199,6 +199,8 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
 
 - **Quando aparecem:** só quando há o que gravar. Um save sem item é byte a byte o de antes, e um save sem os campos abre
   com a mochila vazia (nada inventado).
+  - **Medido:** a mesma partida salva pela v0.6 e pela rodada 13 (vila e região s7) dá arquivos do mesmo tamanho, que só
+    diferem no id aleatório da aventura (`round-13/registros/save-igual-ao-da-v06.txt`).
 - **Formato:** a versão não mudou; continuam v1 (vila) e v2 (procedural).
 - **O que se grava:** só os espaços ocupados (espaço, id, quantidade) e os ids das fontes; nunca o nome da tela nem dado
   derivado.
