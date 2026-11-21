@@ -1,7 +1,8 @@
 # Inventário (rodadas 13 e 13.1)
 
 A mochila da aventura: o contrato, a tela e as regras. Rodada 13.1 ([ADR 0032](../decisions/0032-mochila-viva.md)): ela
-fica sobre o jogo correndo, não tem limite de espaços e mostra os itens pelos modelos voxel. Os itens estão em
+fica sobre o jogo correndo, não tem limite de espaços e mostra os itens pelos modelos voxel. Aprovada pelo proprietário e
+publicada na tag `inventory-foundation-v0.7`. Os itens estão em
 [itens](itens.md); as fontes, em [recompensas e loot](recompensas-e-loot.md); o save, em [save](save.md) §Rodada 13.
 
 ## O contrato (`vx.game.item.Inventory`)

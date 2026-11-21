@@ -222,7 +222,10 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
   arquivo atômico.
 - **Salvamento automático:** receber um item marca o salvamento automático no primeiro passo seguro, como os marcos.
 - **Alterações não salvas:** usar um item conta (`GameLogic.unsaved`).
-- **Voltar de versão:** um save com itens aberto pelo binário da v0.6 abre sem os itens (ele ignora campos que não
+- **Garantia da v0.7** (tag `inventory-foundation-v0.7`): os saves das versões antigas (v0.6 e as rodadas 13 e 13.1) abrem
+  na v0.7 e nas futuras compatíveis; matriz em [publicação da v0.7](../validation/relatorio-publicacao-inventario-v07.md)
+  §4 e `tools/qa/saves_inventario.sh`.
+- **Voltar de versão (P103):** um save com itens aberto pelo binário da v0.6 abre sem os itens (ele ignora campos que não
   conhece); salvar lá os perde. As fontes coletadas somem junto, então de volta à rodada 13 o presente e os achados podem
   ser recolhidos de novo, sem duplicação. Não é caminho suportado ([ADR 0031](../decisions/0031-itens-e-recompensas.md)).
 - **Testes:** `InventoryFlowTest`, `InventoryTest`, `SaveCompatTest` e a matriz `tools/qa/saves_antigos.sh`.

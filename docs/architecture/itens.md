@@ -2,7 +2,15 @@
 
 O catálogo de itens: o que cada item É. A mochila está em [inventário](inventario.md) e de onde os itens vêm, em
 [recompensas e loot](recompensas-e-loot.md). Decisões: [ADR 0031](../decisions/0031-itens-e-recompensas.md) e, para os
-modelos voxel e as pilhas maiores, [ADR 0032](../decisions/0032-mochila-viva.md).
+modelos voxel e as pilhas maiores, [ADR 0032](../decisions/0032-mochila-viva.md). Publicado na tag
+`inventory-foundation-v0.7`.
+
+**O catálogo não está congelado.** Itens novos podem entrar depois, desde que:
+- **o save continue compatível:** id estável `item.*` nunca reaproveitado, campos opcionais, e um item que o jogo não
+  conhece é tratado como jogo mais novo;
+- **os geradores publicados não mudem:** as fontes reagem a eventos que já existem.
+
+Congelados ficam só os geradores v1 e v2.
 
 ## O catálogo (`assets/scenes/itens_e.json`, escrito à mão)
 
