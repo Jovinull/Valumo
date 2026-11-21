@@ -1,0 +1,9 @@
+# v0.7 — um save que este jogo NÃO deve abrir (item desconhecido, quantidade inválida, formato futuro): C tenta continuar;
+# o jogo fica na escolha (SELECT). O script confere o arquivo (sha256 igual) e o .invalido (só no inválido).
+size 1280 720
+settle
+wait 1.2
+key C
+wait 1.0
+estado
+mochila

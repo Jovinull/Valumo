@@ -1,0 +1,49 @@
+# v0.7 — no binário da RODADA 13 (região v2 s7): o presente da Índira e o caderno da casa (fontes de verdade) e a mochila
+# completada até os 24 espaços (montagem técnica); salva pela pausa. Formato da rodada 13 (24 espaços).
+size 1280 720
+settle
+click comecar
+wait 1.0
+ir-lugar oficio indira andando
+wait 0.6
+key E
+wait 1.3
+key E
+wait 1.2
+key E
+wait 1.2
+key E
+wait 1.5
+ir-lugar descoberta andando
+wait 0.5
+key E
+wait 2.0
+mochila-dar item.madeira_velha 20
+mochila-dar item.fragmento_pedra 10
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila-dar item.registro_viagem 1
+mochila
+key ESC
+wait 0.4
+click salvar
+wait 0.8
+mochila
+missao
+estado

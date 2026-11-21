@@ -1,0 +1,13 @@
+# v0.7 — no binário da 13.1 (região v2 s7): começar, andar e salvar SEM item nenhum (o save não ganha campos novos).
+size 1280 720
+settle
+click comecar
+wait 1.0
+hold W 1.5
+wait 0.5
+key ESC
+wait 0.4
+click salvar
+wait 0.8
+mochila
+estado
