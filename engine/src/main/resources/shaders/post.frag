@@ -21,6 +21,7 @@ uniform float uContrast;
 uniform vec3 uTint;
 uniform float uVignette;
 uniform bool uFxaa;         // antisserrilhado por pós (rodada 03): alternativa leve ao SSAA
+uniform bool uAlphaOut;     // rodada 13.1: fundo transparente (itens da mochila); desligado = o caminho de sempre
 
 // FXAA compacto (variante "console" de Lottes): detecta borda pelo contraste de luma (raiz ~ gama) entre
 // 4 diagonais e mistura ao longo da direção da borda. Só para SSAA 1x.
@@ -48,7 +49,59 @@ float linDepth(vec2 uv) {
     return 2.0 * uNear * uFar / (uFar + uNear - d * (uFar - uNear));
 }
 
+// Rodada 13.1 — fundo TRANSPARENTE (o céu não foi desenhado: o fundo é preto com profundidade 1). O alfa é a cobertura
+// dos objetos (os 4 texels da cena sob o pixel, com o supersampling 2x dos itens) e, fora deles, o contorno; a cor da borda
+// é desfeita da mistura com o fundo preto. Mesma gradação do caminho normal (que fica intocado em main).
+vec4 alphaOut() {
+    vec2 h = uTexel * 0.5;
+    float cov = 0.0;
+    cov += texture(uDepth, vUv + vec2(-h.x, -h.y)).r < 1.0 ? 0.25 : 0.0;
+    cov += texture(uDepth, vUv + vec2(h.x, -h.y)).r < 1.0 ? 0.25 : 0.0;
+    cov += texture(uDepth, vUv + vec2(-h.x, h.y)).r < 1.0 ? 0.25 : 0.0;
+    cov += texture(uDepth, vUv + vec2(h.x, h.y)).r < 1.0 ? 0.25 : 0.0;
+    vec3 col = texture(uColor, vUv).rgb;
+    if (cov > 0.0) col /= cov;
+    float a = cov;
+    if (uOutline > 0.0) {
+        vec2 o = uTexel * uOutlineWidth;
+        float dc = linDepth(vUv);
+        float d1 = linDepth(vUv + vec2(o.x, 0.0)), d2 = linDepth(vUv - vec2(o.x, 0.0));
+        float d3 = linDepth(vUv + vec2(0.0, o.y)), d4 = linDepth(vUv - vec2(0.0, o.y));
+        float w = texture(uNormal, vUv).a, dm = dc;
+        vec2 off = vec2(0.0);
+        if (d1 < dm) { dm = d1; off = vec2(o.x, 0.0); }
+        if (d2 < dm) { dm = d2; off = vec2(-o.x, 0.0); }
+        if (d3 < dm) { dm = d3; off = vec2(0.0, o.y); }
+        if (d4 < dm) { dm = d4; off = vec2(0.0, -o.y); }
+        w = texture(uNormal, vUv + off).a;
+        float de = abs(d1 + d2 + d3 + d4 - 4.0 * dc) / dc;
+        float edgeD = smoothstep(0.02, 0.07, de);
+        vec3 n0 = texture(uNormal, vUv).xyz;
+        float ne = 0.0;
+        ne += length(n0 - texture(uNormal, vUv + vec2(o.x, 0.0)).xyz);
+        ne += length(n0 - texture(uNormal, vUv - vec2(o.x, 0.0)).xyz);
+        ne += length(n0 - texture(uNormal, vUv + vec2(0.0, o.y)).xyz);
+        ne += length(n0 - texture(uNormal, vUv - vec2(0.0, o.y)).xyz);
+        float edgeN = cov > 0.0 ? smoothstep(0.6, 1.2, ne) * uOutlineNormal : 0.0;
+        float fade = 1.0 - smoothstep(uOutlineFade.x, uOutlineFade.y, dm);
+        float e = clamp(max(edgeD, edgeN), 0.0, 1.0) * uOutline * fade * w;
+        vec3 base = cov > 0.0 ? col : texture(uColor, vUv + off).rgb;
+        col = mix(base, uOutlineColor * base * 0.6 + uOutlineColor * 0.04, e);
+        a = max(a, clamp(e * 1.6, 0.0, 1.0));
+    }
+    if (uBloomStrength > 0.0) col += texture(uBloom, vUv).rgb * uBloomStrength;
+    col *= uExposure;
+    col = mix(col, 1.0 - exp(-col), smoothstep(0.6, 1.4, col));
+    col *= uTint;
+    float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    col = mix(vec3(l), col, uSaturation);
+    col = (col - 0.18) * uContrast + 0.18;
+    col = max(col, 0.0);
+    return vec4(pow(col, vec3(1.0 / 2.2)), a);
+}
+
 void main() {
+    if (uAlphaOut) { oColor = alphaOut(); return; }
     vec3 col = uFxaa ? fxaa(vUv) : texture(uColor, vUv).rgb;
 
     if (uOutline > 0.0) {
