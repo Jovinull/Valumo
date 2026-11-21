@@ -36,7 +36,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public final class GameLogic {
     /** Rodada 10: JOURNAL = diário aberto (J); a lógica para como na pausa. */
-    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL, MENU, INVENTORY }
+    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL, MENU }
 
     /** NPC com quem dá para conversar. */
     public static final class Npc {
@@ -163,13 +163,20 @@ public final class GameLogic {
 
     /**
      * Rodada 13 — itens: o catálogo e a tabela de recompensas desta sessão (lidos uma vez; {@link ItemRules#NONE} numa cena
-     * sem jogo para salvar), a mochila e as fontes coletadas DESTA aventura (vão no save) e o espaço selecionado na tela.
+     * sem jogo para salvar), a mochila e as fontes coletadas DESTA aventura (vão no save) e a pilha selecionada na tela.
      */
     public final ItemRules itemRules;
     public ItemProgress items = new ItemProgress();
-    public int invSelected;
+    /** A pilha selecionada (índice na mochila; −1 = nenhuma). */
+    public int invSelected = -1;
+    /**
+     * Rodada 13.1: a mochila é uma CAMADA sobre {@link State#EXPLORE} — o jogo continua correndo (passos, inimigos, salvamento
+     * automático); o cursor fica solto e os botões do mouse são dela. A aba ativa filtra por categoria ("" = tudo).
+     */
+    public boolean bagOpen;
+    public String bagTab = "";
     /** Rodada 13: colunas da grade da mochila (o desenho e as setas usam o mesmo número). */
-    public static final int INV_COLS = 6;
+    public static final int INV_COLS = 7;
     /** Rodada 13: o cartão do último item recebido (título e linha dos itens) e até quando aparece. */
     public String itemNoticeTitle, itemNoticeItems;
     public List<Inventory.Grant> itemNoticeGrants = List.of();
@@ -344,17 +351,6 @@ public final class GameLogic {
                 if (in.hit(GLFW_KEY_T)) action("rastreador");
                 cam.update(dt, player.x, player.visualY, player.z, collision);
             }
-            case INVENTORY -> {                                            // rodada 13: mochila (a lógica para, como no diário)
-                if (in.hit(GLFW_KEY_ESCAPE, GLFW_KEY_I)) action("fechar-inventario");
-                else {
-                    if (in.hit(GLFW_KEY_RIGHT, GLFW_KEY_D)) selectSlot(invSelected + 1);
-                    if (in.hit(GLFW_KEY_LEFT, GLFW_KEY_A)) selectSlot(invSelected - 1);
-                    if (in.hit(GLFW_KEY_DOWN, GLFW_KEY_S)) selectSlot(invSelected + INV_COLS);
-                    if (in.hit(GLFW_KEY_UP, GLFW_KEY_W)) selectSlot(invSelected - INV_COLS);
-                    if (in.hit(GLFW_KEY_ENTER, GLFW_KEY_E, GLFW_KEY_SPACE)) action("usar-item");
-                }
-                cam.update(dt, player.x, player.visualY, player.z, collision);
-            }
         }
         for (Npc n : npcs) {                                              // quem conversa olha para o herói; depois volta
             float want = n == talking ? (float) Math.atan2(player.x - n.def.x(), player.z - n.def.z()) : n.baseYaw();
@@ -372,14 +368,15 @@ public final class GameLogic {
     }
 
     private void explore(float dt, Input in) {
-        if (in.hit(GLFW_KEY_ESCAPE)) { action("pausar"); return; }
+        if (in.hit(GLFW_KEY_ESCAPE)) { action(bagOpen ? "fechar-inventario" : "pausar"); return; }   // 13.1: Esc fecha a mochila
         if (in.hit(GLFW_KEY_J) && quests != null) { action("diario"); return; }
-        if (in.hit(GLFW_KEY_I) && quests != null) { action("inventario"); return; }   // rodada 13: mochila
-        cam.look(in.mdx, in.mdy);
+        if (in.hit(GLFW_KEY_I) && quests != null) { action(bagOpen ? "fechar-inventario" : "inventario"); return; }   // rodada 13: mochila
+        if (bagOpen) bagKeys(in);                                       // rodada 13.1: setas e Enter na grade; o resto do jogo segue
+        else cam.look(in.mdx, in.mdy);                                  // com a mochila aberta o mouse é dela: a câmera não gira
         if (in.wheel != 0) cam.zoom(in.wheel);
-        float[] ax = in.moveAxes();
+        float[] ax = in.moveAxes(bagOpen);                              // com a mochila aberta só WASD anda (as setas são da grade)
         boolean run = in.running(), locked = combat != null && !combat.hero.alive();
-        if (in.leftPressed > 0) pendingAttack = true;                  // o aperto vale para o próximo passo, mesmo sem passo neste quadro
+        if (in.leftPressed > 0 && !bagOpen) pendingAttack = true;      // o aperto vale para o próximo passo, mesmo sem passo neste quadro
         if (in.hit(GLFW_KEY_LEFT_ALT) || in.middlePressed > 0) pendingDodge = true;   // rodada 09.2: esquiva
         if (in.hit(GLFW_KEY_SPACE)) pendingJump = true;                              // rodada 09.2: salto
         if (combat != null && !locked) {                                             // rodada 09.2: mira opcional
@@ -403,7 +400,7 @@ public final class GameLogic {
             if (combat != null) {
                 float len = Math.min(1f, (float) Math.hypot(ix, iz)), max = run ? player.run : player.walk, k = len > 1e-6f ? len / (float) Math.hypot(ix, iz) : 0f;
                 intent.set(locked ? 0f : ix * k * max, locked ? 0f : iz * k * max, !locked && len > 0.01f, !locked && pendingAttack,
-                        !locked && in.rightDown, (float) Math.atan2(fx, fz));
+                        !locked && in.rightDown && !bagOpen, (float) Math.atan2(fx, fz));
                 intent.run = run;
                 intent.dodge = !locked && pendingDodge;
                 intent.jump = !locked && pendingJump;
@@ -443,6 +440,7 @@ public final class GameLogic {
         }
         acc = Math.max(0.0, acc);
         alpha = (float) Math.clamp(acc / TICK_D, 0.0, 1.0);
+        if (bagOpen && defeated()) bagOpen = false;                       // rodada 13.1: a derrota fecha a mochila
         candidate = combat != null && combat.engaged() ? null : findCandidate();   // sem conversa no meio da luta
         objectCandidate = combat != null && combat.engaged() ? null : findObject();
         discoveryCandidate = combat != null && combat.engaged() ? null : findDiscovery();
@@ -465,9 +463,10 @@ public final class GameLogic {
                     : objectCandidate != null ? (float) Math.hypot(objectCandidate.x() - player.x, objectCandidate.z() - player.z) : Float.MAX_VALUE;
             if (dd < other) { candidate = null; objectCandidate = null; } else discoveryCandidate = null;
         }
-        if (candidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) startDialog(candidate);
-        else if (objectCandidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) useObject(objectCandidate);
-        else if (discoveryCandidate != null && in.hit(GLFW_KEY_E, GLFW_KEY_ENTER)) useDiscovery(discoveryCandidate);
+        boolean interact = in.hit(GLFW_KEY_E) || (!bagOpen && in.hit(GLFW_KEY_ENTER));   // 13.1: com a mochila, Enter usa o item
+        if (candidate != null && interact) startDialog(candidate);
+        else if (objectCandidate != null && interact) useObject(objectCandidate);
+        else if (discoveryCandidate != null && interact) useDiscovery(discoveryCandidate);
         if (combat != null) {
             if (combat.outcome == Combat.Outcome.VICTORY && !victoryShown) {
                 victoryShown = true;
@@ -596,19 +595,69 @@ public final class GameLogic {
         itemNoticeUntil = time + 6f;
     }
 
-    void selectSlot(int i) {
-        int n = Inventory.SLOTS;
-        invSelected = Math.floorMod(i, n);
+    // ------------------------------------------------------------------ rodada 13.1: a mochila sobre o jogo
+
+    /** As pilhas da aba atual, na ordem da mochila ("" = todas). */
+    public List<Integer> bagView() {
+        List<Integer> v = new ArrayList<>();
+        var inv = items.inventory;
+        for (int i = 0; i < inv.size(); i++)
+            if (bagTab.isEmpty() || inv.slot(i).item().category().equals(bagTab)) v.add(i);
+        return v;
     }
 
-    /** O espaço selecionado: usa o item, se dá (na lógica, uma vez por pedido; o efeito vem de {@link ItemEffects}). */
+    /** As abas: "" (tudo) e as categorias do catálogo, na ordem do arquivo. */
+    public List<String> bagTabs() {
+        List<String> t = new ArrayList<>(List.of(""));
+        t.addAll(itemRules.catalog().categories().keySet());
+        return t;
+    }
+
+    void selectSlot(int i) {
+        if (i >= 0 && i < items.inventory.size() && bagView().contains(i)) invSelected = i;
+    }
+
+    /** Mantém a seleção numa pilha que existe e está na aba (a mais próxima, depois de usar a última unidade). */
+    void fixSelection() {
+        List<Integer> v = bagView();
+        if (v.isEmpty()) { invSelected = -1; return; }
+        if (v.contains(invSelected)) return;
+        int best = v.get(0);
+        for (int i : v) if (i <= invSelected) best = i;
+        invSelected = invSelected < v.get(0) ? v.get(0) : best;
+    }
+
+    /** Setas: anda pela grade da aba (uma coluna ou uma linha), sem dar a volta; Enter usa. */
+    private void bagKeys(Input in) {
+        int d = in.hit(GLFW_KEY_RIGHT) ? 1 : in.hit(GLFW_KEY_LEFT) ? -1 : in.hit(GLFW_KEY_DOWN) ? INV_COLS : in.hit(GLFW_KEY_UP) ? -INV_COLS : 0;
+        if (d != 0) {
+            List<Integer> v = bagView();
+            if (!v.isEmpty()) {
+                int p = v.indexOf(invSelected);
+                int q = p < 0 ? 0 : Math.clamp(p + d, 0, v.size() - 1);
+                if (q != p) { invSelected = v.get(q); onAction.accept("espaco:" + invSelected); }
+            }
+        }
+        if (in.hit(GLFW_KEY_ENTER)) action("usar-item");
+    }
+
+    /** O herói foi derrotado (a tela de derrota manda; a mochila fecha e não abre). */
+    boolean defeated() { return combat != null && combat.outcome == Combat.Outcome.DEFEAT; }
+
+    void openBag() {
+        bagOpen = true;
+        fixSelection();
+    }
+
+    /** A pilha selecionada: usa o item, se dá (na lógica, uma vez por pedido; o efeito vem de {@link ItemEffects}). */
     void useSelected() {
         ItemStack st = items.inventory.slot(invSelected);
-        if (st == null) { message("Este espaço está vazio", 2.5f); onAction.accept("item-indisponivel"); return; }
+        if (st == null) { message("Escolha um item", 2.5f); onAction.accept("item-indisponivel"); return; }
         if (!st.item().usable()) { message(st.item().name() + " não se usa", 3f); onAction.accept("item-indisponivel"); return; }
         ItemEffects.Result r = ItemEffects.apply(st.item(), heroTarget());
         if (r.consumed()) {
             items.inventory.remove(invSelected, 1);
+            fixSelection();                                               // 13.1: a pilha que acabou sai da lista
             itemUses++;
             onAction.accept("item-usar");
         } else onAction.accept("item-indisponivel");
@@ -661,6 +710,7 @@ public final class GameLogic {
     }
 
     public void startDialog(Npc n) {
+        bagOpen = false;                                                  // rodada 13.1: a conversa fecha a mochila
         onAction.accept("fala-inicio");
         talking = n;
         line = 0;
@@ -793,7 +843,7 @@ public final class GameLogic {
                 if (lastLine() && !dialogChoices.isEmpty()) choose(choiceSelected);
                 else if (lastLine()) endDialog(); else line++;
             }
-            case "diario" -> { if (state == State.EXPLORE && quests != null) state = State.JOURNAL; }
+            case "diario" -> { if (state == State.EXPLORE && quests != null) { bagOpen = false; state = State.JOURNAL; } }
             case "menu-principal" -> { if (menuAvailable && state == State.PAUSE) leaving = "menu"; }   // sempre pergunta (o texto diz se há o que perder)
             case "menu-salvar" -> {                                    // salva e sai (só se dá para salvar agora)
                 if (leaving == null) return;
@@ -808,10 +858,12 @@ public final class GameLogic {
             }
             case "diario-pausa" -> { if (state == State.PAUSE && quests != null) state = State.JOURNAL; }
             case "fechar-diario" -> { if (state == State.JOURNAL) state = State.EXPLORE; }
-            case "inventario" -> { if (state == State.EXPLORE && quests != null) state = State.INVENTORY; }   // rodada 13
-            case "inventario-pausa" -> { if (state == State.PAUSE && quests != null && leaving == null) state = State.INVENTORY; }
-            case "fechar-inventario" -> { if (state == State.INVENTORY) state = State.EXPLORE; }
-            case "usar-item" -> { if (state == State.INVENTORY) useSelected(); }
+            case "inventario" -> { if (state == State.EXPLORE && quests != null && !defeated()) openBag(); }   // rodada 13.1: sobre o jogo
+            case "inventario-pausa" -> {                               // da pausa: fecha a pausa e abre a mochila com o jogo correndo
+                if (state == State.PAUSE && quests != null && leaving == null && !defeated()) { state = State.EXPLORE; resumeState = null; openBag(); }
+            }
+            case "fechar-inventario" -> bagOpen = false;
+            case "usar-item" -> { if (bagOpen && state == State.EXPLORE) useSelected(); }
             case "rastreador" -> { prefs.tracker = !prefs.tracker; prefs.save(); }
             case "salvar" -> {
                 String why = saveBlocker();
@@ -819,7 +871,7 @@ public final class GameLogic {
             }
             case "continuar-jogo" -> continueSaved();
             case "encerrar-fala" -> endDialog();
-            case "pausar" -> { if (state == State.EXPLORE) state = State.PAUSE; }
+            case "pausar" -> { if (state == State.EXPLORE) { bagOpen = false; state = State.PAUSE; } }
             case "continuar" -> { if (state == State.PAUSE) { state = State.EXPLORE; leaving = null; resumeState = null; } }
             case "trocar-aparencia" -> { state = State.SELECT; frameSelect(); }
             case "criador" -> openCreator = true;
@@ -865,7 +917,20 @@ public final class GameLogic {
                 setEncounter(ks.get((ks.indexOf(combat.encounter) + 1) % ks.size()));
             }
             default -> {
-                if (id.startsWith("espaco:") && state == State.INVENTORY) selectSlot(Integer.parseInt(id.substring(7)));   // rodada 13
+                if (id.startsWith("espaco:") && bagOpen) selectSlot(Integer.parseInt(id.substring(7)));   // rodada 13
+                else if (id.startsWith("pairar:") && bagOpen) selectSlot(Integer.parseInt(id.substring(7)));   // 13.1: o mouse por cima
+                else if (id.startsWith("clique:") && bagOpen && state == State.EXPLORE) {   // 13.1: clique esquerdo num espaço
+                    int i = Integer.parseInt(id.substring(7));
+                    selectSlot(i);
+                    ItemStack st = items.inventory.slot(i);
+                    if (invSelected == i && st != null && st.item().usable()) useSelected();   // o que se usa, usa
+                    else if (invSelected == i) onAction.accept("espaco:" + i);
+                }
+                else if (id.startsWith("usar:") && bagOpen && state == State.EXPLORE) {   // 13.1: clique direito num espaço
+                    selectSlot(Integer.parseInt(id.substring(5)));
+                    if (invSelected == Integer.parseInt(id.substring(5))) useSelected();
+                }
+                else if (id.startsWith("aba:") && bagOpen && bagTabs().contains(id.substring(4))) { bagTab = id.substring(4); fixSelection(); }
                 else if (id.startsWith("escolha:")) select(Integer.parseInt(id.substring(8)));
                 else if (id.startsWith("fala-escolha:")) { choiceSelected = Integer.parseInt(id.substring(13)); action("continuar-fala"); }
                 else if (id.startsWith("sensacao:") && technical) { applyFeel(id.substring(9)); prefs.feelFromCommandLine = false; prefs.save(); }
@@ -1080,7 +1145,9 @@ public final class GameLogic {
         SaveGame.Data d = saved.data();
         quests = d.quests();
         items = d.items();                                                // rodada 13: a mochila e as fontes desta aventura
-        invSelected = 0;
+        invSelected = -1;
+        bagOpen = false;
+        bagTab = "";
         playTime = d.playTime();
         saveId = d.id();
         appearance = d.appearance().copy();

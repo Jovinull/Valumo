@@ -19,6 +19,8 @@ public final class Input {
     public final List<Integer> pressed = new ArrayList<>();
     public float mouseX = -1, mouseY = -1, mdx, mdy, wheel;
     public final List<float[]> clicks = new ArrayList<>();         // {x, y} de cliques esquerdos (soltar)
+    /** Rodada 13.1: {x, y} de cliques DIREITOS (soltar) — usar o item do espaço com a mochila aberta. */
+    public final List<float[]> rightClicks = new ArrayList<>();
     public boolean rightDown;
     /** Rodada 09: botão esquerdo APERTADO neste quadro (o golpe sai no aperto, não no soltar). */
     public int leftPressed;
@@ -40,6 +42,7 @@ public final class Input {
     public void feed(List<InputEvent> events) {
         pressed.clear();
         clicks.clear();
+        rightClicks.clear();
         mdx = mdy = wheel = 0;
         leftPressed = 0;
         middlePressed = 0;
@@ -63,7 +66,7 @@ public final class Input {
                 }
                 case UP -> {
                     if (e.button() == 0) clicks.add(new float[]{e.x(), e.y()});
-                    if (e.button() == 1) rightDown = false;
+                    if (e.button() == 1) { rightDown = false; rightClicks.add(new float[]{e.x(), e.y()}); }
                 }
                 case SCROLL -> wheel += e.scroll();
                 default -> { }
@@ -85,9 +88,12 @@ public final class Input {
     }
 
     /** Intenção de movimento da câmera: x = direita, y = frente (−1..1). */
-    public float[] moveAxes() {
-        float f = (held(GLFW_KEY_W, GLFW_KEY_UP) ? 1 : 0) - (held(GLFW_KEY_S, GLFW_KEY_DOWN) ? 1 : 0);
-        float r = (held(GLFW_KEY_D, GLFW_KEY_RIGHT) ? 1 : 0) - (held(GLFW_KEY_A, GLFW_KEY_LEFT) ? 1 : 0);
+    public float[] moveAxes() { return moveAxes(false); }
+
+    /** Idem; {@code wasdOnly}: as setas não andam (rodada 13.1: com a mochila aberta elas andam pela grade). */
+    public float[] moveAxes(boolean wasdOnly) {
+        float f = (held(GLFW_KEY_W) || !wasdOnly && held(GLFW_KEY_UP) ? 1 : 0) - (held(GLFW_KEY_S) || !wasdOnly && held(GLFW_KEY_DOWN) ? 1 : 0);
+        float r = (held(GLFW_KEY_D) || !wasdOnly && held(GLFW_KEY_RIGHT) ? 1 : 0) - (held(GLFW_KEY_A) || !wasdOnly && held(GLFW_KEY_LEFT) ? 1 : 0);
         return new float[]{r, f};
     }
 

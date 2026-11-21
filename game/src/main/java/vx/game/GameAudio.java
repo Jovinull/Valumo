@@ -70,6 +70,7 @@ final class GameAudio {
     /** Ação do jogador → som de interface (null = ação muda). */
     static String uiEvent(String action) {
         if (action.startsWith("espaco:")) return "ui.selecionar";        // rodada 13: um espaço da mochila
+        if (action.startsWith("aba:")) return "ui.selecionar";           // rodada 13.1: uma aba da mochila
         return switch (action) {
             case "comecar", "criador", "continuar-jogo" -> "ui.confirmar";
             case "pausar", "trocar-aparencia", "fala-inicio", "diario", "diario-pausa" -> "ui.abrir";
