@@ -6,6 +6,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import vx.game.quest.QuestDefinition;
+import vx.game.item.ItemProgress;
+import vx.game.item.ItemRules;
 import vx.game.quest.QuestSystem;
 import vx.viewer.Appearance;
 import vx.viewer.ComponentCatalog;
@@ -71,7 +73,7 @@ public final class SaveGame {
 
     /** Save lido. {@code appearanceProblem}: aparência salva incompatível (usada a do modelo); null = veio a salva. */
     public record Data(String id, String scene, Appearance appearance, String appearanceProblem, float x, float z, float yawDeg,
-                       float playTime, QuestSystem quests) { }
+                       float playTime, QuestSystem quests, ItemProgress items) { }
 
     /**
      * Resultado da leitura: {@code data} ou {@code problem} (motivo para o jogador); ambos null = não há save. Rodada 12.2:
@@ -91,6 +93,15 @@ public final class SaveGame {
     /** Rodada 11: {@code ps} != null = mundo procedural (v2, com o bloco "mundo" e os vínculos resolvidos). */
     public static JsonObject compose(String id, String scene, Appearance a, float x, float z, float yawDeg, float playTime, QuestSystem q,
                                      ProceduralScene ps) {
+        return compose(id, scene, a, x, z, yawDeg, playTime, q, ps, null);
+    }
+
+    /**
+     * Rodada 13: {@code items} (pode ser null) acrescenta ao {@code progresso} os campos OPCIONAIS da mochila e das fontes
+     * coletadas; sem item nenhum, o save sai byte a byte igual ao de antes (sem versão nova do formato).
+     */
+    public static JsonObject compose(String id, String scene, Appearance a, float x, float z, float yawDeg, float playTime, QuestSystem q,
+                                     ProceduralScene ps, ItemProgress items) {
         JsonObject o = new JsonObject();
         o.addProperty("_doc", "Valumo — jogo salvo (rodada 10; v2 = mundo procedural, rodada 11). Contrato: docs/architecture/save.md. Editar à mão pode invalidar o arquivo.");
         o.addProperty("formato", FORMAT);
@@ -110,7 +121,9 @@ public final class SaveGame {
         p.addProperty("direcao", round(yawDeg));
         o.add("jogador", p);
         o.addProperty("tempoDeJogo", round(playTime));
-        o.add("progresso", q.toJson());
+        JsonObject prog = q.toJson();
+        if (items != null) items.writeTo(prog);
+        o.add("progresso", prog);
         return o;
     }
 
@@ -224,12 +237,17 @@ public final class SaveGame {
 
     public static Loaded read(Path dir, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects,
                               ProceduralScene ps) {
+        return read(dir, cat, scene, quests, objects, ps, ItemRules.NONE);
+    }
+
+    public static Loaded read(Path dir, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects,
+                              ProceduralScene ps, ItemRules rules) {
         if (dir == null) return new Loaded(null, null, null);
         Path file = dir.resolve(FILE);
         if (!Files.isRegularFile(file)) return new Loaded(null, null, null);
         try {
             if (Files.size(file) > MAX_BYTES) throw new Invalid("arquivo grande demais (" + Files.size(file) + " bytes)");
-            return new Loaded(parse(Files.readString(file, StandardCharsets.UTF_8), cat, scene, quests, objects, ps), null, null);
+            return new Loaded(parse(Files.readString(file, StandardCharsets.UTF_8), cat, scene, quests, objects, ps, rules), null, null);
         } catch (Incompatible e) {                                         // rodada 12.2: íntegro, de outra região: nada é tocado
             System.out.println("save: " + dir + " — " + e.getMessage() + " (" + e.detail + "); o arquivo ficou como estava, sem .invalido");
             return new Loaded(null, e.getMessage(), null, true);
@@ -296,6 +314,16 @@ public final class SaveGame {
      */
     public static Data parse(String json, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects,
                              ProceduralScene ps) {
+        return parse(json, cat, scene, quests, objects, ps, ItemRules.NONE);
+    }
+
+    /**
+     * Rodada 13: {@code rules} lê a mochila e as fontes coletadas (campos opcionais do {@code progresso}). Estrutura ou
+     * número inválido = {@link Invalid}; item que este jogo não conhece ou presente de outra versão = {@link Incompatible}
+     * de jogo mais novo (o arquivo está íntegro); achado de descoberta que a região não tem = outra região.
+     */
+    public static Data parse(String json, ComponentCatalog cat, String scene, Collection<QuestDefinition> quests, Set<String> objects,
+                             ProceduralScene ps, ItemRules rules) {
         JsonObject o;
         try {
             JsonElement e = JsonParser.parseString(json);
@@ -342,6 +370,7 @@ public final class SaveGame {
             throw e;
         }
         q.clock = play;
+        ItemProgress items = readItems(obj(o, "progresso"), rules, objects, ps);
         Appearance a;
         String problem = null;
         JsonObject ap = obj(o, "aparencia");
@@ -351,7 +380,29 @@ public final class SaveGame {
             a = Appearance.preset("aventureiro");
             problem = e.getMessage();
         }
-        return new Data(id, sc, a, problem, x, z, yaw, play, q);
+        return new Data(id, sc, a, problem, x, z, yaw, play, q, items);
+    }
+
+    static final String NEWER_ITEMS = "Esta aventura tem itens de uma versão mais nova do jogo. Ela continua guardada como estava";
+
+    /** Rodada 13 — a mochila e as fontes coletadas do bloco {@code progresso}, com a recusa certa para cada problema. */
+    static ItemProgress readItems(JsonObject progresso, ItemRules rules, Set<String> objects, ProceduralScene ps) {
+        java.util.List<String> otherRegion = new java.util.ArrayList<>(), newer = new java.util.ArrayList<>();
+        try {
+            return ItemProgress.read(progresso, rules.catalog(), s -> switch (rules.fit(s, objects)) {
+                case KNOWN -> true;
+                case OTHER_REGION -> { otherRegion.add(s); yield false; }
+                case NEWER_GAME -> { newer.add(s); yield false; }
+            });
+        } catch (ItemProgress.UnknownItem e) {
+            throw new Incompatible(NEWER_ITEMS, e.getMessage());
+        } catch (ItemProgress.UnknownSource e) {
+            if (!newer.isEmpty()) throw new Incompatible(NEWER_ITEMS, e.getMessage());
+            if (ps != null) throw otherRegion(ps, e.getMessage());
+            throw new Invalid(e.getMessage());
+        } catch (ItemProgress.Invalid e) {
+            throw new Invalid(e.getMessage());
+        }
     }
 
     private static JsonObject obj(JsonObject o, String k) {
