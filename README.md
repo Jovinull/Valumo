@@ -104,6 +104,21 @@ A **Rodada 12.3** fechou a v2:
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12-3.md).
 
+A **Rodada 13 — Inventário, itens e recompensas** (ramo `feature/inventory-and-loot`, em avaliação, não publicada) dá ao
+Valumo a primeira progressão de RPG:
+
+- **A mochila:** 24 espaços. Abre com I ou pelo botão Inventário da pausa e fica no estilo do diário.
+- **Cinco itens:** ervas, cataplasma, fragmento de pedra, madeira envelhecida e registro de viagem.
+- **As fontes:**
+  - o presente da Índira, a herbalista, ao fim da conversa;
+  - os achados das ruínas e da árvore, junto com cada descoberta.
+
+  Cada uma entrega uma vez, tudo ou nada.
+- **A cataplasma:** devolve um coração fora da luta.
+- **O save:** tudo continua ao salvar e voltar, e os mundos publicados não mudaram em nada.
+
+Detalhes no [relatório](docs/validation/relatorio-rodada-13.md).
+
 ## Requisitos
 
 - Linux x86-64 com OpenGL ≥ 3.3 (testado em Mesa 26.2 / Intel Iris Xe).
@@ -157,6 +172,7 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | roda | aproximar e afastar |
 | `E` | conversar (perto e de frente para um NPC: Kelyra, Bramor, Teodor, Pluma, Ondina, Lunara), avançar as falas, confirmar a escolha (← → escolhem) e usar o marco |
 | `J` | diário (missão, objetivos, recompensa, moedas); `T` no diário mostra/esconde o rastreador |
+| `I` | mochila (rodada 13): clique ou setas/WASD escolhem o espaço, `Enter`/`E`/`Espaço` usam, `I`/`Esc` fecham; também pelo botão Inventário da pausa |
 | clique esquerdo | atacar (no ritmo, encadeia horizontal → diagonal → descendente; dá para andar durante o golpe) |
 | botão direito (segurar) | defender com o escudo (só de frente) |
 | `Espaço` | pular (sobe em caixote, barril e pedra pequena) |
@@ -164,7 +180,7 @@ pulada quando nada em `tools/` mudou; precisa de `python3`). Para forçar: `./gr
 | `Q` | travar / soltar a mira no inimigo |
 | `Tab` / `Shift+Tab` | trocar o alvo travado (direita / esquerda na tela) |
 | `R` / `Enter` | recomeçar o confronto (depois de vitória / na tela de derrota) |
-| `Esc` | pausa (continuar, **menu principal** (volta à tela inicial; se houver progresso não salvo, pergunta: salvar e voltar / voltar sem salvar), **salvar jogo**, **diário**, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sair; com `-Ptecnico` também a sensação A/B/C e a arena de comparação: um fungo / três / chefe + 2 / trilha da missão) |
+| `Esc` | pausa (continuar, **menu principal** (volta à tela inicial; se houver progresso não salvo, pergunta: salvar e voltar / voltar sem salvar), **salvar jogo**, **diário**, **inventário**, sensibilidade, inverter vertical, volume da música e dos efeitos, mudo, barras de inimigos, sair; com `-Ptecnico` também a sensação A/B/C e a arena de comparação: um fungo / três / chefe + 2 / trilha da missão) |
 | `M` | liga/desliga o som |
 | `F12` | captura em `output/visual-review/manual/` |
 
@@ -293,6 +309,8 @@ Comece por [docs/README.md](docs/README.md).
 - Câmera, aceitas na publicação da v2 (sem reclamação no teste físico): ao sair da torre caída de costas, a câmera encosta
   na parede no fim da saída (P95); o recorte tem um anel pontilhado fino, visível parado (P96); dentro da abóbada a câmera
   fica curta, sob o teto (P97).
+- Itens (rodada 13): a vila fixa e as regiões v1 não têm fonte de item (não têm descobertas nem a Índira); a vida não vai
+  para o save (ao continuar, volta cheia); os ícones são a primeira versão, à espera da arte autoral.
 - Protótipo: uma vila pequena, seis conversas curtas, uma missão e um confronto (espada e escudo contra os fungos da
   trilha; na pausa, um fungo, três ou um protótipo de chefe com dois menores). Sem inventário, loja, experiência,
   classes nem progressão; um save só.

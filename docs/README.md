@@ -13,6 +13,7 @@
 | [art/contrato-de-qualidade.md](art/contrato-de-qualidade.md) | critérios de aceite por categoria (obrigatório / flexível / boa prática / preferência) |
 | [art/reference/](art/reference/README.md) | **imagens canônicas** (capturas reais) e galeria de reprovados |
 | [art/contrato-de-assets.md](art/contrato-de-assets.md) | contrato técnico: nomes, eixos, escalas, formatos, rig, meta |
+| [art/contrato-icones-de-itens.md](art/contrato-icones-de-itens.md) | pedido ao agente artista (13): ícones e pequenos modelos dos itens, identidade, paleta, formato, testes de legibilidade |
 | [art/especificacao-de-personagem.md](art/especificacao-de-personagem.md), [art/sistema-de-proporcoes.md](art/sistema-de-proporcoes.md) | construção de personagem |
 | [art/guia-de-animacao.md](art/guia-de-animacao.md) | locomoção, coreografia de armas, perfis `assets/anim`, IK, limites |
 | [art/paleta-e-materiais.md](art/paleta-e-materiais.md), [art/regras-de-vegetacao.md](art/regras-de-vegetacao.md), [art/estilo-arquitetonico.md](art/estilo-arquitetonico.md), [art/presets-graficos.md](art/presets-graficos.md), [art/assinatura-visual.md](art/assinatura-visual.md) | guias por tema |
@@ -40,6 +41,9 @@
 | [processo/handoff-laboratorio-de-assets.md](processo/handoff-laboratorio-de-assets.md) | handoff: como os assets do laboratório entram no catálogo e no gerador (colisão, alcance, sementes, ids, desempenho, revisão de PR) |
 | [art/conteudo-mundo.md](art/conteudo-mundo.md), [architecture/catalogo-de-conteudo.md](architecture/catalogo-de-conteudo.md) | **biblioteca de conteúdo (lotes 1 e 2):** guia de arte do laboratório e o catálogo `valumo.conteudo/1` (medidas, pontos, colisão, estados, variantes, conjuntos); evidências em [art/conteudo/](art/conteudo/lote-1/README.md) |
 | [processo/como-integrar-conteudo-ao-mundo.md](processo/como-integrar-conteudo-ao-mundo.md) | guia: criar e registrar asset, variante, restrições, conjunto, vitrine, validação, colisão depois, liberar para o gerador sem quebrar save |
+| [architecture/inventario.md](architecture/inventario.md) | inventário (13): a mochila de 24 espaços, tudo ou nada, a tela (I, pausa), o estado que pausa a lógica, testes |
+| [architecture/itens.md](architecture/itens.md) | itens (13): o catálogo `itens_e.json`, os 5 itens, efeitos do código, como criar item, categoria, ícone |
+| [architecture/recompensas-e-loot.md](architecture/recompensas-e-loot.md) | recompensas (13): presente e achados como camada sobre os mundos congelados, uma vez por aventura, saves antigos, determinismo |
 | [architecture/recorte-da-camera.md](architecture/recorte-da-camera.md) | recorte contextual da câmera (12.3, P85): a câmera ignora só a torre em que o herói está e o desenho a recorta num cone; contrato, medida 12.2 × 12.3, custo, limites |
 | [architecture/colisao-composta.md](architecture/colisao-composta.md) | colisão composta (rodada 12, refeita na 12.1): contrato `formas` em espaço do modelo, topos exatos, regra de suporte, índice espacial, degraus, liberados, testes, custo |
 | [validation/relatorio-integracao-conteudo.md](validation/relatorio-integracao-conteudo.md) | relatório da integração dos lotes 1 e 2: auditoria dos PRs #3 e #5, autoria, sementes, carga sob demanda, desempenho, saves |
@@ -47,6 +51,7 @@
 | [validation/relatorio-rodada-12-1.md](validation/relatorio-rodada-12-1.md) | relatório da rodada 12.1: torre, piso exato, salto, patamares planos, vilas pequenas e médias, moradores pelo ofício, descobertas por tipo, saves, desempenho, decisões |
 | [validation/relatorio-rodada-12-2.md](validation/relatorio-rodada-12-2.md) | relatório da rodada 12.2: saves de versão de testes, integração do PR #8, moradores dos ofícios, quatro ruínas, câmera da torre, desempenho, as 22 respostas |
 | [validation/relatorio-rodada-12-3.md](validation/relatorio-rodada-12-3.md) | relatório da rodada 12.3 (fechamento da v2): câmera da torre por recorte contextual, Índira no varal, pote, abóbada, Acapela na biblioteca, v1 e saves, sementes, desempenho, publicação, as 21 respostas |
+| [validation/relatorio-rodada-13.md](validation/relatorio-rodada-13.md) | relatório da rodada 13 (candidata): mochila, itens, presente e achados, cura, save, interface, desempenho, as 30 respostas |
 | [validation/relatorio-publicacao-v2.md](validation/relatorio-publicacao-v2.md) | publicação da v2 (tag `procedural-world-v0.6`): aprovação no teste físico, congelamento das versões 1 e 2, matriz de sementes e saves, QA, a publicação do PR #9 e o fechamento do #8 |
 | [validation/integracao-pr8.md](validation/integracao-pr8.md) | como o PR #8 entrou (merge local até f92e6a2), o que ficou fora (Acapela) e os ajustes da integração |
 | [architecture/descobertas.md](architecture/descobertas.md) | descobertas por tipo de lugar (12.1): achado visível × lugar, os três tipos, textos com fatos, regras e testes |
