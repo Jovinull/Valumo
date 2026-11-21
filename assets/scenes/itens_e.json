@@ -1,0 +1,24 @@
+{
+ "_doc": "Rodada 13 — catálogo de itens (escrito à mão). id estável (item.*), nunca o nome da tela. categoria: uma das 'categorias'. pilha: quantas unidades cabem num espaço (1 = não empilha). icone: um dos ícones de pixel de vx.game.item.ItemIcons. uso (opcional): o efeito vem do CÓDIGO (vx.game.item.ItemEffects), o dado só escolhe qual e com que número; efeito desconhecido = catálogo recusado. Contrato: docs/architecture/itens.md.",
+ "formato": "valumo.itens",
+ "versao": 1,
+ "categorias": {
+  "material": "Material",
+  "achado": "Achado",
+  "consumivel": "Consumível",
+  "curiosidade": "Curiosidade"
+ },
+ "itens": [
+  {"id": "item.ervas_trilha", "nome": "Ervas da trilha", "categoria": "material", "pilha": 20, "icone": "ervas",
+   "descricao": "Folhas de beira de caminho, ainda com cheiro de terra. Sozinhas não curam, mas a herbalista sabe o que fazer com elas."},
+  {"id": "item.cataplasma", "nome": "Cataplasma de ervas", "categoria": "consumivel", "pilha": 5, "icone": "cataplasma",
+   "descricao": "Ervas socadas e enroladas em pano limpo. Aplicada fora da luta, fecha um coração de vida.",
+   "uso": {"efeito": "curar", "vida": 2, "rotulo": "Aplicar"}},
+  {"id": "item.fragmento_pedra", "nome": "Fragmento de pedra antiga", "categoria": "achado", "pilha": 10, "icone": "pedra",
+   "descricao": "Uma lasca lisa, gasta pela chuva, com metade de um entalhe que ninguém da vila sabe ler."},
+  {"id": "item.madeira_velha", "nome": "Madeira envelhecida", "categoria": "material", "pilha": 20, "icone": "madeira",
+   "descricao": "Aduelas de barril, secas e duras como osso. Ainda servem, se alguém souber trabalhar madeira."},
+  {"id": "item.registro_viagem", "nome": "Registro de viagem", "categoria": "curiosidade", "pilha": 1, "icone": "registro",
+   "descricao": "Um caderno de capa de couro com rotas a lápis e o desenho de uma torre. A última página ficou em branco."}
+ ]
+}

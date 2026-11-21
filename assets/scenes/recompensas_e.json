@@ -1,0 +1,17 @@
+{
+ "_doc": "Rodada 13 — de onde vêm os itens (escrito à mão). Uma camada própria de jogo POR CIMA dos mundos: nada aqui muda a geração (as descobertas e as falas da v2 estão congeladas). presentes: dados uma vez por aventura ao terminar a conversa com aquele morador, se ele estiver na região. achados: dados uma vez por descoberta, junto com ela (o tipo de lugar de descobertas_e.json); o que não coube na mochila fica no lugar até ser recolhido (E de novo). Sem sorteio nesta versão. Mudar uma recompensa = nova 'versao' deste arquivo; o que já foi entregue está no save e não muda. Contrato: docs/architecture/recompensas-e-loot.md.",
+ "formato": "valumo.recompensas",
+ "versao": 1,
+ "presentes": {
+  "indira": {
+   "itens": [["item.ervas_trilha", 2], ["item.cataplasma", 2]],
+   "aviso": "Índira te dá ervas e cataplasmas"
+  }
+ },
+ "achados": {
+  "casa": {"itens": [["item.registro_viagem", 1]], "aviso": "Ao lado do pote, um caderno"},
+  "abobada": {"itens": [["item.madeira_velha", 2]], "aviso": "Aduelas soltas dos barris"},
+  "sitio": {"itens": [["item.fragmento_pedra", 1]], "aviso": "Uma lasca ao pé do marco"},
+  "arvore": {"itens": [["item.ervas_trilha", 3]], "aviso": "Ervas entre as raízes"}
+ }
+}
