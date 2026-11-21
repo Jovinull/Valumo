@@ -45,9 +45,9 @@ def find(pat, text, conv=num):
 
 def game(prefix):
     rows = []
-    for f in sorted(glob.glob(os.path.join(D, prefix + "-[0-9].txt"))):
+    for f in sorted(glob.glob(os.path.join(D, prefix + "-[0-9]-desempenho.txt"))):   # o roteiro grava "desempenho.txt"
         t = open(f, encoding="utf-8").read()
-        log = f[:-4] + ".log"
+        log = f[:-len("-desempenho.txt")] + ".log"
         lg = open(log, encoding="utf-8", errors="replace").read() if os.path.exists(log) else ""
         r = {}
         q = find(r"quadro \(ms\): n=\d+ média ([\d,]+) mediana ([\d,]+) p95 ([\d,]+) p99 ([\d,]+)", t)
@@ -145,9 +145,12 @@ for lado in ("v06", "r13"):
           + "; " + "; ".join(f"{k}: {fmt(med(v), 0)} ms" for k, v in trans.items() if k.startswith(("Gerando", "Montando", "Carregando", "Preparando"))) + "\n")
 
 print("## A mochila (só a rodada 13; região v2 s7)\n")
+print("A ida e a volta pela trilha são vistas diferentes (não se comparam entre si). O custo da tela ABERTA é a diferença")
+print("entre as duas últimas linhas: o mesmo lugar, parado, pelo mesmo tempo. O custo da mochila FECHADA está na tabela v0.6 × 13.\n")
 print("| Situação | quadro mediana (ms) | p95 | lógica mediana | desenho mediana | memória Java (MB) | coletas |")
 print("|---|---|---|---|---|---|---|")
-for label, name in [("fechada, vazia", "fechada-vazia.txt"), ("fechada, cheia (24 espaços)", "fechada-cheia.txt"), ("ABERTA, cheia", "aberta-cheia.txt")]:
+for label, name in [("fechada, vazia (trilha, ida)", "fechada-vazia.txt"), ("fechada, cheia, 24 espaços (trilha, volta)", "fechada-cheia.txt"),
+                    ("fechada, cheia, parada no fim da trilha", "parada-fechada-cheia.txt"), ("ABERTA, cheia, no mesmo lugar", "aberta-cheia.txt")]:
     rows = game_file("r13-mochila", name)
     if rows:
         print(f"| {label} | {fmt(agg(rows, 'med'))} | {fmt(agg(rows, 'p95'))} | {fmt(agg(rows, 'logica'))} | {fmt(agg(rows, 'desenho'))} | {fmt(agg(rows, 'heap'), 0)} | {fmt(agg(rows, 'coletas'), 0)} |")

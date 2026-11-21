@@ -1,5 +1,7 @@
-# Rodada 13 — a mochila vazia fechada, cheia fechada e cheia ABERTA (o desenho da tela), mais N gravações e leituras do
-# save com a mochila cheia (só o binário da rodada 13; semente 7). "mochila-dar" é montagem técnica.
+# Rodada 13 — a mochila vazia fechada (trilha na ida), cheia fechada (trilha na volta: OUTRA vista, não se compara com a
+# ida), cheia fechada PARADA no fim da trilha e cheia ABERTA no mesmo lugar e pelo mesmo tempo (o custo da tela aberta é a
+# diferença entre as duas), mais N gravações e leituras do save com a mochila cheia (só o binário da rodada 13; semente 7).
+# "mochila-dar" é montagem técnica.
 size 1920 1080
 click comecar
 wait 1.0
@@ -36,6 +38,10 @@ aquecer 2
 perf on
 seguir-trilha volta correndo
 perf off fechada-cheia.txt
+aquecer 2
+perf on
+wait 8
+perf off parada-fechada-cheia.txt
 key I
 aquecer 2
 perf on
