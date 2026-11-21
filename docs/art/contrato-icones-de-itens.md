@@ -1,61 +1,66 @@
-# Contrato — ícones e pequenos modelos de itens (para o agente artista)
+# Contrato — modelos voxel dos itens (para o agente artista)
 
-**Status:** pedido em aberto. Os ícones de pixel da rodada 13 são a primeira versão funcional, desenhados no mesmo idioma
-do coração e do escudo do HUD. **Não são arte final aprovada.** O proprietário decide se encomenda este lote.
+**Status:** pedido em aberto. Rodada 13.1 ([ADR 0032](../decisions/0032-mochila-viva.md)): os itens deixaram de ser
+ícones de pixel e passaram a ser **modelos voxel** desenhados pelo jogo, na grade da mochila, no cartão do item recebido
+e na prévia que gira no detalhe. Os cinco modelos de `tools/itens_e.py` são a primeira versão funcional. **Não são arte
+final aprovada.** O proprietário decide se encomenda este lote. (O nome do arquivo ficou o da rodada 13, para não quebrar
+os links.)
 
 ## O que já existe
 
-- 5 ícones de pixel, 14 × 14, em `game/src/main/java/vx/game/item/ItemIcons.java`: `ervas`, `cataplasma`, `pedra`,
-  `madeira`, `registro`.
+- **Modelos:** 5 em `tools/itens_e.py` (gerados em `assets/items/e/`): `ervas`, `cataplasma`, `pedra`, `madeira`,
+  `registro`. A silhueta e a cor de cada um estão em [itens](../architecture/itens.md) §Os modelos.
 - **A tela que os usa** ([inventário](../architecture/inventario.md)):
-  - espaço da grade, desenhado a 3–7 px por pixel;
-  - painel de detalhe, a 6 px por pixel em 1080p;
-  - cartão do item recebido, a 2–3 px por pixel.
-- **Capturas reais** (720p, 1080p, 16:10, ultrawide): `output/visual-review/round-13/capturas/resolucoes/`.
+  - **Grade:** espaço de 84 px em 1080p (56 px em 720p), em 3/4 de frente, parado.
+  - **Cartão:** 46 px em 1080p.
+  - **Prévia:** 186 px em 1080p, girando devagar sob uma luz de estúdio fixa.
+  - **Fundo:** os três ficam sobre um painel de tinta translúcida, com o mundo aparecendo atrás.
+- **Prancha real:** o comando de roteiro `itens-prancha` mostra cada modelo sobre o painel (com grama e com pedra atrás),
+  sobre o pergaminho, em silhueta e a 64 e 40 px. Ela está em `output/visual-review/round-13-1/capturas/modelos/`.
 
 ## O que se pede (lote pequeno; um item por vez é aceito)
 
-| Item | Leitura que precisa ter | Estados |
-|---|---|---|
-| Ervas da trilha | um maço de folhas amarrado (verde, caule escuro, um ponto de flor) | normal |
-| Cataplasma de ervas | um rolo de pano claro amarrado, com folha à mostra; NÃO uma cruz de farmácia | normal; "não dá agora" é só o botão, o ícone não muda |
-| Fragmento de pedra antiga | uma lasca cinza com metade de um entalhe | normal |
-| Madeira envelhecida | duas aduelas de barril curvas com cinta escura | normal |
-| Registro de viagem | caderno de couro com fita/cinta e a borda das páginas | normal |
+| Item | Leitura que precisa ter |
+|---|---|
+| Ervas da trilha | um maço de folhas amarrado (verde, caule, um ponto de flor) |
+| Cataplasma de ervas | um rolo de pano claro amarrado, com as ervas à mostra; NÃO uma cruz de farmácia |
+| Fragmento de pedra antiga | uma lasca cinza quebrada, com metade de um entalhe |
+| Madeira envelhecida | aduelas de barril curvas, com um pedaço de cinta escura |
+| Registro de viagem | caderno de couro com fita ou tira e a borda clara das páginas |
 
 ## Identidade
 
-- **Direção E — Fábula Voxel:** o mesmo idioma de pixel do coração e do escudo do HUD (`Game.heart`, `Game.shieldIcon`) e
-  da paleta da interface (`UiKit`).
-- **Uma silhueta clara**, 1 a 2 tons de sombra e 1 ponto de destaque no máximo; sem contorno preto em volta (a sombra
-  suave é do desenho).
-- **Paleta:** as cores de `ItemIcons.PALETTE` (madeira, folha, pedra, pano, couro, tinta, coral). Cor nova = proposta à
-  parte, com o motivo.
-- **P1 (o verde-água):** é acento da INTERFACE (a seleção), não do item.
+- **Direção E, Fábula Voxel:** sombra pintada em bandas, 3–5 matizes por modelo, sem preto nem branco puros, nada de ruído
+  de 1 voxel em área grande ([voxel-art](../../.claude/skills/voxel-art/SKILL.md)).
+- **Uma silhueta clara por item**, que não se confunde com as outras quatro nem pequena.
+- **Paleta:** a da E (`tools/itens_e.py` usa as famílias do mundo: folha, pano cru, pedra, madeira, couro, latão, coral).
+  Cor nova = proposta à parte, com o motivo.
+- **Folha de item é fosca,** não folhagem: não balança com o vento.
+- **P1 (o verde-água):** é acento da INTERFACE, não do item.
 - **Proibido:** nada de IA geradora de imagem, de asset de terceiros ou de referência a outro jogo.
 
 ## Formato da entrega
 
-1. **Ícone:** um mapa 14 × 14 (16 × 16 aceito, avisando) no formato de `ItemIcons.ICONS`: uma linha por fila, um
-   caractere por pixel, `.` transparente.
-2. **Prancha:** os ícones em 1×, 3× e 6× sobre o pergaminho claro (`PARCH_L`) e o escuro (`PARCH_D`), mais a silhueta em
-   preto.
-3. **Modelo voxel do item:** opcional, se o proprietário pedir, para um dia aparecer no mundo ou virar ícone renderizado.
-   - **Escala:** voxel 1/40 u, até 0,4 u, em `tools/` como os props.
-   - **Rig:** sem rig.
-   - **Origem e pegada:** no chão, centrado.
+1. **Modelo:**
+   - uma função em `tools/itens_e.py`, ou um `.vox` desenhado num editor e carregado por `voxlib.load_vox`
+     ([pipeline](pipeline-de-producao.md));
+   - voxel 1/40 u, até 0,4 u na maior medida (o gerador recusa maior);
+   - apoiado no chão (y = 0), centrado; sem rig.
+2. **Custo:** até 1 500 faces expostas (o teste confere).
+3. **Prancha:** a do jogo (`itens-prancha`), antes e depois.
 
 ## Testes de legibilidade (o que a revisão confere)
 
-- **Silhueta:** em preto, a 3× (o espaço da grade em 720p), os cinco se distinguem. Na primeira versão, a cataplasma e a
-  pedra são o par mais parecido (duas formas redondas; só a folha separa): a arte final deve afastá-las.
-- **Fundos:** lê no pergaminho claro e no escuro.
-- **Tamanho pequeno:** a 2× (o cartão em 720p) ainda se sabe o que é.
-- **Testes:** `ItemCatalogTest.osIconesSoUsamCoresDaPaleta` e o tamanho 14 × 14 continuam passando.
+- **Silhueta:** na prancha, em preto, os cinco se distinguem. `ItemCatalogTest` também confere que a caixa de cada par
+  difere em proporção ou em ocupação.
+- **Fundos:** lê sobre o painel translúcido (com grama e com pedra atrás) e sobre o pergaminho.
+- **Tamanho pequeno:** a 40 px (o cartão em 720p) ainda se sabe o que é.
+- **Girando:** a prévia não corta nem fica escura de nenhum lado (o enquadramento é calculado pela caixa do modelo).
+- **Testes:** `ItemCatalogTest.osModelosDosItensSaoObjetosDeMaoPequenosEDistintos`.
 - **Captura real:** a mesma rota, `tools/itens/03-resolucoes.txt`.
 
 ## Integração
 
-- **Onde entra:** o mapa entra em `ItemIcons.ICONS` com o mesmo nome. O catálogo, o save e a tela não mudam.
-- **Quem trabalha:** o agente artista trabalha no clone isolado dele; a integração é do agente principal, com as
-  capturas antes e depois.
+- **Onde entra:** o modelo substitui a função do mesmo nome em `tools/itens_e.py`. O catálogo, o save e a tela não mudam.
+- **Quem trabalha:** o agente artista trabalha no clone isolado dele; a integração é do agente principal, com as capturas
+  antes e depois.
