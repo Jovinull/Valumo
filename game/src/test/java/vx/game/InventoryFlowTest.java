@@ -98,6 +98,51 @@ class InventoryFlowTest {
     }
 
     @Test
+    void oTecladoAndaComWasdEUsaComEnterOuEspaco(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        talkToIndira(g);
+        float x0 = g.player.x, z0 = g.player.z;
+        press(g, GLFW_KEY_I);
+        assertEquals(GameLogic.State.INVENTORY, g.state);
+        g.invSelected = 0;
+        press(g, GLFW_KEY_D);
+        assertEquals(1, g.invSelected);
+        press(g, GLFW_KEY_S);
+        assertEquals(1 + GameLogic.INV_COLS, g.invSelected);
+        press(g, GLFW_KEY_A);
+        assertEquals(GameLogic.INV_COLS, g.invSelected);
+        press(g, GLFW_KEY_W);
+        assertEquals(0, g.invSelected);
+        assertEquals(GameLogic.State.INVENTORY, g.state, "WASD na mochila não fecha nada");
+        assertEquals(x0, g.player.x, 1e-4f, "nem anda");
+        assertEquals(z0, g.player.z, 1e-4f, "nem anda");
+        press(g, GLFW_KEY_D);                                               // a cataplasma (espaço 1)
+        g.combat.hero.hp = 2;
+        press(g, GLFW_KEY_ENTER);
+        assertEquals(4, g.combat.hero.hp, "Enter usa");
+        press(g, GLFW_KEY_SPACE);
+        assertEquals(6, g.combat.hero.hp, "Espaço usa");
+        assertEquals(0, g.items.inventory.count("item.cataplasma"));
+    }
+
+    @Test
+    void naoAbreNoMeioDaConversa(@TempDir Path d) {
+        GameLogic g = proc(S_INDIRA, d);
+        GameLogic.Npc n = AdventureTest.npc(g, "indira");
+        float a = (float) Math.toRadians(n.def.yawDeg());
+        float x = n.def.x() + (float) Math.sin(a) * 1.1f, z = n.def.z() + (float) Math.cos(a) * 1.1f;
+        g.player.place(x, z, (float) Math.atan2(n.def.x() - x, n.def.z() - z), g.collision);
+        g.player.snapshot();
+        frames(g, 1);
+        press(g, GLFW_KEY_E);
+        assertEquals(GameLogic.State.DIALOG, g.state);
+        press(g, GLFW_KEY_I);
+        assertEquals(GameLogic.State.DIALOG, g.state, "I no meio da conversa: nada");
+        g.action("inventario");
+        assertEquals(GameLogic.State.DIALOG, g.state, "nem pelo pedido");
+    }
+
+    @Test
     void naoAbreForaDaExploracao(@TempDir Path d) {
         GameLogic g = AdventureTest.adventure(d);
         g.action("inventario");
