@@ -572,9 +572,10 @@ public final class Game implements AutoCloseable {
             case DIALOG -> drawDialog(w, h);
             case PAUSE -> drawPause(w, h);
             case JOURNAL -> drawJournal(w, h);
+            case INVENTORY -> drawInventory(w, h);
             case MENU -> { if (menu != null) { menu.drawFade(w, h); menu.draw(w, h); } }
         }
-        if (logic.state == GameLogic.State.EXPLORE || logic.state == GameLogic.State.DIALOG) drawToast(w, h);
+        if (logic.state == GameLogic.State.EXPLORE || logic.state == GameLogic.State.DIALOG) { drawToast(w, h); drawItemNotice(w, h); }
         if (async.busy() && async.waitingMs() > 150) {
             float bw = 260 * s;
             kit.chamfer((w - bw) / 2, h - 120 * s, bw, 46 * s, 5 * s, 0x2a1e18c0);
@@ -586,7 +587,8 @@ public final class Game implements AutoCloseable {
             float tw = kit.width(msg, p, true), bw = tw + 60 * s;
             // rodada 10: na pausa e no diário a mensagem vai para baixo — no topo cobria o título do painel (na tela inicial
             // continua no topo: embaixo cobriria os botões de jogo novo e continuar)
-            boolean menu = logic.state == GameLogic.State.PAUSE || logic.state == GameLogic.State.JOURNAL;
+            boolean menu = logic.state == GameLogic.State.PAUSE || logic.state == GameLogic.State.JOURNAL
+                    || logic.state == GameLogic.State.INVENTORY;
             float my0 = menu ? h - 62 * s : 40 * s;
             kit.chamfer((w - bw) / 2, my0, bw, 52 * s, 6 * s, UiKit.WOOD_D);
             kit.chamfer((w - bw) / 2 + 3 * s, my0 + 3 * s, bw - 6 * s, 46 * s, 5 * s, UiKit.PARCH_L);
@@ -836,6 +838,143 @@ public final class Game implements AutoCloseable {
         kit.chamfer(x, y, tw, 48 * s, 5 * s, (UiKit.WOOD_D & 0xffffff00) | a);
         kit.chamfer(x + 3 * s, y + 3 * s, tw - 6 * s, 42 * s, 4 * s, (UiKit.PARCH_L & 0xffffff00) | a);
         kit.text(x + 32 * s, y + 24 * s - p * 0.66f, fit(logic.toast, p, tw - 44 * s), p, true, (UiKit.INK & 0xffffff00) | a);
+    }
+
+    // ------------------------------------------------------------------ rodada 13: mochila
+
+    /** Ícone de pixel de um item ({@link vx.game.item.ItemIcons}), com {@code k} px por pixel, a partir de (x, y). */
+    void itemIcon(String name, float x, float y, float k) {
+        String[] m = vx.game.item.ItemIcons.map(name);
+        if (m == null) return;
+        for (int r = 0; r < m.length; r++)
+            for (int c = 0; c < m[r].length(); c++) {
+                char ch = m[r].charAt(c);
+                if (ch == '.') continue;
+                kit.rect(x + c * k + k * 0.5f, y + r * k + k * 0.6f, k, k, 0x2a1a1240);        // sombra suave
+            }
+        for (int r = 0; r < m.length; r++)
+            for (int c = 0; c < m[r].length(); c++) {
+                char ch = m[r].charAt(c);
+                if (ch != '.') kit.rect(x + c * k, y + r * k, k, k, vx.game.item.ItemIcons.PALETTE.get(ch));
+            }
+    }
+
+    /**
+     * Mochila (I): título, vida e moedas no alto; a grade de {@link vx.game.item.Inventory#SLOTS} espaços à esquerda (clique
+     * seleciona); à direita, o item selecionado — ícone, nome, categoria, quantidade, descrição e o botão de uso, com o
+     * motivo quando não dá agora. Só desenho: selecionar e usar são ações da lógica (o clique vira {@code logic.action}).
+     */
+    private void drawInventory(int w, int h) {
+        kit.rect(0, 0, w, h, 0x1a1210a0);
+        var inv = logic.items.inventory;
+        float pw = Math.min(1180 * s, w - 56 * s), ph = Math.min(680 * s, h - 40 * s), x = (w - pw) / 2, y = (h - ph) / 2;
+        kit.panel(x, y, pw, ph, s, true);
+        kit.text(x + 40 * s, y + 30 * s, "Inventário", px(40), true, UiKit.INK);
+        String coins = "Moedas: " + logic.quests.coins();
+        float cw0 = kit.width(coins, px(22), true);
+        kit.text(x + pw - 40 * s - cw0, y + 44 * s, coins, px(22), true, UiKit.GOLD_D);
+        if (logic.combat != null) {                                       // a vida, para ver o efeito de uma cataplasma
+            Hero hero = logic.combat.hero;
+            int hearts = (logic.combat.def.heroHp + 1) / 2;
+            float u = Math.max(2f, 4f * s), hx = x + pw - 40 * s - cw0 - 36 * s - hearts * 9 * u;
+            for (int i = 0; i < hearts; i++) heart(hx + i * 9 * u, y + 46 * s, u, Math.clamp(hero.hp - i * 2, 0, 2));
+        }
+        int cols = GameLogic.INV_COLS, rows = (inv.size() + cols - 1) / cols;
+        float gx = x + 44 * s, gy = y + 110 * s, gap = 12 * s;
+        float cell = Math.min(104 * s, (ph - 110 * s - 120 * s - gap * (rows - 1)) / rows);
+        float gridW = cols * cell + (cols - 1) * gap;
+        for (int i = 0; i < inv.size(); i++) {
+            float cx = gx + (i % cols) * (cell + gap), cy = gy + (i / cols) * (cell + gap);
+            String id = "espaco:" + i;
+            buttons.add(new Button(id, cx, cy, cell, cell, "", false));
+            boolean sel = i == logic.invSelected, hv = id.equals(hover);
+            kit.chamfer(cx, cy, cell, cell, 4 * s, sel ? UiKit.GOLD_D : hv ? UiKit.WOOD_L : UiKit.WOOD);
+            kit.chamfer(cx + 3 * s, cy + 3 * s, cell - 6 * s, cell - 6 * s, 3 * s, sel ? 0xf7e9c4ff : UiKit.PARCH_D);
+            kit.rect(cx + 6 * s, cy + 4 * s, cell - 12 * s, Math.max(1, 2 * s), 0xffffff30);
+            var st = inv.slot(i);
+            if (st == null) continue;
+            float k = Math.max(1f, (float) Math.floor(cell * 0.62f / vx.game.item.ItemIcons.SIZE));
+            float iw = k * vx.game.item.ItemIcons.SIZE;
+            itemIcon(st.item().icon(), cx + (cell - iw) / 2, cy + (cell - iw) / 2 - 4 * s, k);
+            if (st.count() > 1 || st.item().stackable()) {
+                String n = String.valueOf(st.count());
+                int p = px(20);
+                float nw = kit.width(n, p, true);
+                kit.text(cx + cell - nw - 9 * s + s, cy + cell - p - 5 * s + s, n, p, true, 0x00000060);
+                kit.text(cx + cell - nw - 9 * s, cy + cell - p - 5 * s, n, p, true, UiKit.INK);
+            }
+        }
+        if (logic.invSelected >= 0) {                                     // P1: um só ponto, no espaço escolhido
+            int i = logic.invSelected;
+            kit.seed(gx + (i % cols) * (cell + gap) + 6 * s, gy + (i / cols) * (cell + gap) + 6 * s, s * 0.8f);
+        }
+        String used = inv.used() + " de " + inv.size() + " espaços";
+        kit.text(gx, gy + rows * (cell + gap) + 6 * s, used, px(18), false, UiKit.INK_SOFT);
+        // detalhe do selecionado
+        float dx = gx + gridW + 40 * s, dw = x + pw - 44 * s - dx, dy = gy;
+        kit.chamfer(dx, dy, dw, rows * (cell + gap) - gap, 5 * s, 0xe9d8b0ff);
+        float tx = dx + 24 * s, tw = dw - 48 * s, ty = dy + 22 * s;
+        var st = inv.slot(logic.invSelected);
+        if (st == null) {
+            kit.text(tx, ty, "Espaço vazio", px(26), true, UiKit.INK_SOFT);
+            ty += px(26) * 1.8f;
+            for (String l : wrap("O que você encontrar pelo caminho fica guardado aqui.", px(20), tw)) { kit.text(tx, ty, l, px(20), false, UiKit.INK_SOFT); ty += px(20) * 1.4f; }
+        } else {
+            var d = st.item();
+            float big = Math.max(2f, (float) Math.floor(Math.min(84 * s, tw * 0.4f) / vx.game.item.ItemIcons.SIZE));
+            itemIcon(d.icon(), tx, ty, big);
+            float nx = tx + big * vx.game.item.ItemIcons.SIZE + 18 * s, nw = tx + tw - nx;
+            List<String> nameLines = wrap(d.name(), px(26), nw, true);
+            float ny = ty + 4 * s;
+            for (String l : nameLines) { kit.text(nx, ny, l, px(26), true, UiKit.INK); ny += px(26) * 1.25f; }
+            String cat = logic.itemRules.catalog().categoryLabel(d.category());
+            float chw = kit.width(cat, px(16), true) + 22 * s;
+            kit.chamfer(nx, ny + 4 * s, chw, 30 * s, 4 * s, d.usable() ? UiKit.MOSS : UiKit.WOOD_L);
+            kit.text(nx + 11 * s, ny + 4 * s + 15 * s - px(16) * 0.66f, cat, px(16), true, UiKit.PARCH_L);
+            ty = Math.max(ty + big * vx.game.item.ItemIcons.SIZE, ny + 34 * s) + 22 * s;
+            kit.text(tx, ty, fit(d.stackable() ? "Quantidade: " + st.count() : "Peça única", px(18), tw), px(18), true, UiKit.GOLD_D);
+            ty += px(18) * 1.35f;
+            if (d.stackable()) { kit.text(tx, ty, fit("Cabem " + d.stack() + " num espaço", px(16), tw), px(16), false, UiKit.INK_SOFT); ty += px(16) * 1.35f; }
+            ty += px(18) * 0.6f;
+            for (String l : wrap(d.description(), px(20), tw)) { kit.text(tx, ty, l, px(20), false, UiKit.INK); ty += px(20) * 1.4f; }
+            if (d.usable()) {
+                String why = vx.game.item.ItemEffects.blocker(d, logic.heroTarget());
+                float bh = 58 * s, by = dy + rows * (cell + gap) - gap - bh - 20 * s;
+                if (why != null) kit.text(tx, by - px(18) * 1.6f, fit(why, px(18), tw), px(18), false, UiKit.INK_SOFT);
+                button("usar-item", tx, by, tw, bh, d.use().label(), why == null);
+            }
+        }
+        float bw = 260 * s, bh = 58 * s;
+        button("fechar-inventario", x + pw - 44 * s - bw, y + ph - 30 * s - bh, bw, bh, "Fechar", false);
+    }
+
+    /** O cartão do item recebido (sob o aviso do canto), com os ícones do que entrou; some sozinho. */
+    private void drawItemNotice(int w, int h) {
+        if (logic.itemNoticeTitle == null || logic.time >= logic.itemNoticeUntil) return;
+        float left = logic.itemNoticeUntil - logic.time;
+        int a = (int) (255 * Math.clamp(left / 0.4f, 0f, 1f)), pt = px(20), pl = px(18);
+        boolean toastOn = logic.toast != null && logic.time < logic.toastUntil;
+        float y = (logic.state == GameLogic.State.EXPLORE && logic.prefs.tracker && logic.quests != null
+                && logic.quests.tracked() != null ? TRACKER_Y + 140 : TRACKER_Y) * s + (toastOn ? 58 * s : 0f);
+        var grants = logic.itemNoticeGrants;
+        float k = Math.max(1f, (float) Math.floor(3f * s)), icon = k * vx.game.item.ItemIcons.SIZE;
+        float lineW = 0;
+        for (var g : grants) lineW += icon + 8 * s + kit.width("+" + g.count(), pl, true) + 22 * s;
+        if (grants.isEmpty()) lineW = kit.width(logic.itemNoticeItems, pl, false);
+        float tw = Math.min(Math.max(kit.width(logic.itemNoticeTitle, pt, true), lineW) + 64 * s, w - 56 * s), th = 50 * s + Math.max(icon, pl * 1.2f) + 10 * s;
+        float x = w - 28 * s - tw;
+        kit.chamfer(x, y, tw, th, 5 * s, (UiKit.WOOD_D & 0xffffff00) | a);
+        kit.chamfer(x + 3 * s, y + 3 * s, tw - 6 * s, th - 6 * s, 4 * s, (UiKit.PARCH_L & 0xffffff00) | a);
+        kit.text(x + 32 * s, y + 22 * s - pt * 0.66f, fit(logic.itemNoticeTitle, pt, tw - 44 * s), pt, true, (UiKit.INK & 0xffffff00) | a);
+        float lx = x + 32 * s, ly = y + 40 * s;
+        if (a < 200) return;                                              // o desvanecer final só no texto (o ícone não tem alfa)
+        if (grants.isEmpty()) kit.text(lx, ly + 4 * s, fit(logic.itemNoticeItems, pl, tw - 44 * s), pl, false, UiKit.INK_SOFT);
+        for (var g : grants) {
+            itemIcon(g.item().icon(), lx, ly, k);
+            String n = "+" + g.count();
+            kit.text(lx + icon + 6 * s, ly + icon / 2 - pl * 0.66f, n, pl, true, UiKit.INK);
+            lx += icon + 8 * s + kit.width(n, pl, true) + 22 * s;
+        }
     }
 
     /** Diário (J): cada missão aceita, com descrição, objetivos, estado, recompensa e registro; moedas no rodapé. */
@@ -2187,6 +2326,8 @@ public final class Game implements AutoCloseable {
                     System.out.println("enquadramento" + (t.length > 1 ? " " + t[1] : "") + ": " + CameraFraming.measure(logic.cam, pl.x, pl.visualY, pl.z,
                             e.x, e.y, e.z, logic.collision));
                 }
+                case "mochila" -> System.out.println("mochila: " + logic.items.inventory.toJson() + " fontes " + logic.items.collectedSources()
+                        + (logic.combat != null ? " vida " + logic.combat.hero.hp + "/" + logic.combat.def.heroHp : "") + " estado " + logic.state);   // rodada 13
                 case "estado" -> {
                     Player pl = logic.player;
                     StringBuilder sb = new StringBuilder(String.format("estado: %s herói (%.2f, %.2f) y=%.3f rumo %.0f° vel %.2f clipe %s",
@@ -3126,6 +3267,7 @@ public final class Game implements AutoCloseable {
             case "R" -> GLFW_KEY_R; case "F3" -> GLFW_KEY_F3; case "M" -> GLFW_KEY_M;
             case "Q" -> GLFW_KEY_Q; case "TAB" -> GLFW_KEY_TAB; case "ALT" -> GLFW_KEY_LEFT_ALT;
             case "J" -> GLFW_KEY_J; case "T" -> GLFW_KEY_T; case "C" -> GLFW_KEY_C;   // rodada 10: diário, rastreador, continuar
+            case "I" -> GLFW_KEY_I;                                                  // rodada 13: mochila
             case "N" -> GLFW_KEY_N; case "BACKSPACE" -> GLFW_KEY_BACKSPACE;          // rodada 11.1: menu
             default -> throw new IllegalArgumentException("tecla desconhecida: " + name);
         };
