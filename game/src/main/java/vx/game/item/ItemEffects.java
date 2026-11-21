@@ -40,6 +40,19 @@ public final class ItemEffects {
         return HEAL.equals(effect) && amount >= 1 && amount <= 12;
     }
 
+    /** Por que o item {@code d} não teria efeito agora (null = teria). Não muda nada: a tela mostra o motivo antes do clique. */
+    public static String blocker(ItemDefinition d, Target t) {
+        if (d.use() == null) return d.name() + " não se usa";
+        if (HEAL.equals(d.use().effect())) {
+            if (!t.hasHero()) return "Não há o que curar aqui";
+            if (!t.alive()) return "Não dá para aplicar caído";
+            if (t.engaged()) return "Não dá para aplicar no meio da luta";
+            if (t.hp() >= t.maxHp()) return "Você não está ferido";
+            return null;
+        }
+        return "Efeito desconhecido";
+    }
+
     /** Usa o item {@code d} (que tem uso) no alvo {@code t}. Nunca muda nada quando não consome. */
     public static Result apply(ItemDefinition d, Target t) {
         if (d.use() == null) return new Result(false, d.name() + " não se usa");
@@ -50,10 +63,8 @@ public final class ItemEffects {
     }
 
     private static Result heal(ItemDefinition d, Target t) {
-        if (!t.hasHero()) return new Result(false, "Não há o que curar aqui");
-        if (!t.alive()) return new Result(false, "Não dá para aplicar caído");
-        if (t.engaged()) return new Result(false, "Não dá para aplicar no meio da luta");
-        if (t.hp() >= t.maxHp()) return new Result(false, "Você não está ferido");
+        String why = blocker(d, t);
+        if (why != null) return new Result(false, why);
         int before = t.hp(), after = Math.min(t.maxHp(), before + d.use().amount());
         t.setHp(after);
         int healed = after - before;
