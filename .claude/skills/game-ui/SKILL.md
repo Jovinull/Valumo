@@ -122,11 +122,19 @@ gerador, nome de arquivo). Espera = indicador sem texto (`MenuView.waiting`).
 | Câmera atravessando o cenário | órbita da câmera | girar o personagem; câmera no ângulo composto da cena |
 | Teste de rolagem que nunca rolava | `if (conteúdo > painel)` em caso que cabia | exigir a pré-condição com assert |
 
-## Rodada 13 — a mochila (`Game.drawInventory`)
+## Rodadas 13 e 13.1 — a mochila (`Game.drawBag`)
 
-- **Mesma família do diário e da pausa:** `kit.panel` de madeira e pergaminho, título 40, texto 20, botões do `button()`,
-  P1 só no espaço selecionado.
-- **Ícones de item:** são mapas de pixel (`ItemIcons`) desenhados com `kit.rect`, com sombra suave; nada de textura nova.
+- **Rodada 13.1 (pedido do proprietário):** painel de tinta TRANSLÚCIDA (o mundo aparece atrás) com filete de
+  pergaminho dourado, na metade direita, SOBRE o jogo correndo. Não use o pergaminho opaco do diário para telas que
+  convivem com o jogo (baú, loja, equipamento): parta deste idioma.
+- **Seletor pelo mouse:** passar seleciona (`pairar:i`, mudo); o clique usa o que se usa; o direito também. A seleção
+  muda ao passar por outros espaços: por isso o item também se usa clicando nele mesmo.
+- **Grade sem limite:** só as linhas visíveis são desenhadas; a roda sobre o painel rola (`input.wheel = 0` para a
+  câmera não aproximar); reabrir volta ao topo e rola até a seleção.
+- **Itens em 3D:** quads do atlas de `ItemRenders` (célula enquadrada pela caixa do modelo); a prévia é outra textura.
+  FBO de item se renderiza ANTES do lote 2D (`prepareItems`), nunca no meio dele.
+- **Placa do mundo sob o painel:** some (atrás do translúcido ela sujava as abas).
+- **Rodada 13:** `kit.panel` de madeira e pergaminho, ícones de pixel e a lógica parada (substituídos na 13.1).
 - **Glifos:** a fonte de pixel NÃO tem "×" (sai "?"); use "+2"/"x2". Confira texto novo numa captura.
 - **Botão novo num grupo** (`groupPx`): o grupo inteiro usa a menor escala que serve a todos.
   - **Defeito já visto:** a pausa com três botões por linha encolheu TODOS os rótulos em 720p.

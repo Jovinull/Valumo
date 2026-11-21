@@ -314,6 +314,20 @@ aparecia no MP4). Procedimento para qualquer animação nova ou alterada:
   - pote dentro da lareira ou dos barris.
 - **Dados do proprietário:** os mundos e personagens dele só em CÓPIA (hashes antes e depois no pacote).
 
+## Rodada 13.1 — mochila viva (`tools/review131.sh`)
+
+- **Vídeos:**
+  1. a demonstração: presente, andar com a mochila aberta, abrir no meio da luta, aplicar clicando, achado entrando na
+     grade, abas, salvar, continuar;
+  2. save da v0.6;
+  3. save da rodada 13 com itens aberto pela 13.1.
+- **Capturas:** resoluções (720p, 1080p, 1440p, 16:10, ultrawide), abas, grade rolada, cartão, luta; antes × depois
+  (13 × 13.1); a prancha dos modelos (`itens-prancha`: painel sobre grama e pedra, pergaminho, silhueta, 64/40 px).
+- **O que olhar:** o mundo aparece atrás do painel sem atrapalhar a leitura; item legível a 40 px; prévia escura de um
+  lado (gire o MODELO, não a câmera); placa do mundo vazando sob o painel; seleção pulando ao rolar com o mouse parado
+  (é o esperado: o seletor segue o mouse). Em roteiro os quadros só são desenhados em `shot`/`record`/`pairar`/`click`,
+  então o "pairar" de uma captura parada pode estar um quadro atrás.
+
 ## Rodada 13 — mochila (`tools/review13.sh`)
 
 - **Vídeos:**

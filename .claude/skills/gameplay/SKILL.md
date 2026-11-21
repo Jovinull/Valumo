@@ -290,14 +290,19 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 
 ## Rodada 13 — mochila, itens e recompensas
 
-- **Estado `INVENTORY`:** como o diário (a lógica para).
-  - **Entrada:** abre de EXPLORE (I) ou da pausa (botão).
-  - **Sem efeito colateral:** o clique seleciona e nunca ataca; ao fechar, nada fica preso.
-  - **Teste:** `InventoryFlowTest`.
+- **A mochila é uma CAMADA sobre EXPLORE** (rodada 13.1, `GameLogic.bagOpen`; o estado `INVENTORY` da 13 saiu):
+  - **O jogo segue:** passos, inimigos, salvamento automático e descobertas continuam.
+  - **Mouse:** é dela (`cam.look` não roda, `pendingAttack` e o escudo ignorados).
+  - **Teclado:** continua no herói (`moveAxes(true)`: só WASD anda; as setas e o Enter são da grade; E usa o mundo).
+  - **Fecha:** na conversa, no diário, na pausa e na derrota; Esc fecha a mochila antes de pausar.
+  - **Entrada:** abre de EXPLORE (I) ou da pausa (botão, que volta ao jogo correndo).
+  - **Teste:** `InventoryFlowTest` (andar, tempo, câmera, golpe, escudo, pulo, setas × WASD, abas, o que fecha).
+- **Sem limite de espaços** (lista de pilhas que se compacta); "mochila cheia" só no teto técnico (`Inventory.limited`
+  nos testes).
 - **Itens:** são dados (`itens_e.json`); efeitos, código (`ItemEffects`).
 - **Fontes:** só reagem a eventos estáveis (`GameLogic.endDialog` → presente; `useDiscovery` → achado do tipo do lugar) e
   NUNCA mudam a geração.
-- **Entregar:** `ItemProgress.grant`, tudo ou nada, uma vez por fonte; mochila cheia = a fonte espera.
+- **Entregar:** `ItemProgress.grant`, tudo ou nada, uma vez por fonte; no teto técnico a fonte espera.
 - **Usar:** `GameLogic.useSelected` (ação da lógica).
   - **Cura:** só fora da luta engajada, com o herói ferido.
   - **Sem efeito:** o item não é gasto, e a tela mostra o motivo antes (`ItemEffects.blocker`).
@@ -305,4 +310,6 @@ parede ou da cabeça, indicação de interação sobre a NPC certa.
 - **Roteiro:**
   - `mochila`: imprime a mochila, as fontes e a vida;
   - `mochila-dar ID N`: montagem técnica, só para capturas de borda;
-  - `lutar N`: luta de verdade, com o herói se ferindo.
+  - `lutar N`: luta de verdade, com o herói se ferindo (feche a mochila antes: o clique é dela);
+  - rodada 13.1: `pairar BOTÃO [s]`, `click-direito BOTÃO`, `luta-estado`, `itens-recursos`, `abrir-fechar N`,
+    `itens-prancha ARQUIVO`; `ir-lugar` e `seguir-trilha` miram pelo mouse, então rode-os com a mochila FECHADA.
