@@ -809,6 +809,7 @@ public final class GameLogic {
             case "diario-pausa" -> { if (state == State.PAUSE && quests != null) state = State.JOURNAL; }
             case "fechar-diario" -> { if (state == State.JOURNAL) state = State.EXPLORE; }
             case "inventario" -> { if (state == State.EXPLORE && quests != null) state = State.INVENTORY; }   // rodada 13
+            case "inventario-pausa" -> { if (state == State.PAUSE && quests != null && leaving == null) state = State.INVENTORY; }
             case "fechar-inventario" -> { if (state == State.INVENTORY) state = State.EXPLORE; }
             case "usar-item" -> { if (state == State.INVENTORY) useSelected(); }
             case "rastreador" -> { prefs.tracker = !prefs.tracker; prefs.save(); }

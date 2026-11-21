@@ -77,7 +77,7 @@ final class GameAudio {
             case "escolha", "continuar-fala", "rastreador" -> "ui.selecionar";
             case "salvo" -> "ui.salvar";                                // o automático é mudo: sai junto com o som da missão
             case "descoberta" -> "missao.objetivo";                     // rodada 12: um lugar descoberto (o som aprovado de objetivo)
-            case "inventario" -> "ui.abrir";                              // rodada 13: mochila (os sons aprovados da interface)
+            case "inventario", "inventario-pausa" -> "ui.abrir";                              // rodada 13: mochila (os sons aprovados da interface)
             case "fechar-inventario", "item-indisponivel" -> "ui.cancelar";
             case "item-usar" -> "ui.confirmar";
             case "item-coletado" -> "missao.recompensa";                  // um item recebido (o som aprovado de recompensa)

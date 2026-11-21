@@ -1378,11 +1378,13 @@ public final class Game implements AutoCloseable {
     private void drawPause(int w, int h) {
         kit.rect(0, 0, w, h, 0x1a1210a0);
         boolean cmb = logic.combat != null;
-        float pw = 620 * s, ph = (cmb ? (logic.technical ? 990 : 866) : 800) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
+        float bag = logic.quests != null ? 76 : 0;                       // rodada 13: a linha Diário | Inventário
+        float pw = 620 * s, ph = ((cmb ? (logic.technical ? 990 : 866) : 800) + bag) * s, x = (w - pw) / 2, y = Math.max(8 * s, (h - ph) / 2);
         kit.panel(x, y, pw, ph, s, true);
         kit.text(x + 40 * s, y + 34 * s, "Pausa", px(40), true, UiKit.INK);
         float hw0 = (pw - 80 * s - 14 * s) / 2, bw0 = pw - 80 * s;
-        groupPx = groupPx("Continuar", bw0, "Menu principal", bw0, "Aparência", hw0, "Criador", hw0, "Salvar jogo", hw0, "Diário", hw0,
+        groupPx = groupPx("Continuar", bw0, "Menu principal", bw0, "Aparência", hw0, "Criador", hw0, "Salvar jogo", bw0, "Diário", hw0,
+                "Inventário", hw0,
                 "Inverter vertical: não", bw0, "Som: ligado", bw0, "Barras: com dano ou alvo", bw0, "Sair do jogo", bw0);
         if (procedural != null) {                                          // rodada 11: a semente sempre à vista
             String sd = "semente " + Long.toUnsignedString(procedural.seed);
@@ -1396,12 +1398,13 @@ public final class Game implements AutoCloseable {
             button("trocar-aparencia", bx, by + 76 * s, hw, bh, "Aparência", false);
             button("criador", bx + hw + 14 * s, by + 76 * s, hw, bh, "Criador", false);
         }
-        if (logic.quests != null) {
-            button("salvar", bx, by + 152 * s, hw, bh, "Salvar jogo", false);
-            button("diario-pausa", bx + hw + 14 * s, by + 152 * s, hw, bh, "Diário", false);
+        if (logic.quests != null) {                                        // rodada 13: Diário | Inventário (a mochila sem dica de tecla)
+            button("diario-pausa", bx, by + 152 * s, hw, bh, "Diário", false);
+            button("inventario-pausa", bx + hw + 14 * s, by + 152 * s, hw, bh, "Inventário", false);
+            button("salvar", bx, by + 228 * s, bw, bh, "Salvar jogo", false);
         }
         // sensibilidade do mouse
-        float sy = by + 240 * s;
+        float sy = by + (240 + bag) * s;
         stepperRow("sens", "Sensibilidade", String.format("%.1f", logic.cam.sensitivity / 0.0032f), bx, bw, sy);
         String inv = logic.cam.invertY ? "Inverter vertical: sim" : "Inverter vertical: não";
         button("inverter", bx, sy + 66 * s, bw, 50 * s, inv, false);
