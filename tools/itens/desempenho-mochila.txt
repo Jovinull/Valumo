@@ -1,51 +1,33 @@
-# Rodada 13 — a mochila vazia fechada (trilha na ida), cheia fechada (trilha na volta: OUTRA vista, não se compara com a
-# ida), cheia fechada PARADA no fim da trilha e cheia ABERTA no mesmo lugar e pelo mesmo tempo (o custo da tela aberta é a
-# diferença entre as duas), mais N gravações e leituras do save com a mochila cheia (só o binário da rodada 13; semente 7).
-# "mochila-dar" é montagem técnica.
+# Rodada 13.1 — a mochila GRANDE (sem limite de espaços): parada no começo da região (semente 7), fechada × aberta (com a
+# prévia girando), pelo mesmo tempo e no mesmo lugar; depois aberta e rolada até o fim; abrir e fechar 20 vezes (FBOs e
+# malhas não crescem); e N gravações e leituras do save com 283 pilhas. Só o binário da 13.1. "mochila-dar" é montagem
+# técnica.
 size 1920 1080
 click comecar
 wait 1.0
-aquecer 5
-perf on
-seguir-trilha ida correndo
-perf off fechada-vazia.txt
-mochila-dar item.ervas_trilha 20
-mochila-dar item.cataplasma 5
-mochila-dar item.fragmento_pedra 10
-mochila-dar item.madeira_velha 20
-mochila-dar item.registro_viagem 1
-mochila-dar item.ervas_trilha 20
-mochila-dar item.ervas_trilha 20
-mochila-dar item.ervas_trilha 20
-mochila-dar item.madeira_velha 20
-mochila-dar item.madeira_velha 20
-mochila-dar item.madeira_velha 20
-mochila-dar item.fragmento_pedra 10
-mochila-dar item.fragmento_pedra 10
-mochila-dar item.cataplasma 5
-mochila-dar item.cataplasma 5
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila-dar item.registro_viagem 1
-mochila
-aquecer 2
-perf on
-seguir-trilha volta correndo
-perf off fechada-cheia.txt
-aquecer 2
+mochila-dar item.ervas_trilha 2000
+mochila-dar item.cataplasma 40
+mochila-dar item.fragmento_pedra 300
+mochila-dar item.madeira_velha 1500
+mochila-dar item.registro_viagem 240
+aquecer 3
 perf on
 wait 8
-perf off parada-fechada-cheia.txt
+perf off parada-fechada.txt
 key I
+pairar espaco:20 0.2
 aquecer 2
 perf on
 wait 8
-perf off aberta-cheia.txt
-key ESC
+perf off parada-aberta.txt
+pairar espaco:20 0.2
+wheel -60
+aquecer 2
+perf on
+wait 4
+perf off parada-aberta-rolada.txt
+key I
+itens-recursos
+abrir-fechar 20
+itens-recursos
 medir-save 20

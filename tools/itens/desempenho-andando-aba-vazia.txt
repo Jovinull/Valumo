@@ -1,0 +1,18 @@
+# Rodada 13.1 — andar 7 s em linha reta a partir do começo da região (semente 7) com a mochila ABERTA numa aba vazia (sem item
+# selecionado, então sem a prévia).
+# Os três roteiros (fechada, aberta, aba-vazia) rodam em processos separados e intercalados (tools/review131.sh): mesmo
+# ponto, mesmo rumo, mesmo caminho; a diferença é só a mochila. "mochila-dar" é montagem técnica.
+size 1920 1080
+click comecar
+wait 1.0
+mochila-dar item.ervas_trilha 5
+mochila-dar item.cataplasma 2
+mochila-dar item.fragmento_pedra 1
+mochila-dar item.madeira_velha 2
+key I
+click aba:curiosidade
+aquecer 4
+perf on
+hold W 7
+perf off andando.txt
+itens-recursos

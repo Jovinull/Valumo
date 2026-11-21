@@ -1,8 +1,9 @@
-# Rodada 13 — demonstração principal pelo MENU (dados temporários, tools/review13.sh): abrir o jogo, escolher o
-# personagem, criar o mundo (semente 7: Índira, ruína de casa e árvore retorcida), receber o presente da Índira, lutar no
-# posto (o herói se fere de verdade), aplicar a cataplasma na mochila, achar o caderno na casa e as ervas na árvore, salvar
-# pela pausa (Salvar jogo), voltar ao menu (com tudo salvo, a confirmação só oferece "Voltar ao menu"), continuar, abrir a
-# mochila de novo e voltar à Índira e à casa (nada duplica).
+# Rodada 13.1 — demonstração principal pelo MENU (dados temporários, tools/review131.sh): abrir o jogo, escolher o
+# personagem, criar o mundo (semente 7: Índira, ruína de casa e árvore retorcida), receber o presente da Índira (o cartão
+# com os modelos), abrir a mochila e ANDAR com ela aberta (o jogo não para; o seletor segue o mouse), ir ao posto e abrir a
+# mochila no meio da luta (o fungo continua; a cataplasma não se aplica), vencer, aplicar a cataplasma clicando nela, achar
+# o caderno com a mochila aberta (ele entra na grade na hora), as abas, salvar pela pausa, voltar ao menu, continuar
+# (a mochila igual) e voltar às fontes (nada duplica).
 size 1920 1080
 esperar-menu 20
 record on
@@ -40,17 +41,39 @@ wait 1.3
 key E
 wait 2.5
 mochila
-ir-lugar posto andando
+key I
+wait 0.8
+pairar espaco:0 0.5
+wait 1.0
+pairar espaco:1 0.4
+wait 1.5
+hold W 1.6
+wait 0.4
+hold A 0.9
+wait 1.0
+key I
 wait 0.5
-lutar 25
+ir-lugar posto andando
+wait 0.3
+key I
+wait 0.4
+pairar espaco:1 0.4
+hold W 1.2
+wait 2.5
+click espaco:1
 wait 2.0
+luta-estado
+key I
+wait 0.3
+lutar 25
+wait 1.5
 mochila
 key I
+wait 0.6
+pairar espaco:1 0.5
 wait 1.0
 click espaco:1
-wait 1.5
-click usar-item
-wait 2.5
+wait 2.0
 mochila
 key I
 wait 0.5
@@ -58,19 +81,32 @@ ir-lugar oficio indira andando
 wait 0.3
 ir-lugar descoberta andando
 wait 0.5
+key I
+wait 0.6
 key E
-wait 3.5
+wait 3.0
+pairar espaco:2 0.5
+wait 1.5
+key I
+wait 0.3
 ir-lugar arvore andando
 wait 0.5
 key E
-wait 3.0
-mochila
+wait 2.5
 key I
-wait 1.5
-click espaco:2
-wait 2.0
-click espaco:0
+wait 0.6
+pairar espaco:0 0.5
 wait 1.2
+pairar aba:consumivel 0.5
+click aba:consumivel
+wait 1.2
+pairar aba:curiosidade 0.4
+click aba:curiosidade
+wait 1.2
+pairar aba: 0.4
+click aba:
+wait 1.0
+mochila
 key ESC
 wait 0.6
 key ESC
@@ -96,7 +132,7 @@ wait 2.0
 key I
 wait 2.5
 mochila
-key ESC
+key I
 wait 0.5
 ir-lugar oficio indira andando
 wait 0.8

@@ -1,0 +1,81 @@
+# Rodada 13.1 — o custo da mochila ABERTA medido em PARES no mesmo processo: parado no começo da região (semente 7), a
+# mochila fechada 3 s, aberta 3 s (com a prévia girando), seis vezes. A diferença de cada par cancela o que muda devagar na
+# máquina (outro programa usando a GPU, temperatura); o resumo dá a mediana das diferenças. "mochila-dar" é montagem técnica.
+size 1920 1080
+click comecar
+wait 1.0
+mochila-dar item.ervas_trilha 300
+mochila-dar item.cataplasma 2
+mochila-dar item.fragmento_pedra 1
+mochila-dar item.madeira_velha 2
+mochila-dar item.registro_viagem 30
+aquecer 4
+perf on
+wait 3
+perf off par1-fechada.txt
+key I
+pairar espaco:1 0.2
+aquecer 1
+perf on
+wait 3
+perf off par1-aberta.txt
+key I
+aquecer 1
+perf on
+wait 3
+perf off par2-fechada.txt
+key I
+pairar espaco:1 0.2
+aquecer 1
+perf on
+wait 3
+perf off par2-aberta.txt
+key I
+aquecer 1
+perf on
+wait 3
+perf off par3-fechada.txt
+key I
+pairar espaco:1 0.2
+aquecer 1
+perf on
+wait 3
+perf off par3-aberta.txt
+key I
+aquecer 1
+perf on
+wait 3
+perf off par4-fechada.txt
+key I
+pairar espaco:1 0.2
+aquecer 1
+perf on
+wait 3
+perf off par4-aberta.txt
+key I
+aquecer 1
+perf on
+wait 3
+perf off par5-fechada.txt
+key I
+pairar espaco:1 0.2
+aquecer 1
+perf on
+wait 3
+perf off par5-aberta.txt
+key I
+aquecer 1
+perf on
+wait 3
+perf off par6-fechada.txt
+key I
+pairar espaco:1 0.2
+aquecer 1
+perf on
+wait 3
+perf off par6-aberta.txt
+key I
+aquecer 1
+ui-lotes fechada
+key I
+ui-lotes aberta
