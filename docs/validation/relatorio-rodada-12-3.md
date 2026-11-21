@@ -1,6 +1,7 @@
 # Relatório da Rodada 12.3 — Fechamento da geração v2 e preparação para publicação
 
-**Situação:** o ramo `feature/world-generation-v2` foi publicado no remoto, com um pull request para revisão e CI (§10).
+**Situação:** o ramo `feature/world-generation-v2` foi publicado no remoto, com o pull request
+[#9](https://github.com/Jovinull/Valumo/pull/9) (rascunho) para revisão e CI, que passou (§10).
 
 - **Não feito:** merge na `main`, tag, squash, force push e reescrita de commit.
 - **Não criados:** NPC novo, ruína nova, inventário, combate novo.
@@ -281,7 +282,29 @@ Os dados do proprietário foram conferidos por sha256 antes e depois de cada eta
 
 ## 10. Publicação
 
-(preenchido abaixo)
+**Revisão do histórico** (`4cbde86..HEAD`, 212 commits):
+
+- **Identidade:** autor e committer noreply em todos.
+- **Mensagens:** só título, nenhum trailer nem linha de atribuição.
+- **Arquivos:** nenhum arquivo de `output/` nem asset gerado; nenhum acima de 2 MB; nada pessoal (varredura por nome,
+  e-mail e caminhos da máquina).
+- **Os commits do artista:** os 34 entraram pelos dois merges, com os SHAs originais.
+
+**Clone limpo** (`.venv` nova, sem a do checkout no PATH):
+
+- 456 testes, 0 falhas, 1 pulado;
+- instalação e `--check` ok;
+- os 1.771 arquivos gerados são idênticos aos do checkout (determinismo dos assets).
+
+**Publicado:**
+
+- **Ramo:** `feature/world-generation-v2` no remoto, por push normal (sem force; ponta `d48e6bd` no momento do PR).
+- **Pull request:** [#9](https://github.com/Jovinull/Valumo/pull/9), em **rascunho**, para a `main`.
+  - **Por que rascunho:** para não ser mesclado por engano antes do teste físico.
+  - **Corpo:** sem linha de atribuição de ferramenta.
+- **CI:** `build` e `autoria-e-texto` **passaram**.
+- **O que não foi feito:** merge, tag, squash e reescrita.
+- **O PR #8:** continua aberto. Todos os commits dele estão no #9, então pode ser fechado quando o #9 entrar na `main`.
 
 ## 11. As 21 respostas
 
@@ -332,9 +355,9 @@ Os dados do proprietário foram conferidos por sha256 antes e depois de cada eta
     - P98: o papel do Acapela;
     - P99: o teste físico;
     - e os de antes: P91 (decisão registrada) e P92 (miniaturas).
-17. **O clone limpo funciona?** (§10)
-18. **O CI passou?** (§10)
-19. **Qual a URL do PR?** (§10)
+17. **O clone limpo funciona?** Sim: 456 testes, 0 falhas, instalação e `--check` ok, assets gerados idênticos (§10).
+18. **O CI passou?** Sim: `build` e `autoria-e-texto` verdes no PR #9.
+19. **Qual a URL do PR?** https://github.com/Jovinull/Valumo/pull/9 (rascunho, para a `main`).
 20. **Está pronto para o teste físico completo?** Sim. Roteiro com as sementes em `round-12-3-final/roteiro-de-teste-fisico.md`.
 21. **Algum bloqueio para congelar a v2?** Nenhum bloqueio técnico conhecido; falta o seu teste físico. Se a câmera da
     torre, a Índira e a abóbada passarem nele, congelar a v2 é:
