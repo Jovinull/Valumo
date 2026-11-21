@@ -32,6 +32,7 @@
 | [0028](0028-personagens-mundos-e-aventuras.md) | Personagens e mundos com id estável; aventura = pasta do par personagem × mundo nos formatos v1/v2 (sem v3); saves e aparências antigos trazidos por cópia validada e registrada (rodada 11.1) |
 | [0029](0029-versoes-do-gerador.md) | **Implementada na rodada 12:** versões do gerador convivendo — a v1 congelada (referência de 8 sementes) para os mundos v1, a versão nova só para mundos novos; despacho por versão com peças compartilhadas; versão desconhecida recusada sem tocar no arquivo (integração dos lotes 1 e 2) |
 | [0030](0030-catalogo-de-props-sob-demanda.md) | Catálogo de props sob demanda: o `props.json` inteiro é registrado, mas cada malha só é feita quando uma cena a pede (integração dos lotes 1 e 2) |
+| [0031](0031-itens-e-recompensas.md) | **Rodada 13:** itens são dados e efeitos são código; recompensas como camada de jogo sobre os mundos congelados (presente, achado), uma vez por aventura, tudo ou nada; mochila e fontes em campos OPCIONAIS do save, sem versão nova |
 
 Só entram aqui decisões que mudam o rumo do projeto ou que alguém poderia querer desfazer. Escolhas
 locais ficam em comentários no código ou nos guias de arte.
