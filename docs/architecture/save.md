@@ -184,3 +184,38 @@ da publicação da v2 (a casa virou torre). O leitor agora separa os casos:
   - não foram migrados nem abertos pela publicação;
   - os arquivos foram conferidos por sha256 antes e depois;
   - a cópia `.invalido` histórica continua lá.
+
+## Rodada 13 — a mochila e as fontes coletadas (campos opcionais)
+
+```json
+"progresso": {
+  "moedas": 5, "objetosAtivos": [], "descobertas": ["desc.r0.ruina.0"], "missoes": {"…": "…"},
+  "inventario": [{"espaco": 0, "item": "item.ervas_trilha", "qtd": 2}, {"espaco": 1, "item": "item.cataplasma", "qtd": 1}],
+  "fontesColetadas": ["achado:desc.r0.ruina.0", "presente:indira"]
+}
+```
+
+**Os campos:**
+
+- **Quando aparecem:** só quando há o que gravar. Um save sem item é byte a byte o de antes, e um save sem os campos abre
+  com a mochila vazia (nada inventado).
+- **Formato:** a versão não mudou; continuam v1 (vila) e v2 (procedural).
+- **O que se grava:** só os espaços ocupados (espaço, id, quantidade) e os ids das fontes; nunca o nome da tela nem dado
+  derivado.
+
+**Leitura** (`SaveGame.readItems`):
+
+| Caso | Exemplo | Resultado | `.invalido` |
+|---|---|---|---|
+| estrutura ou número inválido | quantidade 0, acima da pilha ou fracionária; espaço fora de 0–23 ou repetido; fonte repetida | recusado, "Jogo salvo inválido: …" | sim |
+| item que este jogo não conhece | `item.espada_de_cristal` | recusado, "Esta aventura tem itens de uma versão mais nova do jogo…" | **não** |
+| presente que a tabela não tem | `presente:quelmo` | igual ao item desconhecido (jogo mais novo) | **não** |
+| achado de uma descoberta que a região não tem | `achado:desc.r9.ruina.0` | região v2: outra região ("versão de testes…"); vila fixa: inválido | não / sim |
+
+- **Atomicidade:** a coleta e o uso mudam a mochila e as fontes no mesmo passo lógico, e o save grava os dois no mesmo
+  arquivo atômico.
+- **Salvamento automático:** receber um item marca o salvamento automático no primeiro passo seguro, como os marcos.
+- **Alterações não salvas:** usar um item conta (`GameLogic.unsaved`).
+- **Voltar de versão:** um save com itens aberto pelo binário da v0.6 abre sem os itens (ele ignora campos que não
+  conhece); salvar lá os perde. Não é caminho suportado ([ADR 0031](../decisions/0031-itens-e-recompensas.md)).
+- **Testes:** `InventoryFlowTest`, `InventoryTest`, `SaveCompatTest` e a matriz `tools/qa/saves_antigos.sh`.

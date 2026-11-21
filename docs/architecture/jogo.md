@@ -360,6 +360,7 @@ perfil (`combate_e.json → sensacao`; ver [combate.md](combate.md) §14).
 | Tab / Shift+Tab | próximo alvo à direita / à esquerda na tela |
 | Mouse | câmera (travado: ajuste de ±0,40 rad e inclinação) |
 | E | conversar |
+| I | mochila (rodada 13; também pelo botão Inventário da pausa) |
 | Esc | pausa (volume, mudo, barras de inimigos; sensação e arena só no modo técnico, desde o fechamento da 10) |
 | M | mudo |
 
@@ -479,3 +480,14 @@ e [0028](../decisions/0028-personagens-mundos-e-aventuras.md).
   - **Regra:** `GameLogic.useDiscovery`, `QuestSystem.discover` (uma vez), `progresso.descobertas` no save (opcional).
 - **Candidato:** NPC, objeto e descoberta disputam o E; vence o mais perto, mais ou menos à frente do herói.
 
+## 18. Rodada 13 — mochila, itens e recompensas
+
+- **Estado `INVENTORY`:** como o diário, a lógica para. Abre com I (ou pela pausa) e fecha com I, Esc ou Fechar. O
+  clique seleciona e nunca ataca; usar é uma ação da lógica.
+- **Fontes:** o presente da Índira ao terminar a conversa e o achado de cada descoberta (por tipo de lugar), uma vez por
+  aventura, tudo ou nada.
+- **Uso:** a cataplasma cura 2 de vida fora da luta engajada.
+- **Vida:** continua não indo para o save (ao continuar, volta cheia); R depois de um desfecho também a enche. A cura vale
+  entre lutas: um herói ferido que venceu, ou que saiu da coleira no meio de um grupo.
+- **Contratos:** [inventário](inventario.md), [itens](itens.md), [recompensas e loot](recompensas-e-loot.md),
+  [ADR 0031](../decisions/0031-itens-e-recompensas.md).
