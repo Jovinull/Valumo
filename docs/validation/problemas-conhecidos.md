@@ -1,4 +1,4 @@
-# Problemas conhecidos — estado atual (rodada 12.3: fechamento da v2)
+# Problemas conhecidos — estado atual (publicação da v2, tag `procedural-world-v0.6`)
 
 Fonte única do que falta ou não funciona. Severidade: **grave** (bloqueia aprovação de asset ou
 expansão), **média** (visível na câmera de jogo), **baixa** (só de perto / cosmético). Rastreabilidade
@@ -200,27 +200,27 @@ completa (rodadas 01–05.1, com evidência verificada): [matriz-de-problemas.md
 | ~~**P86**~~ → **fechado na rodada 12.3:** conceito aprovado pelo proprietário; validação visual final (de perto, de perfil, na câmera de jogo, cheio × vazio, dia e fim de tarde, ao pé da lareira e entre os barris) sem defeito demonstrável, sem mudança no desenho | — | `round-12-3-final/capturas/pote/` | — |
 | ~~**P87**~~ → **resolvido na rodada 12.2:** save íntegro de uma região que mudou (versão de testes) ou de jogo mais novo é recusado SEM `.invalido` e sem tocar no arquivo, com a frase "Esta aventura é de uma versão de testes deste mundo… crie outro mundo para jogar" (`SaveGame.Incompatible`). O mundo "RUINAS" (31337) continua guardado; a cópia `.invalido` que a 12.1 criou ao lado dele fica até o proprietário decidir | — | `save.md` §Rodada 12.2; `SaveCompatTest` | — |
 | ~~**P88**~~ → **resolvido na rodada 12.2:** decisão do proprietário — a Índira é a herbalista | — | `habitantes_e.json` | — |
-| **P89** — v2 da 12.1 validada por entrada injetada (roteiros e testes); teste físico do proprietário pendente (laje, muro quebrado, salto, piso da torre de vigia na 1024) | média até o teste | `round-12-1/videos/` | teste físico |
+| ~~**P89**~~ → **fechado na publicação da v2:** o teste físico completo do proprietário aprovou a v2 (laje, muro quebrado, salto, torres) | — | relatório da publicação | — |
 
 ## Abertos depois da rodada 12.2 (integração artística e fechamento da v2)
 
 | Problema | Severidade | Evidência | Próximo passo |
 |---|---|---|---|
-| **P90** — mundos v2 criados com a 12.1 (o "31337" do proprietário, feito depois da 12.1) também mudam de região na 12.2: se o save citar algo que não existe mais, é recusado como "versão de testes" (sem `.invalido`); senão abre com a região nova | baixa (a v2 não foi publicada) | `save.md` §Rodada 12.2 | para o teste físico, criar mundo novo; a v2 congelada encerra isso |
+| ~~**P90**~~ → **fechado na publicação da v2 (comportamento aceito):** os mundos v2 das versões de testes (o "31337"/"RUINAS" do proprietário) não são migrados; um save deles que não bate é recusado sem `.invalido` com a frase de versão de testes (`RegionGenerator.hadTestBuilds(2)`), e os arquivos foram preservados (sha256 antes e depois) | — | `save.md` §Publicação da v2; `SaveCompatTest` | — |
 | **P91** — a Brásia fica a 0,44 u da tina do galpão (o ponto P73 aprovado); a regra genérica de 0,55 u vale para moradores postos em chão aberto, e o morador de ofício num ponto autorado usa o raio do corpo (0,3 u): nenhum ponto do galpão cumpre 0,55 sem tomar o lugar de quem usa a forja | — (decisão registrada) | `moradores-dos-oficios.md` §1; planta `round-12-2/` | se incomodar no teste físico: mover a tina (arte) |
 | **P92** — a miniatura de um mundo antigo na tela de mundos continua a foto de quando ele foi criado (a região de uma v2 de testes pode ter mudado) | baixa | captura `round-12-2/registros/ruinas-recusado-sem-invalido.png` | registrado na 12.3, sem regenerar miniatura nem mexer em save (decisão); nada até a v2 congelar |
 | ~~**P93**~~ → **resolvido na rodada 12.3:** o Acapela foi avaliado (contrato, capturas reais, rabo nos clipes, aceno, câmera de jogo) e incorporado à biblioteca pelo merge `d2a7134`, com os commits do artista; sem profissão definida, fica fora das vilas | — | `integracao-pr8.md` §Rodada 12.3 | papel futuro: ver P98 |
-| **P94** — teste físico da 12.2 pendente (moradores, as quatro ruínas, saves) | média até o teste | `round-12-2/roteiro-de-teste-fisico.md` | teste físico (junto com o da 12.3, P99) |
+| ~~**P94**~~ → **fechado na publicação da v2:** teste físico aprovado pelo proprietário | — | relatório da publicação | — |
 
-## Abertos depois da rodada 12.3 (fechamento da v2)
+## Abertos depois da rodada 12.3 (fechamento da v2; aceitos na publicação `procedural-world-v0.6`)
 
 | Problema | Severidade | Evidência | Próximo passo |
 |---|---|---|---|
-| **P95** — saindo da torre andando de costas para ela (câmera olhando para dentro), o recorte acompanha até 2,5 u fora ou 1,5 s; no fim dessa saída a câmera, que ficou dentro da torre olhando para fora, encosta na parede de trás da porta (salto da distância de até 2,5 u, a ~2 u do herói, nunca colada). Na 12.2 o mesmo trecho ficava colado 45% do tempo | baixa | `TowerCameraTest` (cenário "saída") | teste físico |
-| **P96** — a borda pontilhada do recorte, com o contorno do pós-processamento, forma um anel fino em volta do buraco: visível parado, some em movimento | baixa | vídeos `round-12-3-final/videos/01–05` | teste físico; se incomodar, borda mais estreita (`CameraCutaway.CORE`) |
-| **P97** — a abóbada soterrada (coberta, enterrada no declive) fica com a câmera de sempre: colada em 57% dos quadros lá dentro, trechos de até 2,3 s; o herói fica legível em 95,6% e o pote é visto em 99,5% das vezes em que se olha para ele. O recorte não foi aplicado: no ensaio das abóbadas reais ele zera a câmera colada, mas o topo do morro (alcançável pelo declive de trás) fica dentro da zona e pede um limite de altura que ainda não existe | baixa (o interior é curto: entrar, abrir o pote, sair) | `TowerCameraTest.aAbobadaPorDentroComACameraDeSempre`; vídeo 08; ensaio nas abóbadas reais em [recorte da câmera](../architecture/recorte-da-camera.md) §5 (colada 63–77% → 0%) | decisão do proprietário: o mesmo recorte, com um limite de altura da zona (o topo do morro), numa rodada curta |
+| **P95** — saindo da torre andando de costas para ela (câmera olhando para dentro), o recorte acompanha até 2,5 u fora ou 1,5 s; no fim dessa saída a câmera, que ficou dentro da torre olhando para fora, encosta na parede de trás da porta (salto da distância de até 2,5 u, a ~2 u do herói, nunca colada). Na 12.2 o mesmo trecho ficava colado 45% do tempo | baixa | `TowerCameraTest` (cenário "saída") | aceito no checkpoint `procedural-world-v0.6` (sem reclamação no teste físico; sem rodada nova agora) |
+| **P96** — a borda pontilhada do recorte, com o contorno do pós-processamento, forma um anel fino em volta do buraco: visível parado, some em movimento | baixa | vídeos `round-12-3-final/videos/01–05` | aceito no checkpoint `procedural-world-v0.6` (sem reclamação no teste físico); se um dia incomodar, borda mais estreita (`CameraCutaway.CORE`) |
+| **P97** — a abóbada soterrada (coberta, enterrada no declive) fica com a câmera de sempre: colada em 57% dos quadros lá dentro, trechos de até 2,3 s; o herói fica legível em 95,6% e o pote é visto em 99,5% das vezes em que se olha para ele. O recorte não foi aplicado: no ensaio das abóbadas reais ele zera a câmera colada, mas o topo do morro (alcançável pelo declive de trás) fica dentro da zona e pede um limite de altura que ainda não existe | baixa (o interior é curto: entrar, abrir o pote, sair) | `TowerCameraTest.aAbobadaPorDentroComACameraDeSempre`; vídeo 08; ensaio nas abóbadas reais em [recorte da câmera](../architecture/recorte-da-camera.md) §5 (colada 63–77% → 0%) | aceito no checkpoint `procedural-world-v0.6` (sem reclamação no teste físico); se um dia for pedido: o mesmo recorte, com um limite de altura da zona (o topo do morro), numa rodada curta |
 | **P98** — o Acapela está na biblioteca sem papel no mundo (os documentos não definem ofício) | — (escopo) | `integracao-pr8.md` §Rodada 12.3 | decisão do proprietário (sugestões no relatório da 12.3) |
-| **P99** — teste físico da 12.3 pendente (a torre por dentro, a Índira no varal, o pote, a abóbada, saves) | média até o teste | `round-12-3-final/roteiro-de-teste-fisico.md` | teste físico |
+| ~~**P99**~~ → **fechado na publicação da v2:** teste físico completo aprovado pelo proprietário, sem pedido de correção | — | relatório da publicação | — |
 
 ## Limitações aceitas (comportamento conhecido, não é defeito)
 
