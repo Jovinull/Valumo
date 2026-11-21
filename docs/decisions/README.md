@@ -33,6 +33,7 @@
 | [0029](0029-versoes-do-gerador.md) | **Implementada na rodada 12:** versões do gerador convivendo — a v1 congelada (referência de 8 sementes) para os mundos v1, a versão nova só para mundos novos; despacho por versão com peças compartilhadas; versão desconhecida recusada sem tocar no arquivo (integração dos lotes 1 e 2) |
 | [0030](0030-catalogo-de-props-sob-demanda.md) | Catálogo de props sob demanda: o `props.json` inteiro é registrado, mas cada malha só é feita quando uma cena a pede (integração dos lotes 1 e 2) |
 | [0031](0031-itens-e-recompensas.md) | **Rodada 13:** itens são dados e efeitos são código; recompensas como camada de jogo sobre os mundos congelados (presente, achado), uma vez por aventura, tudo ou nada; mochila e fontes em campos OPCIONAIS do save, sem versão nova |
+| [0032](0032-mochila-viva.md) | **Rodada 13.1:** a mochila como camada sobre a exploração (o jogo continua correndo; o mouse é dela, o teclado continua no herói), seletor pelo mouse, sem limite de espaços (lista de pilhas que rola; teto só técnico), itens pelos modelos voxel no mesmo renderizador com fundo transparente; substitui os 24 espaços, a pausa e os ícones de pixel da 0031 |
 
 Só entram aqui decisões que mudam o rumo do projeto ou que alguém poderia querer desfazer. Escolhas
 locais ficam em comentários no código ou nos guias de arte.
