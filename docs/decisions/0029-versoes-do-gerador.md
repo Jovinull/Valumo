@@ -1,6 +1,7 @@
 # 0029 — Versões do gerador: a v1 congelada para os mundos v1, a v2 só para mundos novos
 
-**Status:** aceita e **implementada na rodada 12**. A seção "Implementação (rodada 12)", no fim, diz o que foi feito e onde
+**Status:** aceita, **implementada na rodada 12** e com as **duas versões publicadas** no fechamento da v2 (tag
+`procedural-world-v0.6`; seção "Publicação da v2", no fim). A seção "Implementação (rodada 12)" diz o que foi feito e onde
 difere da proposta. A proposta original (integração dos lotes 1 e 2) fica abaixo como registro.
 
 ## Contexto
@@ -178,3 +179,37 @@ mudou; o teste falha. **Nunca se atualiza a referência para passar.**
 - o formulário de mundo não oferece "estilo antigo" (não foi pedido);
 - a v2 tem a mesma região controlada da v1 (±16,5 u), sem aumentar o mapa.
 
+## Publicação da v2 (fechamento das rodadas 12 a 12.3, tag `procedural-world-v0.6`)
+
+**Aprovação:** o proprietário fez o teste físico completo (movimento, combate, NPCs, ruínas, câmera, descobertas,
+personalização e saves), aprovou e autorizou a publicação.
+
+**O que mudou no código:**
+
+- `RegionGenerator.published(v)` = v1 e v2.
+- Nenhum algoritmo, peso, RNG, POI, morador, colisão ou geometria mudou.
+
+**A garantia** (as 8 sementes de cada versão estão fixadas em `regioes-v1.txt` e `regioes-v2.txt`, `RegionGoldenTest`):
+
+| Versão | Situação | Quem a usa |
+|---|---|---|
+| v1 | publicada e congelada desde `worlds-and-menus-v0.5` | os mundos v1, para sempre |
+| v2 | publicada e congelada nesta publicação | os mundos v2, para sempre; é a dos mundos novos (`LATEST`) |
+| v3 | não existe | o que mudar o resultado de uma semente daqui em diante |
+
+**Mundos das versões de testes da v2** (rodadas 12 a 12.3, como o "RUINAS" do proprietário):
+
+- **Não são migrados.** A região daquela semente pode ter mudado antes da publicação.
+- **Save que não bate:** é recusado sem `.invalido` e sem tocar no arquivo, com a frase "de uma versão de testes"
+  (`RegionGenerator.hadTestBuilds(2)`). Depois da publicação a região de uma semente v2 não muda mais, então só esse
+  período produz a diferença.
+- **A v1 não teve versões de testes:** um save dela que não bate "não corresponde a este mundo".
+
+**Do que a v2 depende** (mudar qualquer item muda regiões e exige a v3): a lista está em
+[mundo procedural](../architecture/mundo-procedural.md) §13.
+
+**Testes:**
+
+- `GeneratorVersionTest.asVersoes1E2SaoPublicadasESuportadas`;
+- `SaveCompatTest` (a frase das versões de testes com a v2 publicada);
+- `RegionGoldenTest`.
