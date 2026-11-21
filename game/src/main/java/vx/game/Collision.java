@@ -137,9 +137,9 @@ public final class Collision {
      * Rodada 12.3 (P85) — zona de RECORTE de uma construção composta com interior estreito e aberto (a torre caída, perfil
      * {@code "recorte"} em colisao_e.json): com o herói dentro dela ({@link #cutawayAt}), as consultas da CÂMERA ignoram as
      * formas daquela construção ({@link #cameraSkip}) e o desenho recorta o que dela fica entre a câmera e o herói. A
-     * colisão do corpo não muda nunca.
+     * colisão do corpo não muda nunca. Guarda a zona (centro x, z e raio r, em u de mundo) e a origem do modelo da
+     * construção (ox, oz): é por ela que o desenho a acha.
      */
-    /** Zona (centro x, z e raio r, em u de mundo) e a origem do modelo da construção (ox, oz): é por ela que o desenho a acha. */
     public record Cutaway(int id, String prop, float x, float z, float r, float ox, float oz) { }
 
     public final List<Cutaway> cutaways = new ArrayList<>();
