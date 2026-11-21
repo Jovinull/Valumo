@@ -1,6 +1,12 @@
 package vx.game;
 
 import org.joml.Vector3f;
+import vx.game.item.Inventory;
+import vx.game.item.ItemEffects;
+import vx.game.item.ItemProgress;
+import vx.game.item.ItemRules;
+import vx.game.item.ItemStack;
+import vx.game.item.LootTable;
 import vx.game.quest.QuestDefinition;
 import vx.game.quest.QuestEvent;
 import vx.game.quest.QuestProgress;
@@ -30,7 +36,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public final class GameLogic {
     /** Rodada 10: JOURNAL = diário aberto (J); a lógica para como na pausa. */
-    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL, MENU }
+    public enum State { SELECT, EXPLORE, DIALOG, PAUSE, JOURNAL, MENU, INVENTORY }
 
     /** NPC com quem dá para conversar. */
     public static final class Npc {
@@ -155,6 +161,21 @@ public final class GameLogic {
     private String savedSnapshot;
     private Combat.Outcome lastOutcome = Combat.Outcome.NONE;
 
+    /**
+     * Rodada 13 — itens: o catálogo e a tabela de recompensas desta sessão (lidos uma vez; {@link ItemRules#NONE} numa cena
+     * sem jogo para salvar), a mochila e as fontes coletadas DESTA aventura (vão no save) e o espaço selecionado na tela.
+     */
+    public final ItemRules itemRules;
+    public ItemProgress items = new ItemProgress();
+    public int invSelected;
+    /** Rodada 13: colunas da grade da mochila (o desenho e as setas usam o mesmo número). */
+    public static final int INV_COLS = 6;
+    /** Rodada 13: o cartão do último item recebido (título e linha dos itens) e até quando aparece. */
+    public String itemNoticeTitle, itemNoticeItems;
+    public List<Inventory.Grant> itemNoticeGrants = List.of();
+    public float itemNoticeUntil;
+    public int itemUses;
+
     public GameLogic(SceneDef scene, Collision collision) {
         this.scene = scene;
         this.collision = collision;
@@ -204,6 +225,7 @@ public final class GameLogic {
             quests = null;
             dialogues = null;
         }
+        itemRules = quests != null ? ItemRules.load(scene.assets) : ItemRules.NONE;   // rodada 13: uma vez por sessão
         frameSelect();
     }
 
@@ -322,6 +344,17 @@ public final class GameLogic {
                 if (in.hit(GLFW_KEY_T)) action("rastreador");
                 cam.update(dt, player.x, player.visualY, player.z, collision);
             }
+            case INVENTORY -> {                                            // rodada 13: mochila (a lógica para, como no diário)
+                if (in.hit(GLFW_KEY_ESCAPE, GLFW_KEY_I)) action("fechar-inventario");
+                else {
+                    if (in.hit(GLFW_KEY_RIGHT, GLFW_KEY_D)) selectSlot(invSelected + 1);
+                    if (in.hit(GLFW_KEY_LEFT, GLFW_KEY_A)) selectSlot(invSelected - 1);
+                    if (in.hit(GLFW_KEY_DOWN, GLFW_KEY_S)) selectSlot(invSelected + INV_COLS);
+                    if (in.hit(GLFW_KEY_UP, GLFW_KEY_W)) selectSlot(invSelected - INV_COLS);
+                    if (in.hit(GLFW_KEY_ENTER, GLFW_KEY_E, GLFW_KEY_SPACE)) action("usar-item");
+                }
+                cam.update(dt, player.x, player.visualY, player.z, collision);
+            }
         }
         for (Npc n : npcs) {                                              // quem conversa olha para o herói; depois volta
             float want = n == talking ? (float) Math.atan2(player.x - n.def.x(), player.z - n.def.z()) : n.baseYaw();
@@ -341,6 +374,7 @@ public final class GameLogic {
     private void explore(float dt, Input in) {
         if (in.hit(GLFW_KEY_ESCAPE)) { action("pausar"); return; }
         if (in.hit(GLFW_KEY_J) && quests != null) { action("diario"); return; }
+        if (in.hit(GLFW_KEY_I) && quests != null) { action("inventario"); return; }   // rodada 13: mochila
         cam.look(in.mdx, in.mdy);
         if (in.wheel != 0) cam.zoom(in.wheel);
         float[] ax = in.moveAxes();
@@ -505,9 +539,92 @@ public final class GameLogic {
             toast(newPlace ? "Lugar novo: " + d.name() + coins : (d.find() != null ? d.find() : d.name()) + coins, 6f);
             message(d.text(), 6f);
             autosavePending = true;
-        } else message(d.seen(), 4f);
+            grantFind(d, true);                                            // rodada 13: o material do lugar, junto
+        } else if (grantFind(d, false) != ItemProgress.Outcome.GRANTED) message(d.seen(), 4f);
         onAction.accept(first ? "descoberta" : "objeto-usar");
         return first;
+    }
+
+    // ------------------------------------------------------------------ rodada 13: itens
+
+    /**
+     * O achado da descoberta {@code d} (pelo TIPO do lugar, {@code recompensas_e.json}): entregue uma vez, junto com a
+     * descoberta. O que não coube na mochila fica no lugar: usar o lugar de novo (E) recolhe. Uma descoberta feita antes
+     * da rodada 13 (num save antigo) recolhe da mesma forma, quando o jogador volta e usa o lugar — nunca sozinha.
+     * Devolve null se o lugar não tem achado.
+     */
+    ItemProgress.Outcome grantFind(SceneDef.Discovery d, boolean withDiscovery) {
+        LootTable.Reward r = itemRules.loot().find(d.type());
+        if (r == null) return null;
+        String src = LootTable.findSource(d.id());
+        if (items.collected(src)) return ItemProgress.Outcome.ALREADY;
+        return grant(src, r, withDiscovery ? "o achado fica no lugar até ter espaço" : "abra espaço e volte", !withDiscovery);
+    }
+
+    /** O presente do morador ao terminar a conversa (uma vez por aventura; mochila cheia = ele espera). */
+    void grantGift(Npc n) {
+        LootTable.Reward r = itemRules.loot().gift(n.def.id());
+        if (r == null) return;
+        String src = LootTable.giftSource(n.def.id());
+        if (!items.collected(src)) grant(src, r, "fale de novo quando tiver espaço", true);
+    }
+
+    /**
+     * Entrega tudo ou nada; o cartão diz o que entrou ou que não coube. {@code announce}: toca o som da recompensa (junto
+     * com a descoberta, não: o som do lugar descoberto já toca no mesmo passo).
+     */
+    ItemProgress.Outcome grant(String source, LootTable.Reward r, String whenFull, boolean announce) {
+        ItemProgress.Outcome o = items.grant(source, r.items());
+        if (o == ItemProgress.Outcome.GRANTED) {
+            StringBuilder b = new StringBuilder();
+            for (Inventory.Grant g : r.items()) b.append(b.isEmpty() ? "" : "   ").append("+").append(g.count()).append(" ").append(g.item().name());
+            itemNotice(r.notice(), b.toString());
+            itemNoticeGrants = r.items();
+            autosavePending = true;                                       // como os marcos: no primeiro passo seguro
+            if (announce) onAction.accept("item-coletado");
+        } else if (o == ItemProgress.Outcome.FULL) {
+            itemNotice("Mochila cheia", whenFull);
+            itemNoticeGrants = List.of();
+            onAction.accept("item-indisponivel");
+        }
+        return o;
+    }
+
+    void itemNotice(String title, String line) {
+        itemNoticeTitle = title;
+        itemNoticeItems = line;
+        itemNoticeUntil = time + 6f;
+    }
+
+    void selectSlot(int i) {
+        int n = Inventory.SLOTS;
+        invSelected = Math.floorMod(i, n);
+    }
+
+    /** O espaço selecionado: usa o item, se dá (na lógica, uma vez por pedido; o efeito vem de {@link ItemEffects}). */
+    void useSelected() {
+        ItemStack st = items.inventory.slot(invSelected);
+        if (st == null) { message("Este espaço está vazio", 2.5f); onAction.accept("item-indisponivel"); return; }
+        if (!st.item().usable()) { message(st.item().name() + " não se usa", 3f); onAction.accept("item-indisponivel"); return; }
+        ItemEffects.Result r = ItemEffects.apply(st.item(), heroTarget());
+        if (r.consumed()) {
+            items.inventory.remove(invSelected, 1);
+            itemUses++;
+            onAction.accept("item-usar");
+        } else onAction.accept("item-indisponivel");
+        message(r.message(), 3f);
+    }
+
+    /** A vida do herói para os efeitos de item (sem combate na cena = sem herói com vida). */
+    public ItemEffects.Target heroTarget() {
+        return new ItemEffects.Target() {
+            public boolean hasHero() { return combat != null; }
+            public int hp() { return combat.hero.hp; }
+            public int maxHp() { return combat.def.heroHp; }
+            public boolean alive() { return combat.hero.alive() && combat.outcome != Combat.Outcome.DEFEAT; }
+            public boolean engaged() { return combat.engaged(); }
+            public void setHp(int hp) { combat.hero.hp = hp; }
+        };
     }
 
     /**
@@ -618,10 +735,12 @@ public final class GameLogic {
     }
 
     public void endDialog() {
+        Npc who = talking;
         if (talking != null) onAction.accept("fala-fim");
         talking = null;
         state = State.EXPLORE;
         cam.frame(false, null, 0, 0, 0);
+        if (who != null && quests != null) grantGift(who);              // rodada 13: o presente, ao terminar a conversa
     }
 
     public SceneDef.Line currentLine() { return talking == null || line >= dialogLines.size() ? null : dialogLines.get(line); }
@@ -689,6 +808,9 @@ public final class GameLogic {
             }
             case "diario-pausa" -> { if (state == State.PAUSE && quests != null) state = State.JOURNAL; }
             case "fechar-diario" -> { if (state == State.JOURNAL) state = State.EXPLORE; }
+            case "inventario" -> { if (state == State.EXPLORE && quests != null) state = State.INVENTORY; }   // rodada 13
+            case "fechar-inventario" -> { if (state == State.INVENTORY) state = State.EXPLORE; }
+            case "usar-item" -> { if (state == State.INVENTORY) useSelected(); }
             case "rastreador" -> { prefs.tracker = !prefs.tracker; prefs.save(); }
             case "salvar" -> {
                 String why = saveBlocker();
@@ -742,7 +864,8 @@ public final class GameLogic {
                 setEncounter(ks.get((ks.indexOf(combat.encounter) + 1) % ks.size()));
             }
             default -> {
-                if (id.startsWith("escolha:")) select(Integer.parseInt(id.substring(8)));
+                if (id.startsWith("espaco:") && state == State.INVENTORY) selectSlot(Integer.parseInt(id.substring(7)));   // rodada 13
+                else if (id.startsWith("escolha:")) select(Integer.parseInt(id.substring(8)));
                 else if (id.startsWith("fala-escolha:")) { choiceSelected = Integer.parseInt(id.substring(13)); action("continuar-fala"); }
                 else if (id.startsWith("sensacao:") && technical) { applyFeel(id.substring(9)); prefs.feelFromCommandLine = false; prefs.save(); }
                 else if (id.startsWith("encontro:") && technical) setEncounter(id.substring(9));
@@ -848,7 +971,9 @@ public final class GameLogic {
      * tolerância de 0,25 u. O tempo de jogo não conta: ficar parado não é progresso a perder.
      */
     String progressSnapshot() {
-        return (quests == null ? "" : quests.toJson().toString()) + "|" + Math.round(player.x * 4) + "," + Math.round(player.z * 4);
+        com.google.gson.JsonObject it = new com.google.gson.JsonObject();
+        items.writeTo(it);                                                // rodada 13: mochila e fontes também são progresso
+        return (quests == null ? "" : quests.toJson().toString()) + "|" + it + "|" + Math.round(player.x * 4) + "," + Math.round(player.z * 4);
     }
 
     /**
@@ -907,12 +1032,13 @@ public final class GameLogic {
         autosavePending = false;
         try {
             var json = SaveGame.compose(saveId, scene.layout, appearance, player.x, player.z, (float) Math.toDegrees(player.yaw), playTime, quests,
-                    scene.procedural);
-            SaveGame.write(saveDir, SaveGame.text(json), t -> SaveGame.parse(t, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural));
+                    scene.procedural, items);
+            SaveGame.write(saveDir, SaveGame.text(json), t -> SaveGame.parse(t, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural,
+                    itemRules));
             saves++;
             saveError = null;
             savedSnapshot = progressSnapshot();
-            saved = SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural);
+            saved = SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural, itemRules);
             onAction.accept(auto ? "salvo-auto" : "salvo");
             if (auto) toastIfQuiet("Jogo salvo"); else message("Jogo salvo", 3f);
             return true;
@@ -930,7 +1056,7 @@ public final class GameLogic {
     /** Relê o save (tela inicial: habilita ou explica o Continuar). */
     public void refreshSaved() {
         saved = quests == null || catalog == null ? new SaveGame.Loaded(null, null, null)
-                : SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural);
+                : SaveGame.read(saveDir, catalog, scene.layout, questDefs.values(), objectIds(), scene.procedural, itemRules);
     }
 
     /** Por que o Continuar está indisponível (null = disponível). */
@@ -952,6 +1078,8 @@ public final class GameLogic {
         if (why != null) { message(why, 4f); onAction.accept("indisponivel"); return; }
         SaveGame.Data d = saved.data();
         quests = d.quests();
+        items = d.items();                                                // rodada 13: a mochila e as fontes desta aventura
+        invSelected = 0;
         playTime = d.playTime();
         saveId = d.id();
         appearance = d.appearance().copy();
