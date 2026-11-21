@@ -1,5 +1,5 @@
 {
- "_doc": "Rodada 13 — catálogo de itens (escrito à mão). id estável (item.*), nunca o nome da tela. categoria: uma das 'categorias'. pilha: quantas unidades cabem num espaço (1 = não empilha). icone: um dos ícones de pixel de vx.game.item.ItemIcons. uso (opcional): o efeito vem do CÓDIGO (vx.game.item.ItemEffects), o dado só escolhe qual e com que número; efeito desconhecido = catálogo recusado. Contrato: docs/architecture/itens.md.",
+ "_doc": "Rodada 13 — catálogo de itens (escrito à mão). id estável (item.*), nunca o nome da tela. categoria: uma das 'categorias'. pilha: quantas unidades cabem num espaço (1 = não empilha; a mochila não tem limite de espaços desde a rodada 13.1). modelo: o modelo voxel do item, gerado por tools/itens_e.py em assets/items/e/ (o jogo o renderiza na grade, no cartão e na prévia). uso (opcional): o efeito vem do CÓDIGO (vx.game.item.ItemEffects), o dado só escolhe qual e com que número; efeito desconhecido = catálogo recusado. Contrato: docs/architecture/itens.md.",
  "formato": "valumo.itens",
  "versao": 1,
  "categorias": {
@@ -9,16 +9,16 @@
   "curiosidade": "Curiosidade"
  },
  "itens": [
-  {"id": "item.ervas_trilha", "nome": "Ervas da trilha", "categoria": "material", "pilha": 20, "icone": "ervas",
+  {"id": "item.ervas_trilha", "nome": "Ervas da trilha", "categoria": "material", "pilha": 99, "modelo": "ervas",
    "descricao": "Folhas de beira de caminho, ainda com cheiro de terra. Sozinhas não curam, mas a herbalista sabe o que fazer com elas."},
-  {"id": "item.cataplasma", "nome": "Cataplasma de ervas", "categoria": "consumivel", "pilha": 5, "icone": "cataplasma",
+  {"id": "item.cataplasma", "nome": "Cataplasma de ervas", "categoria": "consumivel", "pilha": 20, "modelo": "cataplasma",
    "descricao": "Ervas socadas e enroladas em pano limpo. Aplicada fora da luta, fecha um coração de vida.",
    "uso": {"efeito": "curar", "vida": 2, "rotulo": "Aplicar"}},
-  {"id": "item.fragmento_pedra", "nome": "Fragmento de pedra antiga", "categoria": "achado", "pilha": 10, "icone": "pedra",
+  {"id": "item.fragmento_pedra", "nome": "Fragmento de pedra antiga", "categoria": "achado", "pilha": 99, "modelo": "pedra",
    "descricao": "Uma lasca lisa, gasta pela chuva, com metade de um entalhe que ninguém da vila sabe ler."},
-  {"id": "item.madeira_velha", "nome": "Madeira envelhecida", "categoria": "material", "pilha": 20, "icone": "madeira",
+  {"id": "item.madeira_velha", "nome": "Madeira envelhecida", "categoria": "material", "pilha": 99, "modelo": "madeira",
    "descricao": "Aduelas de barril, secas e duras como osso. Ainda servem, se alguém souber trabalhar madeira."},
-  {"id": "item.registro_viagem", "nome": "Registro de viagem", "categoria": "curiosidade", "pilha": 1, "icone": "registro",
+  {"id": "item.registro_viagem", "nome": "Registro de viagem", "categoria": "curiosidade", "pilha": 1, "modelo": "registro",
    "descricao": "Um caderno de capa de couro com rotas a lápis e o desenho de uma torre. A última página ficou em branco."}
  ]
 }
