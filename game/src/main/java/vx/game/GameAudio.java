@@ -69,6 +69,7 @@ final class GameAudio {
 
     /** Ação do jogador → som de interface (null = ação muda). */
     static String uiEvent(String action) {
+        if (action.startsWith("espaco:")) return "ui.selecionar";        // rodada 13: um espaço da mochila
         return switch (action) {
             case "comecar", "criador", "continuar-jogo" -> "ui.confirmar";
             case "pausar", "trocar-aparencia", "fala-inicio", "diario", "diario-pausa" -> "ui.abrir";
@@ -76,6 +77,10 @@ final class GameAudio {
             case "escolha", "continuar-fala", "rastreador" -> "ui.selecionar";
             case "salvo" -> "ui.salvar";                                // o automático é mudo: sai junto com o som da missão
             case "descoberta" -> "missao.objetivo";                     // rodada 12: um lugar descoberto (o som aprovado de objetivo)
+            case "inventario" -> "ui.abrir";                              // rodada 13: mochila (os sons aprovados da interface)
+            case "fechar-inventario", "item-indisponivel" -> "ui.cancelar";
+            case "item-usar" -> "ui.confirmar";
+            case "item-coletado" -> "missao.recompensa";                  // um item recebido (o som aprovado de recompensa)
             default -> null;
         };
     }
