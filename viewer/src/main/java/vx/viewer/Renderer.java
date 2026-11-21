@@ -81,6 +81,11 @@ public final class Renderer implements AutoCloseable {
         public boolean silhouette = false;
         /** FXAA no pós (só aplicado sem supersampling). */
         public boolean fxaa = false;
+        /**
+         * Rodada 13.1: fundo TRANSPARENTE (sem céu; o alfa sai da cobertura dos objetos e do contorno) — para os itens da
+         * mochila desenhados sobre o painel translúcido. Desligado (o padrão) o resultado é o de sempre, pixel a pixel.
+         */
+        public boolean alpha = false;
     }
 
     public static final class Frame {
@@ -292,13 +297,15 @@ public final class Renderer implements AutoCloseable {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDepthMask(false);
         glDisable(GL_DEPTH_TEST);
-        sky.use()
-                .set("uInvViewProj", new Matrix4f(f.camera.viewProj()).invert())
-                .set("uZenith", s.zenith).set("uHorizon", s.horizon)
-                .set("uSunDir", s.sunDir).set("uSunGlow", s.sunGlow)
-                .set("uFlat", tg.studio);
-        glBindVertexArray(emptyVao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        if (!tg.alpha) {                                       // rodada 13.1: sem céu no fundo transparente
+            sky.use()
+                    .set("uInvViewProj", new Matrix4f(f.camera.viewProj()).invert())
+                    .set("uZenith", s.zenith).set("uHorizon", s.horizon)
+                    .set("uSunDir", s.sunDir).set("uSunGlow", s.sunGlow)
+                    .set("uFlat", tg.studio);
+            glBindVertexArray(emptyVao);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
         glEnable(GL_DEPTH_TEST);
         glDepthMask(true);
 
@@ -400,7 +407,8 @@ public final class Renderer implements AutoCloseable {
                 .set("uContrast", tg.post && !tg.silhouette ? s.contrast : 1f)
                 .set("uTint", tg.post && !tg.silhouette ? s.tint : new Vector3f(1, 1, 1))
                 .set("uVignette", tg.post && !tg.silhouette ? s.vignette : 0f)
-                .set("uFxaa", tg.fxaa && ssaa < 1.2f);
+                .set("uFxaa", tg.fxaa && ssaa < 1.2f)
+                .set("uAlphaOut", tg.alpha);
         Texture.bind(0, sceneFbo.color[0]);
         Texture.bind(1, sceneFbo.color[1]);
         Texture.bind(2, sceneFbo.depth);
