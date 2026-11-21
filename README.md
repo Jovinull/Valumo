@@ -90,6 +90,17 @@ A **Rodada 12.2** (mesmo ramo, em avaliação; a v2 continua sem publicar) integ
 
 Detalhes no [relatório](docs/validation/relatorio-rodada-12-2.md).
 
+A **Rodada 12.3** (mesmo ramo, publicado para revisão num pull request; a v2 continua sem congelar até o teste físico)
+fechou a v2:
+
+- **A câmera dentro da torre caída:** ela fica com o braço inteiro, e a torre se recorta só entre a câmera e o herói. A
+  câmera colada caiu de 40,6% para 2,1% dos quadros, sem mudar a torre nem a câmera do resto do jogo
+  ([recorte da câmera](docs/architecture/recorte-da-camera.md)).
+- **A Índira junto ao varal de ervas:** a vista da rua não passa mais atrás da placa do ofício.
+- **O Acapela na biblioteca de personagens** (do estudo do artista), sem lugar nas vilas até ganhar um papel.
+
+Detalhes no [relatório](docs/validation/relatorio-rodada-12-3.md).
+
 ## Requisitos
 
 - Linux x86-64 com OpenGL ≥ 3.3 (testado em Mesa 26.2 / Intel Iris Xe).
